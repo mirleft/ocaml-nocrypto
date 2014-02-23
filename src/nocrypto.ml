@@ -20,6 +20,8 @@ let cs_xor cs1 cs2 =
   done;
   cs
 
+let (<>) = cs_append
+
 module Hash : sig
   open Cstruct
   val sha1 : t -> t
@@ -70,13 +72,11 @@ struct
   let hmac_ipad = create_with blocksize 0x36
 
   let of_hash_fn hash key message =
-    let key' =
-      if Cstruct.len key > blocksize then hash key else key in
-    let key'' =
-      if Cstruct.len key' < blocksize then lpad0 key' else key' in
-    let opad = cs_xor key'' hmac_opad
-    and ipad = cs_xor key'' hmac_ipad in
-    hash (cs_append opad (hash (cs_append ipad message)))
+    let key = if Cstruct.len key > blocksize then hash key  else key in
+    let key = if Cstruct.len key < blocksize then lpad0 key else key in
+    let opad = cs_xor key hmac_opad
+    and ipad = cs_xor key hmac_ipad in
+    hash (opad <> hash (ipad <> message))
 
   let sha1 ~key cs = of_hash_fn Hash.sha1 key cs
   let md5  ~key cs = of_hash_fn Hash.md5  key cs
