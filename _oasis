@@ -1,0 +1,20 @@
+OASISFormat:  0.4
+Name:         nocrypto
+Version:      0.0.1
+Synopsis:     simple crypto for the modern age
+Authors:      David Kaloper <david@numm.org>
+Maintainers:  David Kaloper <david@numm.org>
+License:      BSD3
+Homepage:     https://github.com/mirleft/ocaml-nocrypto
+Plugins:      META (0.4)
+BuildTools:   ocamlbuild
+Description:
+  Crypto? And _without_ objects?
+  It's more likely than you think!
+
+Library nocrypto
+  Path:         src/
+  Modules:      Core
+  CSources:     sha1.c, sha1.h, md5.c, md5.h, stubs.c
+  BuildDepends: cstruct
+  Pack:         true
