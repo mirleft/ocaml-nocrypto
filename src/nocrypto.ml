@@ -1,4 +1,10 @@
 
+(* XXX this module can be made faster by
+ * a) doing some stuff in-place; and
+ * b) maybe moving some simple blit-like ops to C.
+ * The authors are aware of that.
+ *)
+
 let cs_append cs1 cs2 =
   let (l1, l2) = Cstruct.(len cs1, len cs2) in
   let cs = Cstruct.create (l1 + l2) in
