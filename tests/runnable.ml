@@ -1,6 +1,6 @@
 
 open Lwt
-open Nocrypto.Core
+open Nocrypto
 
 (*
 

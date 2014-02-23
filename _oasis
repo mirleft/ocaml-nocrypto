@@ -14,10 +14,9 @@ Description:
 
 Library "nocrypto"
   Path:         src/
-  Modules:      Core
+  Modules:      Nocrypto
   CSources:     sha1.c, sha1.h, md5.c, md5.h, stubs.c
   BuildDepends: cstruct
-  Pack:         true
 
 Executable "bench"
   Path:           tests/
