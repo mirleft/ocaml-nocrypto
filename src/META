@@ -1,0 +1,12 @@
+# OASIS_START
+# DO NOT EDIT (digest: e39c5c6a625cddc7c5fe6a8f80db760d)
+version = "0.0.1"
+description = "simple crypto for the modern age"
+requires = "cstruct"
+archive(byte) = "nocrypto.cma"
+archive(byte, plugin) = "nocrypto.cma"
+archive(native) = "nocrypto.cmxa"
+archive(native, plugin) = "nocrypto.cmxs"
+exists_if = "nocrypto.cma"
+# OASIS_STOP
+
