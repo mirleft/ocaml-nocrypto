@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 7174094c5aa8da3c9e08b89dfff7bb7a) *)
+(* DO NOT EDIT (digest: 8d3373e89dc741c8f27c650d57ea6582) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -558,7 +558,7 @@ let package_default =
      MyOCamlbuildBase.lib_ocaml = [("nocrypto", ["src"], [])];
      lib_c = [("nocrypto", "src/", ["src/sha1.h"; "src/md5.h"])];
      flags = [];
-     includes = []
+     includes = [("tests", ["src"])]
   }
   ;;
 

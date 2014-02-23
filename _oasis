@@ -12,9 +12,17 @@ Description:
   Crypto? And _without_ objects?
   It's more likely than you think!
 
-Library nocrypto
+Library "nocrypto"
   Path:         src/
   Modules:      Core
   CSources:     sha1.c, sha1.h, md5.c, md5.h, stubs.c
   BuildDepends: cstruct
   Pack:         true
+
+Executable "bench"
+  Path:           tests/
+  Install:        false
+  CompiledObject: native
+  MainIs:         runnable.ml
+  Build$:         flag(tests)
+  BuildDepends:   nocrypto, lwt, lwt.syntax, lwt.unix
