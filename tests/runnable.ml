@@ -55,6 +55,5 @@ let main () =
       Sys.argv.(0);
     exit 1
 
-let () =
-  Lwt_main.run @@ main ()
+let () = Lwt_main.run @@ main ()
 

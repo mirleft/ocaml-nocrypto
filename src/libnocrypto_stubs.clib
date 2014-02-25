@@ -1,6 +1,7 @@
 # OASIS_START
-# DO NOT EDIT (digest: 5ce98494a064ff37350328752f3a4f35)
+# DO NOT EDIT (digest: d3031a8d2ff2c0e05370b7b32ec7be61)
 sha1.o
 md5.o
+rijndael.o
 stubs.o
 # OASIS_STOP
