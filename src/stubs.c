@@ -97,38 +97,38 @@ CAMLprim value caml_DESU_aes_create_dec_key (value key) {
   CAMLreturn (rk);
 }
 
-CAMLprim value caml_DESU_aes_encrypt (value keysize, value rk, value plain) {
-  CAMLparam3 (keysize, rk, plain);
-  CAMLlocal1 (cipher);
+void caml_DESU_aes_encrypt (
+    value keysize, value rk, value plain, value cipher) {
+
+  CAMLparam4 (keysize, rk, plain, cipher);
 
   int keybits = Int_val (keysize) * 8;
 
-  if (Caml_ba_array_val (plain) -> dim[0] != 16) {
+  if ( Caml_ba_array_val (plain)  -> dim[0] < 16 ||
+       Caml_ba_array_val (cipher) -> dim[0] < 16 ) {
     caml_invalid_argument ("AES: invalid data length");
   }
-
-  cipher = caml_ba_alloc (CAML_BA_UINT8 | CAML_BA_C_LAYOUT, 1, NULL, &aes_blocksize);
 
   rijndaelEncrypt ( Caml_ba_data_val (rk), NROUNDS (keybits),
                     Caml_ba_data_val (plain), Caml_ba_data_val (cipher) );
 
-  CAMLreturn (cipher);
+  CAMLreturn0;
 }
 
-CAMLprim value caml_DESU_aes_decrypt (value keysize, value rk, value cipher) {
-  CAMLparam3 (keysize, rk, cipher);
-  CAMLlocal1 (plain);
+void caml_DESU_aes_decrypt (
+    value keysize, value rk, value cipher, value plain) {
+
+  CAMLparam4 (keysize, rk, cipher, plain);
 
   int keybits = Int_val (keysize) * 8;
 
-  if (Caml_ba_array_val (cipher) -> dim[0] != 16) {
+  if ( Caml_ba_array_val (cipher) -> dim[0] < 16 ||
+       Caml_ba_array_val (plain)  -> dim[0] < 16 ) {
     caml_invalid_argument ("AES: invalid data length");
   }
-
-  plain = caml_ba_alloc (CAML_BA_UINT8 | CAML_BA_C_LAYOUT, 1, NULL, &aes_blocksize);
 
   rijndaelDecrypt ( Caml_ba_data_val (rk), NROUNDS (keybits),
                     Caml_ba_data_val (cipher), Caml_ba_data_val (plain) );
 
-  CAMLreturn (plain);
+  CAMLreturn0;
 }

@@ -12,6 +12,20 @@ let cs_append cs1 cs2 =
   Cstruct.blit cs2 0 cs l1 l2;
   cs
 
+let cs_concat css =
+  let cs_r =
+    Cstruct.create @@
+      List.fold_left
+        (fun a cs -> a + Cstruct.len cs)
+        0 css in
+  let _ =
+    List.fold_left
+      (fun off cs ->
+        let n = Cstruct.len cs in
+        Cstruct.blit cs 0 cs_r off n ; off + n )
+      0 css in
+  cs_r
+
 let cs_xor cs1 cs2 =
   let len = Cstruct.(min (len cs1) (len cs2)) in
   let cs = Cstruct.create len in
@@ -30,8 +44,8 @@ module Native = struct
   external md5  : bytes -> bytes = "caml_DESU_md5"
   external aes_create_enc : bytes -> bytes = "caml_DESU_aes_create_enc_key"
   external aes_create_dec : bytes -> bytes = "caml_DESU_aes_create_dec_key"
-  external aes_encrypt : int -> bytes -> bytes -> bytes = "caml_DESU_aes_encrypt"
-  external aes_decrypt : int -> bytes -> bytes -> bytes = "caml_DESU_aes_decrypt"
+  external aes_encrypt_into : int -> bytes -> bytes -> bytes -> unit = "caml_DESU_aes_encrypt"
+  external aes_decrypt_into : int -> bytes -> bytes -> bytes -> unit = "caml_DESU_aes_decrypt"
 end
 
 module Hash : sig
@@ -142,25 +156,66 @@ module AES : sig
   val of_secret : t -> key
   val encrypt : key -> t -> t
   val decrypt : key -> t -> t
+  val encrypt_ecb : key -> t -> t
+  val decrypt_ecb : key -> t -> t
+  val encrypt_cbc : key -> t -> t -> t * t
+  val decrypt_cbc : key -> t -> t -> t * t
 end
   =
 struct
 
+  let ba_of_cs = Cstruct.to_bigarray
+
   type key = int * Native.bytes * Native.bytes
 
   let of_secret cs =
-    let arr = Cstruct.to_bigarray cs in
+    let arr = ba_of_cs cs in
     let (e_key, d_key) =
       Native.(aes_create_enc arr, aes_create_dec arr) in
     (Cstruct.len cs, e_key, d_key)
 
-  let encrypt (size, e_key, _) cs =
-    let cipher = Native.aes_encrypt size e_key (Cstruct.to_bigarray cs) in
-    Cstruct.of_bigarray cipher
+  let encrypt (size, e_key, _) plain =
+    let cipher = Cstruct.create 16 in
+    Native.aes_encrypt_into size e_key (ba_of_cs plain) (ba_of_cs cipher);
+    cipher
 
-  let decrypt (size, _, d_key) cs =
-    let plain = Native.aes_decrypt size d_key (Cstruct.to_bigarray cs) in
-    Cstruct.of_bigarray plain
+  let decrypt (size, _, d_key) cipher =
+    let plain = Cstruct.create 16 in
+    Native.aes_decrypt_into size d_key (ba_of_cs cipher) (ba_of_cs plain);
+    plain
+
+  let encrypt_ecb, decrypt_ecb =
+    let ecb f source =
+      let rec loop blocks src = function
+        | 0 -> cs_concat @@ List.rev blocks
+        | n -> loop (f src :: blocks) (Cstruct.shift src 16) (n - 16) in
+      loop [] source (Cstruct.len source)
+    in
+    (fun key -> ecb (encrypt key)), (fun key -> ecb (decrypt key))
+
+  let encrypt_cbc key iv plain =
+    let rec loop blocks iv src = function
+      | 0 -> (iv, cs_concat @@ List.rev blocks)
+      | n ->
+          let blk = encrypt key (cs_xor src iv) in
+          loop (blk :: blocks)
+               blk
+               (Cstruct.shift src 16)
+               (n - 16)
+    in
+    loop [] iv plain (Cstruct.len plain)
+
+  let decrypt_cbc key iv cipher =
+    let rec loop blocks iv src = function
+      | 0 -> (iv, cs_concat @@ List.rev blocks)
+      | n ->
+          let blk = decrypt key src in
+          loop (cs_xor iv blk :: blocks)
+               (Cstruct.sub src 0 16)
+               (Cstruct.shift src 16)
+               (n - 16)
+    in
+    loop [] iv cipher (Cstruct.len cipher)
 
 end
 
@@ -170,7 +225,7 @@ module AES_dbg = struct
 
   let encrypt_simple key str =
     let cs = Cstruct.of_string str in
-    let xx = AES.encrypt key cs in
+    let xx = AES.encrypt_ecb key cs in
     Cstruct.hexdump xx;
     Cstruct.to_string xx
 
@@ -179,16 +234,10 @@ module AES_dbg = struct
   let loop sec msg =
     let k   = AES.of_secret (Cstruct.of_string sec)
     and pt0 = Cstruct.of_string msg in
-    let ct  = AES.encrypt k pt0 in
-    let pt1 = AES.decrypt k ct  in
+    let ct  = AES.encrypt_ecb k pt0 in
+    let pt1 = AES.decrypt_ecb k ct  in
     Cstruct.( hexdump pt0 ; hexdump ct ; hexdump pt1 );
     print_endline (Cstruct.to_string pt1);
     (ct, pt1)
 end
 
-
-(* let xx () =
-  let repr =
-    Cstruct.(of_bigarray (AES.of_secret (of_string "abcdefghijklmnop"))) in
-  Cstruct.hexdump repr;
-  repr *)
