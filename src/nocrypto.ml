@@ -40,12 +40,12 @@ module Native = struct
   open Bigarray
   type bytes = (char, int8_unsigned_elt, c_layout) Array1.t
 
-  external sha1 : bytes -> bytes = "caml_DESU_sha1"
-  external md5  : bytes -> bytes = "caml_DESU_md5"
-  external aes_create_enc : bytes -> bytes = "caml_DESU_aes_create_enc_key"
-  external aes_create_dec : bytes -> bytes = "caml_DESU_aes_create_dec_key"
-  external aes_encrypt_into : int -> bytes -> bytes -> bytes -> unit = "caml_DESU_aes_encrypt"
-  external aes_decrypt_into : int -> bytes -> bytes -> bytes -> unit = "caml_DESU_aes_decrypt"
+  external sha1 : bytes -> bytes = "caml_nc_sha1"
+  external md5  : bytes -> bytes = "caml_nc_md5"
+  external aes_create_enc : bytes -> bytes = "caml_nc_aes_create_enc_key"
+  external aes_create_dec : bytes -> bytes = "caml_nc_aes_create_dec_key"
+  external aes_encrypt_into : int -> bytes -> bytes -> bytes -> unit = "caml_nc_aes_encrypt"
+  external aes_decrypt_into : int -> bytes -> bytes -> bytes -> unit = "caml_nc_aes_decrypt"
 end
 
 module Hash : sig

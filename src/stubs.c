@@ -29,7 +29,7 @@
 
 intnat sha1_size = 20;
 
-CAMLprim value caml_DESU_sha1 (value buffer) {
+CAMLprim value caml_nc_sha1 (value buffer) {
   CAMLparam1 (buffer);
   CAMLlocal1 (res);
   res = caml_ba_alloc (CAML_BA_UINT8 | CAML_BA_C_LAYOUT, 1, NULL, &sha1_size);
@@ -45,7 +45,7 @@ CAMLprim value caml_DESU_sha1 (value buffer) {
 
 intnat md5_size = 16;
 
-CAMLprim value caml_DESU_md5 (value buffer) {
+CAMLprim value caml_nc_md5 (value buffer) {
   CAMLparam1 (buffer);
   CAMLlocal1 (res);
   res = caml_ba_alloc (CAML_BA_UINT8 | CAML_BA_C_LAYOUT, 1, NULL, &md5_size);
@@ -61,7 +61,7 @@ CAMLprim value caml_DESU_md5 (value buffer) {
 
 intnat aes_blocksize = 16;
 
-CAMLprim value caml_DESU_aes_create_enc_key (value key) {
+CAMLprim value caml_nc_aes_create_enc_key (value key) {
   CAMLparam1 (key);
   CAMLlocal1 (rk);
 
@@ -79,7 +79,7 @@ CAMLprim value caml_DESU_aes_create_enc_key (value key) {
   CAMLreturn (rk);
 }
 
-CAMLprim value caml_DESU_aes_create_dec_key (value key) {
+CAMLprim value caml_nc_aes_create_dec_key (value key) {
   CAMLparam1 (key);
   CAMLlocal1 (rk);
 
@@ -97,7 +97,7 @@ CAMLprim value caml_DESU_aes_create_dec_key (value key) {
   CAMLreturn (rk);
 }
 
-void caml_DESU_aes_encrypt (
+void caml_nc_aes_encrypt (
     value keysize, value rk, value plain, value cipher) {
 
   CAMLparam4 (keysize, rk, plain, cipher);
@@ -115,7 +115,7 @@ void caml_DESU_aes_encrypt (
   CAMLreturn0;
 }
 
-void caml_DESU_aes_decrypt (
+void caml_nc_aes_decrypt (
     value keysize, value rk, value cipher, value plain) {
 
   CAMLparam4 (keysize, rk, cipher, plain);
