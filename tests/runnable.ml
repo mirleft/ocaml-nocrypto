@@ -2,6 +2,18 @@
 open Lwt
 open Nocrypto
 
+
+let time f =
+  let t1 = Sys.time () in
+  let r  = f () in
+  let t2 = Sys.time () in
+  Printf.printf "[time] %.04f sec\n%!" (t2 -. t1) ;
+  r
+
+let rec replicate f = function
+  | 0 -> []
+  | n -> let x = f () in x :: replicate f (pred n)
+
 (*
 
 let random_string () =
@@ -55,19 +67,15 @@ let main () =
 
   | ["hmac_sha1"; k] -> on_stdin @@ Hmac.sha1 ~key:(cs_of_s k)
 
-  | ["aes"; "encrypt"; k] -> on_stdin AES.(encrypt @@ of_secret (cs_of_s k))
+  | ["aes_ecb"; "encrypt"; k] -> on_stdin AES.(encrypt_ecb ~key:(aes_key k))
 
-  | ["aes"; "decrypt"; k] -> on_stdin AES.(decrypt @@ of_secret (cs_of_s k))
-
-  | ["aes_ecb"; "encrypt"; k] -> on_stdin AES.(encrypt_ecb @@ aes_key k)
-
-  | ["aes_ecb"; "decrypt"; k] -> on_stdin AES.(decrypt_ecb @@ aes_key k)
+  | ["aes_ecb"; "decrypt"; k] -> on_stdin AES.(decrypt_ecb ~key:(aes_key k))
 
   | ["aes_cbc"; "encrypt"; k; iv] -> on_stdin @@ fun i ->
-      snd AES.(encrypt_cbc (aes_key k) (cs_of_s iv) i)
+      snd AES.(encrypt_cbc ~key:(aes_key k) ~iv:(cs_of_s iv) i)
 
   | ["aes_cbc"; "decrypt"; k; iv] -> on_stdin @@ fun i ->
-      snd AES.(decrypt_cbc (aes_key k) (cs_of_s iv) i)
+      snd AES.(decrypt_cbc ~key:(aes_key k) ~iv:(cs_of_s iv) i)
 
   | _ ->
       Printf.eprintf
@@ -77,3 +85,16 @@ let main () =
 
 let () = Lwt_main.run @@ main ()
 
+(* let () =
+
+  let pt  = Cstruct.of_string "<(^_^<)  (>^_^)>"
+  and iv  = Cstruct.of_string "desu1234desu1234"
+  and key = AES.of_secret (Cstruct.of_string "aaaabbbbccccdddd") in
+  let pts = time @@ fun () ->
+    cs_concat @@ replicate (fun () -> pt ) 100000 in
+  let _ = time @@ fun () ->
+    AES.encrypt_cbc key iv pts
+  and _ = time @@ fun () ->
+    AES.encrypt_cbc' key iv pts
+  in
+  () *)

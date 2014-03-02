@@ -105,8 +105,8 @@ module ARC4 : sig
   open Cstruct
   type key
   val of_secret : t -> key
-  val encrypt : key -> t -> key * t
-  val decrypt : key -> t -> key * t
+  val encrypt : key:key -> t -> key * t
+  val decrypt : key:key -> t -> key * t
 end
   =
 struct
@@ -128,7 +128,7 @@ struct
     in
     ( loop 0 0 ; (0, 0, s) )
 
-  let encrypt (i, j, s') cs =
+  let encrypt ~key:(i, j, s') cs =
     let s   = Array.copy s'
     and len = Cstruct.len cs in
     let res = Cstruct.create len in
@@ -150,19 +150,74 @@ struct
 
 end
 
-module AES : sig
+module type Block_cipher = sig
   open Cstruct
   type key
+  val block_size : int
   val of_secret : t -> key
   val encrypt : key -> t -> t
   val decrypt : key -> t -> t
-  val encrypt_ecb : key -> t -> t
-  val decrypt_ecb : key -> t -> t
-  val encrypt_cbc : key -> t -> t -> t * t
-  val decrypt_cbc : key -> t -> t -> t * t
+end
+
+module Block_to_stream_cipher (BC : Block_cipher) :
+sig
+  open Cstruct
+
+  type key
+
+  val block_size : int
+  val of_secret : t -> key
+
+  val encrypt_ecb : key:key -> t -> t
+  val decrypt_ecb : key:key -> t -> t
+
+  val encrypt_cbc : key:key -> iv:t -> t -> t * t
+  val decrypt_cbc : key:key -> iv:t -> t -> t * t
 end
   =
 struct
+  include BC
+
+  let encrypt_ecb, decrypt_ecb =
+    let ecb f source =
+      let rec loop blocks src = function
+        | 0 -> cs_concat @@ List.rev blocks
+        | n -> loop (f src :: blocks)
+                    (Cstruct.shift src block_size)
+                    (n - block_size) in
+      loop [] source (Cstruct.len source)
+    in
+    (fun ~key -> ecb (encrypt key)), (fun ~key -> ecb (decrypt key))
+
+  let encrypt_cbc ~key ~iv plain =
+    let rec loop blocks iv src = function
+      | 0 -> (iv, cs_concat @@ List.rev blocks)
+      | n ->
+          let blk = encrypt key (cs_xor src iv) in
+          loop (blk :: blocks)
+               blk
+               (Cstruct.shift src block_size)
+               (n - block_size)
+    in
+    loop [] iv plain (Cstruct.len plain)
+
+  let decrypt_cbc ~key ~iv cipher =
+    let rec loop blocks iv src = function
+      | 0 -> (iv, cs_concat @@ List.rev blocks)
+      | n ->
+          let blk = decrypt key src in
+          loop (cs_xor iv blk :: blocks)
+               (Cstruct.sub src 0 block_size)
+               (Cstruct.shift src block_size)
+               (n - block_size)
+    in
+    loop [] iv cipher (Cstruct.len cipher)
+
+end
+
+module AES = Block_to_stream_cipher ( struct
+
+  let block_size = 16
 
   let ba_of_cs = Cstruct.to_bigarray
 
@@ -170,8 +225,7 @@ struct
 
   let of_secret cs =
     let arr = ba_of_cs cs in
-    let (e_key, d_key) =
-      Native.(aes_create_enc arr, aes_create_dec arr) in
+    let (e_key, d_key) = Native.(aes_create_enc arr, aes_create_dec arr) in
     (Cstruct.len cs, e_key, d_key)
 
   let encrypt (size, e_key, _) plain =
@@ -184,40 +238,8 @@ struct
     Native.aes_decrypt_into size d_key (ba_of_cs cipher) (ba_of_cs plain);
     plain
 
-  let encrypt_ecb, decrypt_ecb =
-    let ecb f source =
-      let rec loop blocks src = function
-        | 0 -> cs_concat @@ List.rev blocks
-        | n -> loop (f src :: blocks) (Cstruct.shift src 16) (n - 16) in
-      loop [] source (Cstruct.len source)
-    in
-    (fun key -> ecb (encrypt key)), (fun key -> ecb (decrypt key))
+end )
 
-  let encrypt_cbc key iv plain =
-    let rec loop blocks iv src = function
-      | 0 -> (iv, cs_concat @@ List.rev blocks)
-      | n ->
-          let blk = encrypt key (cs_xor src iv) in
-          loop (blk :: blocks)
-               blk
-               (Cstruct.shift src 16)
-               (n - 16)
-    in
-    loop [] iv plain (Cstruct.len plain)
-
-  let decrypt_cbc key iv cipher =
-    let rec loop blocks iv src = function
-      | 0 -> (iv, cs_concat @@ List.rev blocks)
-      | n ->
-          let blk = decrypt key src in
-          loop (cs_xor iv blk :: blocks)
-               (Cstruct.sub src 0 16)
-               (Cstruct.shift src 16)
-               (n - 16)
-    in
-    loop [] iv cipher (Cstruct.len cipher)
-
-end
 
 module AES_dbg = struct
 
