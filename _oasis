@@ -13,10 +13,11 @@ Description:
   It's more likely than you think!
 
 Library "nocrypto"
-  Path:         src/
-  Modules:      Nocrypto
-  CSources:     sha1.c, sha1.h, md5.c, md5.h, rijndael.c, rijndael.h, stubs.c
-  BuildDepends: cstruct
+  Path:            src/
+  Modules:         Nocrypto
+  InternalModules: Cstruct_, Native, Hash, Stream_cipher, Block_cipher, Algo_types
+  CSources:        sha1.c, sha1.h, md5.c, md5.h, rijndael.c, rijndael.h, stubs.c
+  BuildDepends:    cstruct
 
 Executable "bench"
   Path:           tests/

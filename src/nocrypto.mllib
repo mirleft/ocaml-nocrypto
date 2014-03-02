@@ -1,4 +1,10 @@
 # OASIS_START
-# DO NOT EDIT (digest: 937e9317edc4ff47e12e17ec2ebd2555)
+# DO NOT EDIT (digest: 50e6cb4015da82084c50b83df69b57d2)
 Nocrypto
+Cstruct_
+Native
+Hash
+Stream_cipher
+Block_cipher
+Algo_types
 # OASIS_STOP

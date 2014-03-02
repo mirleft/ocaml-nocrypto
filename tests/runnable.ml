@@ -47,6 +47,9 @@ let () =
 
 let cs_of_s = Cstruct.of_string
 
+open Nocrypto
+
+
 let on_stdin fn =
   lwt input = Lwt_io.(read stdin) in
   let res = fn (Cstruct.of_string input) in
@@ -54,28 +57,28 @@ let on_stdin fn =
   Cstruct.hexdump_to_buffer b res;
   Lwt_io.printl (Buffer.contents b)
 
-let aes_key str = AES.of_secret (Cstruct.of_string str)
+let aes_key str = Block.AES.of_secret (Cstruct.of_string str)
 
 let main () =
   match List.tl (Array.to_list Sys.argv) with
 
-  | ["md5"]       -> on_stdin Hash.md5
+  | ["md5"]       -> on_stdin Hash.MD5.digest
 
-  | ["sha1"]      -> on_stdin Hash.sha1
+  | ["sha1"]      -> on_stdin Hash.SHA1.digest
 
-  | ["hmac_md5" ; k] -> on_stdin @@ Hmac.md5  ~key:(cs_of_s k)
+  | ["hmac_md5" ; k] -> on_stdin @@ Hash.MD5.hmac ~key:(cs_of_s k)
 
-  | ["hmac_sha1"; k] -> on_stdin @@ Hmac.sha1 ~key:(cs_of_s k)
+  | ["hmac_sha1"; k] -> on_stdin @@ Hash.SHA1.hmac ~key:(cs_of_s k)
 
-  | ["aes_ecb"; "encrypt"; k] -> on_stdin AES.(encrypt_ecb ~key:(aes_key k))
+  | ["aes_ecb"; "encrypt"; k] -> on_stdin Block.AES.(encrypt_ecb ~key:(aes_key k))
 
-  | ["aes_ecb"; "decrypt"; k] -> on_stdin AES.(decrypt_ecb ~key:(aes_key k))
+  | ["aes_ecb"; "decrypt"; k] -> on_stdin Block.AES.(decrypt_ecb ~key:(aes_key k))
 
   | ["aes_cbc"; "encrypt"; k; iv] -> on_stdin @@ fun i ->
-      snd AES.(encrypt_cbc ~key:(aes_key k) ~iv:(cs_of_s iv) i)
+      snd Block.AES.(encrypt_cbc ~key:(aes_key k) ~iv:(cs_of_s iv) i)
 
   | ["aes_cbc"; "decrypt"; k; iv] -> on_stdin @@ fun i ->
-      snd AES.(decrypt_cbc ~key:(aes_key k) ~iv:(cs_of_s iv) i)
+      snd Block.AES.(decrypt_cbc ~key:(aes_key k) ~iv:(cs_of_s iv) i)
 
   | _ ->
       Printf.eprintf
