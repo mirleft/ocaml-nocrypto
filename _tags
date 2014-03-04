@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: c05731ca903c6c3802c4c8eb130b5f98)
+# DO NOT EDIT (digest: 53b23e8a17966611b415d162ec5b2a88)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -21,6 +21,17 @@
 "src/md5.c": pkg_cstruct
 "src/rijndael.c": pkg_cstruct
 "src/stubs.c": pkg_cstruct
+# Library testlib
+"tests/testlib.cmxs": use_testlib
+# Executable test_runner
+<tests/testrunner.{native,byte}>: use_testlib
+<tests/testrunner.{native,byte}>: use_nocrypto
+<tests/testrunner.{native,byte}>: pkg_oUnit
+<tests/testrunner.{native,byte}>: pkg_cstruct.unix
+<tests/testrunner.{native,byte}>: pkg_cstruct
+<tests/*.ml{,i}>: use_testlib
+<tests/*.ml{,i}>: pkg_oUnit
+<tests/*.ml{,i}>: pkg_cstruct.unix
 # Executable bench
 "tests/runnable.native": use_nocrypto
 "tests/runnable.native": pkg_lwt

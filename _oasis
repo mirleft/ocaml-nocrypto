@@ -25,6 +25,26 @@ Library "nocrypto"
   CSources:        sha1.c, sha1.h, md5.c, md5.h, rijndael.c, rijndael.h, stubs.c
   BuildDepends:    cstruct
 
+Library "testlib"
+  Path:         tests/
+  Modules:      Testlib
+  Install:      false
+  Build$:       flag(tests)
+  BuildDepends: nocrypto, oUnit, cstruct.unix
+
+Executable "test_runner"
+  Path:           tests/
+  Install:        false
+  CompiledObject: best
+  MainIs:         testrunner.ml
+  Build$:         flag(tests)
+  BuildDepends:   testlib
+
+Test the_things
+  Command:   $test_runner
+  TestTools: test_runner
+  Run$:      flag(tests)
+
 Executable "bench"
   Path:           tests/
   Install:        false
@@ -32,3 +52,4 @@ Executable "bench"
   MainIs:         runnable.ml
   Build$:         flag(tests)
   BuildDepends:   nocrypto, lwt, lwt.syntax, lwt.unix
+
