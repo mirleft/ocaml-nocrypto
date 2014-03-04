@@ -79,19 +79,3 @@ let empty = Cstruct.create 0
 
 let (<>) = append
 
-let of_hex str =
-
-  let digit c =
-    let open Char in
-    let i = code (lowercase c) in
-    if i >= code '0' && i <= code '9' then i - code '0' else
-    if i >= code 'a' && i <= code 'f' then i - code 'a' + 10
-    else invalid_arg "hex." in
-
-  let len = String.length str / 2 in
-  let cs  = Cstruct.create len in
-  for i = 0 to len - 1 do
-    Cstruct.set_uint8 cs i @@
-      (hex str.[i * 2] lsl 4) + hex str.[i * 2 + 1]
-  done;
-  cs
