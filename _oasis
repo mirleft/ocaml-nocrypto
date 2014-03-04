@@ -15,7 +15,13 @@ Description:
 Library "nocrypto"
   Path:            src/
   Modules:         Nocrypto
-  InternalModules: Cstruct_, Native, Hash, Stream_cipher, Block_cipher, Algo_types
+  InternalModules: Cstruct_,
+                   Native,
+                   Hash,
+                   Stream_cipher,
+                   Gcm,
+                   Block_cipher,
+                   Algo_types
   CSources:        sha1.c, sha1.h, md5.c, md5.h, rijndael.c, rijndael.h, stubs.c
   BuildDepends:    cstruct
 
