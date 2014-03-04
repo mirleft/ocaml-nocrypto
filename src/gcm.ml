@@ -29,6 +29,7 @@ module I128 = struct
     let bit' x i = logand 1L (shift_right_logical x (63 - i)) in
     if i < 64 then bit' a i else bit' b (i - 64)
 
+  (* XXX *)
   let rnd () = Random.(Int64.(int64 max_int, int64 max_int))
 
 end
@@ -122,8 +123,8 @@ let gcm ~cipher ~mode ~key ~iv ?(adata=empty) data =
     | `Decrypt -> (data', data ) in
 
   let s = ghash ~key:h @@
-          concat [ adata ; padding adata ; cdata ; padding cdata
-                 ; of_int64s [ bits adata ; bits cdata  ] ] in
+          concat [ adata ; padding adata ; cdata ; padding cdata ;
+                   of_int64s [ bits adata ; bits cdata  ] ] in
   let t = gctr ~cipher ~key ~icb:j0 s in
 
   (data', t)
@@ -145,7 +146,7 @@ let test = [
     "cafebabefacedbaddecaf888")
   ]
 
-let dotest () =
+(* let dotest () =
   let open Block_cipher in
   List.map (fun (key, p, iv) ->
     gcm ~cipher:AES.encrypt
@@ -153,7 +154,7 @@ let dotest () =
         ~key:(AES.of_secret (of_hex key))
         ~iv:(of_hex iv)
         (of_hex p))
-  test
+  test *)
 
 module CheckGF = struct
 

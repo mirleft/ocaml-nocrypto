@@ -7,29 +7,32 @@ module type Cipher_fn = sig
   val decrypt : key -> Cstruct.t -> Cstruct.t
 end
 
-module Build ( C : Cipher_fn ) = struct
-  include C
+module Mode_ECB ( C : Cipher_fn ) = struct
 
   let encrypt_ecb, decrypt_ecb =
     let ecb f source =
       let rec loop blocks src = function
         | 0 -> Cstruct_.concat @@ List.rev blocks
         | n -> loop (f src :: blocks)
-                    (Cstruct.shift src block_size)
-                    (n - block_size) in
+                    (Cstruct.shift src C.block_size)
+                    (n - C.block_size) in
       loop [] source (Cstruct.len source)
     in
-    (fun ~key -> ecb (encrypt key)), (fun ~key -> ecb (decrypt key))
+    (fun ~key -> ecb (C.encrypt key)), (fun ~key -> ecb (C.decrypt key))
+
+end
+
+module Mode_CBC ( C : Cipher_fn ) = struct
 
   let encrypt_cbc ~key ~iv plain =
     let rec loop blocks iv src = function
       | 0 -> (iv, Cstruct_.concat @@ List.rev blocks)
       | n ->
-          let blk = encrypt key (Cstruct_.xor src iv) in
+          let blk = C.encrypt key (Cstruct_.xor src iv) in
           loop (blk :: blocks)
                blk
-               (Cstruct.shift src block_size)
-               (n - block_size)
+               (Cstruct.shift src C.block_size)
+               (n - C.block_size)
     in
     loop [] iv plain (Cstruct.len plain)
 
@@ -37,17 +40,29 @@ module Build ( C : Cipher_fn ) = struct
     let rec loop blocks iv src = function
       | 0 -> (iv, Cstruct_.concat @@ List.rev blocks)
       | n ->
-          let blk = decrypt key src in
+          let blk = C.decrypt key src in
           loop (Cstruct_.xor iv blk :: blocks)
-               (Cstruct.sub src 0 block_size)
-               (Cstruct.shift src block_size)
-               (n - block_size)
+               (Cstruct.sub src 0 C.block_size)
+               (Cstruct.shift src C.block_size)
+               (n - C.block_size)
     in
     loop [] iv cipher (Cstruct.len cipher)
 
 end
 
-module AES = Build ( struct
+module Mode_GCM ( C : Cipher_fn ) = struct
+
+  assert (C.block_size = 16)
+
+  let encrypt_gcm ~key ~iv ?adata cs =
+    Gcm.gcm ~cipher:C.encrypt ~mode:`Encrypt ~key ~iv ?adata cs
+
+  let decrypt_gcm ~key ~iv ?adata cs =
+    Gcm.gcm ~cipher:C.encrypt ~mode:`Decrypt ~key ~iv ?adata cs
+
+end
+
+module AES_Core = struct
 
   let block_size = 16
 
@@ -70,4 +85,16 @@ module AES = Build ( struct
     Native.aes_decrypt_into size d_key (ba_of_cs cipher) (ba_of_cs plain);
     plain
 
-end )
+end
+
+module AES = struct
+  module AES_ECB = Mode_ECB (AES_Core)
+  module AES_CBC = Mode_CBC (AES_Core)
+  module AES_GCM = Mode_GCM (AES_Core)
+
+  include AES_Core
+  include AES_ECB
+  include AES_CBC
+  include AES_GCM
+end
+
