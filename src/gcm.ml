@@ -105,7 +105,7 @@ let padding cs =
   let p_len n = (16 - (n mod 16)) mod 16 in
   create_with (p_len (len cs)) 0
 
-let bits cs = Int64.of_int (len cs * 8)
+let nbits cs = Int64.of_int (len cs * 8)
 
 let gcm ~cipher ~mode ~key ~iv ?(adata=empty) data =
 
@@ -114,7 +114,7 @@ let gcm ~cipher ~mode ~key ~iv ?(adata=empty) data =
   let j0 = match len iv with
     | 12 -> concat [ iv; of_int32s [1l] ]
     | _  -> ghash ~key:h @@
-            concat [ iv; padding iv; of_int64s [0L; bits iv] ] in
+            concat [ iv; padding iv; of_int64s [0L; nbits iv] ] in
 
   let data' = gctr ~cipher ~key ~icb:(incr32 j0) data in
 
@@ -124,7 +124,7 @@ let gcm ~cipher ~mode ~key ~iv ?(adata=empty) data =
 
   let s = ghash ~key:h @@
           concat [ adata ; padding adata ; cdata ; padding cdata ;
-                   of_int64s [ bits adata ; bits cdata  ] ] in
+                   of_int64s [ nbits adata ; nbits cdata  ] ] in
   let t = gctr ~cipher ~key ~icb:j0 s in
 
   (data', t)
