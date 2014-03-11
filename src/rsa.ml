@@ -1,5 +1,4 @@
 
-
 let of_cstruct cs =
   let open Cstruct in
   let open Cstruct.BE in
@@ -24,7 +23,6 @@ let m4' = Z.of_int64 m4
 let m7' = Z.of_int64 m7
 
 let size_u z =
-
   let rec loop acc = function
     | z when z > m7' -> loop (acc + 7) Z.(shift_right z 56)
     | z when z > m4' -> loop (acc + 4) Z.(shift_right z 32)
@@ -125,13 +123,11 @@ let rec gen_prime_z ?mix bytes =
   | 0 -> gen_prime_z ~mix:lead bytes
   | _ -> z
 
-let rel_prime a b = Z.(gcd a b = one)
-
 (* XXX
- * All kinds bad. Default exponent should probably be smaller than 2^16+1.
- * Works only for key sizes of 2k bytes. Two bits of that are rigged.
+ * All kinds bad. Default public exponent should probably be smaller than
+ * 2^16+1. Works only for key sizes of 2n bytes. Two bits of that are rigged.
  *)
-let generate ?(e = Z.of_int (0x10001)) bytes =
+let generate ?(e = Z.of_int 0x10001) bytes =
 
   let (p, q) =
     let rec attempt order =
@@ -162,9 +158,11 @@ let print_key { e; d; n; p; q; dp; dq; q' } =
 let attempt =
   let e = Z.of_int 43
   and m = Cstruct.of_string "quasyantistatic hemoglobin" in
+(*   and m = Cstruct.of_string "AB" in *)
   fun () ->
     Printf.printf "+ generating...\n%!";
     let key = generate 64 in
+(*     let key = generate 2 in *)
     print_key key;
     Printf.printf "+ encrypt...\n%!";
     let c = encrypt ~key:(pub_of_priv key) m in
