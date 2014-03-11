@@ -50,40 +50,26 @@ let to_cstruct z =
   ( loop z (size - 1) ; cs )
 
 
-(* XXX proper rng *)
-let random_z bytes =
-  let rec loop acc = function
-    | 0 -> acc
-    | n ->
-        let i = Random.int 0x100 in
-        loop Z.((shift_left acc 8) lor of_int i) (pred n) in
-  loop Z.zero order
-
-(* XXX
- * This is fishy. Most significant bit is always set to avoid reducing the
- * modulus, but this drops 1 bit of randomness. Investigate.
- *)
-let rec gen_prime_z ?mix order =
-  let lead = match mix with
-    | Some x -> x
-    | None   -> Z.(pow (of_int 2)) (order * 8 - 1) in
-  let z = Z.(random_z order lor lead) in
-  match Z.probab_prime z 25 with
-  | 0 -> gen_prime_z ~mix:lead order
-  | _ -> z
-
 type pub  = { e : Z.t ; n : Z.t }
+
 type priv = {
-  e  : Z.t ; d  : Z.t ; n : Z.t ;
-  p  : Z.t ; q  : Z.t ;
-  dp : Z.t ; dq : Z.t ; q' : Z.t
+  e : Z.t ; d : Z.t ; n  : Z.t ;
+  p : Z.t ; q : Z.t ; dp : Z.t ; dq : Z.t ; q' : Z.t
 }
 
 let pub  ~e ~n = { e ; n }
 
+let pub_of_cstruct ~e ~n = { e = of_cstruct e; n = of_cstruct n }
+
 let priv ~e ~d ~n ~p ~q ~dp ~dq ~q' = { e; d; n; p; q; dp; dq; q' }
 
-let pub_of_priv (k : priv) = { e = k.e ; n = k.n }
+let priv_of_cstruct ~e ~d ~n ~p ~q ~dp ~dq ~q' = {
+  e  = of_cstruct e ; d  = of_cstruct d ; n = of_cstruct n;
+  p  = of_cstruct p ; q  = of_cstruct q ;
+  dp = of_cstruct dp; dq = of_cstruct dq; q' = of_cstruct q'
+}
+
+let pub_of_priv ({ e; n } : priv) = { e = e ; n = n }
 
 let priv_of_primes ~e ~p ~q =
   let n  = Z.(p * q)
@@ -94,38 +80,10 @@ let priv_of_primes ~e ~p ~q =
   priv ~e ~d ~n ~p ~q ~dp ~dq ~q'
 
 
-let print_key { e; d; n; p; q; dp; dq; q' } =
-  let f = Z.to_string in
-  Printf.printf
-    "RSA key
-  e : %s
-  d : %s
-  n : %s
-  p : %s
-  q : %s
-  dp: %s
-  dq: %s
-  q': %s\n%!"
-    (f e) (f d) (f n) (f p) (f q) (f dp) (f dq) (f q')
-
-let generate ~e bytes =
-
-  let (p, q) =
-    let rec attempt order =
-      let (p, q) = (gen_prime_z order, gen_prime_z order) in
-      let phi    = Z.(pred p * pred q) in
-      match p = q with
-      | false when Z.(gcd e phi = one) -> (p, q)
-      | _                              -> attempt order in
-    attempt (bytes / 2)
-  in
-  priv_of_primes ~e ~p ~q
-
-
 let encrypt_unsafe ~key: ({ e; n } : pub) msg = Z.(powm msg e n)
 
 (* XXX
- * Yes, timing. Get a rnd and use blinding.
+ * Yes, timing. Get a rng and use blinding.
  *)
 let decrypt_unsafe ~key: ({ p; q; dp; dq; q' } : priv) c =
   let m1 = Z.(powm c dp p)
@@ -149,16 +107,72 @@ let encrypt ~key cs = to_cstruct (encrypt_z ~key (of_cstruct cs))
 let decrypt ~key cs = to_cstruct (decrypt_z ~key (of_cstruct cs))
 
 
-(* let attempt =
+(* XXX proper rng *)
+let random_z bytes =
+  let rec loop acc = function
+    | 0 -> acc
+    | n ->
+        let i = Random.int 0x100 in
+        loop Z.((shift_left acc 8) lor of_int i) (pred n) in
+  loop Z.zero bytes
+
+(* XXX
+ * This is fishy. Most significant bit is always set to avoid reducing the
+ * modulus, but this drops 1 bit of randomness. Investigate.
+ *)
+let rec gen_prime_z ?mix bytes =
+  let lead = match mix with
+    | Some x -> x
+    | None   -> Z.(pow (of_int 2)) (bytes * 8 - 1) in
+  let z = Z.(random_z bytes lor lead) in
+  match Z.probab_prime z 25 with
+  | 0 -> gen_prime_z ~mix:lead bytes
+  | _ -> z
+
+
+(* XXX
+ * All kinds bad. Default exponent should probably be smaller than 2^16+1.
+ * Works only for key sizes of 2k bytes. Two bits of that are rigged.
+ *)
+let generate ?(e = Z.of_int (0x10001)) bytes =
+
+  let (p, q) =
+    let rec attempt order =
+      let (p, q) = (gen_prime_z order, gen_prime_z order) in
+      let phi    = Z.(pred p * pred q) in
+      match p = q with
+      | false when Z.(gcd e phi = one) -> (p, q)
+      | _                              -> attempt order in
+    attempt (bytes / 2)
+  in
+  priv_of_primes ~e ~p ~q
+
+
+let print_key { e; d; n; p; q; dp; dq; q' } =
+  let f = Z.to_string in
+  Printf.printf
+"RSA key
+  e : %s
+  d : %s
+  n : %s
+  p : %s
+  q : %s
+  dp: %s
+  dq: %s
+  q': %s\n%!" (f e) (f d) (f n) (f p) (f q) (f dp) (f dq) (f q')
+
+
+let attempt =
   let e = Z.of_int 43
-  and m = Cstruct.of_string "AB" in
+  and m = Cstruct.of_string "quasyantistatic hemoglobin" in
   fun () ->
     Printf.printf "+ generating...\n%!";
-    let key = generate ~e 2 in
+    let key = generate 64 in
     print_key key;
     Printf.printf "+ encrypt...\n%!";
     let c = encrypt ~key:(pub_of_priv key) m in
+    Cstruct.hexdump c;
     Printf.printf "+ decrypt...\n%!";
     let m'  = decrypt ~key c in
-    assert (m = m') *)
+    assert (m = m')
 
