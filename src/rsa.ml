@@ -129,6 +129,7 @@ let rec gen_prime_z ?mix bytes =
   | 0 -> gen_prime_z ~mix:lead bytes
   | _ -> z
 
+let rel_prime a b = Z.(gcd a b = one)
 
 (* XXX
  * All kinds bad. Default exponent should probably be smaller than 2^16+1.
@@ -139,10 +140,10 @@ let generate ?(e = Z.of_int (0x10001)) bytes =
   let (p, q) =
     let rec attempt order =
       let (p, q) = (gen_prime_z order, gen_prime_z order) in
-      let phi    = Z.(pred p * pred q) in
       match p = q with
-      | false when Z.(gcd e phi = one) -> (p, q)
-      | _                              -> attempt order in
+      | false when Z.(gcd e (pred p) = one) &&
+                   Z.(gcd e (pred q) = one) -> (p, q)
+      | _                                   -> attempt order in
     attempt (bytes / 2)
   in
   priv_of_primes ~e ~p ~q
