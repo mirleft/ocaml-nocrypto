@@ -88,11 +88,7 @@ let encrypt_unsafe ~key: ({ e; n } : pub) msg = Z.(powm msg e n)
 let decrypt_unsafe ~key: ({ p; q; dp; dq; q' } : priv) c =
   let m1 = Z.(powm c dp p)
   and m2 = Z.(powm c dq q) in
-  let h  =
-    let rec add_p = function
-      | diff when diff > Z.zero -> diff
-      | diff                    -> add_p Z.(p + diff) in
-    Z.((q' * (add_p (m1 - m2))) mod p) in
+  let h  = Z.((q' * (m1 - (m2 mod p) + p)) mod p) in
   Z.(m2 + h * q)
 
 let (encrypt_z, decrypt_z) =
