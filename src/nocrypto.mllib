@@ -1,11 +1,13 @@
 # OASIS_START
-# DO NOT EDIT (digest: faa3ec5e26a4868597275241cd640038)
+# DO NOT EDIT (digest: ef2103d727c8900650f4a19dabe77512)
 Nocrypto
 Cstruct_
 Native
 Hash
+Rng
 Stream_cipher
 Gcm
 Block_cipher
+Rsa
 Algo_types
 # OASIS_STOP

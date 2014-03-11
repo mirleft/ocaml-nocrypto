@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 53b23e8a17966611b415d162ec5b2a88)
+# DO NOT EDIT (digest: 7f27d7ae676fa47ef1ae21abf7418eba)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -17,10 +17,15 @@
 "src/nocrypto.cmxs": use_nocrypto
 <src/nocrypto.{cma,cmxa}>: use_libnocrypto_stubs
 <src/*.ml{,i}>: pkg_cstruct
+<src/*.ml{,i}>: pkg_zarith
 "src/sha1.c": pkg_cstruct
+"src/sha1.c": pkg_zarith
 "src/md5.c": pkg_cstruct
+"src/md5.c": pkg_zarith
 "src/rijndael.c": pkg_cstruct
+"src/rijndael.c": pkg_zarith
 "src/stubs.c": pkg_cstruct
+"src/stubs.c": pkg_zarith
 # Library testlib
 "tests/testlib.cmxs": use_testlib
 # Executable test_runner
@@ -29,6 +34,7 @@
 <tests/testrunner.{native,byte}>: pkg_oUnit
 <tests/testrunner.{native,byte}>: pkg_cstruct.unix
 <tests/testrunner.{native,byte}>: pkg_cstruct
+<tests/testrunner.{native,byte}>: pkg_zarith
 <tests/*.ml{,i}>: use_testlib
 <tests/*.ml{,i}>: pkg_oUnit
 <tests/*.ml{,i}>: pkg_cstruct.unix
@@ -38,9 +44,11 @@
 "tests/runnable.native": pkg_lwt.syntax
 "tests/runnable.native": pkg_lwt.unix
 "tests/runnable.native": pkg_cstruct
+"tests/runnable.native": pkg_zarith
 <tests/*.ml{,i}>: use_nocrypto
 <tests/*.ml{,i}>: pkg_lwt
 <tests/*.ml{,i}>: pkg_lwt.syntax
 <tests/*.ml{,i}>: pkg_lwt.unix
 <tests/*.ml{,i}>: pkg_cstruct
+<tests/*.ml{,i}>: pkg_zarith
 # OASIS_STOP

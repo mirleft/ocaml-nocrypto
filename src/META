@@ -1,8 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: e39c5c6a625cddc7c5fe6a8f80db760d)
+# DO NOT EDIT (digest: 7d7bf071a0003f0e59bd3003e17512d1)
 version = "0.0.1"
 description = "simple crypto for the modern age"
-requires = "cstruct"
+requires = "cstruct zarith"
 archive(byte) = "nocrypto.cma"
 archive(byte, plugin) = "nocrypto.cma"
 archive(native) = "nocrypto.cmxa"

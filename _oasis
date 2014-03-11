@@ -18,12 +18,14 @@ Library "nocrypto"
   InternalModules: Cstruct_,
                    Native,
                    Hash,
+                   Rng,
                    Stream_cipher,
                    Gcm,
                    Block_cipher,
+                   Rsa,
                    Algo_types
   CSources:        sha1.c, sha1.h, md5.c, md5.h, rijndael.c, rijndael.h, stubs.c
-  BuildDepends:    cstruct
+  BuildDepends:    cstruct, zarith
 
 Library "testlib"
   Path:         tests/
