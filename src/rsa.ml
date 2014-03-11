@@ -84,22 +84,37 @@ let mod_ x n = match Z.sign x with
   | -1 -> Z.(x mod n + n)
   |  _ -> Z.(x mod n)
 
-(* XXX
- * Yes, timing. Get a rng and use blinding.
- *)
 let decrypt_unsafe ~key: ({ p; q; dp; dq; q' } : priv) c =
   let m1 = Z.(powm c dp p)
   and m2 = Z.(powm c dq q) in
   let h  = Z.(mod_ (q' * (m1 - m2)) p) in
   Z.(m2 + h * q)
 
+(* Timing attacks, you say? *)
+let decrypt_blinded_unsafe ~key: ({ e; n } as key : priv) c =
+
+  let two = Z.of_int 2 in
+  let rec nonce () =
+    let x = Rng.gen_z two n in
+    if Z.(gcd x n = one) then x else nonce () in
+
+  let r  = nonce () in
+  Printf.printf "nonce: %d\n%!" Z.(to_int r);
+  let r' = Z.(invert r n)
+  and re = Z.(powm r e n) in
+
+  let x = decrypt_unsafe ~key Z.((re * c) mod n) in
+
+  Z.((r' * x) mod n)
+
+
 let (encrypt_z, decrypt_z) =
   let aux op f ~key x =
     if x >= f key then
       invalid_arg "RSA key too small"
     else op ~key x in
-  (aux encrypt_unsafe (fun k -> k.n)),
-  (aux decrypt_unsafe (fun k -> k.n))
+  (aux encrypt_unsafe         (fun k -> k.n)),
+  (aux decrypt_blinded_unsafe (fun k -> k.n))
 
 let encrypt ~key cs = to_cstruct (encrypt_z ~key (of_cstruct cs))
 let decrypt ~key cs = to_cstruct (decrypt_z ~key (of_cstruct cs))
