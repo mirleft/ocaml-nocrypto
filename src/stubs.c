@@ -102,11 +102,10 @@ AES_KEY_CREATOR(Enc);
 AES_KEY_CREATOR(Dec);
 
 #define AES_TRANSFORM(DIR)                                           \
+                                                                     \
   void caml_nc_aes_ ## DIR (                                         \
     value keysize, value rk, value source, value target) {           \
-                                                                     \
     CAMLparam4 (keysize, rk, source, target);                        \
-                                                                     \
     int keybits = Int_val (keysize) * 8;                             \
                                                                      \
     if ( Caml_ba_array_val (source) -> dim[0] < 16 ||                \
