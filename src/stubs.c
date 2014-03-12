@@ -76,47 +76,51 @@ HASH_FUNCTION (SHA_CTX, SHA512);
 
 intnat aes_blocksize = 16;
 
-#define AES_KEY_CREATOR(DIR)                                         \
-                                                                     \
-  CAMLprim value caml_nc_aes_create_ ## DIR ## _key (value key) {    \
-    CAMLparam1 (key);                                                \
-    CAMLlocal1 (rk);                                                 \
-                                                                     \
-    int    keysize = nc_ba_dim (key);                                \
-    int    keybits = keysize * 8;                                    \
-    intnat rkbytes = RKLENGTH (keybits) * sizeof (unsigned long);    \
-                                                                     \
-    if (keysize != 16 && keysize != 24 && keysize != 32) {           \
-      caml_invalid_argument ("AES: invalid key length");             \
-    }                                                                \
-                                                                     \
-    rk = nc_ba_alloc (&rkbytes);                                     \
-    rijndaelSetup ## DIR ## rypt                                     \
-      (Caml_ba_data_val (rk), Caml_ba_data_val (key), keybits);      \
-                                                                     \
-    CAMLreturn (rk);                                                 \
+#define AES_KEY_CREATOR(DIR)                                             \
+                                                                         \
+  CAMLprim value caml_nc_aes_create_ ## DIR ## _key (value key) {        \
+    CAMLparam1 (key);                                                    \
+    CAMLlocal1 (rk);                                                     \
+                                                                         \
+    int    keysize = nc_ba_dim (key);                                    \
+    int    keybits = keysize * 8;                                        \
+    intnat rkbytes = (1 + RKLENGTH (keybits)) * sizeof (unsigned long);  \
+                                                                         \
+    if (keysize != 16 && keysize != 24 && keysize != 32) {               \
+      caml_invalid_argument ("AES: invalid key length");                 \
+    }                                                                    \
+                                                                         \
+    rk                     = nc_ba_alloc (&rkbytes);                     \
+    unsigned long *rk_data = Caml_ba_data_val (rk) ;                     \
+    rk_data [0]            = keybits;                                    \
+    rijndaelSetup ## DIR ## rypt                                         \
+        ( rk_data + 1, Caml_ba_data_val (key), keybits );                \
+                                                                         \
+    CAMLreturn (rk);                                                     \
   }
 
 AES_KEY_CREATOR(Enc);
 AES_KEY_CREATOR(Dec);
 
-#define AES_TRANSFORM(DIR)                                           \
-                                                                     \
-  void caml_nc_aes_ ## DIR (                                         \
-    value keysize, value rk, value source, value target) {           \
-    CAMLparam4 (keysize, rk, source, target);                        \
-    int keybits = Int_val (keysize) * 8;                             \
-                                                                     \
-    if ( Caml_ba_array_val (source) -> dim[0] < 16 ||                \
-         Caml_ba_array_val (target) -> dim[0] < 16 ) {               \
-      caml_invalid_argument ("AES: invalid data length");            \
-    }                                                                \
-                                                                     \
-    rijndael ## DIR ## rypt (                                        \
-        Caml_ba_data_val (rk), NROUNDS (keybits),                    \
-        Caml_ba_data_val (source), Caml_ba_data_val (target) );      \
-                                                                     \
-    CAMLreturn0;                                                     \
+#define AES_TRANSFORM(DIR)                                       \
+                                                                 \
+  void caml_nc_aes_ ## DIR (                                     \
+    value rk, value source, value target) {                      \
+    CAMLparam3 (rk, source, target);                             \
+                                                                 \
+    unsigned long *rk_data = Caml_ba_data_val (rk);              \
+    int keybits            = rk_data[0];                         \
+                                                                 \
+    if ( Caml_ba_array_val (source) -> dim[0] < 16 ||            \
+         Caml_ba_array_val (target) -> dim[0] < 16 ) {           \
+      caml_invalid_argument ("AES: invalid data length");        \
+    }                                                            \
+                                                                 \
+    rijndael ## DIR ## rypt (                                    \
+        rk_data + 1, NROUNDS (keybits),                          \
+        Caml_ba_data_val (source), Caml_ba_data_val (target) );  \
+                                                                 \
+    CAMLreturn0;                                                 \
   }
 
 AES_TRANSFORM(Enc);

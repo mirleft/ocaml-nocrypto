@@ -69,21 +69,21 @@ module AES_Core = struct
 
   let ba_of_cs = Cstruct.to_bigarray
 
-  type key = int * Native.ba * Native.ba
+  type key = Native.ba * Native.ba
 
   let of_secret cs =
     let arr = ba_of_cs cs in
     let (e_key, d_key) = Native.(aes_create_enc arr, aes_create_dec arr) in
-    (Cstruct.len cs, e_key, d_key)
+    (e_key, d_key)
 
-  let encrypt (size, e_key, _) plain =
+  let encrypt (e_key, _) plain =
     let cipher = Cstruct.create 16 in
-    Native.aes_encrypt_into size e_key (ba_of_cs plain) (ba_of_cs cipher);
+    Native.aes_encrypt_into e_key (ba_of_cs plain) (ba_of_cs cipher);
     cipher
 
-  let decrypt (size, _, d_key) cipher =
+  let decrypt (_, d_key) cipher =
     let plain = Cstruct.create 16 in
-    Native.aes_decrypt_into size d_key (ba_of_cs cipher) (ba_of_cs plain);
+    Native.aes_decrypt_into d_key (ba_of_cs cipher) (ba_of_cs plain);
     plain
 
 end
