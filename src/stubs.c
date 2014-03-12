@@ -2,7 +2,7 @@
 #include <sys/types.h>
 #include <stdint.h>
 
-#include "sha1.h"
+#include "sha2.h"
 #include "md5.h"
 #include "rijndael.h"
 
@@ -12,6 +12,13 @@
 #include <caml/memory.h>
 #include <caml/fail.h>
 #include <caml/bigarray.h>
+
+
+#define nc_ba_alloc(dim) \
+  caml_ba_alloc ( CAML_BA_UINT8 | CAML_BA_C_LAYOUT, 1, NULL, (dim) )
+
+#define nc_ba_dim(var) ( Caml_ba_array_val(var) -> dim[0] )
+
 
 // // ..
 // #include <stdio.h>
@@ -27,37 +34,46 @@
 // }
 // //
 
-intnat sha1_size = 20;
-
-CAMLprim value caml_nc_sha1 (value buffer) {
-  CAMLparam1 (buffer);
-  CAMLlocal1 (res);
-  res = caml_ba_alloc (CAML_BA_UINT8 | CAML_BA_C_LAYOUT, 1, NULL, &sha1_size);
-  SHA1_CTX *ctx = malloc (sizeof(SHA1_CTX));
-
-  SHA1_Init (ctx);
-  SHA1_Update (ctx, Caml_ba_data_val(buffer), Caml_ba_array_val(buffer)->dim[0]);
-  SHA1_Final (ctx, (unsigned char *) Caml_ba_data_val(res));
-
-  free (ctx);
-  CAMLreturn (res);
-}
-
 intnat md5_size = 16;
 
-CAMLprim value caml_nc_md5 (value buffer) {
+CAMLprim value caml_nc_MD5 (value buffer) {
   CAMLparam1 (buffer);
   CAMLlocal1 (res);
-  res = caml_ba_alloc (CAML_BA_UINT8 | CAML_BA_C_LAYOUT, 1, NULL, &md5_size);
+  res = nc_ba_alloc (&md5_size);
   MD5_CTX *ctx = malloc (sizeof(MD5_CTX));
 
   MD5_Init (ctx);
-  MD5_Update (ctx, Caml_ba_data_val(buffer), Caml_ba_array_val(buffer)->dim[0]);
+  MD5_Update (ctx, Caml_ba_data_val (buffer), nc_ba_dim (buffer));
   MD5_Final ((unsigned char *) Caml_ba_data_val(res), ctx);
 
   free (ctx);
   CAMLreturn (res);
 }
+
+#define SHA_STUFF(FUNCTION)                                                    \
+                                                                               \
+  intnat FUNCTION ## _size = FUNCTION ## _DIGEST_LENGTH;                       \
+                                                                               \
+  CAMLprim value caml_nc_ ## FUNCTION (value buffer) {                         \
+    CAMLparam1 (buffer);                                                       \
+    CAMLlocal1 (res);                                                          \
+    res = nc_ba_alloc (& FUNCTION ## _size);                                   \
+    SHA_CTX *ctx = malloc (sizeof (SHA_CTX));                                  \
+                                                                               \
+    FUNCTION ## _Init (ctx) ;                                                  \
+    FUNCTION ## _Update (ctx, Caml_ba_data_val (buffer), nc_ba_dim (buffer));  \
+    FUNCTION ## _Final ((unsigned char *) Caml_ba_data_val (res), ctx);        \
+                                                                               \
+    free (ctx);                                                                \
+    CAMLreturn (res);                                                          \
+  }
+
+SHA_STUFF(SHA1  );
+SHA_STUFF(SHA224);
+SHA_STUFF(SHA256);
+SHA_STUFF(SHA384);
+SHA_STUFF(SHA512);
+
 
 intnat aes_blocksize = 16;
 

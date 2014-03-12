@@ -1,6 +1,11 @@
 
 module type Hash = sig
   val digest_size : int
+  val digest      : Cstruct.t -> Cstruct.t
+end
+
+module type Hash_MAC = sig
+  val digest_size : int
   val digest : Cstruct.t -> Cstruct.t
   val hmac   : key:Cstruct.t -> Cstruct.t -> Cstruct.t
 end

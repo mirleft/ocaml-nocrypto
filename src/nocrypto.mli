@@ -2,8 +2,12 @@
 open Algo_types
 
 module Hash : sig
-  module SHA1 : Hash
-  module MD5  : Hash
+  module MD5    : Hash_MAC
+  module SHA1   : Hash_MAC
+  module SHA224 : Hash
+  module SHA256 : Hash
+  module SHA384 : Hash
+  module SHA512 : Hash
 end
 
 module Stream : sig
