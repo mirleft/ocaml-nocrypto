@@ -1,4 +1,4 @@
-#require "cstruct"
+#require "cstruct, zarith"
 #directory "_build/src" ;;
 #load "nocrypto.cma";;
 #require "oUnit";;
