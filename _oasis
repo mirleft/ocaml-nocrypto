@@ -24,7 +24,7 @@ Library "nocrypto"
                    Block_cipher,
                    Rsa,
                    Algo_types
-  CSources:        sha1.c, sha1.h, md5.c, md5.h, rijndael.c, rijndael.h, stubs.c
+  CSources:        sha2.c, sha2.h, md5.c, md5.h, rijndael.c, rijndael.h, stubs.c
   BuildDepends:    cstruct, zarith
 
 Library "testlib"
