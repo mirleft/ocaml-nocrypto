@@ -1,14 +1,34 @@
 
-module type Hash_fn = sig
-  val block_size  : int
+module type Base_hash = sig
+  type t
+  val block_size : int
   val digest_size : int
-  val digest : Cstruct.t -> Cstruct.t
+  val init : unit -> t
+  val feed : t    -> Native.ba -> unit
+  val get  : t    -> Native.ba
 end
 
-let cs_fun_of_byte_fun f cs = Cstruct.(of_bigarray (f (to_bigarray cs)))
 
-module Hmac ( H : Hash_fn ) = struct
+module Full_hash (H : Base_hash) = struct
 
+  type t = H.t
+
+  let block_size  = H.block_size
+  let digest_size = H.digest_size
+
+  let init       = H.init
+  let feed st cs = H.feed st (Cstruct.to_bigarray cs)
+  let get st     = Cstruct.of_bigarray (H.get st)
+
+  let digestv css =
+    let st = init () in ( List.iter (feed st) css ; get st )
+
+  let digest cs = digestv [cs]
+end
+
+module Full_hash_hmac ( H0 : Base_hash ) = struct
+
+  module H = Full_hash (H0)
   include H
 
   let opad = Cstruct_.create_with block_size 0x5c
@@ -24,37 +44,40 @@ module Hmac ( H : Hash_fn ) = struct
 
 end
 
-module MD5 = Hmac ( struct
-  let block_size  = 64
-  let digest_size = 16
-  let digest      = cs_fun_of_byte_fun Native.md5
+open Native
+
+module MD5 = Full_hash_hmac ( struct
+  type t = ba
+  let (digest_size, block_size) = (20, 64)
+  let init = md5_init and feed = md5_feed and get = md5_get
 end )
 
-module SHA1 = Hmac ( struct
-  let block_size  = 64
-  let digest_size = 20
-  let digest      = cs_fun_of_byte_fun Native.sha1
+module SHA1 = Full_hash_hmac ( struct
+  type t = ba
+  let (digest_size, block_size) = (20, 64)
+  let init = sha1_init and feed = sha1_feed and get = sha1_get
 end )
 
-module SHA224 = struct
-  let digest_size = 28
-  let digest      = cs_fun_of_byte_fun Native.sha224
-end
-
-module SHA256 = Hmac ( struct
-  let digest_size = 32
-  let block_size  = 64
-  let digest      = cs_fun_of_byte_fun Native.sha256
+module SHA224 = Full_hash ( struct
+  type t = ba
+  let (digest_size, block_size) = (28, 64)
+  let init = sha224_init and feed = sha224_feed and get = sha224_get
 end )
 
-module SHA384 = Hmac ( struct
-  let digest_size = 48
-  let block_size  = 128
-  let digest      = cs_fun_of_byte_fun Native.sha384
+module SHA256 = Full_hash_hmac ( struct
+  type t = ba
+  let (digest_size, block_size) = (32, 64)
+  let init = sha256_init and feed = sha256_feed and get = sha256_get
 end )
 
-module SHA512 = Hmac ( struct
-  let digest_size = 64
-  let block_size  = 128
-  let digest      = cs_fun_of_byte_fun Native.sha512
+module SHA384 = Full_hash_hmac ( struct
+  type t = ba
+  let (digest_size, block_size) = (48, 128)
+  let init = sha384_init and feed = sha384_feed and get = sha384_get
+end )
+
+module SHA512 = Full_hash_hmac ( struct
+  type t = ba
+  let (digest_size, block_size) = (64, 128)
+  let init = sha512_init and feed = sha512_feed and get = sha512_get
 end )

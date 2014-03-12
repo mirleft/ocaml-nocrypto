@@ -35,45 +35,44 @@
 // //
 
 
-intnat md5_size = 16;
-
-CAMLprim value caml_nc_MD5 (value buffer) {
-  CAMLparam1 (buffer);
-  CAMLlocal1 (res);
-  res = nc_ba_alloc (&md5_size);
-  MD5_CTX *ctx = malloc (sizeof(MD5_CTX));
-
-  MD5_Init (ctx);
-  MD5_Update (ctx, Caml_ba_data_val (buffer), nc_ba_dim (buffer));
-  MD5_Final ((unsigned char *) Caml_ba_data_val(res), ctx);
-
-  free (ctx);
-  CAMLreturn (res);
-}
-
-#define SHA_STUFF(FUNCTION)                                                    \
-                                                                               \
-  intnat FUNCTION ## _size = FUNCTION ## _DIGEST_LENGTH;                       \
-                                                                               \
-  CAMLprim value caml_nc_ ## FUNCTION (value buffer) {                         \
-    CAMLparam1 (buffer);                                                       \
-    CAMLlocal1 (res);                                                          \
-    res = nc_ba_alloc (& FUNCTION ## _size);                                   \
-    SHA_CTX *ctx = malloc (sizeof (SHA_CTX));                                  \
-                                                                               \
-    FUNCTION ## _Init (ctx) ;                                                  \
-    FUNCTION ## _Update (ctx, Caml_ba_data_val (buffer), nc_ba_dim (buffer));  \
-    FUNCTION ## _Final ((unsigned char *) Caml_ba_data_val (res), ctx);        \
-                                                                               \
-    free (ctx);                                                                \
-    CAMLreturn (res);                                                          \
+#define HASH_FUNCTION(CTX, FUNCTION)                                      \
+                                                                          \
+  intnat FUNCTION ## _size_ = FUNCTION ## _DIGEST_LENGTH;                 \
+                                                                          \
+  CAMLprim value caml_nc_init_ ## FUNCTION () {                           \
+    CAMLparam0 ();                                                        \
+    CAMLlocal1 (ctx);                                                     \
+    intnat size = sizeof (CTX);                                           \
+    ctx = nc_ba_alloc (& size);                                           \
+    FUNCTION ## _Init ((CTX *) Caml_ba_data_val (ctx));                   \
+    CAMLreturn (ctx);                                                     \
+  }                                                                       \
+                                                                          \
+  CAMLprim void caml_nc_feed_ ## FUNCTION (value ctx, value buff) {       \
+    CAMLparam2 (ctx, buff) ;                                              \
+    FUNCTION ## _Update ( (CTX *) Caml_ba_data_val (ctx),                 \
+                           Caml_ba_data_val (buff), nc_ba_dim (buff) );   \
+    CAMLreturn0;                                                          \
+  }                                                                       \
+                                                                          \
+  CAMLprim value caml_nc_get_ ## FUNCTION (value ctx) {                   \
+    CAMLparam1 (ctx);                                                     \
+    CAMLlocal1 (res);                                                     \
+    res = nc_ba_alloc (& FUNCTION ## _size_);                             \
+    FUNCTION ## _Final ( (unsigned char *) Caml_ba_data_val (res),        \
+                         (CTX *) Caml_ba_data_val (ctx) );                \
+    CAMLreturn (res);                                                     \
   }
 
-SHA_STUFF(SHA1  );
-SHA_STUFF(SHA224);
-SHA_STUFF(SHA256);
-SHA_STUFF(SHA384);
-SHA_STUFF(SHA512);
+#define MD5_DIGEST_LENGTH 16
+
+HASH_FUNCTION (MD5_CTX, MD5   );
+HASH_FUNCTION (SHA_CTX, SHA1  );
+HASH_FUNCTION (SHA_CTX, SHA224);
+HASH_FUNCTION (SHA_CTX, SHA256);
+HASH_FUNCTION (SHA_CTX, SHA384);
+HASH_FUNCTION (SHA_CTX, SHA512);
+
 
 intnat aes_blocksize = 16;
 

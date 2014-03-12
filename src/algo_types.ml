@@ -2,12 +2,12 @@
 module type Hash = sig
   val digest_size : int
   val digest      : Cstruct.t -> Cstruct.t
+  val digestv     : Cstruct.t list -> Cstruct.t
 end
 
 module type Hash_MAC = sig
-  val digest_size : int
-  val digest : Cstruct.t -> Cstruct.t
-  val hmac   : key:Cstruct.t -> Cstruct.t -> Cstruct.t
+  include Hash
+  val hmac : key:Cstruct.t -> Cstruct.t -> Cstruct.t
 end
 
 module type Stream_cipher = sig
