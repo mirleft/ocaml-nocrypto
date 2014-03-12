@@ -18,7 +18,8 @@ module Mode_ECB ( C : Cipher_fn ) = struct
                     (n - C.block_size) in
       loop [] source (Cstruct.len source)
     in
-    (fun ~key -> ecb (C.encrypt key)), (fun ~key -> ecb (C.decrypt key))
+    (fun ~key -> ecb (C.encrypt key)),
+    (fun ~key -> ecb (C.decrypt key))
 
 end
 
