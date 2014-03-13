@@ -6,33 +6,36 @@ module AES = Block_cipher.AES_raw
 
 exception Unseeded_generator
 
-type g = {
-          ctr    : Cstruct.t; 
-  mutable key    : Cstruct.t * AES.key; 
-  mutable trap   : (unit -> unit) option; 
-  mutable seeded : bool
-}
+type g =
+  { ctr            : Cstruct.t
+  ; mutable key    : Cstruct.t * AES.key
+  ; mutable trap   : (unit -> unit) option
+  ; mutable seeded : bool
+  }
 
 let incr cs =
   let rec loop = function
     | 16 -> ()
     | i  ->
         let b = (1 + get_uint8 cs i) land 0xff in
-        set_uint8 cs i b;
+        set_uint8 cs i b ;
         if b = 0x00 then loop (succ i) in
   loop 0
 
 let create () =
   let k = CS.create_with 32 0 in
-  { ctr    = CS.create_with 16 0; 
-    key    = (k, AES.create_e k); 
-    trap   = None; 
-    seeded = false
+  { ctr    = CS.create_with 16 0
+  ; key    = (k, AES.create_e k)
+  ; trap   = None
+  ; seeded = false
   }
 
 let clone ~g: { ctr ; seeded ; key } =
   { ctr = CS.copy ctr ; key ; seeded ; trap = None }
 
+(* XXX
+ * We _might_ want to erase the old key, but the entire topic is a can of
+ * worms in a memory-managed setting. What with compactifying GC and all. *)
 let exchange_key ~g key = g.key <- (key, AES.create_e key )
 
 let reseedv ~g css =
@@ -43,7 +46,7 @@ let reseedv ~g css =
 let reseed ~g cs = reseedv ~g [cs]
 
 let aes_ctr_blocks ~g: { ctr ; key = (_, k) } blocks =
-  let result = Cstruct.create (blocks * 16) in
+  let result = Cstruct.create @@ blocks lsl 4 in
   let rec loop res = function
     | 0 -> result
     | n ->
