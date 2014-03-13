@@ -52,3 +52,11 @@ module Rsa : sig
   val generate : ?e:Z.t -> int -> priv
   val print_key : priv -> unit
 end
+
+module Fortuna : sig
+  type g
+  val create   : unit -> g
+  val clone    : g:g -> g
+  val reseed   : g:g -> Cstruct.t -> unit
+  val generate : g:g -> int -> Cstruct.t
+end

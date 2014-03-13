@@ -86,7 +86,7 @@ let main () =
         Sys.argv.(0);
       exit 1
 
-let () = Lwt_main.run @@ main ()
+(* let () = Lwt_main.run @@ main () *)
 
 (* let () =
 
@@ -101,3 +101,12 @@ let () = Lwt_main.run @@ main ()
     AES.encrypt_cbc' key iv pts
   in
   () *)
+
+let () =
+  let g = Fortuna.create () in
+  Fortuna.reseed g (Cstruct.of_string "\001\002\003\004");
+  let _ = time @@ fun () ->
+    for i = 1 to 10 do
+      ignore @@ Fortuna.generate g (int_of_float @@ 10. *. (2.**20.))
+    done in
+  ()

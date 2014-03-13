@@ -2,6 +2,7 @@
 open OUnit2
 open Nocrypto.Block
 
+
 let int_of_hex_digit c =
   let open Char in
   let i = code (lowercase c) in
@@ -32,6 +33,7 @@ let assert_bad_cs ~msg ~want ~have =
   assert_failure @@
   Printf.sprintf "%s:\nwant:%shave:%s"
     msg (hex_of_cs want) (hex_of_cs have)
+
 
 (* aes gcm *)
 
