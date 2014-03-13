@@ -59,4 +59,9 @@ module Fortuna : sig
   val clone    : g:g -> g
   val reseed   : g:g -> Cstruct.t -> unit
   val generate : g:g -> int -> Cstruct.t
+  module Accumulator : sig
+    type t
+    val create : g:g -> t
+    val add    : t   -> src:int -> pool:int -> Cstruct.t -> unit
+  end
 end
