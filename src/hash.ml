@@ -1,3 +1,4 @@
+open Common
 
 module type Base_hash = sig
   type t
@@ -7,7 +8,6 @@ module type Base_hash = sig
   val feed : t    -> Native.ba -> unit
   val get  : t    -> Native.ba
 end
-
 
 module Full_hash (H : Base_hash) = struct
 
@@ -28,16 +28,22 @@ end
 
 module Full_hash_hmac ( H0 : Base_hash ) = struct
 
+  open CS
+
   module H = Full_hash (H0)
   include H
 
-  let opad = Cstruct_.create_with block_size 0x5c
-  let ipad = Cstruct_.create_with block_size 0x36
+  let opad = create_with block_size 0x5c
+  let ipad = create_with block_size 0x36
+
+  let rec norm key =
+    match compare (Cstruct.len key) block_size with
+    |  1 -> norm (digest key)
+    | -1 -> rpad key block_size 0
+    |  _ -> key
 
   let hmac ~key message =
-    let open Cstruct_ in
-    let key = if len key > block_size then digest key else key in
-    let key = if len key < block_size then rpad key block_size 0 else key in
+    let key = norm key in
     let outer = xor key opad
     and inner = xor key ipad in
     digest (outer <> digest (inner <> message))

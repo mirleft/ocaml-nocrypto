@@ -1,21 +1,10 @@
-
-exception Unseeded_generator
-
-let div_ceil x block =
-  let q = x / block in
-  if x - q * block = 0 then q else q + 1
-
-module SHA_d = struct
-  open Hash
-  let init        = SHA256.init
-  let feed        = SHA256.feed
-  let get s       = SHA256.(digest @@ get s)
-  let digestv css = let s = init () in ( List.iter (feed s) css ; get s )
-end
+open Common
 
 module AES = Block_cipher.AES_raw
 
-type state = {
+exception Unseeded_generator
+
+type g = {
           ctr    : Cstruct.t ;
   mutable key    : (Cstruct.t * AES.key) ;
   mutable seeded : bool

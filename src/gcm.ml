@@ -1,8 +1,7 @@
 (*
  * Based mostly on NIST 800-38D.
  *)
-
-open Cstruct_
+open Common
 
 module I128 = struct
 
@@ -94,27 +93,27 @@ let ghash ~key cs =
 
 let gctr ~cipher ~key ~icb cs =
   let rec loop acc cb cs =
-    let y = xor cs (cipher key cb) in
-    if len cs > 16 then
-      loop (y :: acc) (incr32 cb) (shift cs 16)
-    else concat @@ List.rev (y :: acc) in
+    let y = CS.xor cs (cipher key cb) in
+    if Cstruct.len cs > 16 then
+      loop (y :: acc) (incr32 cb) (Cstruct.shift cs 16)
+    else CS.concat @@ List.rev (y :: acc) in
   loop [] icb cs
 
 
 let padding cs =
   let p_len n = (16 - (n mod 16)) mod 16 in
-  create_with (p_len (len cs)) 0
+  CS.create_with (p_len (Cstruct.len cs)) 0
 
-let nbits cs = Int64.of_int (len cs * 8)
+let nbits cs = Int64.of_int (Cstruct.len cs * 8)
 
-let gcm ~cipher ~mode ~key ~iv ?(adata=empty) data =
+let gcm ~cipher ~mode ~key ~iv ?(adata=CS.empty) data =
 
-  let h  = cipher key (of_int64s [0L; 0L]) in
+  let h  = cipher key (CS.of_int64s [0L; 0L]) in
 
-  let j0 = match len iv with
-    | 12 -> concat [ iv; of_int32s [1l] ]
+  let j0 = match Cstruct.len iv with
+    | 12 -> CS.concat [ iv; CS.of_int32s [1l] ]
     | _  -> ghash ~key:h @@
-            concat [ iv; padding iv; of_int64s [0L; nbits iv] ] in
+            CS.concat [ iv; padding iv; CS.of_int64s [0L; nbits iv] ] in
 
   let data' = gctr ~cipher ~key ~icb:(incr32 j0) data in
 
@@ -123,8 +122,10 @@ let gcm ~cipher ~mode ~key ~iv ?(adata=empty) data =
     | `Decrypt -> (data', data ) in
 
   let s = ghash ~key:h @@
-          concat [ adata ; padding adata ; cdata ; padding cdata ;
-                   of_int64s [ nbits adata ; nbits cdata  ] ] in
+          CS.concat [ adata ; padding adata
+                    ; cdata ; padding cdata
+                    ; CS.of_int64s [ nbits adata ; nbits cdata  ] ]
+  in
   let t = gctr ~cipher ~key ~icb:j0 s in
 
   (data', t)

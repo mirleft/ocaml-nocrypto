@@ -15,8 +15,7 @@ Description:
 Library "nocrypto"
   Path:            src/
   Modules:         Nocrypto
-  InternalModules: Cstruct_,
-                   Common,
+  InternalModules: Common,
                    Native,
                    Hash,
                    Block_cipher,
