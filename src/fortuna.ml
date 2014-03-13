@@ -6,7 +6,7 @@ exception Unseeded_generator
 
 type g = {
           ctr    : Cstruct.t ;
-  mutable key    : (Cstruct.t * AES.key) ;
+  mutable key    : Cstruct.t * AES.key ;
   mutable seeded : bool
 }
 
@@ -20,24 +20,23 @@ let incr cs =
   loop 0
 
 let create () =
-  let (ctr, k) = Cstruct_.(create_with 16 0, create_with 32 0) in
-  { ctr ; key = (k, AES.create_e k) ; seeded = false }
+  let k = CS.create_with 32 0 in
+  { ctr    = CS.create_with 16 0 ;
+    key    = (k, AES.create_e k) ;
+    seeded = false
+  }
 
-let clone ~state: { ctr ; seeded ; key = (k, _) } =
-  { ctr = Cstruct_.copy ctr ; key = (Cstruct_.copy k, AES.create_e k) ; seeded }
+let clone ~g: { ctr ; seeded ; key } =
+  { ctr = CS.copy ctr ; key ; seeded }
 
-let exchange_key ~state key =
-  let (k1, k2) = state.key in
-  Cstruct_.cs_erase k1 ;
-  AES.erase k2 ;
-  state.key <- (key, AES.create_e key )
+let exchange_key ~g key = g.key <- (key, AES.create_e key )
 
-let reseed ~state cs =
-  exchange_key ~state @@ SHA_d.digestv [ fst state.key ; cs ] ;
-  incr state.ctr ;
-  state.seeded <- true
+let reseed ~g cs =
+  exchange_key ~g @@ Hash.SHAd256.digestv [ fst g.key ; cs ] ;
+  incr g.ctr ;
+  g.seeded <- true
 
-let aes_ctr_blocks ~state: { ctr ; key = (_, k) } blocks =
+let aes_ctr_blocks ~g: { ctr ; key = (_, k) } blocks =
   let result = Cstruct.create (blocks * 16) in
   let rec loop res = function
     | 0 -> result
@@ -46,20 +45,20 @@ let aes_ctr_blocks ~state: { ctr ; key = (_, k) } blocks =
         loop (Cstruct.shift res 16) (pred n) in
   loop result blocks
 
-let generate_rekey ~state bytes =
-  let r1 = aes_ctr_blocks ~state (div_ceil bytes 16)
-  and r2 = aes_ctr_blocks ~state 2 in
-  exchange_key ~state r2 ;
+let generate_rekey ~g bytes =
+  let r1 = aes_ctr_blocks ~g (div' bytes 16)
+  and r2 = aes_ctr_blocks ~g 2 in
+  exchange_key ~g r2 ;
   Cstruct.sub r1 0 bytes
 
-let generate ~state bytes =
+let generate ~g bytes =
   let rec stream = function
     | 0 -> []
     | n ->
         let n' = min n 0x10000 in
-        generate_rekey ~state n' :: stream (n - n') in
-  match state.seeded with
-  | true  -> Cstruct_.concat (stream bytes)
+        generate_rekey ~g n' :: stream (n - n') in
+  match g.seeded with
+  | true  -> CS.concat @@ stream bytes
   | false -> raise Unseeded_generator
 
 
