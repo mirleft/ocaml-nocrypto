@@ -104,7 +104,7 @@ AES_KEY_CREATOR(Dec);
 
 #define AES_TRANSFORM(DIR)                                       \
                                                                  \
-  void caml_nc_aes_ ## DIR (                                     \
+  CAMLprim void caml_nc_aes_ ## DIR (                            \
     value rk, value source, value target) {                      \
     CAMLparam3 (rk, source, target);                             \
                                                                  \
