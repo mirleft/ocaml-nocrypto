@@ -68,9 +68,9 @@ module GF128 = struct
     loop one x n
 end
 
+open Cstruct
 
 let incr32 cs =
-  let open Cstruct in
   let a = BE.get_uint64 cs 0
   and b = BE.get_uint32 cs 8
   and c = BE.get_uint32 cs 12
@@ -83,34 +83,34 @@ let incr32 cs =
 
 let ghash ~key cs =
   let rec loop h y cs =
-    match Cstruct.len cs with
+    match len cs with
     | 0 -> GF128.to_cstruct y
     | _ ->
         let x = GF128.of_cstruct cs in
-        loop h GF128.((x + y) * h) (Cstruct.shift cs 16)
+        loop h GF128.((x + y) * h) (shift cs 16)
   in
   GF128.(loop (of_cstruct key) zero cs)
 
 let gctr ~cipher ~key ~icb cs =
   let rec loop acc cb cs =
     let y = CS.xor cs (cipher key cb) in
-    if Cstruct.len cs > 16 then
-      loop (y :: acc) (incr32 cb) (Cstruct.shift cs 16)
+    if len cs > 16 then
+      loop (y :: acc) (incr32 cb) (shift cs 16)
     else CS.concat @@ List.rev (y :: acc) in
   loop [] icb cs
 
 
 let padding cs =
   let p_len n = (16 - (n mod 16)) mod 16 in
-  CS.create_with (p_len (Cstruct.len cs)) 0
+  CS.create_with (p_len (len cs)) 0
 
-let nbits cs = Int64.of_int (Cstruct.len cs * 8)
+let nbits cs = Int64.of_int (len cs * 8)
 
 let gcm ~cipher ~mode ~key ~iv ?(adata=CS.empty) data =
 
   let h  = cipher key (CS.of_int64s [0L; 0L]) in
 
-  let j0 = match Cstruct.len iv with
+  let j0 = match len iv with
     | 12 -> CS.concat [ iv; CS.of_int32s [1l] ]
     | _  -> ghash ~key:h @@
             CS.concat [ iv; padding iv; CS.of_int64s [0L; nbits iv] ] in

@@ -1,4 +1,5 @@
 open Common
+open Cstruct
 
 module AES = Block_cipher.AES_raw
 
@@ -14,8 +15,8 @@ let incr cs =
   let rec loop = function
     | 16 -> ()
     | i  ->
-        let b = (1 + Cstruct.get_uint8 cs i) land 0xff in
-        Cstruct.set_uint8 cs i b;
+        let b = (1 + get_uint8 cs i) land 0xff in
+        set_uint8 cs i b;
         if b = 0x00 then loop (succ i) in
   loop 0
 
@@ -42,14 +43,14 @@ let aes_ctr_blocks ~g: { ctr ; key = (_, k) } blocks =
     | 0 -> result
     | n ->
         ( AES.encrypt_blk k ctr res ; incr ctr ) ;
-        loop (Cstruct.shift res 16) (pred n) in
+        loop (shift res 16) (pred n) in
   loop result blocks
 
 let generate_rekey ~g bytes =
   let r1 = aes_ctr_blocks ~g (div' bytes 16)
   and r2 = aes_ctr_blocks ~g 2 in
   exchange_key ~g r2 ;
-  Cstruct.sub r1 0 bytes
+  sub r1 0 bytes
 
 let generate ~g bytes =
   let rec stream = function
@@ -63,10 +64,10 @@ let generate ~g bytes =
 
 
 let add_random ~r ~source ~pool data =
-  match Cstruct.len data with
+  match len data with
   | 0 -> ()
   | n ->
       let packet = Cstruct.create 2 in
-      Cstruct.set_uint8 packet 0 source ;
-      Cstruct.set_uint8 packet 1 pool ;
+      set_uint8 packet 0 source ;
+      set_uint8 packet 1 pool ;
       (* feed the pool-hash *)
