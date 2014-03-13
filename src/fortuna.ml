@@ -58,15 +58,15 @@ let generate_rekey ~g bytes =
   sub r1 0 bytes
 
 let generate ~g bytes =
-  let rec stream = function
+  let rec chunck = function
     | 0 -> []
     | n ->
         let n' = min n 0x10000 in
-        generate_rekey ~g n' :: stream (n - n')
+        generate_rekey ~g n' :: chunck (n - n')
   in
-  ( match g.trap with None -> () | Some f -> f () );
+  ( match g.trap with None -> () | Some f -> g.trap <- None ; f () );
   match g.seeded with
-  | true  -> CS.concat @@ stream bytes
+  | true  -> CS.concat @@ chunck bytes
   | false -> raise Unseeded_generator
 
 

@@ -89,9 +89,7 @@ module SHA512 = Full_hash_hmac ( struct
 end )
 
 module SHAd256 = struct
-  type t = SHA256.t
-  let init   = SHA256.init
-  let feed   = SHA256.feed
+  include SHA256
   let get    = SHA256.(o digest get)
   let digest = SHA256.(o digest digest)
   let digestv css = let s = init () in ( List.iter (feed s) css ; get s )
