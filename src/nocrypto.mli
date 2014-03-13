@@ -63,5 +63,6 @@ module Fortuna : sig
     type t
     val create : g:g -> t
     val add    : t   -> src:int -> pool:int -> Cstruct.t -> unit
+    val add_rr : t   -> src:int -> ( Cstruct.t -> unit )
   end
 end

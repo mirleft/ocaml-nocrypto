@@ -113,5 +113,15 @@ module Accumulator = struct
     SHAd256.feed h data ;
     acc.gen.trap <- Some (fun () -> fire acc)
 
+  (* XXX
+   * Schneider recommends against using generator-imposed pool-seeding schedule
+   * but it just makes for a horrid api.
+   *)
+  let add_rr acc ~src =
+    let pool = ref 0 in
+    fun data ->
+      add acc ~src ~pool: !pool data ;
+      Pervasives.incr pool
+
 end
 
