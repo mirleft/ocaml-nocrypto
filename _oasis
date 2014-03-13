@@ -16,12 +16,14 @@ Library "nocrypto"
   Path:            src/
   Modules:         Nocrypto
   InternalModules: Cstruct_,
+                   Common,
                    Native,
                    Hash,
+                   Block_cipher,
+                   Fortuna,
                    Rng,
                    Stream_cipher,
                    Gcm,
-                   Block_cipher,
                    Rsa,
                    Algo_types
   CSources:        sha2.c, sha2.h, md5.c, md5.h, rijndael.c, rijndael.h, stubs.c
