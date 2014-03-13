@@ -8,19 +8,23 @@ let append cs1 cs2 =
   Cstruct.blit cs2 0 cs l1 l2;
   cs
 
-let concat css =
-  let result =
-    Cstruct.create @@
-      List.fold_left
-        (fun a cs -> a + Cstruct.len cs)
-        0 css in
-  let _ =
-    List.fold_left
-      (fun off cs ->
-        let n = Cstruct.len cs in
-        Cstruct.blit cs 0 result off n ; off + n )
-      0 css in
-  result
+let concat = function
+  | []   -> Cstruct.create 0
+  | [cs] -> cs
+  | css  ->
+      let result =
+        Cstruct.create @@
+          List.fold_left
+            (fun a cs -> a + Cstruct.len cs)
+            0 css in
+      let _ =
+        List.fold_left
+          (fun off cs ->
+            let n = Cstruct.len cs in
+            Cstruct.blit cs 0 result off n ; off + n )
+          0 css
+      in
+      result
 
 let copy cs =
   let len = Cstruct.len cs in
