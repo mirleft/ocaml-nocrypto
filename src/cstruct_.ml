@@ -83,3 +83,6 @@ let empty = Cstruct.create 0
 
 let (<>) = append
 
+let cs_erase cs = fill cs 0x00
+let ba_erase ba = for i = 0 to Bigarray.Array1.dim ba do ba.{i} <- '\000' done
+

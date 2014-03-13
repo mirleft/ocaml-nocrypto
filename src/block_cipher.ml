@@ -1,4 +1,6 @@
 
+open Common
+
 module type Cipher_fn = sig
   type key
   val block_size : int
@@ -63,28 +65,49 @@ module Mode_GCM ( C : Cipher_fn ) = struct
 
 end
 
+module AES_raw : sig
+  type key
+  val erase    : key -> unit
+  val create_e : Cstruct.t -> key
+  val create_d : Cstruct.t -> key
+  val encrypt_blk : key -> Cstruct.t -> Cstruct.t -> unit
+  val decrypt_blk : key -> Cstruct.t -> Cstruct.t -> unit
+end
+  =
+struct
+
+  let ba_of_cs = Cstruct.to_bigarray
+
+  type key = Native.ba
+
+  let erase = Cstruct_.ba_erase
+
+  let create_e = o Native.aes_create_enc ba_of_cs
+  let create_d = o Native.aes_create_dec ba_of_cs
+
+  let encrypt_blk key src dst =
+    Native.aes_encrypt_into key (ba_of_cs src) (ba_of_cs dst)
+
+  let decrypt_blk key src dst =
+    Native.aes_decrypt_into key (ba_of_cs src) (ba_of_cs dst)
+end
+
+
 module AES_Core = struct
 
   let block_size = 16
 
-  let ba_of_cs = Cstruct.to_bigarray
+  type key = AES_raw.key * AES_raw.key
 
-  type key = Native.ba * Native.ba
-
-  let of_secret cs =
-    let arr = ba_of_cs cs in
-    let (e_key, d_key) = Native.(aes_create_enc arr, aes_create_dec arr) in
-    (e_key, d_key)
+  let of_secret cs = AES_raw.(create_e cs, create_d cs)
 
   let encrypt (e_key, _) plain =
     let cipher = Cstruct.create 16 in
-    Native.aes_encrypt_into e_key (ba_of_cs plain) (ba_of_cs cipher);
-    cipher
+    ( AES_raw.encrypt_blk e_key plain cipher ; cipher )
 
   let decrypt (_, d_key) cipher =
     let plain = Cstruct.create 16 in
-    Native.aes_decrypt_into d_key (ba_of_cs cipher) (ba_of_cs plain);
-    plain
+    ( AES_raw.decrypt_blk d_key cipher plain ; plain )
 
 end
 
