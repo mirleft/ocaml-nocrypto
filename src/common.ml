@@ -8,6 +8,8 @@ let cdiv x y = x / y + sign (x mod y)
 
 let o f g h = f (g h)
 
+let id x = x
+
 module CS = struct
 
   open Cstruct

@@ -27,24 +27,41 @@ module Rng_api (Rng : Rng) = struct
     let of_bits_be cs b =
       let open Cstruct in
       let open BE in
-      (* XXX read larger chunks *)
 
       let rec loop acc i = function
-        | 0 -> acc
-        | b when b <= 8 ->
-            let x  = get_uint8 cs i
-            and b' = 8 - b in
-            N.((of_int x lsr b') + (acc lsl b))
-        | b ->
-            let x = get_uint8 cs i in
-            loop N.(of_int x + (acc lsl 8)) (succ i) (b - 8) in
+
+        | b when b >= 64 ->
+            let x = get_uint64 cs i in
+            let x = N.of_int64 Int64.(shift_right_logical x 8) in
+            loop N.(x + acc lsl 56) (i + 7) (b - 56)
+
+        | b when b >= 32 ->
+            let x = get_uint32 cs i in
+            let x = N.of_int32 Int32.(shift_right_logical x 8) in
+            loop N.(x + acc lsl 24) (i + 3) (b - 24)
+
+        | b when b >= 16 ->
+            let x = N.of_int (get_uint16 cs i) in
+            loop N.(x + acc lsl 16) (i + 2) (b - 16)
+
+        | b when b >= 8  ->
+            let x = N.of_int (get_uint8 cs i) in
+            loop N.(x + acc lsl 8 ) (i + 1) (b - 8 )
+
+        | b when b > 0   ->
+            let x = get_uint8 cs i and b' = 8 - b in
+            N.(of_int x lsr b' + acc lsl b)
+
+        | _              -> acc
+      in
       loop N.zero 0 b
 
     let gen ?g n =
 
       let size   = bits (N.pred n) in
       let octets = cdiv size 8 in
-      let batch  = cdiv (octets * 4) Rng.block * Rng.block in
+      (* Generating octets * 4 makes ~94% cases covered in a single run. *)
+      let batch  = Rng.(block * cdiv (octets * 4) block) in
 
       let rec attempt cs =
         try
