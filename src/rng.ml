@@ -87,11 +87,15 @@ module Rng_api (Rng : Rng) = struct
   module Int64 = N_gen (Numeric.Int64)
   module Z     = N_gen (Numeric.Z)
 
+  let generate = Rng.generate
+
 end
 
 let g       = Fortuna.create ()
 let reseedv = Fortuna.reseedv ~g
 and reseed  = Fortuna.reseed  ~g
+
+let generate ?(g = g) n = Fortuna.generate ~g n
 
 module Accumulator = struct
   let acc    = Fortuna.Accumulator.create ~g
@@ -100,9 +104,9 @@ module Accumulator = struct
 end
 
 module Rng = Rng_api ( struct
-  type g = Fortuna.g
-  let generate ?(g = g) n = Fortuna.generate ~g n
-  let block = 0x10
+  type g       = Fortuna.g
+  let generate = generate
+  let block    = 0x10
 end )
 
 (* include Rng *)
