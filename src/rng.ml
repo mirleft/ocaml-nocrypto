@@ -72,6 +72,12 @@ module Rng_api (Rng : Rng) = struct
       if n < N.one then invalid_arg "rng: nonpositive bound"
       else attempt Rng.(generate ?g batch)
 
+    let gen_bits ?g bits =
+
+      let octets = cdiv bits 8 in
+      let cs     = Rng.(generate ?g octets) in
+      of_bits_be cs bits
+
     let gen_r ?g a b = N.(a + gen ?g (b - a))
 
   end
