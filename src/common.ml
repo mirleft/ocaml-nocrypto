@@ -4,7 +4,7 @@ let sign = function
   | x when x > 0 ->  1
   | _            -> -1
 
-let div' x y = x / y + sign (x mod y)
+let cdiv x y = x / y + sign (x mod y)
 
 let o f g h = f (g h)
 

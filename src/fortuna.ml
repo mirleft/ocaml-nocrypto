@@ -55,7 +55,7 @@ let aes_ctr_blocks ~g: { ctr ; key = (_, k) } blocks =
   loop result blocks
 
 let generate_rekey ~g bytes =
-  let r1 = aes_ctr_blocks ~g (div' bytes 16)
+  let r1 = aes_ctr_blocks ~g (cdiv bytes 16)
   and r2 = aes_ctr_blocks ~g 2 in
   exchange_key ~g r2 ;
   sub r1 0 bytes

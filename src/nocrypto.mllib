@@ -1,7 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: 652afa660a132997b227d58f8a547da1)
+# DO NOT EDIT (digest: 8b30743b35fa3b2f98ae9a785a2bd4e7)
 Nocrypto
 Common
+Numeric
 Native
 Hash
 Block_cipher
