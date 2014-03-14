@@ -69,7 +69,7 @@ module Rng_api (Rng : Rng) = struct
           if x < n then x else attempt (Cstruct.shift cs octets)
         with | Invalid_argument _ -> attempt Rng.(generate ?g batch) in
 
-      if n < N.zero then invalid_arg "gen: negative bound"
+      if n < N.one then invalid_arg "rng: nonpositive bound"
       else attempt Rng.(generate ?g batch)
 
     let gen_r ?g a b = N.(a + gen ?g (b - a))
