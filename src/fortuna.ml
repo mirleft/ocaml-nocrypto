@@ -111,6 +111,7 @@ module Accumulator = struct
     let h = acc.pools.(pool) in
     SHAd256.feed h (CS.of_bytes [ src ; len data ]) ;
     SHAd256.feed h data ;
+    (* XXX This is clobbered on multi-pool. *)
     acc.gen.trap <- Some (fun () -> fire acc)
 
   (* XXX
