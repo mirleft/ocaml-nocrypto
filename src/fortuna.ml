@@ -105,7 +105,7 @@ module Accumulator = struct
     acc.count <- r ;
     reseedv ~g: acc.gen ent
 
-  let add acc ~src ~pool data =
+  let add ~acc ~src ~pool data =
     let pool = pool land 0x1f
     and src  = src  land 0xff in
     let h = acc.pools.(pool) in
@@ -117,10 +117,10 @@ module Accumulator = struct
    * Schneider recommends against using generator-imposed pool-seeding schedule
    * but it just makes for a horrid api.
    *)
-  let add_rr acc ~src =
+  let add_rr ~acc =
     let pool = ref 0 in
-    fun data ->
-      add acc ~src ~pool: !pool data ;
+    fun ~src data ->
+      add ~acc ~src ~pool: !pool data ;
       Pervasives.incr pool
 
 end
