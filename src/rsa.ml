@@ -79,7 +79,7 @@ let rec random_prime ?mix bits =
  *)
 let generate ?(e = Z.of_int 0x10001) bits =
 
-  Printf.printf "DON'T use this to generate actualy keys.\n%!";
+  Printf.printf "DON'T use this to generate actual keys.\n%!";
 
   let (p, q) =
     let rec attempt bits =
