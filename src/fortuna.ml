@@ -114,7 +114,7 @@ module Accumulator = struct
     acc.gen.trap <- Some (fun () -> fire acc)
 
   (* XXX
-   * Schneider recommends against using generator-imposed pool-seeding schedule
+   * Schneier recommends against using generator-imposed pool-seeding schedule
    * but it just makes for a horrid api.
    *)
   let add_rr ~acc =
