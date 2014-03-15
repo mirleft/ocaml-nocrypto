@@ -1,53 +1,4 @@
 
-let of_cstruct cs =
-  let open Cstruct in
-  let open Cstruct.BE in
-
-  let rec loop acc = function
-    | (_, 0) -> acc
-      (* XXX larger words *)
-    | (i, n) ->
-        let x = Z.of_int @@ get_uint8 cs i in
-        loop Z.((acc lsl 8) lor x) (succ i, pred n) in
-  loop Z.zero (0, len cs)
-
-
-let m1 = 0xffL
-and m2 = 0xffffL
-and m4 = 0xffffffffL
-and m7 = 0xffffffffffffffL
-
-let m1' = Z.of_int64 m1
-let m2' = Z.of_int64 m2
-let m4' = Z.of_int64 m4
-let m7' = Z.of_int64 m7
-
-let size_u z =
-  let rec loop acc = function
-    | z when z > m7' -> loop (acc + 7) Z.(shift_right z 56)
-    | z when z > m4' -> loop (acc + 4) Z.(shift_right z 32)
-    | z when z > m2' -> loop (acc + 2) Z.(shift_right z 16)
-    | z when z > m1' -> loop (acc + 1) Z.(shift_right z 8 )
-    | z              -> acc + 1 in
-  loop 0 z
-
-let to_cstruct z =
-  let open Cstruct in
-  let open Cstruct.BE in
-
-  let byte = Z.of_int 0xff in
-  let size = size_u z in
-  let cs   = Cstruct.create size in
-
-  let rec loop z = function
-    | i when i < 0 -> ()
-    | i ->
-        set_uint8 cs i Z.(to_int @@ z land byte);
-        loop Z.(shift_right z 8) (pred i) in
-
-  ( loop z (size - 1) ; cs )
-
-
 type pub  = { e : Z.t ; n : Z.t }
 
 type priv = {
@@ -55,17 +6,9 @@ type priv = {
   p : Z.t ; q : Z.t ; dp : Z.t ; dq : Z.t ; q' : Z.t
 }
 
-let pub  ~e ~n = { e ; n }
-
-let pub_of_cstruct ~e ~n = { e = of_cstruct e; n = of_cstruct n }
+let pub ~e ~n = { e ; n }
 
 let priv ~e ~d ~n ~p ~q ~dp ~dq ~q' = { e; d; n; p; q; dp; dq; q' }
-
-let priv_of_cstruct ~e ~d ~n ~p ~q ~dp ~dq ~q' = {
-  e  = of_cstruct e ; d  = of_cstruct d ; n = of_cstruct n;
-  p  = of_cstruct p ; q  = of_cstruct q ;
-  dp = of_cstruct dp; dq = of_cstruct dq; q' = of_cstruct q'
-}
 
 let pub_of_priv ({ e; n } : priv) = { e = e ; n = n }
 
