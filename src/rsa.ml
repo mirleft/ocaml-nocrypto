@@ -36,63 +36,60 @@ let decrypt_unsafe ~key: ({ p; q; dp; dq; q' } : priv) c =
 (* Timing attacks, you say? *)
 let decrypt_blinded_unsafe ~key: ({ e; n } as key : priv) c =
 
-  let two = Z.of_int 2 in
   let rec nonce () =
-    let x = Rng.gen_z two n in
+    let x = Rng.Z.gen_r Z.(of_int 2) n in
     if Z.(gcd x n = one) then x else nonce () in
 
   let r  = nonce () in
-  Printf.printf "nonce: %d\n%!" Z.(to_int r);
-  let r' = Z.(invert r n)
-  and re = Z.(powm r e n) in
-
-  let x = decrypt_unsafe ~key Z.((re * c) mod n) in
-
+  let r' = Z.(invert r n) and re = Z.(powm r e n) in
+  let x  = decrypt_unsafe ~key Z.((re * c) mod n) in
   Z.((r' * x) mod n)
 
 
 let (encrypt_z, decrypt_z) =
   let aux op f ~key x =
-    if x >= f key then
-      invalid_arg "RSA key too small"
-    else op ~key x in
+    if x >= f key then invalid_arg "RSA: key too small" ;
+    if x < Z.one then invalid_arg "RSA: non-positive message" ;
+    op ~key x
+  in
   (aux encrypt_unsafe         (fun k -> k.n)),
   (aux decrypt_blinded_unsafe (fun k -> k.n))
 
-let encrypt ~key cs = to_cstruct (encrypt_z ~key (of_cstruct cs))
-let decrypt ~key cs = to_cstruct (decrypt_z ~key (of_cstruct cs))
+let encrypt ~key cs = Numeric.Z.(to_cstruct @@ encrypt_z ~key (of_cstruct cs))
+let decrypt ~key cs = Numeric.Z.(to_cstruct @@ decrypt_z ~key (of_cstruct cs))
 
 
 (* XXX
  * This is fishy. Most significant bit is always set to avoid reducing the
  * modulus, but this drops 1 bit of randomness. Investigate.
  *)
-let rec gen_prime_z ?mix bytes =
+let rec random_prime ?mix bits =
   let lead = match mix with
     | Some x -> x
-    | None   -> Z.(pow (of_int 2)) (bytes * 8 - 1) in
-  let z = Z.(Rng.gen_z_bytes bytes lor lead) in
+    | None   -> Z.(pow (of_int 2)) (bits - 1) in
+  let z = Z.(Rng.Z.gen_bits bits lor lead) in
 (*   Z.nextprime z *)
   match Z.probab_prime z 25 with
-  | 0 -> gen_prime_z ~mix:lead bytes
+  | 0 -> random_prime ~mix:lead bits
   | _ -> z
 
 (* XXX
  * All kinds bad. Default public exponent should probably be smaller than
- * 2^16+1. Works only for key sizes of 2n bytes. Two bits of that are rigged.
+ * 2^16+1. Two bits of key are rigged.
  *)
-let generate ?(e = Z.of_int 0x10001) bytes =
+let generate ?(e = Z.of_int 0x10001) bits =
 
   Printf.printf "DON'T use this to generate actualy keys.\n%!";
 
   let (p, q) =
-    let rec attempt order =
-      let (p, q) = (gen_prime_z order, gen_prime_z order) in
+    let rec attempt bits =
+      (* xxx *)
+      let (p, q) = (random_prime bits, random_prime bits) in
       match p = q with
       | false when Z.(gcd e (pred p) = one) &&
                    Z.(gcd e (pred q) = one) -> (p, q)
-      | _                                   -> attempt order in
-    attempt (bytes / 2)
+      | _                                   -> attempt bits in
+    attempt (bits / 2)
   in
   priv_of_primes ~e ~p ~q
 
@@ -119,9 +116,9 @@ let attempt =
   let m = Cstruct.of_string "AB" in
   fun () ->
     Printf.printf "+ generating...\n%!";
-(*     let key = generate 384 in *)
-(*     let key = generate 64 in *)
-    let key = generate ~e:(Z.of_int 3) 2 in
+(*     let key = generate 3072 in *)
+(*     let key = generate 512 in *)
+    let key = generate ~e:(Z.of_int 3) 16 in
     print_key key;
     Printf.printf "+ encrypt...\n%!";
     let c = encrypt ~key:(pub_of_priv key) m in
@@ -130,11 +127,12 @@ let attempt =
     let m'  = decrypt ~key c in
     assert (m = m')
 
-let rec rspan ?(times = 1000) sp =
+(* let rec rspan ?(times = 1000) sp =
   let rec loop sum = function
     | 0 -> Some sum
     | n ->
-        match Rng.gen_z Z.zero sp with
+        match Z.zero with
+|+         match Rng.gen_z Z.zero sp with +|
         | x when x < sp -> loop Z.(sum + x) (pred n)
         | _             -> None in
   match loop Z.zero times with
@@ -143,5 +141,5 @@ let rec rspan ?(times = 1000) sp =
       let dev = Z.(abs (sp / of_int 2 - avg)) in
       Printf.printf "neat: range: %s avg: %s delta: %s\n%!"
         Z.(to_string sp) Z.(to_string avg) Z.(to_string dev)
-  | None -> failwith "oops."
+  | None -> failwith "oops." *)
 
