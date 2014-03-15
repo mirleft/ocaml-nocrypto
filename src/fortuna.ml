@@ -61,6 +61,7 @@ let generate_rekey ~g bytes =
   sub r1 0 bytes
 
 let generate ~g bytes =
+  if not g.seeded then raise Unseeded_generator ;
   let rec chunck = function
     | 0 -> []
     | n ->
@@ -68,9 +69,7 @@ let generate ~g bytes =
         generate_rekey ~g n' :: chunck (n - n')
   in
   ( match g.trap with None -> () | Some f -> g.trap <- None ; f () );
-  match g.seeded with
-  | true  -> CS.concat @@ chunck bytes
-  | false -> raise Unseeded_generator
+  CS.concat @@ chunck bytes
 
 
 module Accumulator = struct
