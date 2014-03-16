@@ -17,9 +17,9 @@ let incr cs =
   let rec loop = function
     | 16 -> ()
     | i  ->
-        let b = (1 + get_uint8 cs i) land 0xff in
-        set_uint8 cs i b ;
-        if b = 0x00 then loop (succ i) in
+        let b = Int64.(succ @@ LE.get_uint64 cs i) in
+        LE.set_uint64 cs i b ;
+        if b = 0x00L then loop (i + 8) in
   loop 0
 
 let create () =
