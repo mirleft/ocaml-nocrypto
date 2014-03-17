@@ -29,38 +29,52 @@ module CS = struct
     | []   -> create 0
     | [cs] -> cs
     | css  ->
-        let result =
-          create @@ List.fold_left (fun a cs -> a + len cs) 0 css in
-        let _ =
-          List.fold_left
-            (fun off cs ->
-              let n = len cs in
-              blit cs 0 result off n ; off + n )
-            0 css in
+        let result = create (lenv css) in
+        let _ = List.fold_left
+          (fun off cs ->
+            let n = len cs in
+            blit cs 0 result off n ;
+            off + n
+          ) 0 css in
         result
 
-  let copy cs =
-    let n   = len cs in
+  let cs_equal cs1 cs2 =
+    to_bigarray cs1 = to_bigarray cs2
+
+  let clone ?n cs =
+    let n  = match n with
+      | None   -> len cs
+      | Some n -> n in
     let cs' = create n in
     ( blit cs 0 cs' 0 n ; cs' )
 
-  let xor_into src dst =
-    for i = 0 to len dst - 1 do
-      set_uint8 dst i (get_uint8 src i lxor get_uint8 dst i)
-    done
+  let xor_into src dst n =
+    let open LE in
+    let rec loop i = function
+      | n when n >= 8 ->
+          set_uint64 dst i (Int64.logxor (get_uint64 src i) (get_uint64 dst i));
+          loop (i + 8) (n - 8)
+      | n when n >= 4 ->
+          set_uint32 dst i (Int32.logxor (get_uint32 src i) (get_uint32 dst i));
+          loop (i + 4) (n - 4)
+      | n when n >= 2 ->
+          set_uint16 dst i (get_uint16 src i lxor get_uint16 dst i);
+          loop (i + 2) (n - 2)
+      | 1 -> set_uint8 dst i (get_uint8 src i lxor get_uint8 dst i)
+      | _ -> ()
+    in
+    loop 0 n
 
   let xor cs1 cs2 =
     let n  = min (len cs1) (len cs2) in
-    let cs = create n in
-    for i = 0 to n - 1 do
-      set_uint8 cs i (get_uint8 cs1 i lxor get_uint8 cs2 i)
-    done;
-    cs
+    let cs = clone ~n cs2 in
+    ( xor_into cs1 cs n ; cs )
 
   let fill cs x =
     for i = 0 to len cs - 1 do set_uint8 cs i x done
 
-  let create_with n x = let cs = create n in ( fill cs x ; cs )
+  let create_with n x =
+    let cs = create n in ( fill cs x ; cs )
 
   let rpad cs size x =
     let l   = len cs

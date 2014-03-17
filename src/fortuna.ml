@@ -31,7 +31,7 @@ let create () =
   }
 
 let clone ~g: { ctr ; seeded ; key } =
-  { ctr = CS.copy ctr ; key ; seeded ; trap = None }
+  { ctr = CS.clone ctr ; key ; seeded ; trap = None }
 
 (* XXX
  * We _might_ want to erase the old key, but the entire topic is a can of
