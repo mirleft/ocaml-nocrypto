@@ -17,10 +17,10 @@ module CS = struct
   let empty = Cstruct.create 0
 
   let append cs1 cs2 =
-    let (l1, l2) = (len cs1, len cs2) in
+    let l1 = len cs1 and l2 = len cs2 in
     let cs = create (l1 + l2) in
-    blit cs1 0 cs 0 l1;
-    blit cs2 0 cs l1 l2;
+    blit cs1 0 cs 0 l1 ;
+    blit cs2 0 cs l1 l2 ;
     cs
 
   let (<>) = append
