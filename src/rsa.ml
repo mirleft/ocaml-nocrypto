@@ -41,11 +41,9 @@ let decrypt_blinded_unsafe ?g ~key: ({ e; n } as key : priv) c =
     if Z.(gcd x n = one) then x else nonce () in
 
   let r  = nonce () in
-  Printf.printf "blind: nonce: %s\n%!" (Z.to_string r) ;
-
-  let r' = Z.(invert r n) and re = Z.(powm r e n) in
-  let x  = decrypt_unsafe ~key Z.((re * c) mod n) in
-  Z.((r' * x) mod n)
+  let r' = Z.(invert r n) in
+  let x  = decrypt_unsafe ~key Z.(powm r e n * c mod n) in
+  Z.(r' * x mod n)
 
 
 let (encrypt_z, decrypt_z) =
@@ -86,12 +84,11 @@ let generate ?g ?(e = Z.of_int 0x10001) bits =
 
   let (p, q) =
     let rec attempt bits =
-      (* xxx *)
       let (p, q) = (random_prime ?g bits, random_prime ?g bits) in
-      match p = q with
-      | false when Z.(gcd e (pred p) = one) &&
-                   Z.(gcd e (pred q) = one) -> (p, q)
-      | _                                   -> attempt bits in
+      let cond = (p <> q) &&
+                 Z.(gcd e (pred p) = one) &&
+                 Z.(gcd e (pred q) = one) in
+      if cond then (p, q) else attempt bits in
     attempt (bits / 2)
   in
   priv_of_primes ~e ~p ~q
@@ -115,13 +112,13 @@ let print_key { e; d; n; p; q; dp; dq; q' } =
 (* debug crap *)
 
 let attempt =
-(*   let m = Cstruct.of_string "quasyantistatic hemoglobin" in *)
-  let m = Cstruct.of_string "AB" in
+  let m = Cstruct.of_string "floccinaucinihilipilification" in
+(*   let m = Cstruct.of_string "AB" in *)
   fun () ->
     Printf.printf "+ generating...\n%!";
 (*     let key = generate 3072 in *)
-(*     let key = generate 512 in *)
-    let key = generate ~e:(Z.of_int 3) 16 in
+    let key = generate 512 in
+(*     let key = generate ~e:(Z.of_int 3) 16 in *)
     print_key key;
     Printf.printf "+ encrypt...\n%!";
     let c = encrypt ~key:(pub_of_priv key) m in
