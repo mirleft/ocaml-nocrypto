@@ -5,6 +5,7 @@
 #include "sha2.h"
 #include "md5.h"
 #include "rijndael.h"
+#include "d3des.h"
 
 #define CAML_NAME_SPACE
 #include <caml/mlvalues.h>
@@ -74,8 +75,7 @@ HASH_FUNCTION (SHA_CTX, SHA384);
 HASH_FUNCTION (SHA_CTX, SHA512);
 
 
-intnat aes_blocksize = 16;
-
+// We stuff the key bits parameter into the rk[0] as a long.
 #define AES_KEY_CREATOR(DIR)                                             \
                                                                          \
   CAMLprim value caml_nc_aes_create_ ## DIR ## _key (value key) {        \
@@ -125,3 +125,47 @@ AES_KEY_CREATOR(Dec);
 
 AES_TRANSFORM(Enc);
 AES_TRANSFORM(Dec);
+
+
+CAMLprim value caml_nc_des_create_key (value key, value dir) {
+  CAMLparam2 (key, dir);
+  CAMLlocal1 (res);
+
+  if (nc_ba_dim (key) != 24) {
+    caml_invalid_argument ("DES3: invalid key length");
+  }
+
+  intnat size = 96 * sizeof (unsigned long);
+
+  des3key ( Caml_ba_data_val (key), (Long_val (dir) == 0 ? EN0 : DE1) );
+  res = nc_ba_alloc (& size);
+  cp3key ( Caml_ba_data_val (res) );
+
+  CAMLreturn (res);
+}
+
+CAMLprim void caml_nc_des_transform (value ckey, value source, value target) {
+  CAMLparam3 (ckey, source, target);
+
+  if ( nc_ba_dim (source) < 8 || nc_ba_dim (target) < 8 ) {
+    caml_invalid_argument ("3DES: invalid data length");
+  }
+
+  use3key (Caml_ba_data_val (ckey));
+  Ddes (Caml_ba_data_val (source), Caml_ba_data_val (target));
+
+  CAMLreturn0;
+}
+
+CAMLprim void caml_nc_des_transform2 (value ckey, value source, value target) {
+  CAMLparam3 (ckey, source, target);
+
+  if ( nc_ba_dim (source) < 16 || nc_ba_dim (target) < 16 ) {
+    caml_invalid_argument ("3DES double: invalid data length");
+  }
+
+  use3key (Caml_ba_data_val (ckey));
+  D2des (Caml_ba_data_val (source), Caml_ba_data_val (target));
+
+  CAMLreturn0;
+}

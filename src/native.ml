@@ -21,7 +21,11 @@ external sha512_init : unit -> ba       = "caml_nc_init_SHA512"
 external sha512_feed : ba -> ba -> unit = "caml_nc_feed_SHA512"
 external sha512_get  : ba -> ba         = "caml_nc_get_SHA512"
 
-external aes_create_enc   : ba -> ba = "caml_nc_aes_create_Enc_key"
-external aes_create_dec   : ba -> ba = "caml_nc_aes_create_Dec_key"
+external aes_create_enc   : ba -> ba               = "caml_nc_aes_create_Enc_key"
+external aes_create_dec   : ba -> ba               = "caml_nc_aes_create_Dec_key"
 external aes_encrypt_into : ba -> ba -> ba -> unit = "caml_nc_aes_Enc"
 external aes_decrypt_into : ba -> ba -> ba -> unit = "caml_nc_aes_Dec"
+
+external des3_create_key   : ba -> int -> ba        = "caml_nc_des_create_key"
+external des3_xform_into   : ba -> ba -> ba -> unit = "caml_nc_des_transform"
+external des3_xform_into2  : ba -> ba -> ba -> unit = "caml_nc_des_transform2"

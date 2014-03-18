@@ -1,6 +1,8 @@
 
 open Common
 
+let ba_of_cs = Cstruct.to_bigarray
+
 module type Cipher_fn = sig
   type key
   val block_size : int
@@ -80,17 +82,16 @@ end
 struct
 
   open Native
-  let ba_of_cs = Cstruct.to_bigarray
 
   type key = ba
 
   let create_e = o aes_create_enc ba_of_cs
-  let create_d = o aes_create_dec ba_of_cs
+  and create_d = o aes_create_dec ba_of_cs
 
   let encrypt_blk key src dst =
     aes_encrypt_into key (ba_of_cs src) (ba_of_cs dst)
 
-  let decrypt_blk key src dst =
+  and decrypt_blk key src dst =
     aes_decrypt_into key (ba_of_cs src) (ba_of_cs dst)
 end
 
@@ -124,3 +125,38 @@ module AES = struct
   include AES_GCM
 end
 
+module DES_raw = struct
+
+  open Native
+
+  type key = ba
+
+  let create_e k = des3_create_key (ba_of_cs k) 0
+  and create_d k = des3_create_key (ba_of_cs k) 1
+
+  let transform_blk key src dst =
+    des3_xform_into key (ba_of_cs src) (ba_of_cs dst)
+
+  and transform_blk2 key src dst =
+    des3_xform_into2 key (ba_of_cs src) (ba_of_cs dst)
+end
+
+module DES_Core = struct
+
+  let block_size = 8
+
+  type key = DES_raw.key * DES_raw.key
+
+  let of_secret cs = DES_raw.(create_e cs, create_d cs)
+
+  let semi_of_secret cs = DES_raw.create_e cs
+
+  let encrypt (e_key, _) plain =
+    let cipher = Cstruct.create 8 in
+    ( DES_raw.transform_blk e_key plain cipher ; cipher )
+
+  let decrypt (_, d_key) cipher =
+    let plain = Cstruct.create 8 in
+    ( DES_raw.transform_blk d_key cipher plain ; plain )
+
+end
