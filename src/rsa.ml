@@ -1,3 +1,6 @@
+open Common
+
+let two = Z.of_int 2
 
 type pub  = { e : Z.t ; n : Z.t }
 
@@ -37,7 +40,7 @@ let decrypt_unsafe ~key: ({ p; q; dp; dq; q' } : priv) c =
 let decrypt_blinded_unsafe ?g ~key: ({ e; n } as key : priv) c =
 
   let rec nonce () =
-    let x = Rng.Z.gen_r ?g Z.(of_int 2) n in
+    let x = Rng.Z.gen_r ?g two n in
     if Z.(gcd x n = one) then x else nonce () in
 
   let r  = nonce () in
@@ -64,15 +67,17 @@ let decrypt ?g ~key cs = Numeric.Z.(to_cstruct @@ decrypt_z ?g ~key (of_cstruct 
  * This is fishy. Most significant bit is always set to avoid reducing the
  * modulus, but this drops 1 bit of randomness. Investigate.
  *)
-let rec random_prime ?g ?mix bits =
-  let lead = match mix with
-    | Some x -> x
-    | None   -> Z.(pow (of_int 2)) (bits - 1) in
-  let z = Z.(Rng.Z.gen_bits ?g bits lor lead) in
-(*   Z.nextprime z *)
-  match Z.probab_prime z 25 with
-  | 0 -> random_prime ?g ~mix:lead bits
-  | _ -> z
+let rec random_prime ?g bits =
+  let limit = Z.(pow two) bits
+  and mask  = Z.(pow two) (bits - 1) in
+  (* GMP nextprime internally does Miller-Rabin with 25 repetitions, which is
+   * good, but we lose the knowledge of whether the number is proven to be
+   * prime. *)
+  let rec attempt () =
+    let p = Z.(nextprime (Rng.Z.gen_bits ?g bits lor mask)) in
+    if p < limit then p else attempt () in
+  attempt ()
+
 
 (* XXX
  * All kinds bad. Default public exponent should probably be smaller than
@@ -111,35 +116,24 @@ let print_key { e; d; n; p; q; dp; dq; q' } =
 
 (* debug crap *)
 
-let attempt =
-  let m = Cstruct.of_string "floccinaucinihilipilification" in
-(*   let m = Cstruct.of_string "AB" in *)
-  fun () ->
-    Printf.printf "+ generating...\n%!";
-(*     let key = generate 3072 in *)
-    let key = generate 512 in
-(*     let key = generate ~e:(Z.of_int 3) 16 in *)
-    print_key key;
-    Printf.printf "+ encrypt...\n%!";
-    let c = encrypt ~key:(pub_of_priv key) m in
-    Cstruct.hexdump c;
-    Printf.printf "+ decrypt...\n%!";
-    let m'  = decrypt ~key c in
-    assert (m = m')
+let message = Cstruct.of_string "floccinaucinihilipilification"
+let def_e   = Z.of_int 0x10001
 
-(* let rec rspan ?(times = 1000) sp =
-  let rec loop sum = function
-    | 0 -> Some sum
-    | n ->
-        match Z.zero with
-|+         match Rng.gen_z Z.zero sp with +|
-        | x when x < sp -> loop Z.(sum + x) (pred n)
-        | _             -> None in
-  match loop Z.zero times with
-  | Some s ->
-      let avg = Z.(s / of_int times) in
-      let dev = Z.(abs (sp / of_int 2 - avg)) in
-      Printf.printf "neat: range: %s avg: %s delta: %s\n%!"
-        Z.(to_string sp) Z.(to_string avg) Z.(to_string dev)
-  | None -> failwith "oops." *)
+let attempt bits =
+  let m = Cstruct.(sub message 0 (min (len message) (bits / 8 - 1))) in
+  Cstruct.hexdump m ;
+  let e = if Z.(pow two bits < def_e) then Z.of_int 3 else def_e in
+  let key =
+    Printf.printf "+ generating...\n%!";
+    generate ~e bits in
+  print_key key ;
+  let c =
+    Printf.printf "+ encrypt...\n%!";
+    encrypt ~key:(pub_of_priv key) m in
+  Cstruct.hexdump c ;
+  let d =
+    Printf.printf "+ decrypt...\n%!";
+    decrypt ~key c in
+  Cstruct.hexdump d ;
+  assert (CS.cs_equal m d)
 
