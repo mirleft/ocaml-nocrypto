@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# There must be a way to tell oasis to remove the generated files...
+
+rm -vf _tags setup.ml myocamlbuild.ml */{META,*.mllib,*.clib}
+
