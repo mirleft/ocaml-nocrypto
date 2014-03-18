@@ -26,7 +26,11 @@ Library "nocrypto"
                    Gcm,
                    Rsa,
                    Algo_types
-  CSources:        sha2.c, sha2.h, md5.c, md5.h, rijndael.c, rijndael.h, stubs.c
+  CSources:        sha2.c, sha2.h,
+                   md5.c, md5.h,
+                   rijndael.c, rijndael.h,
+                   d3des.c, d3des.h,
+                   stubs.c
   BuildDepends:    cstruct, zarith
 
 Library "testlib"

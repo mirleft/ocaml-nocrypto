@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 0481dfa3db67176067e4d9762f7a1953) *)
+(* DO NOT EDIT (digest: 512d9bdbf5c778b6b434697c4159fd10) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -558,7 +558,11 @@ let package_default =
      MyOCamlbuildBase.lib_ocaml =
        [("nocrypto", ["src"], []); ("testlib", ["tests"], [])];
      lib_c =
-       [("nocrypto", "src/", ["src/sha2.h"; "src/md5.h"; "src/rijndael.h"])];
+       [
+          ("nocrypto",
+            "src/",
+            ["src/sha2.h"; "src/md5.h"; "src/rijndael.h"; "src/d3des.h"])
+       ];
      flags = [];
      includes = [("tests", ["src"])]
   }
@@ -566,6 +570,6 @@ let package_default =
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
-# 570 "myocamlbuild.ml"
+# 574 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;

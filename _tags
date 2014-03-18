@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: af49348e3d3ec0783a599224a555d4c9)
+# DO NOT EDIT (digest: 2b667ed8a8ef7851582402eee23d2cf1)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -24,6 +24,8 @@
 "src/md5.c": pkg_zarith
 "src/rijndael.c": pkg_cstruct
 "src/rijndael.c": pkg_zarith
+"src/d3des.c": pkg_cstruct
+"src/d3des.c": pkg_zarith
 "src/stubs.c": pkg_cstruct
 "src/stubs.c": pkg_zarith
 # Library testlib
