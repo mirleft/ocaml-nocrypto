@@ -1,10 +1,5 @@
 open Common
-
-module type Rng = sig
-  type g
-  val generate : ?g:g -> int -> Cstruct.t
-  val block : int
-end
+open Algo_types
 
 module Rng_numeric (Rng : Rng) = struct
 

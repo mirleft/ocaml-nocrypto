@@ -1,4 +1,10 @@
 
+module type Rng = sig
+  type g
+  val generate : ?g:g -> int -> Cstruct.t
+  val block    : int
+end
+
 module type Hash = sig
   val digest_size : int
   val digest      : Cstruct.t -> Cstruct.t
