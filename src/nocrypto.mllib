@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 8b30743b35fa3b2f98ae9a785a2bd4e7)
+# DO NOT EDIT (digest: cd20338927f28cbca70fd387ab59ccdc)
 Nocrypto
 Common
 Numeric
@@ -11,5 +11,6 @@ Rng
 Stream_cipher
 Gcm
 Rsa
+Dh
 Algo_types
 # OASIS_STOP

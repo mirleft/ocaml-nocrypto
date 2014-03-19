@@ -33,12 +33,12 @@ module Rsa : sig
   val pub_of_priv : priv -> pub
   val priv_of_primes : e:Z.t -> p:Z.t -> q:Z.t -> priv
 
-  val encrypt_z :                 key:pub  -> Z.t -> Z.t
-  val decrypt_z : ?g:Fortuna.g -> key:priv -> Z.t -> Z.t
-  val encrypt   :                 key:pub  -> Cstruct.t -> Cstruct.t
-  val decrypt   : ?g:Fortuna.g -> key:priv -> Cstruct.t -> Cstruct.t
+  val encrypt_z :             key:pub  -> Z.t       -> Z.t
+  val decrypt_z : ?g:Rng.g -> key:priv -> Z.t       -> Z.t
+  val encrypt   :             key:pub  -> Cstruct.t -> Cstruct.t
+  val decrypt   : ?g:Rng.g -> key:priv -> Cstruct.t -> Cstruct.t
 
-  val generate : ?g:Fortuna.g -> ?e:Z.t -> int -> priv
+  val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
   val print_key : priv -> unit
 end
 

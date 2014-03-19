@@ -25,6 +25,7 @@ Library "nocrypto"
                    Stream_cipher,
                    Gcm,
                    Rsa,
+                   Dh,
                    Algo_types
   CSources:        sha2.c, sha2.h,
                    md5.c, md5.h,
