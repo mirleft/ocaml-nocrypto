@@ -52,7 +52,7 @@ end
 module Int32_core = struct
   include Int32
   let bound _ = 32
-  let (lsr)  = shift_right
+  let (lsr)  = shift_right_logical
   let (lsl)  = shift_left
   let (land) = logand
   let (+)    = add
@@ -66,7 +66,7 @@ end
 module Int64_core = struct
   include Int64
   let bound _ = 64
-  let (lsr)  = shift_right
+  let (lsr)  = shift_right_logical
   let (lsl)  = shift_left
   let (land) = logand
   let (+)    = add
