@@ -64,22 +64,6 @@ let decrypt ?g ~key cs = Numeric.Z.(to_cstruct @@ decrypt_z ?g ~key (of_cstruct 
 
 
 (* XXX
- * This is fishy. Most significant bit is always set to avoid reducing the
- * modulus, but this drops 1 bit of randomness. Investigate.
- *)
-let rec random_prime ?g bits =
-  let limit = Z.(pow two) bits
-  and mask  = Z.(pow two) (bits - 1) in
-  (* GMP nextprime internally does Miller-Rabin with 25 repetitions, which is
-   * good, but we lose the knowledge of whether the number is proven to be
-   * prime. *)
-  let rec attempt () =
-    let p = Z.(nextprime (Rng.Z.gen_bits ?g bits lor mask)) in
-    if p < limit then p else attempt () in
-  attempt ()
-
-
-(* XXX
  * All kinds bad. Default public exponent should probably be smaller than
  * 2^16+1. Two bits of key are rigged.
  *)
@@ -89,7 +73,7 @@ let generate ?g ?(e = Z.of_int 0x10001) bits =
 
   let (p, q) =
     let rec attempt bits =
-      let (p, q) = (random_prime ?g bits, random_prime ?g bits) in
+      let (p, q) = (Rng.prime ?g bits, Rng.prime ?g bits) in
       let cond = (p <> q) &&
                  Z.(gcd e (pred p) = one) &&
                  Z.(gcd e (pred q) = one) in

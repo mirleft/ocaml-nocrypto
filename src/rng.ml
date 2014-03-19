@@ -28,26 +28,36 @@ module Rng_numeric (Rng : Rng) = struct
 
     let gen_r ?g a b = N.(a + gen ?g (b - a))
 
-    (* xxx *)
-    let test_loop1 bound =
-      let x = gen bound in
-      Printf.printf "- %s\n%!" N.(to_string x) ;
-      assert (N.of_cstruct (N.to_cstruct x) = x)
-
-    let test_loop2 bytes =
-      let cs = Rng.generate bytes in
-      Cstruct.hexdump cs ;
-      assert (N.to_cstruct (N.of_cstruct cs) = cs)
   end
+
+  module Z' = Z
 
   module Int   = N_gen (Numeric.Int  )
   module Int32 = N_gen (Numeric.Int32)
   module Int64 = N_gen (Numeric.Int64)
   module Z     = N_gen (Numeric.Z    )
 
-  let generate = Rng.generate
+  (* XXX
+  * This is fishy. Most significant bit is always set to avoid reducing the
+  * modulus, but this drops 1 bit of randomness. Investigate.
+  *)
+
+  let two = Z'.(of_int 2)
+
+  let prime ?g bits =
+    let limit = Z'.(pow two) bits
+    and mask  = Z'.(pow two) (bits - 1) in
+    (* GMP nextprime internally does Miller-Rabin with 25 repetitions, which is
+    * good, but we lose the knowledge of whether the number is proven to be
+    * prime. *)
+    let rec attempt () =
+      let p = Z'.(nextprime (Z.gen_bits ?g bits lor mask)) in
+      if p < limit then p else attempt () in
+    attempt ()
 
 end
+
+type g = Fortuna.g
 
 let g       = Fortuna.create ()
 let reseedv = Fortuna.reseedv ~g
