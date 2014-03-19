@@ -1,7 +1,5 @@
 open Common
 
-let two = Z.of_int 2
-
 type pub  = { e : Z.t ; n : Z.t }
 
 type priv = {
@@ -40,7 +38,7 @@ let decrypt_unsafe ~key: ({ p; q; dp; dq; q' } : priv) c =
 let decrypt_blinded_unsafe ?g ~key: ({ e; n } as key : priv) c =
 
   let rec nonce () =
-    let x = Rng.Z.gen_r ?g two n in
+    let x = Rng.Z.gen_r ?g z_two n in
     if Z.(gcd x n = one) then x else nonce () in
 
   let r  = nonce () in
@@ -104,13 +102,12 @@ let print_key { e; d; n; p; q; dp; dq; q' } =
 
 (* debug crap *)
 
-let message = Cstruct.of_string "floccinaucinihilipilification"
 let def_e   = Z.of_int 0x10001
 
 let attempt bits =
-  let m = Cstruct.(sub message 0 (min (len message) (bits / 8 - 1))) in
+  let m = Rng.generate (bits / 8 - 1) in
   Cstruct.hexdump m ;
-  let e = if Z.(pow two bits < def_e) then Z.of_int 3 else def_e in
+  let e = if Z.(pow z_two bits < def_e) then Z.of_int 3 else def_e in
   let key =
     Printf.printf "+ generating...\n%!";
     generate ~e bits in
@@ -123,5 +120,6 @@ let attempt bits =
     Printf.printf "+ decrypt...\n%!";
     decrypt ~key c in
   Cstruct.hexdump d ;
-  assert (CS.cs_equal m d)
+  assert (CS.cs_equal m d) ;
+  Printf.printf "* \n%!"
 

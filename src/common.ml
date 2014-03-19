@@ -10,6 +10,8 @@ let o f g h = f (g h)
 
 let id x = x
 
+let z_two = Z.of_int 2
+
 module CS = struct
 
   open Cstruct

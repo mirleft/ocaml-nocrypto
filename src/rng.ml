@@ -42,11 +42,9 @@ module Rng_numeric (Rng : Rng) = struct
   * modulus, but this drops 1 bit of randomness. Investigate.
   *)
 
-  let two = Z'.(of_int 2)
-
   let prime ?g bits =
-    let limit = Z'.(pow two) bits
-    and mask  = Z'.(pow two) (bits - 1) in
+    let limit = Z'.(pow z_two) bits
+    and mask  = Z'.(pow z_two) (bits - 1) in
     (* GMP nextprime internally does Miller-Rabin with 25 repetitions, which is
     * good, but we lose the knowledge of whether the number is proven to be
     * prime. *)
