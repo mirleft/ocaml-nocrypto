@@ -59,8 +59,12 @@ let (encrypt_z, decrypt_z) =
   (fun ?g ~(key : priv) msg ->
     check_params key.n msg ; decrypt_blinded_unsafe ?g ~key msg)
 
-let encrypt    ~key cs = Numeric.Z.(to_cstruct @@ encrypt_z    ~key (of_cstruct cs))
-let decrypt ?g ~key cs = Numeric.Z.(to_cstruct @@ decrypt_z ?g ~key (of_cstruct cs))
+(* XXX (outer) padding *)
+let encrypt    ~key cs =
+  Numeric.Z.(to_cstruct_be @@ encrypt_z ~key @@ of_cstruct_be cs)
+
+and decrypt ?g ~key cs =
+  Numeric.Z.(to_cstruct_be @@ decrypt_z ?g ~key @@ of_cstruct_be cs)
 
 
 (* XXX

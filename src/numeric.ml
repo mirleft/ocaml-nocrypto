@@ -23,10 +23,11 @@ end
 
 module type T = sig
   include T_core
-  val bits       : t -> int
-  val of_bits_be : Cstruct.t -> int -> t
-  val of_cstruct : Cstruct.t -> t
-  val to_cstruct : t -> Cstruct.t
+  val bits            : t -> int
+  val of_bits_be      : Cstruct.t -> int -> t
+  val of_cstruct_be   : Cstruct.t -> t
+  val to_cstruct_be   : ?size:int -> t -> Cstruct.t
+  val into_cstruct_be : t -> Cstruct.t -> unit
 end
 
 module Int_core = struct
@@ -127,19 +128,17 @@ module Repr ( N : T_core ) = struct
     in
     loop N.zero 0 b
 
-  let of_cstruct cs = of_bits_be cs (Cstruct.len cs * 8)
+  let of_cstruct_be cs = of_bits_be cs (Cstruct.len cs * 8)
 
   let byte1 = N.of_int 0xff
   and byte2 = N.of_int 0xffff
   and byte3 = N.of_int 0xffffff
   and byte7 = N.of_int 0xffffffffffffff
 
-  let to_cstruct n =
+  let into_cstruct_be n cs =
     let open Cstruct in
     let open BE in
 
-    let size = cdiv (bits n) 8 in
-    let cs   = create size in
     let rec write n = function
       | i when i >= 7 ->
           set_uint64 cs (i - 7) N.(to_int64 (n land byte7)) ;
@@ -153,7 +152,13 @@ module Repr ( N : T_core ) = struct
       | 0 -> set_uint8 cs 0 N.(to_int (n land byte1)) ;
       | _ -> ()
     in
-    ( write n (pred size) ; cs )
+    write n (len cs - 1)
+
+  let to_cstruct_be ?size n =
+    let cs = Cstruct.create @@ match size with
+              | Some s -> s
+              | None   -> cdiv (bits n) 8 in
+    ( into_cstruct_be n cs ; cs )
 
 end
 
