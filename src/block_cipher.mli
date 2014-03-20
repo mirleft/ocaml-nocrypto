@@ -1,17 +1,14 @@
-open Algo_types
-
-(* XXX *)
-module AES_raw : sig
-  type key
-  val create_e : Cstruct.t -> key
-  val create_d : Cstruct.t -> key
-  val encrypt_blk : key -> Cstruct.t -> Cstruct.t -> unit
-  val decrypt_blk : key -> Cstruct.t -> Cstruct.t -> unit
-end
+open Algo_types.Block
 
 module AES : sig
-  include Block_cipher
-  include ECB_cipher with type key := key
-  include CBC_cipher with type key := key
-  include GCM_cipher with type key := key
+  module Raw : Cipher_raw
+  module ECB : Mode
+  module CBC : Mode_CBC
+  module GCM : Mode_GCM
+end
+
+module DES : sig
+  module Raw : Cipher_raw
+  module ECB : Mode
+  module CBC : Mode_CBC
 end

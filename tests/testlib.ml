@@ -38,12 +38,12 @@ let assert_bad_cs ~msg ~want ~have =
 (* aes gcm *)
 
 let gcm_case ~key ~p ~a ~iv ~c ~t =
-  ( AES.of_secret (hex key), hex p, hex a, hex iv, hex c, hex t )
+  ( AES.GCM.of_secret (hex key), hex p, hex a, hex iv, hex c, hex t )
 
 
 let gcm_check (key, p, adata, iv, c, t) _ =
-  let (cdata, ctag) = AES.encrypt_gcm ~key ~iv ~adata p in
-  let (pdata, ptag) = AES.decrypt_gcm ~key ~iv ~adata cdata in
+  let (cdata, ctag) = AES.GCM.encrypt ~key ~iv ~adata p in
+  let (pdata, ptag) = AES.GCM.decrypt ~key ~iv ~adata cdata in
   if c <> cdata then
     assert_bad_cs ~msg:"cyphertext" ~want:c ~have:cdata
   else if t <> ctag then

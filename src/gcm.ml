@@ -93,7 +93,7 @@ let ghash ~key cs =
 
 let gctr ~cipher ~key ~icb cs =
   let rec loop acc cb cs =
-    let y = CS.xor cs (cipher key cb) in
+    let y = CS.xor cs (cipher ~key cb) in
     if len cs > 16 then
       loop (y :: acc) (incr32 cb) (shift cs 16)
     else CS.concat @@ List.rev (y :: acc) in
@@ -108,7 +108,7 @@ let nbits cs = Int64.of_int (len cs * 8)
 
 let gcm ~cipher ~mode ~key ~iv ?(adata=CS.empty) data =
 
-  let h  = cipher key (CS.of_int64s [0L; 0L]) in
+  let h  = cipher ~key (CS.of_int64s [0L; 0L]) in
 
   let j0 = match len iv with
     | 12 -> CS.concat [ iv; CS.of_int32s [1l] ]

@@ -2,7 +2,7 @@ open Common
 open Hash
 open Cstruct
 
-module AES = Block_cipher.AES_raw
+module AES = Block_cipher.AES.Raw
 
 let block_size = AES.block_size
 
@@ -10,7 +10,7 @@ exception Unseeded_generator
 
 type g =
   { ctr            : Cstruct.t
-  ; mutable key    : Cstruct.t * AES.key
+  ; mutable key    : Cstruct.t * AES.ekey
   ; mutable trap   : (unit -> unit) option
   ; mutable seeded : bool
   }
@@ -27,7 +27,7 @@ let incr cs =
 let create () =
   let k = CS.create_with 32 0 in
   { ctr    = CS.create_with 16 0
-  ; key    = (k, AES.create_e k)
+  ; key    = (k, AES.e_of_secret k)
   ; trap   = None
   ; seeded = false
   }
@@ -38,7 +38,7 @@ let clone ~g: { ctr ; seeded ; key } =
 (* XXX
  * We _might_ want to erase the old key, but the entire topic is a can of
  * worms in a memory-managed setting. What with compactifying GC and all. *)
-let exchange_key ~g key = g.key <- (key, AES.create_e key )
+let exchange_key ~g key = g.key <- (key, AES.e_of_secret key )
 
 let reseedv ~g css =
   exchange_key ~g @@ SHAd256.digestv (fst g.key :: css) ;
@@ -52,7 +52,7 @@ let aes_ctr_blocks ~g: { ctr ; key = (_, k) } blocks =
   let rec loop res = function
     | 0 -> result
     | n ->
-        ( AES.encrypt_blk k ctr res ; incr ctr ) ;
+        ( AES.encrypt_block k ctr res ; incr ctr ) ;
         loop (shift res 16) (pred n) in
   loop result blocks
 

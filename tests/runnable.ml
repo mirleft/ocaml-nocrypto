@@ -57,7 +57,7 @@ let on_stdin fn =
   Cstruct.hexdump_to_buffer b res;
   Lwt_io.printl (Buffer.contents b)
 
-let aes_key str = Block.AES.of_secret (Cstruct.of_string str)
+(* let aes_key str = Block.AES.of_secret (Cstruct.of_string str) *)
 
 let main () =
   match List.tl (Array.to_list Sys.argv) with
@@ -70,7 +70,7 @@ let main () =
 
   | ["hmac_sha1"; k] -> on_stdin @@ Hash.SHA1.hmac ~key:(cs_of_s k)
 
-  | ["aes_ecb"; "encrypt"; k] -> on_stdin Block.AES.(encrypt_ecb ~key:(aes_key k))
+(*   | ["aes_ecb"; "encrypt"; k] -> on_stdin Block.AES.(encrypt_ecb ~key:(aes_key k))
 
   | ["aes_ecb"; "decrypt"; k] -> on_stdin Block.AES.(decrypt_ecb ~key:(aes_key k))
 
@@ -78,7 +78,7 @@ let main () =
       snd Block.AES.(encrypt_cbc ~key:(aes_key k) ~iv:(cs_of_s iv) i)
 
   | ["aes_cbc"; "decrypt"; k; iv] -> on_stdin @@ fun i ->
-      snd Block.AES.(decrypt_cbc ~key:(aes_key k) ~iv:(cs_of_s iv) i)
+      snd Block.AES.(decrypt_cbc ~key:(aes_key k) ~iv:(cs_of_s iv) i) *)
 
   | _ ->
       Printf.eprintf
@@ -102,11 +102,39 @@ let main () =
   in
   () *)
 
-let () =
+(* let () =
   let g = Fortuna.create () in
   Fortuna.reseed g (Cstruct.of_string "\001\002\003\004");
   let _ = time @@ fun () ->
     for i = 1 to 10 do
       ignore @@ Fortuna.generate g (int_of_float @@ 10. *. (2.**20.))
     done in
-  ()
+  () *)
+
+(* let () =
+  Rng.reseed (Cstruct.of_string "\001\002\003\004");
+  let _ = time @@ fun () ->
+    for i = 1 to 1000000 do
+      ignore @@ Rng.Rng.Int.gen 0x2000000000000001
+    done in
+  () *)
+
+(* let () =
+  Rng.reseed (Cstruct.of_string "\001\002\003\004");
+  let items = 10000000 in
+  let cs    = time @@ fun () -> Rng.generate (items * 8) in
+  time @@ fun () ->
+    let rec loop cs = function
+      | 0 -> ()
+      | n ->
+          ignore (Numeric.Z.of_bits_be cs (7 * 8 + 3));
+          loop (Cstruct.shift cs 8) (pred n) in
+    loop cs items *)
+
+let () =
+  Rng.reseed (Cstruct.of_string "\001\002\003\004");
+  let items = 100 in
+  time @@ fun () ->
+    for i = 1 to items do
+      ignore @@ Nocrypto.Rsa.generate 2048
+    done

@@ -1,162 +1,158 @@
 
 open Common
+open Algo_types.Block
+
 
 let ba_of_cs = Cstruct.to_bigarray
 
-module type Cipher_fn = sig
-  type key
-  val block_size : int
-  val of_secret : Cstruct.t -> key
-  val encrypt : key -> Cstruct.t -> Cstruct.t
-  val decrypt : key -> Cstruct.t -> Cstruct.t
-end
 
-module Mode_ECB ( C : Cipher_fn ) = struct
+module Modes = struct
 
-  open Cstruct
+  module Base_of ( C : Cipher_raw ) : Cipher_base = struct
 
-  let encrypt_ecb, decrypt_ecb =
-    let ecb f source =
-      let rec loop blocks src = function
-        | 0 -> CS.concat @@ List.rev blocks
-        | n -> loop (f src :: blocks)
-                    (shift src C.block_size)
-                    (n - C.block_size) in
-      loop [] source (len source)
-    in
-    (fun ~key -> ecb (C.encrypt key)),
-    (fun ~key -> ecb (C.decrypt key))
+    type key = C.ekey * C.dkey
 
-end
+    let of_secret cs = C.(e_of_secret cs, d_of_secret cs)
 
-module Mode_CBC ( C : Cipher_fn ) = struct
+    let block_size = C.block_size
 
-  open Cstruct
+    let encrypt ~key: (e_key, _) plain =
+      let cipher = Cstruct.create 16 in
+      ( C.encrypt_block e_key plain cipher ; cipher )
 
-  let encrypt_cbc ~key ~iv plain =
-    let rec loop blocks iv src = function
-      | 0 -> (iv, CS.concat @@ List.rev blocks)
-      | n ->
-          let blk = C.encrypt key (CS.xor src iv) in
-          loop (blk :: blocks)
-               blk
-               (shift src C.block_size)
-               (n - C.block_size)
-    in
-    loop [] iv plain (len plain)
+    let decrypt ~key: (_, d_key) cipher =
+      let plain = Cstruct.create 16 in
+      ( C.decrypt_block d_key cipher plain ; plain )
+  end
 
-  let decrypt_cbc ~key ~iv cipher =
-    let rec loop blocks iv src = function
-      | 0 -> (iv, CS.concat @@ List.rev blocks)
-      | n ->
-          let blk = C.decrypt key src in
-          loop (CS.xor iv blk :: blocks)
-               (sub src 0 C.block_size)
-               (shift src C.block_size)
-               (n - C.block_size)
-    in
-    loop [] iv cipher (len cipher)
+  module ECB_of ( C : Cipher_base ) : Mode = struct
 
-end
+    open Cstruct
 
-module Mode_GCM ( C : Cipher_fn ) = struct
+    type key = C.key
 
-  assert (C.block_size = 16)
+    let of_secret = C.of_secret
 
-  let encrypt_gcm ~key ~iv ?adata cs =
-    Gcm.gcm ~cipher:C.encrypt ~mode:`Encrypt ~key ~iv ?adata cs
+    let encrypt, decrypt =
+      let ecb f source =
+        let rec loop blocks src = function
+          | 0 -> CS.concat @@ List.rev blocks
+          | n -> loop (f src :: blocks)
+                      (shift src C.block_size)
+                      (n - C.block_size) in
+        loop [] source (len source)
+      in
+      (fun ~key -> ecb (C.encrypt ~key)),
+      (fun ~key -> ecb (C.decrypt ~key))
 
-  let decrypt_gcm ~key ~iv ?adata cs =
-    Gcm.gcm ~cipher:C.encrypt ~mode:`Decrypt ~key ~iv ?adata cs
+  end
 
-end
+  module CBC_of ( C : Cipher_base ) : Mode_CBC = struct
 
-module AES_raw : sig
-  type key
-  val create_e : Cstruct.t -> key
-  val create_d : Cstruct.t -> key
-  val encrypt_blk : key -> Cstruct.t -> Cstruct.t -> unit
-  val decrypt_blk : key -> Cstruct.t -> Cstruct.t -> unit
-end
-  =
-struct
+    open Cstruct
 
-  open Native
+    type key = C.key
 
-  type key = ba
+    let of_secret = C.of_secret
 
-  let create_e = o aes_create_enc ba_of_cs
-  and create_d = o aes_create_dec ba_of_cs
+    let encrypt ~key ~iv plain =
+      let rec loop blocks iv src = function
+        | 0 -> (iv, CS.concat @@ List.rev blocks)
+        | n ->
+            let blk = C.encrypt ~key (CS.xor src iv) in
+            loop (blk :: blocks)
+                blk
+                (shift src C.block_size)
+                (n - C.block_size)
+      in
+      loop [] iv plain (len plain)
 
-  let encrypt_blk key src dst =
-    aes_encrypt_into key (ba_of_cs src) (ba_of_cs dst)
+    let decrypt ~key ~iv cipher =
+      let rec loop blocks iv src = function
+        | 0 -> (iv, CS.concat @@ List.rev blocks)
+        | n ->
+            let blk = C.decrypt ~key src in
+            loop (CS.xor iv blk :: blocks)
+                (sub src 0 C.block_size)
+                (shift src C.block_size)
+                (n - C.block_size)
+      in
+      loop [] iv cipher (len cipher)
 
-  and decrypt_blk key src dst =
-    aes_decrypt_into key (ba_of_cs src) (ba_of_cs dst)
-end
+  end
 
+  module GCM_of ( C : Cipher_base ) : Mode_GCM = struct
 
-module AES_Core = struct
+    assert (C.block_size = 16)
 
-  let block_size = 16
+    type key = C.key
+    let of_secret = C.of_secret
 
-  type key = AES_raw.key * AES_raw.key
+    let encrypt ~key ~iv ?adata cs =
+      Gcm.gcm ~cipher:C.encrypt ~mode:`Encrypt ~key ~iv ?adata cs
 
-  let of_secret cs = AES_raw.(create_e cs, create_d cs)
+    let decrypt ~key ~iv ?adata cs =
+      Gcm.gcm ~cipher:C.encrypt ~mode:`Decrypt ~key ~iv ?adata cs
 
-  let encrypt (e_key, _) plain =
-    let cipher = Cstruct.create 16 in
-    ( AES_raw.encrypt_blk e_key plain cipher ; cipher )
-
-  let decrypt (_, d_key) cipher =
-    let plain = Cstruct.create 16 in
-    ( AES_raw.decrypt_blk d_key cipher plain ; plain )
+  end
 
 end
+
 
 module AES = struct
-  module AES_ECB = Mode_ECB (AES_Core)
-  module AES_CBC = Mode_CBC (AES_Core)
-  module AES_GCM = Mode_GCM (AES_Core)
 
-  include AES_Core
-  include AES_ECB
-  include AES_CBC
-  include AES_GCM
+  module Raw : Cipher_raw = struct
+
+    open Native
+
+    type ekey = ba
+    type dkey = ba
+
+    let e_of_secret = o aes_create_enc ba_of_cs
+    and d_of_secret = o aes_create_dec ba_of_cs
+
+    let block_size = 16
+
+    let encrypt_block key src dst =
+      aes_encrypt_into key (ba_of_cs src) (ba_of_cs dst)
+
+    and decrypt_block key src dst =
+      aes_decrypt_into key (ba_of_cs src) (ba_of_cs dst)
+  end
+
+  module Base = Modes.Base_of (Raw)
+
+  module ECB = Modes.ECB_of (Base)
+  module CBC = Modes.CBC_of (Base)
+  module GCM = Modes.GCM_of (Base)
 end
 
-module DES_raw = struct
 
-  open Native
+module DES = struct
 
-  type key = ba
+  module Raw = struct
 
-  let create_e k = des3_create_key (ba_of_cs k) 0
-  and create_d k = des3_create_key (ba_of_cs k) 1
+    open Native
 
-  let transform_blk key src dst =
-    des3_xform_into key (ba_of_cs src) (ba_of_cs dst)
+    type ekey = ba
+    type dkey = ba
 
-  and transform_blk2 key src dst =
-    des3_xform_into2 key (ba_of_cs src) (ba_of_cs dst)
-end
+    let e_of_secret k = des3_create_key (ba_of_cs k) 0
+    and d_of_secret k = des3_create_key (ba_of_cs k) 1
 
-module DES_Core = struct
+    let block_size = 8
 
-  let block_size = 8
+    let encrypt_block key src dst =
+      des3_xform_into key (ba_of_cs src) (ba_of_cs dst)
 
-  type key = DES_raw.key * DES_raw.key
+    let decrypt_block = encrypt_block
 
-  let of_secret cs = DES_raw.(create_e cs, create_d cs)
+    and transform_blk2 key src dst =
+      des3_xform_into2 key (ba_of_cs src) (ba_of_cs dst)
+  end
 
-  let semi_of_secret cs = DES_raw.create_e cs
+  module Base = Modes.Base_of (Raw)
 
-  let encrypt (e_key, _) plain =
-    let cipher = Cstruct.create 8 in
-    ( DES_raw.transform_blk e_key plain cipher ; cipher )
-
-  let decrypt (_, d_key) cipher =
-    let plain = Cstruct.create 8 in
-    ( DES_raw.transform_blk d_key cipher plain ; plain )
-
+  module ECB  = Modes.ECB_of (Base)
+  module CBC  = Modes.CBC_of (Base)
 end
