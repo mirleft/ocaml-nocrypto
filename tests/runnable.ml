@@ -1,6 +1,7 @@
 
 open Lwt
 open Nocrypto
+open Common
 
 
 let time f =
@@ -13,6 +14,8 @@ let time f =
 let rec replicate f = function
   | 0 -> []
   | n -> let x = f () in x :: replicate f (pred n)
+
+let rec forever f = ( ignore @@ f () ; forever f )
 
 (*
 
@@ -46,8 +49,6 @@ let () =
 *)
 
 let cs_of_s = Cstruct.of_string
-
-open Nocrypto
 
 
 let on_stdin fn =
@@ -88,38 +89,24 @@ let main () =
 
 (* let () = Lwt_main.run @@ main () *)
 
-(* let () =
-
-  let pt  = Cstruct.of_string "<(^_^<)  (>^_^)>"
-  and iv  = Cstruct.of_string "desu1234desu1234"
-  and key = AES.of_secret (Cstruct.of_string "aaaabbbbccccdddd") in
-  let pts = time @@ fun () ->
-    cs_concat @@ replicate (fun () -> pt ) 100000 in
-  let _ = time @@ fun () ->
-    AES.encrypt_cbc key iv pts
-  and _ = time @@ fun () ->
-    AES.encrypt_cbc' key iv pts
-  in
-  () *)
-
-(* let () =
+let time_fortuna_generation () =
   let g = Fortuna.create () in
   Fortuna.reseed g (Cstruct.of_string "\001\002\003\004");
   let _ = time @@ fun () ->
     for i = 1 to 10 do
       ignore @@ Fortuna.generate g (int_of_float @@ 10. *. (2.**20.))
     done in
-  () *)
+  ()
 
-(* let () =
+let time_intgen_with_misses () =
   Rng.reseed (Cstruct.of_string "\001\002\003\004");
   let _ = time @@ fun () ->
     for i = 1 to 1000000 do
-      ignore @@ Rng.Rng.Int.gen 0x2000000000000001
+      ignore @@ Rng.Int.gen 0x2000000000000001
     done in
-  () *)
+  ()
 
-(* let () =
+let time_z_of_bits () =
   Rng.reseed (Cstruct.of_string "\001\002\003\004");
   let items = 10000000 in
   let cs    = time @@ fun () -> Rng.generate (items * 8) in
@@ -129,12 +116,58 @@ let main () =
       | n ->
           ignore (Numeric.Z.of_bits_be cs (7 * 8 + 3));
           loop (Cstruct.shift cs 8) (pred n) in
-    loop cs items *)
+    loop cs items
 
-let () =
+let time_rsa_generate () =
   Rng.reseed (Cstruct.of_string "\001\002\003\004");
   let items = 100 in
   time @@ fun () ->
     for i = 1 to items do
-      ignore @@ Nocrypto.Rsa.generate 2048
+      ignore @@ Rsa.generate 2048
     done
+
+
+let rsa_feedback bits =
+  let open Cstruct in
+  let open Rsa in
+
+  let def_e   = Z.of_int 0x10001 in
+
+  let m = Rng.generate (bits / 8 - 1) in
+  hexdump m ;
+
+  let e = if Z.(pow z_two bits < def_e) then Z.of_int 3 else def_e in
+  let key =
+    Printf.printf "+ generating...\n%!";
+    generate ~e bits in
+  print_key key ;
+
+  let c =
+    Printf.printf "+ encrypt...\n%!";
+    encrypt ~key:(pub_of_priv key) m in
+  hexdump c ;
+
+  let d =
+    Printf.printf "+ decrypt...\n%!";
+    decrypt ~key c in
+  hexdump d ;
+
+  assert (CS.cs_equal m d) ;
+  Printf.printf "* \n%!"
+
+
+let dh_feedback bits =
+  let p = DH.gen_params bits in
+
+  let (s1, m1) = DH.gen_secret p
+  and (s2, m2) = DH.gen_secret p in
+
+  let sh1 = DH.shared p s1 m2
+  and sh2 = DH.shared p s2 m1 in
+
+  assert (CS.cs_equal sh1 sh2);
+  Cstruct.hexdump sh1
+
+let _ =
+  Rng.reseed (Cstruct.of_string "\001\002\003\004");
+  forever (fun () -> rsa_feedback 32)

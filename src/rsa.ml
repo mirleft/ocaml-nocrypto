@@ -96,29 +96,3 @@ let print_key { e; d; n; p; q; dp; dq; q' } =
   dp: %s
   dq: %s
   q': %s\n%!" (f e) (f d) (f n) (f p) (f q) (f dp) (f dq) (f q')
-
-
-
-(* debug crap *)
-
-let def_e   = Z.of_int 0x10001
-
-let attempt bits =
-  let m = Rng.generate (bits / 8 - 1) in
-  Cstruct.hexdump m ;
-  let e = if Z.(pow z_two bits < def_e) then Z.of_int 3 else def_e in
-  let key =
-    Printf.printf "+ generating...\n%!";
-    generate ~e bits in
-  print_key key ;
-  let c =
-    Printf.printf "+ encrypt...\n%!";
-    encrypt ~key:(pub_of_priv key) m in
-  Cstruct.hexdump c ;
-  let d =
-    Printf.printf "+ decrypt...\n%!";
-    decrypt ~key c in
-  Cstruct.hexdump d ;
-  assert (CS.cs_equal m d) ;
-  Printf.printf "* \n%!"
-
