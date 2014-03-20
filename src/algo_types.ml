@@ -32,15 +32,23 @@ module Rand = struct
 end
 
 module type Hash = sig
+  type t
+
   val digest_size : int
-  val digest      : Cstruct.t -> Cstruct.t
-  val digestv     : Cstruct.t list -> Cstruct.t
+
+  val init : unit -> t
+  val feed : t    -> Cstruct.t -> unit
+  val get  : t    -> Cstruct.t
+
+  val digest  : Cstruct.t      -> Cstruct.t
+  val digestv : Cstruct.t list -> Cstruct.t
 end
 
 module type Hash_MAC = sig
   include Hash
   val hmac : key:Cstruct.t -> Cstruct.t -> Cstruct.t
 end
+
 
 module type Stream_cipher = sig
   type key

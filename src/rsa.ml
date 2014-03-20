@@ -11,15 +11,15 @@ let pub ~e ~n = { e ; n }
 
 let priv ~e ~d ~n ~p ~q ~dp ~dq ~q' = { e; d; n; p; q; dp; dq; q' }
 
-let pub_of_priv ({ e; n } : priv) = { e = e ; n = n }
-
-let priv_of_primes ~e ~p ~q =
+let priv' ~e ~p ~q =
   let n  = Z.(p * q)
   and d  = Z.(invert e (pred p * pred q)) in
   let dp = Z.(d mod (pred p))
   and dq = Z.(d mod (pred q))
   and q' = Z.(invert q p) in
   priv ~e ~d ~n ~p ~q ~dp ~dq ~q'
+
+let pub_of_priv ({ e; n } : priv) = { e = e ; n = n }
 
 
 let encrypt_unsafe ~key: ({ e; n } : pub) msg = Z.(powm msg e n)
@@ -80,9 +80,8 @@ let generate ?g ?(e = Z.of_int 0x10001) bits =
                  Z.(gcd e (pred p) = one) &&
                  Z.(gcd e (pred q) = one) in
       if cond then (p, q) else attempt bits in
-    attempt (bits / 2)
-  in
-  priv_of_primes ~e ~p ~q
+    attempt (bits / 2) in
+  priv' ~e ~p ~q
 
 
 let print_key { e; d; n; p; q; dp; dq; q' } =
