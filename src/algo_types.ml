@@ -1,8 +1,34 @@
 
-module type Rng = sig
-  type g
-  val generate : ?g:g -> int -> Cstruct.t
-  val block    : int
+module Rand = struct
+
+  module type Rng = sig
+    type g
+    val block_size : int
+    val generate   : ?g:g -> int -> Cstruct.t
+  end
+
+  module type N = sig
+
+    module Rng : Rng
+    module N   : Numeric.T
+
+    val gen      : ?g:Rng.g -> N.t -> N.t
+    val gen_bits : ?g:Rng.g -> int -> N.t
+    val gen_r    : ?g:Rng.g -> N.t -> N.t -> N.t
+  end
+
+  module type Numeric = sig
+
+    module Rng : Rng
+
+    val prime : ?g:Rng.g -> int -> Z.t
+
+    module Int   : N with module Rng = Rng and module N = Numeric.Int
+    module Int32 : N with module Rng = Rng and module N = Numeric.Int32
+    module Int64 : N with module Rng = Rng and module N = Numeric.Int64
+    module Z     : N with module Rng = Rng and module N = Numeric.Z
+  end
+
 end
 
 module type Hash = sig

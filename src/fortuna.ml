@@ -4,6 +4,8 @@ open Cstruct
 
 module AES = Block_cipher.AES_raw
 
+let block_size = AES.block_size
+
 exception Unseeded_generator
 
 type g =
