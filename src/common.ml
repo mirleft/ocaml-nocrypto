@@ -12,6 +12,14 @@ let id x = x
 
 let z_two = Z.of_int 2
 
+let opt a f = function
+  | Some x -> f x
+  | None   -> a
+
+let map_opt f = function
+  | Some x -> Some (f x)
+  | None   -> None
+
 let string_fold ~f ~z str =
   let st = ref z in
   ( String.iter (fun c -> st := f !st c) str  ; !st )
