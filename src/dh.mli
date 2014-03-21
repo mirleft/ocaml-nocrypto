@@ -1,11 +1,29 @@
-type params
-type secret
+(* MODP Diffie-Hellman *)
 
-val params : p:Z.t -> gg:Z.t -> params
+(* DH parameters: a modulus and a group generator. *)
+type params = { p: Z.t ; gg : Z.t }
+
+(* A private secret. *)
+type secret = { x : Z.t }
+
+(* Construct `params`. *)
+val params : p:Cstruct.t -> gg:Cstruct.t -> params
+
+(* Given params and a string serving as secret, generate `secret` and the public
+ * part. *)
+val of_secret : params -> s:Cstruct.t -> secret * Cstruct.t
+
+(* Given params, a secret and the other party's public message, recover the
+ * shared secret. *)
+val shared : params -> secret -> Cstruct.t -> Cstruct.t
+
+(* Generate parameters. *)
 val gen_params : ?g:Rng.g -> int -> params
-val gen_secret : ?g:Rng.g -> params -> secret * Cstruct.t
-val shared     : params -> secret -> Cstruct.t -> Cstruct.t
 
+(* Generate a secret and the corresponding public message. *)
+val gen_secret : ?g:Rng.g -> params -> secret * Cstruct.t
+
+(* Some standard parameter sets. *)
 module Params : sig
   val rfc_5114_1 : params
   val rfc_5114_2 : params

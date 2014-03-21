@@ -1,9 +1,8 @@
 open Common
 
-(* XXX include and check subgroup order *)
 type params = {
-  p  : Z.t ;   (* The prime modulus *)
-  gg : Z.t ;   (* Group generator *)
+  p  : Z.t ;  (* The prime modulus *)
+  gg : Z.t ;  (* Group generator *)
 }
 
 type secret = { x : Z.t }
@@ -11,23 +10,35 @@ type secret = { x : Z.t }
 let to_cstruct { p; _ } z =
   Numeric.Z.(to_cstruct_be ~size:(cdiv (bits p) 8) z)
 
-let params ~p ~gg = { p; gg }
+let params ~p ~gg =
+  Numeric.Z.({ p = of_cstruct_be p ; gg = of_cstruct_be gg })
 
-(* XXX see Rng.prime *)
-let gen_params ?g bits =
-  let p  = Rng.prime ?g bits in
-  let gg = Rng.Z.gen_r ?g z_two p in
-  { p; gg }
-
-let gen_secret ?g ({ p; gg } as param) =
-  let x    = Rng.Z.gen ?g p in
-  let ggx  = Z.(powm gg x p) in
+let public ({ p; gg } as param) x =
+  let ggx = Z.(powm gg x p) in
   ({ x }, to_cstruct param ggx)
+
+let of_secret param ~s =
+  public param (Numeric.Z.of_cstruct_be s)
 
 let shared ({ p; _ } as param) { x } cs =
   let ggy    = Numeric.Z.of_cstruct_be cs in
   let secret = Z.(powm ggy x p) in
   to_cstruct param secret
+
+let gen_secret ?g ({ p; _ } as param) =
+  public param @@ Rng.Z.gen ?g p
+
+let gen_params ?g bits =
+
+  (*
+   * - The modulus is not-so-random.
+   * - We have no idea about the generator's order. It could be 3.
+   *)
+  Printf.printf "Do NOT use this for actual params!\n%!" ;
+
+  let p  = Rng.prime ?g bits in
+  let gg = Rng.Z.gen_r ?g z_two p in
+  { p; gg }
 
 module Params = struct
 
