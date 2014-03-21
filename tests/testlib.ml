@@ -1,29 +1,8 @@
 
 open OUnit2
-open Nocrypto.Block
-
-
-let int_of_hex_digit c =
-  let open Char in
-  let i = code (lowercase c) in
-  if i >= code '0' && i <= code '9' then Some (i - code '0') else
-  if i >= code 'a' && i <= code 'f' then Some (i - code 'a' + 10)
-  else None
-
-let hex str =
-  let b = Buffer.create 16 in
-  let n = String.length str in
-  let rec push st i =
-    if i = n then () else
-      match int_of_hex_digit str.[i], st with
-      | None  , _      -> push st (succ i)
-      | Some x, None   -> push (Some x) (succ i)
-      | Some x, Some y ->
-          Buffer.add_char b @@ char_of_int (x + (y lsl 4)) ;
-          push None (succ i)
-  in
-  push None 0 ;
-  Cstruct.of_string (Buffer.contents b)
+open Nocrypto
+open Common
+open Block
 
 let hex_of_cs cs =
   let b = Buffer.create 16 in
@@ -38,19 +17,22 @@ let assert_bad_cs ~msg ~want ~have =
 (* aes gcm *)
 
 let gcm_case ~key ~p ~a ~iv ~c ~t =
-  ( AES.GCM.of_secret (hex key), hex p, hex a, hex iv, hex c, hex t )
+  ( AES.GCM.of_secret (CS.of_hex key),
+    CS.of_hex p, CS.of_hex a, CS.of_hex iv, CS.of_hex c, CS.of_hex t )
 
 
 let gcm_check (key, p, adata, iv, c, t) _ =
   let (cdata, ctag) = AES.GCM.encrypt ~key ~iv ~adata p in
   let (pdata, ptag) = AES.GCM.decrypt ~key ~iv ~adata cdata in
-  if c <> cdata then
+  let (!=) a b = not CS.(cs_equal a b)
+  in
+  if c != cdata then
     assert_bad_cs ~msg:"cyphertext" ~want:c ~have:cdata
-  else if t <> ctag then
+  else if t != ctag then
     assert_bad_cs ~msg:"encrypted tag" ~want:t ~have:ctag
-  else if p <> pdata then
+  else if p != pdata then
     assert_bad_cs ~msg:"recovered plaintext" ~want:p ~have:pdata
-  else if t <> ptag then
+  else if t != ptag then
     assert_bad_cs ~msg:"decrypted tag" ~want:t ~have:ptag
   else ()
 

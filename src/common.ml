@@ -12,6 +12,11 @@ let id x = x
 
 let z_two = Z.of_int 2
 
+let string_fold ~f ~z str =
+  let st = ref z in
+  ( String.iter (fun c -> st := f !st c) str  ; !st )
+
+
 module CS = struct
 
   open Cstruct
@@ -102,5 +107,30 @@ module CS = struct
       cs
     in
     (aux 1 set_uint8, aux 4 BE.set_uint32, aux 8 BE.set_uint64)
+
+  let of_hex str =
+    let hexdigit = function
+      | 'a' .. 'f' as x -> int_of_char x - 87
+      | 'A' .. 'F' as x -> int_of_char x - 55
+      | '0' .. '9' as x -> int_of_char x - 48
+      | x               -> invalid_arg Printf.(sprintf "of_hex: `%c'" x)
+    in
+    let whitespace = function
+      | ' ' | '\t' | '\r' | '\n' -> true
+      | _                        -> false
+    in
+    match
+      string_fold
+      ~f:(fun (cs, i, acc) -> function
+          | char when whitespace char -> (cs, i, acc)
+          | char ->
+              match (acc, hexdigit char) with
+              | (None  , x) -> (cs, i, Some (x lsl 4))
+              | (Some y, x) -> set_uint8 cs i (x lor y) ; (cs, succ i, None))
+      ~z:(create (String.length str), 0, None)
+      str
+    with
+    | (_ , _, Some _) -> invalid_arg "of_hex: dangling nibble"
+    | (cs, i, _     ) -> sub cs 0 i
 
 end
