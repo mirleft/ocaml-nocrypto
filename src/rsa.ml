@@ -7,17 +7,38 @@ type priv = {
   p : Z.t ; q : Z.t ; dp : Z.t ; dq : Z.t ; q' : Z.t
 }
 
-let pub ~e ~n = { e ; n }
+let pub ~e ~n =
+  Numeric.Z.({
+    e = of_cstruct_be e ;
+    n = of_cstruct_be n ;
+  })
 
-let priv ~e ~d ~n ~p ~q ~dp ~dq ~q' = { e; d; n; p; q; dp; dq; q' }
+let priv ~e ~d ~n ~p ~q ~dp ~dq ~q' =
+  Numeric.Z.({
+    e  = of_cstruct_be e  ;
+    d  = of_cstruct_be d  ;
+    n  = of_cstruct_be n  ;
+    p  = of_cstruct_be p  ;
+    q  = of_cstruct_be q  ;
+    dp = of_cstruct_be dp ;
+    dq = of_cstruct_be dq ;
+    q' = of_cstruct_be q' ;
+  })
 
-let priv' ~e ~p ~q =
+let priv_of_primes ~e ~p ~q =
   let n  = Z.(p * q)
   and d  = Z.(invert e (pred p * pred q)) in
   let dp = Z.(d mod (pred p))
   and dq = Z.(d mod (pred q))
   and q' = Z.(invert q p) in
-  priv ~e ~d ~n ~p ~q ~dp ~dq ~q'
+  { e  = e  ; d  = d  ; n = n ;
+    p  = p  ; q  = q  ;
+    dp = dp ; dq = dq ; q' = q' }
+
+let priv' ~e ~p ~q =
+  let (e, p, q) =
+    Numeric.Z.(of_cstruct_be e, of_cstruct_be p, of_cstruct_be q) in
+  priv_of_primes ~e ~p ~q
 
 let pub_of_priv ({ e; n } : priv) = { e = e ; n = n }
 
@@ -81,7 +102,7 @@ let generate ?g ?(e = Z.of_int 0x10001) bits =
                  Z.(gcd e (pred q) = one) in
       if cond then (p, q) else attempt bits in
     attempt (bits / 2) in
-  priv' ~e ~p ~q
+  priv_of_primes ~e ~p ~q
 
 
 let print_key { e; d; n; p; q; dp; dq; q' } =
