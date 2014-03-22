@@ -47,7 +47,7 @@ module Numeric_of (Rng : Rng) = struct
   * modulus, but this drops 1 bit of randomness. Investigate.
   *)
 
-  let prime ?g bits =
+  let prime ?g ~bits =
     let limit = Z'.(pow z_two) bits
     and mask  = Z'.(pow z_two) (bits - 1) in
     (* GMP nextprime internally does Miller-Rabin with 25 repetitions, which is
@@ -57,6 +57,14 @@ module Numeric_of (Rng : Rng) = struct
       let p = Z'.(nextprime (Z.gen_bits ?g bits lor mask)) in
       if p < limit then p else attempt () in
     attempt ()
+
+  let rec safe_prime ?g ~bits =
+    let gg = prime ?g ~bits:(bits - 1) in
+    let p  = Z'.(succ (gg * z_two)) in
+    (* XXX This primality can be established faster given g is prime. *)
+    match Z'.probab_prime p 25 with
+    | 0 -> safe_prime ?g ~bits
+    | _ -> (gg, p)
 
 end
 

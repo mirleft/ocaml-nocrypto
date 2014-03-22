@@ -96,7 +96,7 @@ let generate ?g ?(e = Z.of_int 0x10001) bits =
 
   let (p, q) =
     let rec attempt bits =
-      let (p, q) = (Rng.prime ?g bits, Rng.prime ?g bits) in
+      let (p, q) = (Rng.prime ?g ~bits, Rng.prime ?g ~bits) in
       let cond = (p <> q) &&
                  Z.(gcd e (pred p) = one) &&
                  Z.(gcd e (pred q) = one) in

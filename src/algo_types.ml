@@ -21,7 +21,11 @@ module Rand = struct
 
     module Rng : Rng
 
-    val prime : ?g:Rng.g -> int -> Z.t
+    (* Generate a prime taking this many bits. First bit is 1. *)
+    val prime      : ?g:Rng.g -> bits:int -> Z.t
+
+    (* Generate a prime pair g, p with p = 2g + 1. *)
+    val safe_prime : ?g:Rng.g -> bits:int -> Z.t * Z.t
 
     module Int   : N with module Rng = Rng and module N = Numeric.Int
     module Int32 : N with module Rng = Rng and module N = Numeric.Int32
