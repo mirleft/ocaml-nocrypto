@@ -35,14 +35,16 @@ let gen_secret ?g ({ p; q; _ } as param) =
   public param @@ Rng.Z.gen ?g (opt p id q)
 
 let gen_params ?g bits =
+
   (*
    * - The modulus is not-so-random.
-   * - We have no idea about the generator's order. It could be 3.
    *)
   Printf.printf "Do NOT use this for actual params!\n%!" ;
 
-  let p  = Rng.prime ?g bits in
-  let gg = Rng.Z.gen_r ?g z_two p in
+  (* A safe prime and its "Sophie Germain prime": p = 2gg + 1.
+   * Slow, but good order.
+   * XXX Compute the order? *)
+  let (gg, p) = Rng.safe_prime ?g ~bits in
   { p; gg; q = None }
 
 

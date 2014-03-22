@@ -17,7 +17,8 @@ val of_secret : params -> s:Cstruct.t -> secret * Cstruct.t
  * shared secret. *)
 val shared : params -> secret -> Cstruct.t -> Cstruct.t
 
-(* Generate parameters. *)
+(* Generate parameters.
+ * (Searches for a safe prime. Minutes-slow for 1-3K bits.)  *)
 val gen_params : ?g:Rng.g -> int -> params
 
 (* Generate a secret and the corresponding public message. *)
