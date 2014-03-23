@@ -26,13 +26,21 @@ val gen_secret : ?g:Rng.g -> params -> secret * Cstruct.t
 
 (* Some standard parameter sets. *)
 module Params : sig
-  val rfc_3526_5  : params
-  val rfc_3526_14 : params
-  val rfc_3526_15 : params
-  val rfc_3526_16 : params
-  val rfc_3526_17 : params
-  val rfc_3526_18 : params
-  val rfc_5114_1  : params
-  val rfc_5114_2  : params
-  val rfc_5114_3  : params
+
+  (* RFC2409 *)
+  val oakley_1   : params
+  val oakley_2   : params
+
+  (* RFC3526 *)
+  val oakley_5   : params
+  val oakley_14  : params
+  val oakley_15  : params
+  val oakley_16  : params
+  val oakley_17  : params
+  val oakley_18  : params
+
+  val rfc_5114_1 : params
+  val rfc_5114_2 : params
+  val rfc_5114_3 : params
+
 end

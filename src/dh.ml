@@ -53,12 +53,33 @@ module Params = struct
   let hex = CS.of_hex
   let two = Numeric.Z.to_cstruct_be (Z.of_int 2)
 
-  (* RFC 3526:
-   * More Modular Exponential (MODP) Diffie-Hellman groups
-   * for Internet Key Exchange (IKE)
-   *)
+  (* Oakley groups from RFC2409 *)
 
-  let rfc_3526_5 =
+  let oakley_1 =
+    (* 2^768 - 2 ^704 - 1 + 2^64 * { [2^638 pi] + 149686 } *)
+    let p = hex
+      "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
+       29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
+       EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
+       E485B576 625E7EC6 F44C42E9 A63A3620 FFFFFFFF FFFFFFFF"
+    in
+    params ~p ~gg:two ()
+
+  let oakley_2 =
+    (* 2^1024 - 2^960 - 1 + 2^64 * { [2^894 pi] + 129093 }. *)
+    let p = hex
+      "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
+       29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
+       EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
+       E485B576 625E7EC6 F44C42E9 A637ED6B 0BFF5CB6 F406B7ED
+       EE386BFB 5A899FA5 AE9F2411 7C4B1FE6 49286651 ECE65381
+       FFFFFFFF FFFFFFFF"
+    in
+    params ~p ~gg:two ()
+
+  (* Additional groups from RFC3526 *)
+
+  let oakley_5 =
     (* 2^1536 - 2^1472 - 1 + 2^64 * { [2^1406 pi] + 741804 } *)
     let p = hex
       "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
@@ -72,7 +93,7 @@ module Params = struct
     in
     params ~p ~gg:two ()
 
-  let rfc_3526_14 =
+  let oakley_14 =
     (* 2^2048 - 2^1984 - 1 + 2^64 * { [2^1918 pi] + 124476 } *)
     let p = hex
       "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
@@ -89,7 +110,7 @@ module Params = struct
     in
     params ~p ~gg:two ()
 
-  let rfc_3526_15 =
+  let oakley_15 =
     (* 2^3072 - 2^3008 - 1 + 2^64 * { [2^2942 pi] + 1690314 } *)
     let p = hex
       "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
@@ -111,7 +132,7 @@ module Params = struct
     in
     params ~p ~gg:two ()
 
-  let rfc_3526_16 =
+  let oakley_16 =
     (* 2^4096 - 2^4032 - 1 + 2^64 * { [2^3966 pi] + 240904 } *)
     let p = hex
       "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
@@ -139,7 +160,7 @@ module Params = struct
     in
     params ~p ~gg:two ()
 
-  let rfc_3526_17 =
+  let oakley_17 =
     (* 2^6144 - 2^6080 - 1 + 2^64 * { [2^6014 pi] + 929484 } *)
     let p = hex
       "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1 29024E08
@@ -173,7 +194,7 @@ module Params = struct
     in
     params ~p ~gg:two ()
 
-  let rfc_3526_18 =
+  let oakley_18 =
     (* 2^8192 - 2^8128 - 1 + 2^64 * { [2^8062 pi] + 4743158 } *)
     let p = hex
       "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
@@ -222,9 +243,7 @@ module Params = struct
     in
     params ~p ~gg:two ()
 
-
-  (* RFC 5114:
-   * Additional Diffie-Hellman Groups for Use with IETF Standards *)
+  (* From RFC5114 *)
 
   let rfc_5114_1 =
     let p = hex
