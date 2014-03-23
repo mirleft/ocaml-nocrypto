@@ -35,36 +35,44 @@ module Numeric_of (Rng : Rng) = struct
       N.of_bits_be cs bits
   end
 
-  module Z' = Z
-
   module Int   = N_gen (Numeric.Int  )
   module Int32 = N_gen (Numeric.Int32)
   module Int64 = N_gen (Numeric.Int64)
-  module Z     = N_gen (Numeric.Z    )
+  module ZN    = N_gen (Numeric.Z    )
 
   (* XXX
-  * This is fishy. Most significant bit is always set to avoid reducing the
-  * modulus, but this drops 1 bit of randomness. Investigate.
+  * This is fishy. Most significant bit is always set to avoid reducing moduli,
+  * but this drops 1 bit of randomness. Investigate.
   *)
 
   let prime ?g ~bits =
-    let limit = Z'.(pow z_two) bits
-    and mask  = Z'.(pow z_two) (bits - 1) in
-    (* GMP nextprime internally does Miller-Rabin with 25 repetitions, which is
-    * good, but we lose the knowledge of whether the number is proven to be
-    * prime. *)
+    if bits < 2 then invalid_arg "Rng.prime: < 2 bits" ;
+
+    let limit = Z.(pow z_two) bits
+    and mask  = Z.(pow z_two) (bits - 1) in
+
     let rec attempt () =
-      let p = Z'.(nextprime (Z.gen_bits ?g bits lor mask)) in
-      if p < limit then p else attempt () in
+      let p = Z.(ZN.gen_bits ?g bits lor mask) in
+      match Z.probab_prime p 25 with
+      | 0 ->
+        ( match Z.nextprime p with
+          | p' when p' < limit -> p'
+          | _                  -> attempt () )
+      | _ -> p in
     attempt ()
 
   let rec safe_prime ?g ~bits =
     let gg = prime ?g ~bits:(bits - 1) in
-    let p  = Z'.(succ (gg * z_two)) in
-    (* XXX This primality can be established faster given g is prime. *)
-    match Z'.probab_prime p 25 with
+    let p  = Z.(gg * z_two + one) in
+    match Z.probab_prime p 25 with
     | 0 -> safe_prime ?g ~bits
     | _ -> (gg, p)
+
+(*     |+ Pocklington primality test specialized for `a = 2`. +|
+    if Z.(gcd (of_int 3) p = one) then (gg, p)
+    else safe_prime ?g ~bits *)
+
+  module Z = ZN
 
 end
 
