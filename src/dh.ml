@@ -12,11 +12,17 @@ let to_cstruct { p; _ } z =
   Numeric.Z.(to_cstruct_be ~size:(cdiv (bits p) 8) z)
 
 let params ~p ~gg ?q () =
-  Numeric.Z.({
-    p  = of_cstruct_be p  ;
-    gg = of_cstruct_be gg ;
-    q  = map_opt of_cstruct_be q
-  })
+  let (p, gg, q) =
+    Numeric.Z.
+      (of_cstruct_be p, of_cstruct_be gg, map_opt of_cstruct_be q)
+  in
+  (* This is more of a sanity theck, as order can actually be a divisor of q. *)
+  ( match q with
+    | Some q ->
+        if Z.(powm gg q p <> one) then
+          invalid_arg "DH.params: bogus order"
+    | None -> () ) ;
+  { p; gg; q }
 
 let public ({ p; gg; q } as param) x =
   let x   = opt x (Z.(mod) x) q in
