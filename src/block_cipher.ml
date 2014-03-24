@@ -51,13 +51,15 @@ module Modes = struct
 
     open Cstruct
 
+    type result = { message : Cstruct.t ; iv : Cstruct.t }
+
     type key = C.key
 
     let of_secret = C.of_secret
 
     let encrypt ~key ~iv plain =
       let rec loop blocks iv src = function
-        | 0 -> (iv, CS.concat @@ List.rev blocks)
+        | 0 -> { iv ; message = CS.concat @@ List.rev blocks }
         | n ->
             let blk = C.encrypt ~key (CS.xor src iv) in
             loop (blk :: blocks)
@@ -69,7 +71,7 @@ module Modes = struct
 
     let decrypt ~key ~iv cipher =
       let rec loop blocks iv src = function
-        | 0 -> (iv, CS.concat @@ List.rev blocks)
+        | 0 -> { iv ; message = CS.concat @@ List.rev blocks }
         | n ->
             let blk = C.decrypt ~key src in
             loop (CS.xor iv blk :: blocks)
@@ -85,14 +87,20 @@ module Modes = struct
 
     assert (C.block_size = 16)
 
+    type result = { message : Cstruct.t ; tag : Cstruct.t }
+
     type key = C.key
     let of_secret = C.of_secret
 
     let encrypt ~key ~iv ?adata cs =
-      Gcm.gcm ~cipher:C.encrypt ~mode:`Encrypt ~key ~iv ?adata cs
+      let (message, tag) =
+        Gcm.gcm ~cipher:C.encrypt ~mode:`Encrypt ~key ~iv ?adata cs
+      in { message ; tag }
 
     let decrypt ~key ~iv ?adata cs =
-      Gcm.gcm ~cipher:C.encrypt ~mode:`Decrypt ~key ~iv ?adata cs
+      let (message, tag) =
+        Gcm.gcm ~cipher:C.encrypt ~mode:`Decrypt ~key ~iv ?adata cs
+      in { message ; tag }
 
   end
 

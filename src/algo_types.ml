@@ -87,16 +87,18 @@ module Block = struct
 
   module type Mode_CBC = sig
     type key
+    type result = { message : Cstruct.t ; iv : Cstruct.t }
     val of_secret : Cstruct.t -> key
-    val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t * Cstruct.t
-    val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t * Cstruct.t
+    val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
+    val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
   end
 
   module type Mode_GCM = sig
     type key
+    type result = { message : Cstruct.t ; tag : Cstruct.t }
     val of_secret : Cstruct.t -> key
-    val encrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> Cstruct.t * Cstruct.t
-    val decrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> Cstruct.t * Cstruct.t
+    val encrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result
+    val decrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result
   end
 
 end

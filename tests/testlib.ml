@@ -22,8 +22,11 @@ let gcm_case ~key ~p ~a ~iv ~c ~t =
 
 
 let gcm_check (key, p, adata, iv, c, t) _ =
-  let (cdata, ctag) = AES.GCM.encrypt ~key ~iv ~adata p in
-  let (pdata, ptag) = AES.GCM.decrypt ~key ~iv ~adata cdata in
+  let open AES.GCM in
+  let { message = cdata ; tag = ctag } =
+    AES.GCM.encrypt ~key ~iv ~adata p in
+  let { message = pdata ; tag = ptag } =
+    AES.GCM.decrypt ~key ~iv ~adata cdata in
   let (!=) a b = not CS.(cs_equal a b)
   in
   if c != cdata then
