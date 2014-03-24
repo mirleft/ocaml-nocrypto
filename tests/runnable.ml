@@ -134,6 +134,7 @@ let rsa_feedback bits =
   let def_e   = Z.of_int 0x10001 in
 
   let m = Rng.generate (bits / 8 - 1) in
+  Cstruct.(set_uint8 m 0 (max 1 (get_uint8 m 0)));
   hexdump m ;
 
   let e = if Z.(pow z_two bits < def_e) then Z.of_int 3 else def_e in
@@ -157,7 +158,8 @@ let rsa_feedback bits =
 
 
 let dh_feedback bits =
-  let p = DH.gen_params bits in
+  let p = DH.gen_group bits in
+(*   let p = DH.Group.rfc_5114_3 in *)
 
   let (s1, m1) = DH.gen_secret p
   and (s2, m2) = DH.gen_secret p in
@@ -170,4 +172,6 @@ let dh_feedback bits =
 
 let _ =
   Rng.reseed (Cstruct.of_string "\001\002\003\004");
-  forever (fun () -> rsa_feedback 32)
+  forever (fun () -> dh_feedback 2048)
+(*   forever (fun () -> rsa_feedback 2048) *)
+

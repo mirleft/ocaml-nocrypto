@@ -1,6 +1,6 @@
 open Common
 
-type params = {
+type group = {
   p  : Z.t        ;  (* The prime modulus *)
   gg : Z.t        ;  (* Group generator *)
   q  : Z.t option ;  (* `gg`'s order, maybe *)
@@ -11,7 +11,7 @@ type secret = { x : Z.t }
 let to_cstruct { p; _ } z =
   Numeric.Z.(to_cstruct_be ~size:(cdiv (bits p) 8) z)
 
-let params ~p ~gg ?q () =
+let group ~p ~gg ?q () =
   let (p, gg, q) =
     Numeric.Z.
       (of_cstruct_be p, of_cstruct_be gg, map_opt of_cstruct_be q)
@@ -20,7 +20,7 @@ let params ~p ~gg ?q () =
   ( match q with
     | Some q ->
         if Z.(powm gg q p <> one) then
-          invalid_arg "DH.params: bogus order"
+          invalid_arg "DH.group: bogus order"
     | None -> () ) ;
   { p; gg; q }
 
@@ -40,21 +40,14 @@ let shared ({ p; _ } as param) { x } cs =
 let gen_secret ?g ({ p; q; _ } as param) =
   public param @@ Rng.Z.gen ?g (opt p id q)
 
-let gen_params ?g bits =
-
-  (*
-   * - The modulus is not-so-random.
-   *)
-  Printf.printf "Do NOT use this for actual params!\n%!" ;
-
-  (* A safe prime and its "Sophie Germain prime": p = 2gg + 1.
-   * Slow, but good order.
-   * XXX Compute the order? *)
+(* Find a "safe prime." Slow, but the group has good order. *)
+let gen_group ?g bits =
+  (* XXX Compute the order? *)
   let (gg, p) = Rng.safe_prime ?g ~bits in
   { p; gg; q = None }
 
 
-module Params = struct
+module Group = struct
 
   let hex = CS.of_hex
   let two = Numeric.Z.to_cstruct_be (Z.of_int 2)
@@ -69,7 +62,7 @@ module Params = struct
        EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
        E485B576 625E7EC6 F44C42E9 A63A3620 FFFFFFFF FFFFFFFF"
     in
-    params ~p ~gg:two ()
+    group ~p ~gg:two ()
 
   let oakley_2 =
     (* 2^1024 - 2^960 - 1 + 2^64 * { [2^894 pi] + 129093 }. *)
@@ -81,7 +74,7 @@ module Params = struct
        EE386BFB 5A899FA5 AE9F2411 7C4B1FE6 49286651 ECE65381
        FFFFFFFF FFFFFFFF"
     in
-    params ~p ~gg:two ()
+    group ~p ~gg:two ()
 
   (* Additional groups from RFC3526 *)
 
@@ -97,7 +90,7 @@ module Params = struct
        83655D23 DCA3AD96 1C62F356 208552BB 9ED52907 7096966D
        670C354E 4ABC9804 F1746C08 CA237327 FFFFFFFF FFFFFFFF"
     in
-    params ~p ~gg:two ()
+    group ~p ~gg:two ()
 
   let oakley_14 =
     (* 2^2048 - 2^1984 - 1 + 2^64 * { [2^1918 pi] + 124476 } *)
@@ -114,7 +107,7 @@ module Params = struct
        DE2BCBF6 95581718 3995497C EA956AE5 15D22618 98FA0510
        15728E5A 8AACAA68 FFFFFFFF FFFFFFFF"
     in
-    params ~p ~gg:two ()
+    group ~p ~gg:two ()
 
   let oakley_15 =
     (* 2^3072 - 2^3008 - 1 + 2^64 * { [2^2942 pi] + 1690314 } *)
@@ -136,7 +129,7 @@ module Params = struct
        BBE11757 7A615D6C 770988C0 BAD946E2 08E24FA0 74E5AB31
        43DB5BFC E0FD108E 4B82D120 A93AD2CA FFFFFFFF FFFFFFFF"
     in
-    params ~p ~gg:two ()
+    group ~p ~gg:two ()
 
   let oakley_16 =
     (* 2^4096 - 2^4032 - 1 + 2^64 * { [2^3966 pi] + 240904 } *)
@@ -164,7 +157,7 @@ module Params = struct
        93B4EA98 8D8FDDC1 86FFB7DC 90A6C08F 4DF435C9 34063199
        FFFFFFFF FFFFFFFF"
     in
-    params ~p ~gg:two ()
+    group ~p ~gg:two ()
 
   let oakley_17 =
     (* 2^6144 - 2^6080 - 1 + 2^64 * { [2^6014 pi] + 929484 } *)
@@ -198,7 +191,7 @@ module Params = struct
        387FE8D7 6E3C0468 043E8F66 3F4860EE 12BF2D5B 0B7474D6 E694F91E
        6DCC4024 FFFFFFFF FFFFFFFF"
     in
-    params ~p ~gg:two ()
+    group ~p ~gg:two ()
 
   let oakley_18 =
     (* 2^8192 - 2^8128 - 1 + 2^64 * { [2^8062 pi] + 4743158 } *)
@@ -247,7 +240,7 @@ module Params = struct
        9558E447 5677E9AA 9E3050E2 765694DF C81F56E8 80B96E71
        60C980DD 98EDD3DF FFFFFFFF FFFFFFFF"
     in
-    params ~p ~gg:two ()
+    group ~p ~gg:two ()
 
   (* From RFC5114 *)
 
@@ -268,7 +261,7 @@ module Params = struct
        855E6EEB 22B3B2E5"
     and q = hex "F518AA87 81A8DF27 8ABA4E7D 64B7CB9D 49462353"
     in
-    params ~p ~gg ~q ()
+    group ~p ~gg ~q ()
 
   let rfc_5114_2 =
     let p = hex
@@ -299,7 +292,7 @@ module Params = struct
       "801C0D34 C58D93FE 99717710 1F80535A 4738CEBC BF389A99
        B36371EB"
     in
-    params ~p ~gg ~q ()
+    group ~p ~gg ~q ()
 
   let rfc_5114_3 =
     let p = hex
@@ -330,6 +323,6 @@ module Params = struct
       "8CF83642 A709A097 B4479976 40129DA2 99B1A47D 1EB3750B
        A308B0FE 64F5FBD3"
     in
-    params ~p ~gg ~q ()
+    group ~p ~gg ~q ()
 
 end
