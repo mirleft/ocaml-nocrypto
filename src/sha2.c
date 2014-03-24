@@ -696,7 +696,7 @@ void SHA1_Final(sha_byte digest[], SHA_CTX* context) {
 		 * No digest buffer, so we can do nothing
 		 * except clean up and go home
 		 */
-		MEMSET_BZERO(context, sizeof(context));
+		MEMSET_BZERO(context, sizeof(SHA_CTX));
 		return;
 	}
 
@@ -752,7 +752,7 @@ void SHA1_Final(sha_byte digest[], SHA_CTX* context) {
 #endif
 
 	/* Clean up: */
-	MEMSET_BZERO(context, sizeof(context));
+	MEMSET_BZERO(context, sizeof(SHA_CTX));
 }
 
 char *SHA1_End(SHA_CTX* context, char buffer[]) {
@@ -772,7 +772,7 @@ char *SHA1_End(SHA_CTX* context, char buffer[]) {
 		}
 		*buffer = (char)0;
 	} else {
-		MEMSET_BZERO(context, sizeof(context));
+		MEMSET_BZERO(context, sizeof(SHA_CTX));
 	}
 	MEMSET_BZERO(digest, SHA1_DIGEST_LENGTH);
 	return buffer;
@@ -1091,7 +1091,7 @@ void SHA256_Final(sha_byte digest[], SHA_CTX* context) {
 	}
 
 	/* Clean up state data: */
-	MEMSET_BZERO(context, sizeof(context));
+	MEMSET_BZERO(context, sizeof(SHA_CTX));
 }
 
 char *SHA256_End(SHA_CTX* context, char buffer[]) {
@@ -1111,7 +1111,7 @@ char *SHA256_End(SHA_CTX* context, char buffer[]) {
 		}
 		*buffer = (char)0;
 	} else {
-		MEMSET_BZERO(context, sizeof(context));
+		MEMSET_BZERO(context, sizeof(SHA_CTX));
 	}
 	MEMSET_BZERO(digest, SHA256_DIGEST_LENGTH);
 	return buffer;
@@ -1165,7 +1165,7 @@ void SHA224_Final(sha_byte digest[], SHA_CTX* context) {
 	}
 
 	/* Clean up state data: */
-	MEMSET_BZERO(context, sizeof(context));
+	MEMSET_BZERO(context, sizeof(SHA_CTX));
 }
 
 char *SHA224_End(SHA_CTX* context, char buffer[]) {
@@ -1185,7 +1185,7 @@ char *SHA224_End(SHA_CTX* context, char buffer[]) {
 		}
 		*buffer = (char)0;
 	} else {
-		MEMSET_BZERO(context, sizeof(context));
+		MEMSET_BZERO(context, sizeof(SHA_CTX));
 	}
 	MEMSET_BZERO(digest, SHA224_DIGEST_LENGTH);
 	return buffer;
@@ -1500,7 +1500,7 @@ void SHA512_Final(sha_byte digest[], SHA_CTX* context) {
 	}
 
 	/* Zero out state data */
-	MEMSET_BZERO(context, sizeof(context));
+	MEMSET_BZERO(context, sizeof(SHA_CTX));
 }
 
 char *SHA512_End(SHA_CTX* context, char buffer[]) {
@@ -1520,7 +1520,7 @@ char *SHA512_End(SHA_CTX* context, char buffer[]) {
 		}
 		*buffer = (char)0;
 	} else {
-		MEMSET_BZERO(context, sizeof(context));
+		MEMSET_BZERO(context, sizeof(SHA_CTX));
 	}
 	MEMSET_BZERO(digest, SHA512_DIGEST_LENGTH);
 	return buffer;
@@ -1570,7 +1570,7 @@ void SHA384_Final(sha_byte digest[], SHA_CTX* context) {
 	}
 
 	/* Zero out state data */
-	MEMSET_BZERO(context, sizeof(context));
+	MEMSET_BZERO(context, sizeof(SHA_CTX));
 }
 
 char *SHA384_End(SHA_CTX* context, char buffer[]) {
@@ -1590,7 +1590,7 @@ char *SHA384_End(SHA_CTX* context, char buffer[]) {
 		}
 		*buffer = (char)0;
 	} else {
-		MEMSET_BZERO(context, sizeof(context));
+		MEMSET_BZERO(context, sizeof(SHA_CTX));
 	}
 	MEMSET_BZERO(digest, SHA384_DIGEST_LENGTH);
 	return buffer;
