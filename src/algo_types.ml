@@ -64,8 +64,8 @@ module Block = struct
 
     val block_size : int
 
-    val encrypt_block : ekey -> Cstruct.t -> Cstruct.t -> unit
-    val decrypt_block : dkey -> Cstruct.t -> Cstruct.t -> unit
+    val encrypt_block : key:ekey -> Cstruct.t -> Cstruct.t -> unit
+    val decrypt_block : key:dkey -> Cstruct.t -> Cstruct.t -> unit
   end
 
   module type Cipher_base = sig
@@ -105,9 +105,10 @@ end
 
 module type Stream_cipher = sig
   type key
+  type result = { key : key ; message : Cstruct.t }
   val of_secret : Cstruct.t -> key
-  val encrypt : key:key -> Cstruct.t -> key * Cstruct.t
-  val decrypt : key:key -> Cstruct.t -> key * Cstruct.t
+  val encrypt : key:key -> Cstruct.t -> result
+  val decrypt : key:key -> Cstruct.t -> result
 end
 
 

@@ -16,13 +16,13 @@ module Modes = struct
 
     let block_size = C.block_size
 
-    let encrypt ~key: (e_key, _) plain =
+    let encrypt ~key: (key, _) plain =
       let cipher = Cstruct.create 16 in
-      ( C.encrypt_block e_key plain cipher ; cipher )
+      ( C.encrypt_block ~key plain cipher ; cipher )
 
-    let decrypt ~key: (_, d_key) cipher =
+    let decrypt ~key: (_, key) cipher =
       let plain = Cstruct.create 16 in
-      ( C.decrypt_block d_key cipher plain ; plain )
+      ( C.decrypt_block ~key cipher plain ; plain )
   end
 
   module ECB_of ( C : Cipher_base ) : Mode = struct
@@ -121,10 +121,10 @@ module AES = struct
 
     let block_size = 16
 
-    let encrypt_block key src dst =
+    let encrypt_block ~key src dst =
       aes_encrypt_into key (ba_of_cs src) (ba_of_cs dst)
 
-    and decrypt_block key src dst =
+    and decrypt_block ~key src dst =
       aes_decrypt_into key (ba_of_cs src) (ba_of_cs dst)
   end
 
@@ -150,7 +150,7 @@ module DES = struct
 
     let block_size = 8
 
-    let encrypt_block key src dst =
+    let encrypt_block ~key src dst =
       des3_xform_into key (ba_of_cs src) (ba_of_cs dst)
 
     let decrypt_block = encrypt_block

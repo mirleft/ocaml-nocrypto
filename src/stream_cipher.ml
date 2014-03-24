@@ -3,6 +3,8 @@ module ARC4 = struct
 
   type key = int * int * int array
 
+  type result = { key : key ; message : Cstruct.t }
+
   let of_secret cs =
     let len = Cstruct.len cs in
     let s   = Array.init 256 (fun x -> x) in
@@ -34,7 +36,8 @@ module ARC4 = struct
           Cstruct.(set_uint8 res n (k lxor get_uint8 cs n));
           mix i j (succ n)
     in
-    (mix i j 0, res)
+    let key' = mix i j 0 in
+    { key = key' ; message = res }
 
   let decrypt = encrypt
 
