@@ -12,6 +12,11 @@ Description:
   Crypto? And _without_ objects?
   It's more likely than you think!
 
+
+Flag "pedantic"
+  Description: make the C compiler go hardcore
+  Default:     false
+
 Library "nocrypto"
   Path:            src/
   Modules:         Nocrypto
@@ -33,6 +38,9 @@ Library "nocrypto"
                    d3des.c, d3des.h,
                    stubs.c
   BuildDepends:    cstruct, zarith
+
+  if flag(pedantic)
+    CCOpt: -Wall -Wpedantic
 
 Library "testlib"
   Path:         tests/

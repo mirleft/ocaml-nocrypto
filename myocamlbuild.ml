@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: d1bf96c1a859329eb36b1603c8568e97) *)
+(* DO NOT EDIT (digest: 96bb1fff3ca97c5983e30f3c8a2aa6bd) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -588,13 +588,21 @@ let package_default =
             "src/",
             ["src/sha2.h"; "src/md5.h"; "src/rijndael.h"; "src/d3des.h"])
        ];
-     flags = [];
+     flags =
+       [
+          (["oasis_library_nocrypto_ccopt"; "compile"],
+            [
+               (OASISExpr.EBool true, S []);
+               (OASISExpr.EFlag "pedantic",
+                 S [A "-ccopt"; A "-Wall"; A "-ccopt"; A "-Wpedantic"])
+            ])
+       ];
      includes = [("tests", ["src"])]
   }
   ;;
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
-# 599 "myocamlbuild.ml"
+# 607 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;
