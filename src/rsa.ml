@@ -42,6 +42,9 @@ let priv' ~e ~p ~q =
 
 let pub_of_priv ({ e; n } : priv) = { e = e ; n = n }
 
+(* XXX handle this more gracefully... *)
+let pub_bits ({ n } : pub)   = Numeric.Z.bits n
+and priv_bits ({ n } : priv) = Numeric.Z.bits n
 
 let encrypt_unsafe ~key: ({ e; n } : pub) msg = Z.(powm msg e n)
 
@@ -79,11 +82,13 @@ let (encrypt_z, decrypt_z) =
     check_params key.n msg ; decrypt_blinded_unsafe ?g ~key msg)
 
 (* XXX (outer) padding *)
-let encrypt    ~key cs =
-  Numeric.Z.(to_cstruct_be @@ encrypt_z ~key @@ of_cstruct_be cs)
+let encrypt ~key cs =
+  let size = pub_bits key / 8 in (* .... *)
+  Numeric.Z.(to_cstruct_be ~size @@ encrypt_z ~key @@ of_cstruct_be cs)
 
 and decrypt ?g ~key cs =
-  Numeric.Z.(to_cstruct_be @@ decrypt_z ?g ~key @@ of_cstruct_be cs)
+  let size = priv_bits key / 8 in (* .... *)
+  Numeric.Z.(to_cstruct_be ~size @@ decrypt_z ?g ~key @@ of_cstruct_be cs)
 
 
 (* XXX

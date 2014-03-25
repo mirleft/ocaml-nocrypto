@@ -6,6 +6,9 @@ type priv = {
   p : Z.t ; q : Z.t ; dp : Z.t ; dq : Z.t ; q' : Z.t
 }
 
+val pub_bits : pub -> int
+val priv_bits : priv -> int
+
 val pub : e:Cstruct.t -> n:Cstruct.t -> pub
 
 val priv : e:Cstruct.t -> d:Cstruct.t -> n:Cstruct.t ->
