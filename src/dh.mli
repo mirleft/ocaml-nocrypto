@@ -1,13 +1,16 @@
 (* MODP Diffie-Hellman *)
 
-(* DH parameters: a modulus and a group generator. *)
+(* DH group parameters: a modulus and a generator. *)
 type group = { p: Z.t ; gg : Z.t ; q : Z.t option }
 
 (* A private secret. *)
 type secret = { x : Z.t }
 
-(* Construct `group`. *)
+(* Construct group. *)
 val group : p:Cstruct.t -> gg:Cstruct.t -> ?q:Cstruct.t -> unit -> group
+
+(* Extract group to cstruct as (p, g). *)
+val to_cstruct : group -> Cstruct.t * Cstruct.t
 
 (* Given group and a string serving as secret, generate `secret` and the public
  * part. *)
@@ -24,7 +27,8 @@ val gen_group : ?g:Rng.g -> int -> group
 (* Generate a secret and the corresponding public message. *)
 val gen_secret : ?g:Rng.g -> group -> secret * Cstruct.t
 
-(* Some standard parameter sets. *)
+(* Some standard groups. *)
+
 module Group : sig
 
   (* RFC2409 *)

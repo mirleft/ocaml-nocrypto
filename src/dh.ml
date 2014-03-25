@@ -8,7 +8,7 @@ type group = {
 
 type secret = { x : Z.t }
 
-let to_cstruct { p; _ } z =
+let to_cstruct_sized { p; _ } z =
   Numeric.Z.(to_cstruct_be ~size:(cdiv (bits p) 8) z)
 
 let group ~p ~gg ?q () =
@@ -24,21 +24,24 @@ let group ~p ~gg ?q () =
     | None -> () ) ;
   { p; gg; q }
 
-let public ({ p; gg; q } as param) x =
+let to_cstruct { p ; gg ; _ } =
+  Numeric.Z.(to_cstruct_be p, to_cstruct_be gg)
+
+let compute_public ({ p; gg; q } as group) x =
   let x   = opt x (Z.(mod) x) q in
   let ggx = Z.(powm gg x p) in
-  ({ x }, to_cstruct param ggx)
+  ({ x }, to_cstruct_sized group ggx)
 
-let of_secret param ~s =
-  public param (Numeric.Z.of_cstruct_be s)
+let of_secret group ~s =
+  compute_public group (Numeric.Z.of_cstruct_be s)
 
-let shared ({ p; _ } as param) { x } cs =
+let shared ({ p; _ } as group) { x } cs =
   let ggy    = Numeric.Z.of_cstruct_be cs in
   let secret = Z.(powm ggy x p) in
-  to_cstruct param secret
+  to_cstruct_sized group secret
 
-let gen_secret ?g ({ p; q; _ } as param) =
-  public param @@ Rng.Z.gen ?g (opt p id q)
+let gen_secret ?g ({ p; q; _ } as group) =
+  compute_public group @@ Rng.Z.gen ?g (opt p id q)
 
 (* Find a "safe prime." Slow, but the group has good order. *)
 let gen_group ?g bits =
@@ -244,6 +247,7 @@ module Group = struct
 
   (* From RFC5114 *)
 
+  (* 1024-bit, 160-bit subgroup *)
   let rfc_5114_1 =
     let p = hex
       "B10B8F96 A080E01D DE92DE5E AE5D54EC 52C99FBC FB06A3C6
@@ -263,6 +267,7 @@ module Group = struct
     in
     group ~p ~gg ~q ()
 
+  (* 2048-bit, 224-bit subgroup *)
   let rfc_5114_2 =
     let p = hex
       "AD107E1E 9123A9D0 D660FAA7 9559C51F A20D64E5 683B9FD1
@@ -294,6 +299,7 @@ module Group = struct
     in
     group ~p ~gg ~q ()
 
+  (* 2048-bit, 256-bit subgroup *)
   let rfc_5114_3 =
     let p = hex
       "87A8E61D B4B6663C FFBBD19C 65195999 8CEEF608 660DD0F2
