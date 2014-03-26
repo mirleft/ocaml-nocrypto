@@ -17,11 +17,11 @@ module Modes = struct
     let block_size = C.block_size
 
     let encrypt ~key: (key, _) plain =
-      let cipher = Cstruct.create 16 in
+      let cipher = Cstruct.create block_size in
       ( C.encrypt_block ~key plain cipher ; cipher )
 
     let decrypt ~key: (_, key) cipher =
-      let plain = Cstruct.create 16 in
+      let plain = Cstruct.create block_size in
       ( C.decrypt_block ~key cipher plain ; plain )
   end
 
