@@ -1,4 +1,6 @@
 
+module type T = Algo_types.Stream_cipher
+
 module ARC4 = struct
 
   type key = int * int * int array

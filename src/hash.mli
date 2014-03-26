@@ -1,5 +1,8 @@
 open Algo_types
 
+module type T     = Hash
+module type T_MAC = Hash_MAC
+
 module MD5    : Hash_MAC
 module SHA1   : Hash_MAC
 module SHA224 : Hash

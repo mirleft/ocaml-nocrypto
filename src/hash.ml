@@ -1,5 +1,8 @@
 open Common
 
+module type T     = Algo_types.Hash
+module type T_MAC = Algo_types.Hash_MAC
+
 module type Base_hash = sig
   type t
   val block_size : int

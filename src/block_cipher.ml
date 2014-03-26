@@ -2,6 +2,7 @@
 open Common
 open Algo_types.Block
 
+module type T_CBC = Mode_CBC
 
 let ba_of_cs = Cstruct.to_bigarray
 
