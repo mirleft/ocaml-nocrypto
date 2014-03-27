@@ -32,8 +32,6 @@ let decode cs =
         ( let nbits = bits - 8 in
           let tval = (leftover asr nbits) land 0xFF in
           let lo = leftover land (pred (1 lsl nbits)) in
-          Printf.printf "bits %d nbits %d tval %d tvalc %c leftover %d\n"
-                        bits nbits tval (char_of_int tval) lo;
           set_uint8 r wbyte tval;
           go lo
              nbits
@@ -41,12 +39,10 @@ let decode cs =
              (succ wbyte) )
       else
         let ch = char_of_int (get_uint8 cs rbyte) in
-        Printf.printf "got character %c\n" ch;
-        if ch = '=' then
+        if ch = padding then
           ()
         else
           let dec = Hashtbl.find dmap ch in
-          Printf.printf "decoded character %d\n" dec;
           (* we better ensure dec is sane (and byte was in dmap) *)
           (* dec is 6 bit, thus shift leftover by 6 *)
           go ((leftover lsl 6) + dec)
