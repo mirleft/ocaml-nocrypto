@@ -31,8 +31,8 @@ module Modes = struct
     open Cstruct
 
     type key = C.key
-
     let of_secret = C.of_secret
+    let block_size = C.block_size
 
     let encrypt, decrypt =
       let ecb f source =
@@ -55,8 +55,8 @@ module Modes = struct
     type result = { message : Cstruct.t ; iv : Cstruct.t }
 
     type key = C.key
-
     let of_secret = C.of_secret
+    let block_size = C.block_size
 
     let encrypt ~key ~iv plain =
       let rec loop blocks iv src = function
@@ -92,6 +92,7 @@ module Modes = struct
 
     type key = C.key
     let of_secret = C.of_secret
+    let block_size = C.block_size
 
     let encrypt ~key ~iv ?adata cs =
       let (message, tag) =

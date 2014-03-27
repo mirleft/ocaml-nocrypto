@@ -57,46 +57,55 @@ end
 module Block = struct
 
   module type Cipher_raw = sig
+
     type ekey
     type dkey
     val e_of_secret : Cstruct.t -> ekey
     val d_of_secret : Cstruct.t -> dkey
 
     val block_size : int
-
     val encrypt_block : key:ekey -> Cstruct.t -> Cstruct.t -> unit
     val decrypt_block : key:dkey -> Cstruct.t -> Cstruct.t -> unit
   end
 
   module type Cipher_base = sig
+
     type key
     val of_secret : Cstruct.t -> key
 
     val block_size : int
-
     val encrypt : key:key -> Cstruct.t -> Cstruct.t
     val decrypt : key:key -> Cstruct.t -> Cstruct.t
   end
 
   module type Mode = sig
+
     type key
     val of_secret : Cstruct.t -> key
+
+    val block_size : int
     val encrypt : key:key -> Cstruct.t -> Cstruct.t
     val decrypt : key:key -> Cstruct.t -> Cstruct.t
   end
 
   module type Mode_CBC = sig
+
     type key
     type result = { message : Cstruct.t ; iv : Cstruct.t }
     val of_secret : Cstruct.t -> key
+
+    val block_size : int
     val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
     val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
   end
 
   module type Mode_GCM = sig
+
     type key
     type result = { message : Cstruct.t ; tag : Cstruct.t }
     val of_secret : Cstruct.t -> key
+
+    val block_size : int
     val encrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result
     val decrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result
   end
@@ -105,7 +114,7 @@ end
 
 module type Stream_cipher = sig
   type key
-  type result = { key : key ; message : Cstruct.t }
+  type result = { message : Cstruct.t ; key : key }
   val of_secret : Cstruct.t -> key
   val encrypt : key:key -> Cstruct.t -> result
   val decrypt : key:key -> Cstruct.t -> result
