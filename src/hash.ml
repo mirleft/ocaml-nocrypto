@@ -57,7 +57,7 @@ open Native
 
 module MD5 = Full_hash_hmac ( struct
   type t = ba
-  let (digest_size, block_size) = (20, 64)
+  let (digest_size, block_size) = (16, 64)
   let init = md5_init and feed = md5_feed and get = md5_get
 end )
 
