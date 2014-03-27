@@ -31,7 +31,8 @@ Library "nocrypto"
                    Gcm,
                    Rsa,
                    Dh,
-                   Algo_types
+                   Algo_types,
+                   Base64
   CSources:        sha2.c, sha2.h,
                    md5.c, md5.h,
                    rijndael.c, rijndael.h,
