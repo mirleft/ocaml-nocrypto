@@ -5,7 +5,7 @@ module ARC4 = struct
 
   type key = int * int * int array
 
-  type result = { key : key ; message : Cstruct.t }
+  type result = { message : Cstruct.t ; key : key }
 
   let of_secret cs =
     let len = Cstruct.len cs in
