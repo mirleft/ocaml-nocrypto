@@ -1,54 +1,86 @@
 
+open Common
 open Cstruct
 
 let sym     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-let padding = '='
+let padding = int_of_char '='
 
 let (emap, dmap) =
   let make_ht f =
     let ht = Hashtbl.create 64 in
-    for i = 0 to String.length sym - 1 do f ht i sym.[i] done ;
-    ht in
+    for i = 0 to String.length sym - 1 do
+      f ht i (int_of_char sym.[i])
+    done ;
+    Hashtbl.find ht in
   (make_ht Hashtbl.add),
   (make_ht (fun ht i c -> Hashtbl.add ht c i))
 
+let encode cs =
 
-let padding_size cs =
-  let is_pad i = if get_char cs i = padding then 1 else 0 in
-  match len cs with
-  | 0 -> 0
-  | 1 -> is_pad 0
-  | n -> is_pad (n - 1) + is_pad (n - 2)
+  let n   = len cs in
+  let n'  = cdiv n 3 * 4 in
+  let cs' = create n' in
+
+  let emit b1 b2 b3 i =
+    BE.set_uint16 cs' i
+      ((emap (b1 lsr 2 land 0x3f) lsl 8) lor
+      (emap ((b1 lsl 4) lor (b2 lsr 4) land 0x3f))) ;
+    BE.set_uint16 cs' (i + 2)
+      ((emap ((b2 lsl 2) lor (b3 lsr 6) land 0x3f) lsl 8) lor
+      (emap (b3 land 0x3f))) in
+
+  let rec enc j = function
+    | i when i = n     -> ()
+    | i when i = n - 1 ->
+        emit (get_uint8 cs i) 0 0 j
+    | i when i = n - 2 ->
+        emit (get_uint8 cs i) (get_uint8 cs (i + 1)) 0 j
+    | i ->
+        emit (get_uint8 cs i) (get_uint8 cs (i + 1)) (get_uint8 cs (i + 2)) j ;
+        enc (j + 4) (i + 3)
+
+  and fix = function
+    | 0 -> ()
+    | i -> set_uint8 cs' (n' - i) padding ; fix (i - 1) in
+
+  enc 0 0 ;
+  fix ((3 - n mod 3) mod 3) ;
+  cs'
 
 let decode cs =
-  let n  = len cs in
-  let n' = 3 * n / 4 - padding_size cs in
-  let r = create n' in
-  let rec go leftover bits rbyte wbyte =
-    if rbyte >= n then
-      ()
-    else
-      if bits >= 8 then
-        ( let nbits = bits - 8 in
-          let tval = (leftover asr nbits) land 0xFF in
-          let lo = leftover land (pred (1 lsl nbits)) in
-          set_uint8 r wbyte tval;
-          go lo
-             nbits
-             rbyte
-             (succ wbyte) )
-      else
-        let ch = char_of_int (get_uint8 cs rbyte) in
-        if ch = padding then
-          ()
-        else
-          let dec = Hashtbl.find dmap ch in
-          (* we better ensure dec is sane (and byte was in dmap) *)
-          (* dec is 6 bit, thus shift leftover by 6 *)
-          go ((leftover lsl 6) + dec)
-             (bits + 6)
-             (succ rbyte)
-             wbyte
+
+  let n   = len cs in
+  let n'  = (n / 4) * 3 in
+  let cs' = create n' in
+
+  let emit a b c d i =
+    let x = (a lsl 18) lor (b lsl 12) lor (c lsl 6) lor d in
+    BE.set_uint16 cs' i (x lsr 8) ;
+    set_uint8 cs' (i + 2) (x land 0xff) in
+
+  let rec dec j = function
+    | i when i = n -> 0
+    | i ->
+        let a = dmap (get_uint8 cs i)
+        and b = dmap (get_uint8 cs (i + 1))
+        and (d, pad) =
+          let x = get_uint8 cs (i + 3) in try (dmap x, 0) with
+            | Not_found when x = padding -> (0, 1) in
+        let (c, pad) =
+          let x = get_uint8 cs (i + 2) in try (dmap x, pad) with
+            | Not_found when x = padding && pad = 1 -> (0, 2) in
+
+        emit a b c d j ;
+        match pad with 0 -> dec (j + 3) (i + 4) | _ -> pad
   in
-  go 0 0 0 0;
-  r
+  try
+    let pad = dec 0 0 in sub cs' 0 (n' - pad)
+  with Invalid_argument _ | Not_found -> invalid_arg "base64"
+
+
+let is_base64_char c =
+  try ( ignore @@ emap (int_of_char c) ; true )
+  with Not_found -> false
+
+let is_whitespace =
+  function ' ' | '\n' | '\r' | '\t' -> true | _ -> false
