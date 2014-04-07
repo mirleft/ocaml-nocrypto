@@ -33,11 +33,15 @@ Library "nocrypto"
                    Dh,
                    Algo_types,
                    Base64
-  CSources:        sha2.c, sha2.h,
-                   md5.c, md5.h,
-                   rijndael.c, rijndael.h,
-                   d3des.c, d3des.h,
-                   stubs.c
+  CSources:        native/sha2.c,
+                   native/sha2.h,
+                   native/md5.c,
+                   native/md5.h,
+                   native/rijndael.c,
+                   native/rijndael.h,
+                   native/d3des.c,
+                   native/d3des.h,
+                   native/stubs.c
   BuildDepends:    cstruct, zarith
 
   if flag(pedantic)

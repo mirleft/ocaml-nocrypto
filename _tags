@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 846bd8fdc906ccd7b367661cd3b586e3)
+# DO NOT EDIT (digest: 7cd4e8f72b8c5342385c7f51eec96328)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -16,24 +16,24 @@
 # Library nocrypto
 "src/nocrypto.cmxs": use_nocrypto
 <src/*.ml{,i}>: oasis_library_nocrypto_ccopt
-"src/sha2.c": oasis_library_nocrypto_ccopt
-"src/md5.c": oasis_library_nocrypto_ccopt
-"src/rijndael.c": oasis_library_nocrypto_ccopt
-"src/d3des.c": oasis_library_nocrypto_ccopt
-"src/stubs.c": oasis_library_nocrypto_ccopt
+"src/native/sha2.c": oasis_library_nocrypto_ccopt
+"src/native/md5.c": oasis_library_nocrypto_ccopt
+"src/native/rijndael.c": oasis_library_nocrypto_ccopt
+"src/native/d3des.c": oasis_library_nocrypto_ccopt
+"src/native/stubs.c": oasis_library_nocrypto_ccopt
 <src/nocrypto.{cma,cmxa}>: use_libnocrypto_stubs
 <src/*.ml{,i}>: pkg_cstruct
 <src/*.ml{,i}>: pkg_zarith
-"src/sha2.c": pkg_cstruct
-"src/sha2.c": pkg_zarith
-"src/md5.c": pkg_cstruct
-"src/md5.c": pkg_zarith
-"src/rijndael.c": pkg_cstruct
-"src/rijndael.c": pkg_zarith
-"src/d3des.c": pkg_cstruct
-"src/d3des.c": pkg_zarith
-"src/stubs.c": pkg_cstruct
-"src/stubs.c": pkg_zarith
+"src/native/sha2.c": pkg_cstruct
+"src/native/sha2.c": pkg_zarith
+"src/native/md5.c": pkg_cstruct
+"src/native/md5.c": pkg_zarith
+"src/native/rijndael.c": pkg_cstruct
+"src/native/rijndael.c": pkg_zarith
+"src/native/d3des.c": pkg_cstruct
+"src/native/d3des.c": pkg_zarith
+"src/native/stubs.c": pkg_cstruct
+"src/native/stubs.c": pkg_zarith
 # Library testlib
 "tests/testlib.cmxs": use_testlib
 # Executable test_runner
