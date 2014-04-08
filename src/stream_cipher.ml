@@ -34,8 +34,8 @@ module ARC4 = struct
           let si = s.(i) in
           let j  = (j + si) land 0xff in
           let sj = s.(j) in
-          let k  = s.((si + sj) land 0xff) in
           s.(i) <- sj ; s.(j) <- si ;
+          let k  = s.((si + sj) land 0xff) in
           Cstruct.(set_uint8 res n (k lxor get_uint8 cs n));
           mix i j (succ n)
     in
