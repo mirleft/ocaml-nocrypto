@@ -63,6 +63,7 @@ module Block = struct
     val e_of_secret : Cstruct.t -> ekey
     val d_of_secret : Cstruct.t -> dkey
 
+    val key_sizes  : int array
     val block_size : int
     val encrypt_block : key:ekey -> Cstruct.t -> Cstruct.t -> unit
     val decrypt_block : key:dkey -> Cstruct.t -> Cstruct.t -> unit
@@ -73,6 +74,7 @@ module Block = struct
     type key
     val of_secret : Cstruct.t -> key
 
+    val key_sizes  : int array
     val block_size : int
     val encrypt : key:key -> Cstruct.t -> Cstruct.t
     val decrypt : key:key -> Cstruct.t -> Cstruct.t
@@ -83,6 +85,7 @@ module Block = struct
     type key
     val of_secret : Cstruct.t -> key
 
+    val key_sizes  : int array
     val block_size : int
     val encrypt : key:key -> Cstruct.t -> Cstruct.t
     val decrypt : key:key -> Cstruct.t -> Cstruct.t
@@ -94,6 +97,7 @@ module Block = struct
     type result = { message : Cstruct.t ; iv : Cstruct.t }
     val of_secret : Cstruct.t -> key
 
+    val key_sizes  : int array
     val block_size : int
     val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
     val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
@@ -105,6 +109,7 @@ module Block = struct
     type result = { message : Cstruct.t ; tag : Cstruct.t }
     val of_secret : Cstruct.t -> key
 
+    val key_sizes  : int array
     val block_size : int
     val encrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result
     val decrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result

@@ -2,6 +2,7 @@
 open Common
 open Algo_types.Block
 
+module type T_ECB = Mode
 module type T_CBC = Mode_CBC
 
 let ba_of_cs = Cstruct.to_bigarray
@@ -15,7 +16,7 @@ module Modes = struct
 
     let of_secret cs = C.(e_of_secret cs, d_of_secret cs)
 
-    let block_size = C.block_size
+    let (key_sizes, block_size) = C.(key_sizes, block_size)
 
     let encrypt ~key: (key, _) plain =
       let cipher = Cstruct.create block_size in
@@ -89,10 +90,11 @@ module Modes = struct
     assert (C.block_size = 16)
 
     type result = { message : Cstruct.t ; tag : Cstruct.t }
+    type key    = C.key
 
-    type key = C.key
     let of_secret = C.of_secret
-    let block_size = C.block_size
+
+    let (key_sizes, block_size) = C.(key_sizes, block_size)
 
     let encrypt ~key ~iv ?adata cs =
       let (message, tag) =
@@ -121,6 +123,7 @@ module AES = struct
     let e_of_secret = o aes_create_enc ba_of_cs
     and d_of_secret = o aes_create_dec ba_of_cs
 
+    let key_sizes  = [| 16; 24; 32 |]
     let block_size = 16
 
     let encrypt_block ~key src dst =
@@ -150,6 +153,7 @@ module DES = struct
     let e_of_secret k = des3_create_key (ba_of_cs k) 0
     and d_of_secret k = des3_create_key (ba_of_cs k) 1
 
+    let key_sizes  = [| 24 |]
     let block_size = 8
 
     let encrypt_block ~key src dst =

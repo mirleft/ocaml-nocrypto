@@ -1,5 +1,6 @@
 open Algo_types.Block
 
+module type T_ECB = Mode
 module type T_CBC = Mode_CBC
 
 module AES : sig
