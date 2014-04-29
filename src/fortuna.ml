@@ -8,6 +8,8 @@ let block_size = AES.block_size
 
 exception Unseeded_generator
 
+(* XXX locking *)
+
 type g =
   { ctr            : Cstruct.t
   ; mutable key    : Cstruct.t * AES.ekey
@@ -34,6 +36,9 @@ let create () =
 
 let clone ~g: { ctr ; seeded ; key } =
   { ctr = Cs.clone ctr ; key ; seeded ; trap = None }
+
+let seeded ~g = g.seeded
+
 
 (* XXX
  * We _might_ want to erase the old key, but the entire topic is a can of

@@ -6,6 +6,7 @@ val block_size : int
 
 val create : unit -> g
 val clone  : g:g -> g
+val seeded : g:g -> bool
 
 val reseedv  : g:g -> Cstruct.t list -> unit
 val reseed   : g:g -> Cstruct.t      -> unit

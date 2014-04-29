@@ -81,9 +81,10 @@ module Def_rng = struct
 
   type g = Fortuna.g
 
-  let g       = create ()
-  let reseedv = reseedv ~g
-  and reseed  = reseed  ~g
+  let g         = create ()
+  let reseedv   = reseedv ~g
+  and reseed    = reseed  ~g
+  and seeded () = seeded  ~g
 
   let block_size = block_size
   let generate ?(g = g) n = generate ~g n
