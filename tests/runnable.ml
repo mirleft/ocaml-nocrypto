@@ -175,3 +175,11 @@ let _ =
   forever (fun () -> dh_feedback 2048)
 (*   forever (fun () -> rsa_feedback 2048) *)
 
+
+(* let _ =
+  Rng.reseed (Cstruct.of_string "\001\002\003\004");
+  let x = Rng.generate 10000000
+  and y = Rng.generate 10000000 in
+  time @@ fun () ->
+    for i = 1 to 100 do ignore @@ Common.Cs.xor_into x y 10000000 done *)
+

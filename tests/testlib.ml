@@ -26,7 +26,6 @@ let rec times ~n f a =
 let sample arr =
   let ix = Rng.Int.gen Array.(length arr) in arr.(ix)
 
-
 (* randomized selfies *)
 
 let ecb_selftest ( m : (module Block.T_ECB) ) n =
