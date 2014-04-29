@@ -13,6 +13,56 @@ let assert_bad_cs ~msg ~want ~have =
   Printf.sprintf "%s:\nwant:%shave:%s"
     msg (hex_of_cs want) (hex_of_cs have)
 
+let rec range a b =
+  if a > b then [] else a :: range (succ a) b
+
+let rec times ~n f a =
+  if n > 0 then ( ignore (f a) ; times ~n:(pred n) f a )
+
+let sample arr =
+  let ix = Rng.Int.gen Array.(length arr) in arr.(ix)
+
+
+(* randomized selfies *)
+
+let ecb_selftest ( m : (module Block.T_ECB) ) n =
+  let module C = ( val m ) in
+  let check _ =
+    let data  = Rng.generate (C.block_size * 8)
+    and key   = C.of_secret @@ Rng.generate (sample C.key_sizes) in
+    let data' =
+      C.( data |> encrypt ~key |> encrypt ~key
+               |> decrypt ~key |> decrypt ~key ) in
+    assert_equal ~cmp:CS.cs_equal ~msg:"ecb mismatch" data data'
+  in
+  "selftest" >:: times ~n check
+
+let cbc_selftest ( m : (module Block.T_CBC) ) n  =
+  let module C = ( val m ) in
+  let (!) f { C.message ; _ } = f message in
+  let check _ =
+    let data = Rng.generate (C.block_size * 8)
+    and iv   = Rng.generate C.block_size
+    and key  = C.of_secret @@ Rng.generate (sample C.key_sizes) in
+    let data' =
+      C.( data |>   encrypt ~key ~iv  |> !(encrypt ~key ~iv)
+               |> !(decrypt ~key ~iv) |> !(decrypt ~key ~iv) ).C.message
+    in
+    assert_equal ~cmp:CS.cs_equal ~msg:"cbc mismatch" data data'
+  in
+  "selftest" >:: times ~n check
+
+let xor_selftest n =
+  "selftest" >:: times ~n @@ fun _ ->
+    let n         = Rng.Int.gen 30 in
+    let (a, b, c) = Rng.(generate n, generate n, generate n) in
+    let abc  = CS.(xor (xor a b) c)
+    and abc' = CS.(xor a (xor b c)) in
+    let a1   = CS.(xor abc (xor b c))
+    and a2   = CS.(xor (xor c b) abc) in
+    assert_equal ~cmp:CS.cs_equal ~msg:"assoc" abc abc' ;
+    assert_equal ~cmp:CS.cs_equal ~msg:"invert" a a1 ;
+    assert_equal ~cmp:CS.cs_equal ~msg:"commut" a1 a2
 
 (* aes gcm *)
 
@@ -149,14 +199,27 @@ let gcm_cases = [
            ~t:   "a44a8266ee1c8eb0c8b5d4cf5ae9f19a"
 ]
 
+
 let suite =
 
   "All" >::: [
 
+    "XOR" >::: [ xor_selftest 300 ] ;
+
+    "3DES-ECB" >::: [ ecb_selftest (module Block.DES.ECB) 100 ] ;
+
+    "3DES-ECB" >::: [ cbc_selftest (module Block.AES.CBC) 100 ] ;
+
+    "AES-ECB" >::: [ ecb_selftest (module Block.AES.ECB) 100 ] ;
+
+    "AES-CBC" >::: [ cbc_selftest (module Block.AES.CBC) 100 ] ;
+
     "AES-GCM" >:::
       List.mapi
         (fun i params -> string_of_int i >:: gcm_check params)
-        gcm_cases
+        gcm_cases ;
+
+
   ]
 
 
