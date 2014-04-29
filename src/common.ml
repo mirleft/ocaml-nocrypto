@@ -29,7 +29,9 @@ module CS = struct
 
   open Cstruct
 
-  let empty = Cstruct.create 0
+  let empty = create 0
+
+  let null cs = len cs = 0
 
   let append cs1 cs2 =
     let l1 = len cs1 and l2 = len cs2 in

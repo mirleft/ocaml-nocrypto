@@ -27,61 +27,68 @@ module Modes = struct
       ( C.decrypt_block ~key cipher plain ; plain )
   end
 
-  module ECB_of ( C : Cipher_base ) : Mode = struct
+  module ECB_of ( C : Cipher_raw ) : Mode = struct
 
     open Cstruct
 
-    type key = C.key
-    let of_secret = C.of_secret
-    let block_size = C.block_size
+    type key = C.ekey * C.dkey
+
+    let (key_sizes, block_size) = C.(key_sizes, block_size)
+
+    let of_secret sec = C.(e_of_secret sec, d_of_secret sec)
 
     let encrypt, decrypt =
-      let ecb f source =
-        let rec loop blocks src = function
-          | 0 -> CS.concat @@ List.rev blocks
-          | n -> loop (f src :: blocks)
-                      (shift src C.block_size)
-                      (n - C.block_size) in
-        loop [] source (len source)
-      in
-      (fun ~key -> ecb (C.encrypt ~key)),
-      (fun ~key -> ecb (C.decrypt ~key))
+      let ecb f key source =
+        let rec loop src = function
+          | dst when CS.null dst -> ()
+          | dst ->
+              f ~key src dst ;
+              loop (shift src block_size)
+                   (shift dst block_size) in
+        let dst = create @@ len source in
+        ( loop source dst ; dst ) in
+      (fun ~key:(key, _) -> ecb C.encrypt_block key),
+      (fun ~key:(_, key) -> ecb C.decrypt_block key)
 
   end
 
-  module CBC_of ( C : Cipher_base ) : Mode_CBC = struct
+  module CBC_of ( C : Cipher_raw ) : Mode_CBC = struct
 
     open Cstruct
 
     type result = { message : Cstruct.t ; iv : Cstruct.t }
+    type key    = C.ekey * C.dkey
 
-    type key = C.key
-    let of_secret = C.of_secret
-    let block_size = C.block_size
+    let (key_sizes, block_size) = C.(key_sizes, block_size)
 
-    let encrypt ~key ~iv plain =
-      let rec loop blocks iv src = function
-        | 0 -> { iv ; message = CS.concat @@ List.rev blocks }
-        | n ->
-            let blk = C.encrypt ~key (CS.xor src iv) in
-            loop (blk :: blocks)
-                blk
-                (shift src C.block_size)
-                (n - C.block_size)
+    let of_secret sec = C.(e_of_secret sec, d_of_secret sec)
+
+    let encrypt ~key:(key, _) ~iv plain =
+      let rec loop iv = function
+        | plain when CS.null plain -> iv
+        | plain ->
+            CS.xor_into iv plain block_size ;
+            C.encrypt_block ~key plain plain ;
+            loop (sub plain 0 block_size)
+                 (shift plain block_size)
       in
-      loop [] iv plain (len plain)
+      let dst = CS.clone plain in
+      let iv' = loop iv dst in
+      { message = dst ; iv = iv' }
 
-    let decrypt ~key ~iv cipher =
-      let rec loop blocks iv src = function
-        | 0 -> { iv ; message = CS.concat @@ List.rev blocks }
-        | n ->
-            let blk = C.decrypt ~key src in
-            loop (CS.xor iv blk :: blocks)
-                (sub src 0 C.block_size)
-                (shift src C.block_size)
-                (n - C.block_size)
+    let decrypt ~key:(_, key) ~iv cipher =
+      let rec loop iv src = function
+        | dst when CS.null dst -> iv
+        | dst ->
+            C.decrypt_block ~key src dst ;
+            CS.xor_into iv dst block_size ;
+            loop (sub src 0 block_size)
+                 (shift src block_size)
+                 (shift dst block_size)
       in
-      loop [] iv cipher (len cipher)
+      let dst = create @@ len cipher in
+      let iv' = loop iv cipher dst in
+      { message = dst ; iv = iv' }
 
   end
 
@@ -135,8 +142,8 @@ module AES = struct
 
   module Base = Modes.Base_of (Raw)
 
-  module ECB = Modes.ECB_of (Base)
-  module CBC = Modes.CBC_of (Base)
+  module ECB = Modes.ECB_of (Raw)
+  module CBC = Modes.CBC_of (Raw)
   module GCM = Modes.GCM_of (Base)
 end
 
@@ -167,6 +174,6 @@ module DES = struct
 
   module Base = Modes.Base_of (Raw)
 
-  module ECB  = Modes.ECB_of (Base)
-  module CBC  = Modes.CBC_of (Base)
+  module ECB  = Modes.ECB_of (Raw)
+  module CBC  = Modes.CBC_of (Raw)
 end
