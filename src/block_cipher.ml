@@ -40,7 +40,7 @@ module Modes = struct
     let encrypt, decrypt =
       let ecb f key source =
         let rec loop src = function
-          | dst when CS.null dst -> ()
+          | dst when Cs.null dst -> ()
           | dst ->
               f ~key src dst ;
               loop (shift src block_size)
@@ -65,23 +65,23 @@ module Modes = struct
 
     let encrypt ~key:(key, _) ~iv plain =
       let rec loop iv = function
-        | plain when CS.null plain -> iv
+        | plain when Cs.null plain -> iv
         | plain ->
-            CS.xor_into iv plain block_size ;
+            Cs.xor_into iv plain block_size ;
             C.encrypt_block ~key plain plain ;
             loop (sub plain 0 block_size)
                  (shift plain block_size)
       in
-      let dst = CS.clone plain in
+      let dst = Cs.clone plain in
       let iv' = loop iv dst in
       { message = dst ; iv = iv' }
 
     let decrypt ~key:(_, key) ~iv cipher =
       let rec loop iv src = function
-        | dst when CS.null dst -> iv
+        | dst when Cs.null dst -> iv
         | dst ->
             C.decrypt_block ~key src dst ;
-            CS.xor_into iv dst block_size ;
+            Cs.xor_into iv dst block_size ;
             loop (sub src 0 block_size)
                  (shift src block_size)
                  (shift dst block_size)

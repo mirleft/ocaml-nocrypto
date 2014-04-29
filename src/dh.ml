@@ -52,7 +52,7 @@ let gen_group ?g bits =
 
 module Group = struct
 
-  let hex = CS.of_hex
+  let hex = Cs.of_hex
   let two = Numeric.Z.to_cstruct_be (Z.of_int 2)
 
   (* Oakley groups from RFC2409 *)

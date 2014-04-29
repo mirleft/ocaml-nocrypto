@@ -93,27 +93,27 @@ let ghash ~key cs =
 
 let gctr ~cipher ~key ~icb cs =
   let rec loop acc cb cs =
-    let y = CS.xor cs (cipher ~key cb) in
+    let y = Cs.xor cs (cipher ~key cb) in
     if len cs > 16 then
       loop (y :: acc) (incr32 cb) (shift cs 16)
-    else CS.concat @@ List.rev (y :: acc) in
+    else Cs.concat @@ List.rev (y :: acc) in
   loop [] icb cs
 
 
 let padding cs =
   let p_len n = (16 - (n mod 16)) mod 16 in
-  CS.create_with (p_len (len cs)) 0
+  Cs.create_with (p_len (len cs)) 0
 
 let nbits cs = Int64.of_int (len cs * 8)
 
-let gcm ~cipher ~mode ~key ~iv ?(adata=CS.empty) data =
+let gcm ~cipher ~mode ~key ~iv ?(adata=Cs.empty) data =
 
-  let h  = cipher ~key (CS.of_int64s [0L; 0L]) in
+  let h  = cipher ~key (Cs.of_int64s [0L; 0L]) in
 
   let j0 = match len iv with
-    | 12 -> CS.concat [ iv; CS.of_int32s [1l] ]
+    | 12 -> Cs.concat [ iv; Cs.of_int32s [1l] ]
     | _  -> ghash ~key:h @@
-            CS.concat [ iv; padding iv; CS.of_int64s [0L; nbits iv] ] in
+            Cs.concat [ iv; padding iv; Cs.of_int64s [0L; nbits iv] ] in
 
   let data' = gctr ~cipher ~key ~icb:(incr32 j0) data in
 
@@ -122,9 +122,9 @@ let gcm ~cipher ~mode ~key ~iv ?(adata=CS.empty) data =
     | `Decrypt -> (data', data ) in
 
   let s = ghash ~key:h @@
-          CS.concat [ adata ; padding adata
+          Cs.concat [ adata ; padding adata
                     ; cdata ; padding cdata
-                    ; CS.of_int64s [ nbits adata ; nbits cdata  ] ]
+                    ; Cs.of_int64s [ nbits adata ; nbits cdata  ] ]
   in
   let t = gctr ~cipher ~key ~icb:j0 s in
 

@@ -25,7 +25,7 @@ let string_fold ~f ~z str =
   ( String.iter (fun c -> st := f !st c) str  ; !st )
 
 
-module CS = struct
+module Cs = struct
 
   open Cstruct
 
@@ -55,7 +55,7 @@ module CS = struct
           ) 0 css in
         result
 
-  let cs_equal cs1 cs2 =
+  let equal cs1 cs2 =
     to_bigarray cs1 = to_bigarray cs2
 
   let clone ?n cs =

@@ -4,6 +4,10 @@ open Nocrypto
 open Common
 open Block
 
+
+let assert_cs_equal ?printer ?pp_diff ?msg =
+  assert_equal ~cmp:Cs.equal ?printer ?pp_diff ?msg
+
 let hex_of_cs cs =
   let b = Buffer.create 16 in
   Cstruct.hexdump_to_buffer b cs ; Buffer.contents b
@@ -33,7 +37,7 @@ let ecb_selftest ( m : (module Block.T_ECB) ) n =
     let data' =
       C.( data |> encrypt ~key |> encrypt ~key
                |> decrypt ~key |> decrypt ~key ) in
-    assert_equal ~cmp:CS.cs_equal ~msg:"ecb mismatch" data data'
+    assert_cs_equal ~msg:"ecb mismatch" data data'
   in
   "selftest" >:: times ~n check
 
@@ -48,7 +52,7 @@ let cbc_selftest ( m : (module Block.T_CBC) ) n  =
       C.( data |>   encrypt ~key ~iv  |> !(encrypt ~key ~iv)
                |> !(decrypt ~key ~iv) |> !(decrypt ~key ~iv) ).C.message
     in
-    assert_equal ~cmp:CS.cs_equal ~msg:"cbc mismatch" data data'
+    assert_cs_equal ~msg:"cbc mismatch" data data'
   in
   "selftest" >:: times ~n check
 
@@ -56,19 +60,19 @@ let xor_selftest n =
   "selftest" >:: times ~n @@ fun _ ->
     let n         = Rng.Int.gen 30 in
     let (a, b, c) = Rng.(generate n, generate n, generate n) in
-    let abc  = CS.(xor (xor a b) c)
-    and abc' = CS.(xor a (xor b c)) in
-    let a1   = CS.(xor abc (xor b c))
-    and a2   = CS.(xor (xor c b) abc) in
-    assert_equal ~cmp:CS.cs_equal ~msg:"assoc" abc abc' ;
-    assert_equal ~cmp:CS.cs_equal ~msg:"invert" a a1 ;
-    assert_equal ~cmp:CS.cs_equal ~msg:"commut" a1 a2
+    let abc  = Cs.(xor (xor a b) c)
+    and abc' = Cs.(xor a (xor b c)) in
+    let a1   = Cs.(xor abc (xor b c))
+    and a2   = Cs.(xor (xor c b) abc) in
+    assert_cs_equal ~msg:"assoc" abc abc' ;
+    assert_cs_equal ~msg:"invert" a a1 ;
+    assert_cs_equal ~msg:"commut" a1 a2
 
 (* aes gcm *)
 
 let gcm_case ~key ~p ~a ~iv ~c ~t =
-  ( AES.GCM.of_secret (CS.of_hex key),
-    CS.of_hex p, CS.of_hex a, CS.of_hex iv, CS.of_hex c, CS.of_hex t )
+  ( AES.GCM.of_secret (Cs.of_hex key),
+    Cs.of_hex p, Cs.of_hex a, Cs.of_hex iv, Cs.of_hex c, Cs.of_hex t )
 
 
 let gcm_check (key, p, adata, iv, c, t) _ =
@@ -77,7 +81,7 @@ let gcm_check (key, p, adata, iv, c, t) _ =
     AES.GCM.encrypt ~key ~iv ~adata p in
   let { message = pdata ; tag = ptag } =
     AES.GCM.decrypt ~key ~iv ~adata cdata in
-  let (!=) a b = not CS.(cs_equal a b)
+  let (!=) a b = not Cs.(equal a b)
   in
   if c != cdata then
     assert_bad_cs ~msg:"cyphertext" ~want:c ~have:cdata

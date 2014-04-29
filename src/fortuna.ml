@@ -25,15 +25,15 @@ let incr cs =
   loop 0
 
 let create () =
-  let k = CS.create_with 32 0 in
-  { ctr    = CS.create_with 16 0
+  let k = Cs.create_with 32 0 in
+  { ctr    = Cs.create_with 16 0
   ; key    = (k, AES.e_of_secret k)
   ; trap   = None
   ; seeded = false
   }
 
 let clone ~g: { ctr ; seeded ; key } =
-  { ctr = CS.clone ctr ; key ; seeded ; trap = None }
+  { ctr = Cs.clone ctr ; key ; seeded ; trap = None }
 
 (* XXX
  * We _might_ want to erase the old key, but the entire topic is a can of
@@ -71,7 +71,7 @@ let generate ~g bytes =
         generate_rekey ~g n' :: chunk (n - n')
   in
   ( match g.trap with None -> () | Some f -> g.trap <- None ; f () );
-  CS.concat @@ chunk bytes
+  Cs.concat @@ chunk bytes
 
 
 module Accumulator = struct
@@ -110,7 +110,7 @@ module Accumulator = struct
     let pool = pool land 0x1f
     and src  = src  land 0xff in
     let h = acc.pools.(pool) in
-    SHAd256.feed h (CS.of_bytes [ src ; len data ]) ;
+    SHAd256.feed h (Cs.of_bytes [ src ; len data ]) ;
     SHAd256.feed h data ;
     (* XXX This is clobbered on multi-pool. *)
     acc.gen.trap <- Some (fun () -> fire acc)

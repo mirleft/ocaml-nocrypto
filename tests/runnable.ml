@@ -153,7 +153,7 @@ let rsa_feedback bits =
     decrypt ~key c in
   hexdump d ;
 
-  assert (CS.cs_equal m d) ;
+  assert (Cs.equal m d) ;
   Printf.printf "* \n%!"
 
 
@@ -167,7 +167,7 @@ let dh_feedback bits =
   let sh1 = DH.shared p s1 m2
   and sh2 = DH.shared p s2 m1 in
 
-  assert (CS.cs_equal sh1 sh2);
+  assert (Cs.equal sh1 sh2);
   Cstruct.hexdump sh1
 
 let _ =

@@ -31,7 +31,7 @@ end
 
 module Full_hash_hmac ( H0 : Base_hash ) = struct
 
-  open CS
+  open Cs
 
   module H = Full_hash (H0)
   include H
