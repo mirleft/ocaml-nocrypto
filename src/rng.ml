@@ -81,17 +81,18 @@ module Def_rng = struct
 
   type g = Fortuna.g
 
-  let g         = create ()
-  let reseedv   = reseedv ~g
-  and reseed    = reseed  ~g
-  and seeded () = seeded  ~g
+  let g = ref (create ())
+  let reseedv       = reseedv ~g:!g
+  and reseed        = reseed  ~g:!g
+  and seeded ()     = seeded  ~g:!g
+  and set_gen ~g:g' = g := g'
 
   let block_size = block_size
-  let generate ?(g = g) n = generate ~g n
+  let generate ?(g = !g) n = generate ~g n
 
   module Accumulator = struct
     open Accumulator
-    let acc    = create ~g
+    let acc    = create ~g:!g
     let add    = add    ~acc
     let add_rr = add_rr ~acc
   end
