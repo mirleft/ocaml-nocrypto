@@ -8,6 +8,7 @@ module DH      = Dh
 module Fortuna = Fortuna
 
 module Base64  = Base64
+module Numeric = Numeric
 
 (* XXX debug *)
 module Common  = Common

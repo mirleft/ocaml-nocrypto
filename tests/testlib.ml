@@ -274,6 +274,19 @@ let suite =
 
   ]
 
+(*
+let pk_wat = Z.( Nocrypto.Rsa.({
+  e = of_int 3 ;
+  d = of_int 24667 ;
+  n = of_int 37399 ;
+  p = of_int 149 ;
+  q = of_int 251 ;
+  dp = of_int 99 ;
+  dq = of_int 167 ; q' = of_int 19
+}) )
+
+let x_wat = Cstruct.of_string "\000\158"
+*)
 
 (*
 module CheckGF = struct

@@ -101,6 +101,7 @@ and decrypt ?(mask = `Yes) ~key cs =
 (* XXX
  * All kinds bad. Default public exponent should probably be smaller than
  * 2^16+1. Two bits of key are rigged.
+ * And even then the key is not guaranteed to be bull `bits` long.
  *)
 let generate ?g ?(e = Z.of_int 0x10001) promise bits =
 
