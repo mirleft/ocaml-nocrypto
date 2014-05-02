@@ -7,6 +7,8 @@ type priv = {
   p : Z.t ; q : Z.t ; dp : Z.t ; dq : Z.t ; q' : Z.t
 }
 
+type mask = [ `No | `Yes | `Yes_with of Rng.g ]
+
 let pub ~e ~n =
   Numeric.Z.({
     e = of_cstruct_be e ;
@@ -76,19 +78,24 @@ let (encrypt_z, decrypt_z) =
     if msg >= n then invalid_arg "RSA: key too small" ;
     if msg < Z.one then invalid_arg "RSA: non-positive message"
   in
-  (fun    ~(key : pub ) msg ->
-    check_params key.n msg ; encrypt_unsafe ~key msg),
-  (fun ?g ~(key : priv) msg ->
-    check_params key.n msg ; decrypt_blinded_unsafe ?g ~key msg)
+  (fun ~(key : pub ) msg ->
+    check_params key.n msg ;
+    encrypt_unsafe ~key msg),
+  (fun ?(mask = `Yes) ~(key : priv) msg ->
+    check_params key.n msg ;
+    match mask with
+    | `No         -> decrypt_unsafe            ~key msg
+    | `Yes        -> decrypt_blinded_unsafe    ~key msg
+    | `Yes_with g -> decrypt_blinded_unsafe ~g ~key msg )
 
 (* XXX (outer) padding *)
 let encrypt ~key cs =
   let size = pub_bits key / 8 in (* .... *)
   Numeric.Z.(to_cstruct_be ~size @@ encrypt_z ~key @@ of_cstruct_be cs)
 
-and decrypt ?g ~key cs =
+and decrypt ?(mask = `Yes) ~key cs =
   let size = priv_bits key / 8 in (* .... *)
-  Numeric.Z.(to_cstruct_be ~size @@ decrypt_z ?g ~key @@ of_cstruct_be cs)
+  Numeric.Z.(to_cstruct_be ~size @@ decrypt_z ~mask ~key @@ of_cstruct_be cs)
 
 
 (* XXX

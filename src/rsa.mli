@@ -6,6 +6,8 @@ type priv = {
   p : Z.t ; q : Z.t ; dp : Z.t ; dq : Z.t ; q' : Z.t
 }
 
+type mask = [ `No | `Yes | `Yes_with of Rng.g ]
+
 val pub_bits : pub -> int
 val priv_bits : priv -> int
 
@@ -20,8 +22,8 @@ val priv' : e:Cstruct.t -> p:Cstruct.t -> q:Cstruct.t -> priv
 
 val pub_of_priv : priv -> pub
 
-val encrypt   :             key:pub  -> Cstruct.t -> Cstruct.t
-val decrypt   : ?g:Rng.g -> key:priv -> Cstruct.t -> Cstruct.t
+val encrypt   :               key:pub  -> Cstruct.t -> Cstruct.t
+val decrypt   : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
 
 val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
 
