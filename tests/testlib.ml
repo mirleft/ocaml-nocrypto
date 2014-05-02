@@ -94,8 +94,22 @@ let rsa_selftest ~bits n =
     in
 
     let key_s = Rsa.string_of_private_key key in
-    assert_cs_not_equal ~msg:"there was no encryption?" msg enc ;
-    assert_cs_equal ~msg:("failed decryption with:\n" ^ key_s) msg dec
+    assert_cs_equal
+      ~msg:("failed decryption with:\n" ^ key_s)
+      msg dec
+
+let dh_selftest ~bits n =
+  "selftest" >:: times ~n @@ fun _ ->
+
+    let p = DH.gen_group bits in
+
+    let (s1, m1) = DH.gen_secret p
+    and (s2, m2) = DH.gen_secret p in
+
+    let sh1 = DH.shared p s1 m2
+    and sh2 = DH.shared p s2 m1 in
+
+    assert_cs_equal ~msg:"shared secret" sh1 sh2
 
 (* aes gcm *)
 
@@ -237,6 +251,12 @@ let suite =
       rsa_selftest ~bits:1024 100  ;
     ] ;
 
+    "DHE" >::: [
+      dh_selftest ~bits:16  100 ;
+      dh_selftest ~bits:128 100 ;
+      dh_selftest ~bits:512 1   ;
+    ] ;
+
     "XOR" >::: [ xor_selftest 300 ] ;
 
     "3DES-ECB" >::: [ ecb_selftest (module Block.DES.ECB) 100 ] ;
@@ -251,7 +271,6 @@ let suite =
       List.mapi
         (fun i params -> string_of_int i >:: gcm_check params)
         gcm_cases ;
-
 
   ]
 
