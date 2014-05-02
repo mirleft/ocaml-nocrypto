@@ -240,6 +240,8 @@ let gcm_cases = [
            ~t:   "a44a8266ee1c8eb0c8b5d4cf5ae9f19a"
 ]
 
+let cases_of f =
+  List.mapi @@ fun i params -> string_of_int i >:: f params
 
 let suite =
 
@@ -267,10 +269,7 @@ let suite =
 
     "AES-CBC" >::: [ cbc_selftest (module Block.AES.CBC) 100 ] ;
 
-    "AES-GCM" >:::
-      List.mapi
-        (fun i params -> string_of_int i >:: gcm_check params)
-        gcm_cases ;
+    "AES-GCM" >::: cases_of gcm_check gcm_cases
 
   ]
 
