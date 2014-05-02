@@ -102,9 +102,9 @@ and decrypt ?(mask = `Yes) ~key cs =
  * All kinds bad. Default public exponent should probably be smaller than
  * 2^16+1. Two bits of key are rigged.
  *)
-let generate ?g ?(e = Z.of_int 0x10001) bits =
+let generate ?g ?(e = Z.of_int 0x10001) promise bits =
 
-  Printf.eprintf "DON'T use this to generate actual keys.\n%!";
+  let `Yes_this_is_debug_session = promise in
 
   let (p, q) =
     let rec attempt bits =
@@ -117,9 +117,9 @@ let generate ?g ?(e = Z.of_int 0x10001) bits =
   priv_of_primes ~e ~p ~q
 
 
-let print_key { e; d; n; p; q; dp; dq; q' } =
+let string_of_private_key { e; d; n; p; q; dp; dq; q' } =
   let f = Z.to_string in
-  Printf.printf
+  Printf.sprintf
 "RSA key
   e : %s
   d : %s
@@ -128,4 +128,4 @@ let print_key { e; d; n; p; q; dp; dq; q' } =
   q : %s
   dp: %s
   dq: %s
-  q': %s\n%!" (f e) (f d) (f n) (f p) (f q) (f dp) (f dq) (f q')
+  q': %s" (f e) (f d) (f n) (f p) (f q) (f dp) (f dq) (f q')

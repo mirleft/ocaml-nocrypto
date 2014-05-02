@@ -123,7 +123,7 @@ let time_rsa_generate () =
   let items = 100 in
   time @@ fun () ->
     for i = 1 to items do
-      ignore @@ Rsa.generate 2048
+      ignore @@ Rsa.generate `Yes_this_is_debug_session 2048
     done
 
 
@@ -140,8 +140,8 @@ let rsa_feedback bits =
   let e = if Z.(pow z_two bits < def_e) then Z.of_int 3 else def_e in
   let key =
     Printf.printf "+ generating...\n%!";
-    generate ~e bits in
-  print_key key ;
+    generate ~e `Yes_this_is_debug_session bits in
+  Printf.printf "%s\n%!" (string_of_private_key key);
 
   let c =
     Printf.printf "+ encrypt...\n%!";

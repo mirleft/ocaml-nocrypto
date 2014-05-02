@@ -25,6 +25,6 @@ val pub_of_priv : priv -> pub
 val encrypt   :               key:pub  -> Cstruct.t -> Cstruct.t
 val decrypt   : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
 
-val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
+val generate : ?g:Rng.g -> ?e:Z.t -> [< `Yes_this_is_debug_session ] -> int -> priv
 
-val print_key : priv -> unit
+val string_of_private_key : priv -> string

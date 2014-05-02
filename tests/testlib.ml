@@ -5,17 +5,21 @@ open Common
 open Block
 
 
-let assert_cs_equal ?printer ?pp_diff ?msg =
-  assert_equal ~cmp:Cs.equal ?printer ?pp_diff ?msg
 
 let hex_of_cs cs =
   let b = Buffer.create 16 in
   Cstruct.hexdump_to_buffer b cs ; Buffer.contents b
 
-let assert_bad_cs ~msg ~want ~have =
-  assert_failure @@
-  Printf.sprintf "%s:\nwant:%shave:%s"
-    msg (hex_of_cs want) (hex_of_cs have)
+let assert_cs_equal ?pp_diff ?msg =
+  assert_equal
+    ~cmp:Cs.equal
+    ~printer:hex_of_cs
+    ?pp_diff
+    ?msg
+
+let assert_cs_not_equal ~msg cs1 cs2 =
+  if Cs.equal cs1 cs2 then
+    assert_failure @@ msg ^ "\n" ^ hex_of_cs cs1
 
 let rec range a b =
   if a > b then [] else a :: range (succ a) b
@@ -67,6 +71,32 @@ let xor_selftest n =
     assert_cs_equal ~msg:"invert" a a1 ;
     assert_cs_equal ~msg:"commut" a1 a2
 
+
+let rsa_selftest ~bits n =
+  let _e = Z.of_int 0x10001
+  and _3 = Z.of_int 3
+  in
+  "selftest" >:: times ~n @@ fun _ ->
+
+    let e = Z.( if bits < 24 then _3 else _e )
+
+    and msg =
+      let size = cdiv bits 8 in
+      let cs = Rng.generate size in
+      Cstruct.set_uint8 cs 0 0 ;
+      Cstruct.(set_uint8 cs 1 @@ max 1 (get_uint8 cs 1)) ;
+      cs
+    in
+
+    let key = Rsa.generate ~e `Yes_this_is_debug_session bits in
+    let enc = Rsa.encrypt ~key:Rsa.(pub_of_priv key) msg in
+    let dec = Rsa.decrypt ~key enc
+    in
+
+    let key_s = Rsa.string_of_private_key key in
+    assert_cs_not_equal ~msg:"there was no encryption?" msg enc ;
+    assert_cs_equal ~msg:("failed decryption with:\n" ^ key_s) msg dec
+
 (* aes gcm *)
 
 let gcm_case ~key ~p ~a ~iv ~c ~t =
@@ -79,18 +109,12 @@ let gcm_check (key, p, adata, iv, c, t) _ =
   let { message = cdata ; tag = ctag } =
     AES.GCM.encrypt ~key ~iv ~adata p in
   let { message = pdata ; tag = ptag } =
-    AES.GCM.decrypt ~key ~iv ~adata cdata in
-  let (!=) a b = not Cs.(equal a b)
+    AES.GCM.decrypt ~key ~iv ~adata cdata
   in
-  if c != cdata then
-    assert_bad_cs ~msg:"cyphertext" ~want:c ~have:cdata
-  else if t != ctag then
-    assert_bad_cs ~msg:"encrypted tag" ~want:t ~have:ctag
-  else if p != pdata then
-    assert_bad_cs ~msg:"recovered plaintext" ~want:p ~have:pdata
-  else if t != ptag then
-    assert_bad_cs ~msg:"decrypted tag" ~want:t ~have:ptag
-  else ()
+  assert_cs_equal ~msg:"cyphertext" c cdata ;
+  assert_cs_equal ~msg:"encryption tag" t ctag  ;
+  assert_cs_equal ~msg:"decrypted plaintext" p pdata ;
+  assert_cs_equal ~msg:"decryption tag" t ptag
 
 let gcm_cases = [
 
@@ -206,6 +230,12 @@ let gcm_cases = [
 let suite =
 
   "All" >::: [
+
+    "RSA" >::: [
+      rsa_selftest ~bits:16   1000 ;
+      rsa_selftest ~bits:128  100  ;
+      rsa_selftest ~bits:1024 100  ;
+    ] ;
 
     "XOR" >::: [ xor_selftest 300 ] ;
 
