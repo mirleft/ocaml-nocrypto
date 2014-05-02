@@ -78,7 +78,7 @@ let (encrypt_z, decrypt_z) =
     if msg >= n then invalid_arg "RSA: key too small" ;
     if msg < Z.one then invalid_arg "RSA: non-positive message"
   in
-  (fun ~(key : pub ) msg ->
+  (fun ~(key : pub) msg ->
     check_params key.n msg ;
     encrypt_unsafe ~key msg),
   (fun ?(mask = `Yes) ~(key : priv) msg ->
@@ -90,11 +90,11 @@ let (encrypt_z, decrypt_z) =
 
 (* XXX (outer) padding *)
 let encrypt ~key cs =
-  let size = pub_bits key / 8 in (* .... *)
+  let size = cdiv (pub_bits key) 8 in (* .... *)
   Numeric.Z.(to_cstruct_be ~size @@ encrypt_z ~key @@ of_cstruct_be cs)
 
 and decrypt ?(mask = `Yes) ~key cs =
-  let size = priv_bits key / 8 in (* .... *)
+  let size = cdiv (priv_bits key) 8 in (* .... *)
   Numeric.Z.(to_cstruct_be ~size @@ decrypt_z ~mask ~key @@ of_cstruct_be cs)
 
 
@@ -104,7 +104,7 @@ and decrypt ?(mask = `Yes) ~key cs =
  *)
 let generate ?g ?(e = Z.of_int 0x10001) bits =
 
-  Printf.printf "DON'T use this to generate actual keys.\n%!";
+  Printf.eprintf "DON'T use this to generate actual keys.\n%!";
 
   let (p, q) =
     let rec attempt bits =
