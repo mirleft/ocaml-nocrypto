@@ -5,10 +5,24 @@ open Common
 open Block
 
 
+let rec blocks_of_cs n cs =
+  let open Cstruct in
+  if len cs <= n then [ cs ]
+  else sub cs 0 n :: blocks_of_cs n (shift cs n)
+
+let rec range a b =
+  if a > b then [] else a :: range (succ a) b
+
+let rec times ~n f a =
+  if n > 0 then ( ignore (f a) ; times ~n:(pred n) f a )
 
 let hex_of_cs cs =
   let b = Buffer.create 16 in
   Cstruct.hexdump_to_buffer b cs ; Buffer.contents b
+
+let sample arr =
+  let ix = Rng.Int.gen Array.(length arr) in arr.(ix)
+
 
 let assert_cs_equal ?pp_diff ?msg =
   assert_equal
@@ -21,24 +35,21 @@ let assert_cs_not_equal ~msg cs1 cs2 =
   if Cs.equal cs1 cs2 then
     assert_failure @@ msg ^ "\n" ^ hex_of_cs cs1
 
-let f1_eq ~msg f (a, b) _ =
-  let (a, b) = Cs.(of_hex a, of_hex b) in
-  assert_cs_equal ~msg (f a) b
 
-let f2_eq ~msg f (a, b, c) =
-  f1_eq ~msg (f Cs.(of_hex a)) (b, c)
+let f1_eq ?msg f (a, b) _ =
+  let (a, b) = Cs.(of_hex a, of_hex b) in
+  assert_cs_equal ?msg (f a) b
+
+let f1v_eq ?msg f (aa, b) _ =
+  let (aa, b) = Cs.(List.map of_hex aa, of_hex b) in
+  assert_cs_equal ?msg (f aa) b
+
+let f2_eq ?msg f (a, b, c) =
+  f1_eq ?msg (f Cs.(of_hex a)) (b, c)
 
 let cases_of f =
   List.map @@ fun params -> test_case (f params)
 
-let rec range a b =
-  if a > b then [] else a :: range (succ a) b
-
-let rec times ~n f a =
-  if n > 0 then ( ignore (f a) ; times ~n:(pred n) f a )
-
-let sample arr =
-  let ix = Rng.Int.gen Array.(length arr) in arr.(ix)
 
 (* randomized selfies *)
 
@@ -142,169 +153,168 @@ let xor_cases =
     "00", "00 01 02", "00" ;
   ]
 
+let f1_blk_eq ?msg ?(n=1) f (x, y) _ =
+  let (x, y) = Cs.(of_hex x, of_hex y) in
+  let xs     = blocks_of_cs n x in
+  assert_cs_equal ?msg (f xs) y
+
+let hash_cases ( m : (module Hash.T) ) ~hash =
+  let module H = ( val m ) in
+  [ "digest"  >::: cases_of (f1_eq H.digest) hash ;
+    "digestv" >::: cases_of (f1_blk_eq H.digestv) hash ;
+  ]
+
+let hash_cases_mac ( m : (module Hash.T_MAC) ) ~hash ~mac =
+  let module H = ( val m ) in
+  [ "digest"  >::: cases_of (f1_eq H.digest) hash ;
+    "digestv" >::: cases_of (f1_blk_eq H.digestv) hash ;
+    "hmac"    >::: cases_of (f2_eq (fun key -> H.hmac ~key)) mac ;
+  ]
 
 (* MD5 *)
 
-let md5_cases = [
+let md5_cases =
+  hash_cases_mac ( module Hash.MD5 )
+  ~hash:[
+    "" ,
+    "d4 1d 8c d9 8f 00 b2 04 e9 80 09 98 ec f8 42 7e" ;
 
-  "digest" >:::
-    cases_of
-      (f1_eq ~msg:"md5" Hash.MD5.digest) [
+    "00",
+    "93 b8 85 ad fe 0d a0 89 cd f6 34 90 4f d5 9f 71" ;
 
-      "" ,
-      "d4 1d 8c d9 8f 00 b2 04 e9 80 09 98 ec f8 42 7e" ;
+    "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
+    "1a c1 ef 01 e9 6c af 1b e0 d3 29 33 1a 4f c2 a8" ;
+  ]
+  ~mac:[
+    "2c 03 ca 51 71 a3 d2 d1 41 71 79 6f c8 b2 6c 54" ,
+    "8b bb 87 f4 76 4f ba 6a 55 61 c9 80 d5 35 58 4f
+     0a 96 cb 60 49 2b 6e dd 71 a1 1e e5 7a 78 9b 73" ,
+    "05 8b 08 41 09 79 8b 56 3d 81 49 1f 5f 82 5b ba" ;
 
-      "00",
-      "93 b8 85 ad fe 0d a0 89 cd f6 34 90 4f d5 9f 71" ;
+    "2c 03 ca 51 71 a3 d2 d1 41 71 79 6f c8 b2 6c 54
+     f0 0d a1 07 6c c9 e4 1f b2 17 ec ad 88 56 a2 6e
+     d7 83 c3 3d 85 99 0d 8d c5 8d 03 50 00 e2 6e 80
+     0c b5 9a 00 26 fd 15 fd 4c e1 84 9d a5 c6 fa a8
+     f7 ef f6 c8 76 73 a3 47 0a d5 5a 5b 56 49 22 ec" ,
+    "8b bb 87 f4 76 4f ba 6a 55 61 c9 80 d5 35 58 4f
+     0a 96 cb 60 49 2b 6e dd 71 a1 1e e5 7a 78 9b 73" ,
+    "61 ac 5c 29 9f e2 18 95 d5 4b eb ff 60 42 91 df" ;
 
-      "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
-      "1a c1 ef 01 e9 6c af 1b e0 d3 29 33 1a 4f c2 a8" ;
-    ] ;
-
-  "hmac" >:::
-    cases_of
-      (f2_eq ~msg:"md5-hmac" (fun key -> Hash.MD5.hmac ~key))
-    [
-
-      "2c 03 ca 51 71 a3 d2 d1 41 71 79 6f c8 b2 6c 54" ,
-      "8b bb 87 f4 76 4f ba 6a 55 61 c9 80 d5 35 58 4f
-       0a 96 cb 60 49 2b 6e dd 71 a1 1e e5 7a 78 9b 73" ,
-      "05 8b 08 41 09 79 8b 56 3d 81 49 1f 5f 82 5b ba" ;
-
-      "2c 03 ca 51 71 a3 d2 d1 41 71 79 6f c8 b2 6c 54
-       f0 0d a1 07 6c c9 e4 1f b2 17 ec ad 88 56 a2 6e
-       d7 83 c3 3d 85 99 0d 8d c5 8d 03 50 00 e2 6e 80
-       0c b5 9a 00 26 fd 15 fd 4c e1 84 9d a5 c6 fa a8
-       f7 ef f6 c8 76 73 a3 47 0a d5 5a 5b 56 49 22 ec" ,
-      "8b bb 87 f4 76 4f ba 6a 55 61 c9 80 d5 35 58 4f
-       0a 96 cb 60 49 2b 6e dd 71 a1 1e e5 7a 78 9b 73" ,
-      "61 ac 5c 29 9f e2 18 95 d5 4b eb ff 60 42 91 df" ;
-
-      "2c 03 ca 51 71 a3 d2 d1 41 71 79 6f c8 b2 6c 54
-       f0 0d a1 07 6c c9 e4 1f b2 17 ec ad 88 56 a2 6e
-       d7 83 c3 3d 85 99 0d 8d c5 8d 03 50 00 e2 6e 80
-       0c b5 9a 00 26 fd 15 fd 4c e1 84 9d a5 c6 fa a8" ,
-      "8b bb 87 f4 76 4f ba 6a 55 61 c9 80 d5 35 58 4f
-       0a 96 cb 60 49 2b 6e dd 71 a1 1e e5 7a 78 9b 73" ,
-      "ce 44 c2 a1 c5 46 a7 08 a4 0a 7c f2 5e af b1 33" ;
-    ] ;
-]
+    "2c 03 ca 51 71 a3 d2 d1 41 71 79 6f c8 b2 6c 54
+     f0 0d a1 07 6c c9 e4 1f b2 17 ec ad 88 56 a2 6e
+     d7 83 c3 3d 85 99 0d 8d c5 8d 03 50 00 e2 6e 80
+     0c b5 9a 00 26 fd 15 fd 4c e1 84 9d a5 c6 fa a8" ,
+    "8b bb 87 f4 76 4f ba 6a 55 61 c9 80 d5 35 58 4f
+     0a 96 cb 60 49 2b 6e dd 71 a1 1e e5 7a 78 9b 73" ,
+    "ce 44 c2 a1 c5 46 a7 08 a4 0a 7c f2 5e af b1 33" ;
+  ]
 
 (* SHA *)
 
-let sha1_cases = [
+let sha1_cases =
+  hash_cases_mac ( module Hash.SHA1 )
+  ~hash:[
+    "" ,
+    "da 39 a3 ee 5e 6b 4b 0d 32 55 bf ef 95 60 18 90
+     af d8 07 09" ;
 
-  "digest" >:::
-    cases_of (f1_eq ~msg:"sha1" Hash.SHA1.digest) [
+    "00" ,
+    "5b a9 3c 9d b0 cf f9 3f 52 b5 21 d7 42 0e 43 f6
+     ed a2 78 4f" ;
 
-      "" ,
-      "da 39 a3 ee 5e 6b 4b 0d 32 55 bf ef 95 60 18 90
-       af d8 07 09" ;
+    "89 d1 68 64 8d 06 0c f2 ed a1 9a a3 10 56 85 48
+     69 84 63 df 13 7c 96 5e b5 7b 23 ec b1 f8 e9 ef" ,
+    "00 6f 23 b3 5d 7d 09 78 03 35 68 97 ea 6e e3 3c
+     57 b2 11 ca" ;
+  ]
+  ~mac:[
+    "", "",
+    "fb db 1d 1b 18 aa 6c 08 32 4b 7d 64 b7 1f b7 63
+     70 69 0e 1d" ;
 
-      "00" ,
-      "5b a9 3c 9d b0 cf f9 3f 52 b5 21 d7 42 0e 43 f6
-       ed a2 78 4f" ;
+    "9c 64 fc 6a 9a bb 1e 04 43 6d 58 49 3f 0d 30 21
+     d6 8f eb a9 67 c0 1f 9f c9 35 dc a5 95 9b 6c 07
+     4b 09 c0 39 bb c6 dc da 97 aa c8 ea 88 4e 17 e9
+     7c c6 d9 f7 73 70 e0 cb 1d 64 de 6d 57 91 31 b3" ,
+    "",
+    "f9 b1 39 0f 1d 88 09 1b 1d a4 4a d5 d6 33 28 65
+     c2 70 ca da";
 
-      "89 d1 68 64 8d 06 0c f2 ed a1 9a a3 10 56 85 48
-       69 84 63 df 13 7c 96 5e b5 7b 23 ec b1 f8 e9 ef" ,
-      "00 6f 23 b3 5d 7d 09 78 03 35 68 97 ea 6e e3 3c
-       57 b2 11 ca" ;
-    ] ;
+    "9c 64 fc 6a 9a bb 1e 04 43 6d 58 49 3f 0d 30 21
+     d6 8f eb a9 67 c0 1f 9f c9 35 dc a5 95 9b 6c 07
+     4b 09 c0 39 bb c6 dc da 97 aa c8 ea 88 4e 17 e9
+     7c c6 d9 f7 73 70 e0 cb 1d 64 de 6d 57 91 31 b3" ,
+    "0d 83 e2 e9 b3 98 e2 8b ea e0 59 7f 37 15 95 1a
+     4b 4c 3c ce 4b de 15 4f 53 da fb 2f b4 9f 03 ea" ,
+    "ca 02 cd 56 77 dc b5 c1 3e de da 34 51 d9 e2 5c
+     d9 29 4c 53" ;
 
-  "hmac" >:::
-    cases_of
-      (f2_eq ~msg:"sha1-hmac" (fun key -> Hash.SHA1.hmac ~key))
-    [
-      "", "",
-      "fb db 1d 1b 18 aa 6c 08 32 4b 7d 64 b7 1f b7 63
-       70 69 0e 1d" ;
+    "9c 64 fc 6a 9a bb 1e 04 43 6d 58 49 3f 0d 30 21
+     d6 8f eb a9 67 c0 1f 9f c9 35 dc a5 95 9b 6c 07
+     4b 09 c0 39 bb c6 dc da 97 aa c8 ea 88 4e 17 e9
+     7c c6 d9 f7 73 70 e0 cb 1d 64 de 6d 57 91 31 b3
+     8e 17 5f 4e de 38 f4 14 48 bc 74 56 05 7a 3c 3b" ,
+    "0d 83 e2 e9 b3 98 e2 8b ea e0 59 7f 37 15 95 1a
+     4b 4c 3c ce 4b de 15 4f 53 da fb 2f b4 9f 03 ea" ,
+    "7f f9 d5 9e 62 e8 d7 13 91 9f a2 a7 be 64 85 c5
+     a0 39 ec 04";
+  ]
 
-      "9c 64 fc 6a 9a bb 1e 04 43 6d 58 49 3f 0d 30 21
-       d6 8f eb a9 67 c0 1f 9f c9 35 dc a5 95 9b 6c 07
-       4b 09 c0 39 bb c6 dc da 97 aa c8 ea 88 4e 17 e9
-       7c c6 d9 f7 73 70 e0 cb 1d 64 de 6d 57 91 31 b3" ,
-      "",
-      "f9 b1 39 0f 1d 88 09 1b 1d a4 4a d5 d6 33 28 65
-       c2 70 ca da";
+let sha224_cases =
+  hash_cases (module Hash.SHA224)
+  ~hash:[
+    "" ,
+    "d1 4a 02 8c 2a 3a 2b c9 47 61 02 bb 28 82 34 c4
+     15 a2 b0 1f 82 8e a6 2a c5 b3 e4 2f" ;
 
-      "9c 64 fc 6a 9a bb 1e 04 43 6d 58 49 3f 0d 30 21
-       d6 8f eb a9 67 c0 1f 9f c9 35 dc a5 95 9b 6c 07
-       4b 09 c0 39 bb c6 dc da 97 aa c8 ea 88 4e 17 e9
-       7c c6 d9 f7 73 70 e0 cb 1d 64 de 6d 57 91 31 b3" ,
-      "0d 83 e2 e9 b3 98 e2 8b ea e0 59 7f 37 15 95 1a
-       4b 4c 3c ce 4b de 15 4f 53 da fb 2f b4 9f 03 ea" ,
-      "ca 02 cd 56 77 dc b5 c1 3e de da 34 51 d9 e2 5c
-       d9 29 4c 53" ;
+    "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
+    "52 9d 65 6a 8b c4 13 fe f5 8d a8 2e 1b f0 30 8d
+     cf e0 42 9d cd 80 68 7e 69 c9 46 33" ;
+  ]
 
-      "9c 64 fc 6a 9a bb 1e 04 43 6d 58 49 3f 0d 30 21
-       d6 8f eb a9 67 c0 1f 9f c9 35 dc a5 95 9b 6c 07
-       4b 09 c0 39 bb c6 dc da 97 aa c8 ea 88 4e 17 e9
-       7c c6 d9 f7 73 70 e0 cb 1d 64 de 6d 57 91 31 b3
-       8e 17 5f 4e de 38 f4 14 48 bc 74 56 05 7a 3c 3b" ,
-      "0d 83 e2 e9 b3 98 e2 8b ea e0 59 7f 37 15 95 1a
-       4b 4c 3c ce 4b de 15 4f 53 da fb 2f b4 9f 03 ea" ,
-      "7f f9 d5 9e 62 e8 d7 13 91 9f a2 a7 be 64 85 c5
-       a0 39 ec 04";
-    ] ;
-]
+let sha256_cases =
+  hash_cases (module Hash.SHA256)
+  ~hash:[
+    "" ,
+    "e3 b0 c4 42 98 fc 1c 14 9a fb f4 c8 99 6f b9 24
+     27 ae 41 e4 64 9b 93 4c a4 95 99 1b 78 52 b8 55" ;
 
-let sha224_cases = [
-  "digest" >:::
-    cases_of (f1_eq ~msg:"sha1" Hash.SHA224.digest) [
-      "" ,
-      "d1 4a 02 8c 2a 3a 2b c9 47 61 02 bb 28 82 34 c4
-       15 a2 b0 1f 82 8e a6 2a c5 b3 e4 2f" ;
+    "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
+    "be 45 cb 26 05 bf 36 be bd e6 84 84 1a 28 f0 fd
+     43 c6 98 50 a3 dc e5 fe db a6 99 28 ee 3a 89 91" ;
+  ]
 
-      "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
-      "52 9d 65 6a 8b c4 13 fe f5 8d a8 2e 1b f0 30 8d
-       cf e0 42 9d cd 80 68 7e 69 c9 46 33" ;
-    ]
-]
+let sha384_cases =
+  hash_cases (module Hash.SHA384)
+  ~hash:[
+    "" ,
+    "38 b0 60 a7 51 ac 96 38 4c d9 32 7e b1 b1 e3 6a
+     21 fd b7 11 14 be 07 43 4c 0c c7 bf 63 f6 e1 da
+     27 4e de bf e7 6f 65 fb d5 1a d2 f1 48 98 b9 5b" ;
 
-let sha256_cases = [
-  "digest" >:::
-    cases_of (f1_eq ~msg:"sha256" Hash.SHA256.digest) [
-      "" ,
-      "e3 b0 c4 42 98 fc 1c 14 9a fb f4 c8 99 6f b9 24
-       27 ae 41 e4 64 9b 93 4c a4 95 99 1b 78 52 b8 55" ;
+    "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
+    "c8 1d f9 8d 9e 6d e9 b8 58 a1 e6 eb a0 f1 a3 a3
+     99 d9 8c 44 1e 67 e1 06 26 01 80 64 85 bb 89 12
+     5e fd 54 cc 78 df 5f bc ea bc 93 cd 7c 7b a1 3b" ;
+  ]
 
-      "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
-      "be 45 cb 26 05 bf 36 be bd e6 84 84 1a 28 f0 fd
-       43 c6 98 50 a3 dc e5 fe db a6 99 28 ee 3a 89 91" ;
-    ]
-]
 
-let sha384_cases = [
-  "digest" >:::
-    cases_of (f1_eq ~msg:"sha384" Hash.SHA384.digest) [
-      "" ,
-      "38 b0 60 a7 51 ac 96 38 4c d9 32 7e b1 b1 e3 6a
-       21 fd b7 11 14 be 07 43 4c 0c c7 bf 63 f6 e1 da
-       27 4e de bf e7 6f 65 fb d5 1a d2 f1 48 98 b9 5b" ;
+let sha512_cases =
+  hash_cases (module Hash.SHA512)
+  ~hash:[
+    "" ,
+    "cf 83 e1 35 7e ef b8 bd f1 54 28 50 d6 6d 80 07
+     d6 20 e4 05 0b 57 15 dc 83 f4 a9 21 d3 6c e9 ce
+     47 d0 d1 3c 5d 85 f2 b0 ff 83 18 d2 87 7e ec 2f
+     63 b9 31 bd 47 41 7a 81 a5 38 32 7a f9 27 da 3e" ;
 
-      "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
-      "c8 1d f9 8d 9e 6d e9 b8 58 a1 e6 eb a0 f1 a3 a3
-       99 d9 8c 44 1e 67 e1 06 26 01 80 64 85 bb 89 12
-       5e fd 54 cc 78 df 5f bc ea bc 93 cd 7c 7b a1 3b" ;
-    ]
-]
+    "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
+    "da a2 95 be ed 4e 2e e9 4c 24 01 5b 56 af 62 6b
+     4f 21 ef 9f 44 f2 b3 d4 0f c4 1c 90 90 0a 6b f1
+     b4 86 7c 43 c5 7c da 54 d1 b6 fd 48 69 b3 f2 3c
+     ed 5e 0b a3 c0 5d 0b 16 80 df 4e c7 d0 76 24 03" ;
+  ]
 
-let sha512_cases = [
-  "digest" >:::
-    cases_of (f1_eq ~msg:"sha512" Hash.SHA512.digest) [
-      "" ,
-      "cf 83 e1 35 7e ef b8 bd f1 54 28 50 d6 6d 80 07
-       d6 20 e4 05 0b 57 15 dc 83 f4 a9 21 d3 6c e9 ce
-       47 d0 d1 3c 5d 85 f2 b0 ff 83 18 d2 87 7e ec 2f
-       63 b9 31 bd 47 41 7a 81 a5 38 32 7a f9 27 da 3e" ;
-
-      "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
-      "da a2 95 be ed 4e 2e e9 4c 24 01 5b 56 af 62 6b
-       4f 21 ef 9f 44 f2 b3 d4 0f c4 1c 90 90 0a 6b f1
-       b4 86 7c 43 c5 7c da 54 d1 b6 fd 48 69 b3 f2 3c
-       ed 5e 0b a3 c0 5d 0b 16 80 df 4e c7 d0 76 24 03" ;
-    ]
-]
 
 let sha2_cases = [
   "sha224" >::: sha224_cases ;
