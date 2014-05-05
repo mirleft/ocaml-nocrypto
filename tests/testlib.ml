@@ -125,6 +125,20 @@ let dh_selftest ~bits n =
 
     assert_cs_equal ~msg:"shared secret" sh1 sh2
 
+(* Xor *)
+
+let xor_cases =
+  cases_of (f2_eq ~msg:"xor" Cs.xor) [
+    "00 01 02 03 04 05 06 07 08 09 0a 0b 0c" ,
+    "0c 0b 0a 09 08 07 06 05 04 03 02 01 00" ,
+    "0c 0a 08 0a 0c 02 00 02 0c 0a 08 0a 0c" ;
+
+    "00 01 02", "00", "00" ;
+
+    "00", "00 01 02", "00" ;
+  ]
+
+
 (* aes gcm *)
 
 let gcm_cases =
@@ -271,7 +285,7 @@ let suite =
       dh_selftest ~bits:512 1   ;
     ] ;
 
-    "XOR" >::: [ xor_selftest 300 ] ;
+    "XOR" >::: [ xor_selftest 300 ; "example" >::: xor_cases ];
 
     "3DES-ECB" >::: [ ecb_selftest (module Block.DES.ECB) 100 ] ;
 
