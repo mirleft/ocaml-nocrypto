@@ -323,13 +323,12 @@ let suite =
     "RSA" >::: [
       rsa_selftest ~bits:16   1000 ;
       rsa_selftest ~bits:128  100  ;
-      rsa_selftest ~bits:1024 100  ;
+      rsa_selftest ~bits:1024 10   ;
     ] ;
 
     "DHE" >::: [
       dh_selftest ~bits:16  100 ;
-      dh_selftest ~bits:128 100 ;
-      dh_selftest ~bits:512 1   ;
+      dh_selftest ~bits:128 10  ;
     ] ;
 
     "XOR" >::: [ xor_selftest 300 ; "example" >::: xor_cases ];
