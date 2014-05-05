@@ -133,6 +133,10 @@ let xor_cases =
     "0c 0b 0a 09 08 07 06 05 04 03 02 01 00" ,
     "0c 0a 08 0a 0c 02 00 02 0c 0a 08 0a 0c" ;
 
+    "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
+    "0f 0e 0d 0c 0b 0a 09 08 07 06 05 04 03 02 01 00" ,
+    "0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f" ;
+
     "00 01 02", "00", "00" ;
 
     "00", "00 01 02", "00" ;
@@ -244,6 +248,70 @@ let sha1_cases = [
     ] ;
 ]
 
+let sha224_cases = [
+  "digest" >:::
+    cases_of (f1_eq ~msg:"sha1" Hash.SHA224.digest) [
+      "" ,
+      "d1 4a 02 8c 2a 3a 2b c9 47 61 02 bb 28 82 34 c4
+       15 a2 b0 1f 82 8e a6 2a c5 b3 e4 2f" ;
+
+      "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
+      "52 9d 65 6a 8b c4 13 fe f5 8d a8 2e 1b f0 30 8d
+       cf e0 42 9d cd 80 68 7e 69 c9 46 33" ;
+    ]
+]
+
+let sha256_cases = [
+  "digest" >:::
+    cases_of (f1_eq ~msg:"sha256" Hash.SHA256.digest) [
+      "" ,
+      "e3 b0 c4 42 98 fc 1c 14 9a fb f4 c8 99 6f b9 24
+       27 ae 41 e4 64 9b 93 4c a4 95 99 1b 78 52 b8 55" ;
+
+      "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
+      "be 45 cb 26 05 bf 36 be bd e6 84 84 1a 28 f0 fd
+       43 c6 98 50 a3 dc e5 fe db a6 99 28 ee 3a 89 91" ;
+    ]
+]
+
+let sha384_cases = [
+  "digest" >:::
+    cases_of (f1_eq ~msg:"sha384" Hash.SHA384.digest) [
+      "" ,
+      "38 b0 60 a7 51 ac 96 38 4c d9 32 7e b1 b1 e3 6a
+       21 fd b7 11 14 be 07 43 4c 0c c7 bf 63 f6 e1 da
+       27 4e de bf e7 6f 65 fb d5 1a d2 f1 48 98 b9 5b" ;
+
+      "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
+      "c8 1d f9 8d 9e 6d e9 b8 58 a1 e6 eb a0 f1 a3 a3
+       99 d9 8c 44 1e 67 e1 06 26 01 80 64 85 bb 89 12
+       5e fd 54 cc 78 df 5f bc ea bc 93 cd 7c 7b a1 3b" ;
+    ]
+]
+
+let sha512_cases = [
+  "digest" >:::
+    cases_of (f1_eq ~msg:"sha512" Hash.SHA512.digest) [
+      "" ,
+      "cf 83 e1 35 7e ef b8 bd f1 54 28 50 d6 6d 80 07
+       d6 20 e4 05 0b 57 15 dc 83 f4 a9 21 d3 6c e9 ce
+       47 d0 d1 3c 5d 85 f2 b0 ff 83 18 d2 87 7e ec 2f
+       63 b9 31 bd 47 41 7a 81 a5 38 32 7a f9 27 da 3e" ;
+
+      "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
+      "da a2 95 be ed 4e 2e e9 4c 24 01 5b 56 af 62 6b
+       4f 21 ef 9f 44 f2 b3 d4 0f c4 1c 90 90 0a 6b f1
+       b4 86 7c 43 c5 7c da 54 d1 b6 fd 48 69 b3 f2 3c
+       ed 5e 0b a3 c0 5d 0b 16 80 df 4e c7 d0 76 24 03" ;
+    ]
+]
+
+let sha2_cases = [
+  "sha224" >::: sha224_cases ;
+  "sha256" >::: sha256_cases ;
+  "sha384" >::: sha384_cases ;
+  "sha512" >::: sha512_cases ;
+]
 
 (* aes gcm *)
 
@@ -395,6 +463,8 @@ let suite =
     "MD5" >::: md5_cases ;
 
     "SHA1" >::: sha1_cases ;
+
+    "SHA2" >::: sha2_cases ;
 
     "3DES-ECB" >::: [ ecb_selftest (module Block.DES.ECB) 100 ] ;
 
