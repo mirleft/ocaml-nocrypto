@@ -139,6 +139,53 @@ let xor_cases =
   ]
 
 
+(* MD5 *)
+
+let md5_cases = [
+
+  "digest" >:::
+    cases_of
+      (f1_eq ~msg:"md5" Hash.MD5.digest) [
+
+      "" ,
+      "d4 1d 8c d9 8f 00 b2 04 e9 80 09 98 ec f8 42 7e" ;
+
+      "00",
+      "93 b8 85 ad fe 0d a0 89 cd f6 34 90 4f d5 9f 71" ;
+
+      "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f" ,
+      "1a c1 ef 01 e9 6c af 1b e0 d3 29 33 1a 4f c2 a8" ;
+    ] ;
+
+  "hmac" >:::
+    cases_of
+      (f2_eq ~msg:"md5-hmac" (fun key -> Hash.MD5.hmac ~key)) [
+
+      "2c 03 ca 51 71 a3 d2 d1 41 71 79 6f c8 b2 6c 54" ,
+      "8b bb 87 f4 76 4f ba 6a 55 61 c9 80 d5 35 58 4f
+       0a 96 cb 60 49 2b 6e dd 71 a1 1e e5 7a 78 9b 73" ,
+      "05 8b 08 41 09 79 8b 56 3d 81 49 1f 5f 82 5b ba" ;
+
+      "2c 03 ca 51 71 a3 d2 d1 41 71 79 6f c8 b2 6c 54
+       f0 0d a1 07 6c c9 e4 1f b2 17 ec ad 88 56 a2 6e
+       d7 83 c3 3d 85 99 0d 8d c5 8d 03 50 00 e2 6e 80
+       0c b5 9a 00 26 fd 15 fd 4c e1 84 9d a5 c6 fa a8
+       f7 ef f6 c8 76 73 a3 47 0a d5 5a 5b 56 49 22 ec" ,
+      "8b bb 87 f4 76 4f ba 6a 55 61 c9 80 d5 35 58 4f
+       0a 96 cb 60 49 2b 6e dd 71 a1 1e e5 7a 78 9b 73" ,
+      "61 ac 5c 29 9f e2 18 95 d5 4b eb ff 60 42 91 df" ;
+
+      "2c 03 ca 51 71 a3 d2 d1 41 71 79 6f c8 b2 6c 54
+       f0 0d a1 07 6c c9 e4 1f b2 17 ec ad 88 56 a2 6e
+       d7 83 c3 3d 85 99 0d 8d c5 8d 03 50 00 e2 6e 80
+       0c b5 9a 00 26 fd 15 fd 4c e1 84 9d a5 c6 fa a8" ,
+      "8b bb 87 f4 76 4f ba 6a 55 61 c9 80 d5 35 58 4f
+       0a 96 cb 60 49 2b 6e dd 71 a1 1e e5 7a 78 9b 73" ,
+      "ce 44 c2 a1 c5 46 a7 08 a4 0a 7c f2 5e af b1 33" ;
+    ] ;
+  ]
+
+
 (* aes gcm *)
 
 let gcm_cases =
@@ -286,6 +333,8 @@ let suite =
     ] ;
 
     "XOR" >::: [ xor_selftest 300 ; "example" >::: xor_cases ];
+
+    "MD5" >::: md5_cases ;
 
     "3DES-ECB" >::: [ ecb_selftest (module Block.DES.ECB) 100 ] ;
 
