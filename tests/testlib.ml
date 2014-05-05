@@ -21,6 +21,16 @@ let assert_cs_not_equal ~msg cs1 cs2 =
   if Cs.equal cs1 cs2 then
     assert_failure @@ msg ^ "\n" ^ hex_of_cs cs1
 
+let f1_eq ~msg f (a, b) _ =
+  let (a, b) = Cs.(of_hex a, of_hex b) in
+  assert_cs_equal ~msg (f a) b
+
+let f2_eq ~msg f (a, b, c) =
+  f1_eq ~msg (f Cs.(of_hex a)) (b, c)
+
+let cases_of f =
+  List.map @@ fun params -> test_case (f params)
+
 let rec range a b =
   if a > b then [] else a :: range (succ a) b
 
@@ -46,14 +56,14 @@ let ecb_selftest ( m : (module Block.T_ECB) ) n =
 
 let cbc_selftest ( m : (module Block.T_CBC) ) n  =
   let module C = ( val m ) in
-  let (!) f { C.message ; _ } = f message in
+  let (!) f x = (f x).C.message in
   let check _ =
     let data = Rng.generate (C.block_size * 8)
     and iv   = Rng.generate C.block_size
     and key  = C.of_secret @@ Rng.generate (sample C.key_sizes) in
     let data' =
-      C.( data |>   encrypt ~key ~iv  |> !(encrypt ~key ~iv)
-               |> !(decrypt ~key ~iv) |> !(decrypt ~key ~iv) ).C.message
+      C.( data |> !(encrypt ~key ~iv) |> !(encrypt ~key ~iv)
+               |> !(decrypt ~key ~iv) |> !(decrypt ~key ~iv) )
     in
     assert_cs_equal ~msg:"cbc mismatch" data data'
   in
@@ -61,12 +71,15 @@ let cbc_selftest ( m : (module Block.T_CBC) ) n  =
 
 let xor_selftest n =
   "selftest" >:: times ~n @@ fun _ ->
+
     let n         = Rng.Int.gen 30 in
     let (a, b, c) = Rng.(generate n, generate n, generate n) in
+
     let abc  = Cs.(xor (xor a b) c)
     and abc' = Cs.(xor a (xor b c)) in
     let a1   = Cs.(xor abc (xor b c))
     and a2   = Cs.(xor (xor c b) abc) in
+
     assert_cs_equal ~msg:"assoc" abc abc' ;
     assert_cs_equal ~msg:"invert" a a1 ;
     assert_cs_equal ~msg:"commut" a1 a2
@@ -74,8 +87,8 @@ let xor_selftest n =
 
 let rsa_selftest ~bits n =
   let _e = Z.of_int 0x10001
-  and _3 = Z.of_int 3
-  in
+  and _3 = Z.of_int 3 in
+
   "selftest" >:: times ~n @@ fun _ ->
 
     let e = Z.( if bits < 24 then _3 else _e )
@@ -99,6 +112,7 @@ let rsa_selftest ~bits n =
       msg dec
 
 let dh_selftest ~bits n =
+
   "selftest" >:: times ~n @@ fun _ ->
 
     let p = DH.gen_group bits in
@@ -113,135 +127,133 @@ let dh_selftest ~bits n =
 
 (* aes gcm *)
 
-let gcm_case ~key ~p ~a ~iv ~c ~t =
-  ( AES.GCM.of_secret (Cs.of_hex key),
-    Cs.of_hex p, Cs.of_hex a, Cs.of_hex iv, Cs.of_hex c, Cs.of_hex t )
+let gcm_cases =
 
+  let case ~key ~p ~a ~iv ~c ~t =
+    ( AES.GCM.of_secret (Cs.of_hex key),
+      Cs.of_hex p, Cs.of_hex a, Cs.of_hex iv, Cs.of_hex c, Cs.of_hex t ) in
 
-let gcm_check (key, p, adata, iv, c, t) _ =
-  let open AES.GCM in
-  let { message = cdata ; tag = ctag } =
-    AES.GCM.encrypt ~key ~iv ~adata p in
-  let { message = pdata ; tag = ptag } =
-    AES.GCM.decrypt ~key ~iv ~adata cdata
+  let check (key, p, adata, iv, c, t) _ =
+    let open AES.GCM in
+    let { message = cdata ; tag = ctag } =
+      AES.GCM.encrypt ~key ~iv ~adata p in
+    let { message = pdata ; tag = ptag } =
+      AES.GCM.decrypt ~key ~iv ~adata cdata
+    in
+    assert_cs_equal ~msg:"cyphertext" c cdata ;
+    assert_cs_equal ~msg:"encryption tag" t ctag  ;
+    assert_cs_equal ~msg:"decrypted plaintext" p pdata ;
+    assert_cs_equal ~msg:"decryption tag" t ptag
   in
-  assert_cs_equal ~msg:"cyphertext" c cdata ;
-  assert_cs_equal ~msg:"encryption tag" t ctag  ;
-  assert_cs_equal ~msg:"decrypted plaintext" p pdata ;
-  assert_cs_equal ~msg:"decryption tag" t ptag
 
-let gcm_cases = [
+  cases_of check [
 
-  gcm_case ~key: "00000000000000000000000000000000"
-           ~p:   ""
-           ~a:   ""
-           ~iv:  "000000000000000000000000"
-           ~c:   ""
-           ~t:   "58e2fccefa7e3061367f1d57a4e7455a"
-  ;
-  gcm_case ~key: "00000000000000000000000000000000"
-           ~p:   "00000000000000000000000000000000"
-           ~a:   ""
-           ~iv:  "000000000000000000000000"
-           ~c:   "0388dace60b6a392f328c2b971b2fe78"
-           ~t:   "ab6e47d42cec13bdf53a67b21257bddf"
-  ;
-  gcm_case ~key: "feffe9928665731c6d6a8f9467308308"
-           ~p:   "d9313225f88406e5a55909c5aff5269a
-                  86a7a9531534f7da2e4c303d8a318a72
-                  1c3c0c95956809532fcf0e2449a6b525
-                  b16aedf5aa0de657ba637b391aafd255"
-           ~a:   ""
-           ~iv:  "cafebabefacedbaddecaf888"
-           ~c:   "42831ec2217774244b7221b784d0d49c
-                  e3aa212f2c02a4e035c17e2329aca12e
-                  21d514b25466931c7d8f6a5aac84aa05
-                  1ba30b396a0aac973d58e091473f5985"
-           ~t:   "4d5c2af327cd64a62cf35abd2ba6fab4"
-  ;
-  gcm_case ~key: "feffe9928665731c6d6a8f9467308308"
-           ~p:   "d9313225f88406e5a55909c5aff5269a
-                  86a7a9531534f7da2e4c303d8a318a72
-                  1c3c0c95956809532fcf0e2449a6b525
-                  b16aedf5aa0de657ba637b39"
-           ~a:   "feedfacedeadbeeffeedfacedeadbeef
-                  abaddad2"
-           ~iv:  "cafebabefacedbaddecaf888"
-           ~c:   "42831ec2217774244b7221b784d0d49c
-                  e3aa212f2c02a4e035c17e2329aca12e
-                  21d514b25466931c7d8f6a5aac84aa05
-                  1ba30b396a0aac973d58e091"
-           ~t:   "5bc94fbc3221a5db94fae95ae7121a47"
-  ;
-  gcm_case ~key: "feffe9928665731c6d6a8f9467308308"
-           ~p:   "d9313225f88406e5a55909c5aff5269a
-                  86a7a9531534f7da2e4c303d8a318a72
-                  1c3c0c95956809532fcf0e2449a6b525
-                  b16aedf5aa0de657ba637b39"
-           ~a:   "feedfacedeadbeeffeedfacedeadbeef
-                  abaddad2"
-           ~iv:  "cafebabefacedbad"
-           ~c:   "61353b4c2806934a777ff51fa22a4755
-                  699b2a714fcdc6f83766e5f97b6c7423
-                  73806900e49f24b22b097544d4896b42
-                  4989b5e1ebac0f07c23f4598"
-           ~t:   "3612d2e79e3b0785561be14aaca2fccb"
-
-  ;
-  gcm_case ~key: "feffe9928665731c6d6a8f9467308308"
-           ~p:   "d9313225f88406e5a55909c5aff5269a
-                  86a7a9531534f7da2e4c303d8a318a72
-                  1c3c0c95956809532fcf0e2449a6b525
-                  b16aedf5aa0de657ba637b39"
-           ~a:   "feedfacedeadbeeffeedfacedeadbeef
-                  abaddad2"
-           ~iv:  "9313225df88406e555909c5aff5269aa
-                  6a7a9538534f7da1e4c303d2a318a728
-                  c3c0c95156809539fcf0e2429a6b5254
-                  16aedbf5a0de6a57a637b39b"
-           ~c:   "8ce24998625615b603a033aca13fb894
-                  be9112a5c3a211a8ba262a3cca7e2ca7
-                  01e4a9a4fba43c90ccdcb281d48c7c6f
-                  d62875d2aca417034c34aee5"
-           ~t:   "619cc5aefffe0bfa462af43c1699d050"
-
-  ;
-  gcm_case ~key: "feffe9928665731c6d6a8f9467308308
-                  feffe9928665731c"
-           ~p:   "d9313225f88406e5a55909c5aff5269a
-                  86a7a9531534f7da2e4c303d8a318a72
-                  1c3c0c95956809532fcf0e2449a6b525
-                  b16aedf5aa0de657ba637b39"
-           ~a:   "feedfacedeadbeeffeedfacedeadbeef
-                  abaddad2"
-           ~iv:  "cafebabefacedbaddecaf888"
-           ~c:   "3980ca0b3c00e841eb06fac4872a2757
-                  859e1ceaa6efd984628593b40ca1e19c
-                  7d773d00c144c525ac619d18c84a3f47
-                  18e2448b2fe324d9ccda2710"
-           ~t:   "2519498e80f1478f37ba55bd6d27618c"
-  ;
-  gcm_case ~key: "feffe9928665731c6d6a8f9467308308
-                  feffe9928665731c6d6a8f9467308308"
-           ~p:   "d9313225f88406e5a55909c5aff5269a
-                  86a7a9531534f7da2e4c303d8a318a72
-                  1c3c0c95956809532fcf0e2449a6b525
-                  b16aedf5aa0de657ba637b39"
-           ~a:   "feedfacedeadbeeffeedfacedeadbeef
-                  abaddad2"
-           ~iv:  "9313225df88406e555909c5aff5269aa
-                  6a7a9538534f7da1e4c303d2a318a728
-                  c3c0c95156809539fcf0e2429a6b5254
-                  16aedbf5a0de6a57a637b39b"
-           ~c:   "5a8def2f0c9e53f1f75d7853659e2a20
-                  eeb2b22aafde6419a058ab4f6f746bf4
-                  0fc0c3b780f244452da3ebf1c5d82cde
-                  a2418997200ef82e44ae7e3f"
-           ~t:   "a44a8266ee1c8eb0c8b5d4cf5ae9f19a"
+    case ~key: "00000000000000000000000000000000"
+         ~p:   ""
+         ~a:   ""
+         ~iv:  "000000000000000000000000"
+         ~c:   ""
+         ~t:   "58e2fccefa7e3061367f1d57a4e7455a"
+    ;
+    case ~key: "00000000000000000000000000000000"
+         ~p:   "00000000000000000000000000000000"
+         ~a:   ""
+         ~iv:  "000000000000000000000000"
+         ~c:   "0388dace60b6a392f328c2b971b2fe78"
+         ~t:   "ab6e47d42cec13bdf53a67b21257bddf"
+    ;
+    case ~key: "feffe9928665731c6d6a8f9467308308"
+         ~p:   "d9313225f88406e5a55909c5aff5269a
+                86a7a9531534f7da2e4c303d8a318a72
+                1c3c0c95956809532fcf0e2449a6b525
+                b16aedf5aa0de657ba637b391aafd255"
+         ~a:   ""
+         ~iv:  "cafebabefacedbaddecaf888"
+         ~c:   "42831ec2217774244b7221b784d0d49c
+                e3aa212f2c02a4e035c17e2329aca12e
+                21d514b25466931c7d8f6a5aac84aa05
+                1ba30b396a0aac973d58e091473f5985"
+         ~t:   "4d5c2af327cd64a62cf35abd2ba6fab4"
+    ;
+    case ~key: "feffe9928665731c6d6a8f9467308308"
+         ~p:   "d9313225f88406e5a55909c5aff5269a
+                86a7a9531534f7da2e4c303d8a318a72
+                1c3c0c95956809532fcf0e2449a6b525
+                b16aedf5aa0de657ba637b39"
+         ~a:   "feedfacedeadbeeffeedfacedeadbeef
+                abaddad2"
+         ~iv:  "cafebabefacedbaddecaf888"
+         ~c:   "42831ec2217774244b7221b784d0d49c
+                e3aa212f2c02a4e035c17e2329aca12e
+                21d514b25466931c7d8f6a5aac84aa05
+                1ba30b396a0aac973d58e091"
+         ~t:   "5bc94fbc3221a5db94fae95ae7121a47"
+    ;
+    case ~key: "feffe9928665731c6d6a8f9467308308"
+         ~p:   "d9313225f88406e5a55909c5aff5269a
+                86a7a9531534f7da2e4c303d8a318a72
+                1c3c0c95956809532fcf0e2449a6b525
+                b16aedf5aa0de657ba637b39"
+         ~a:   "feedfacedeadbeeffeedfacedeadbeef
+                abaddad2"
+         ~iv:  "cafebabefacedbad"
+         ~c:   "61353b4c2806934a777ff51fa22a4755
+                699b2a714fcdc6f83766e5f97b6c7423
+                73806900e49f24b22b097544d4896b42
+                4989b5e1ebac0f07c23f4598"
+         ~t:   "3612d2e79e3b0785561be14aaca2fccb"
+    ;
+    case ~key: "feffe9928665731c6d6a8f9467308308"
+         ~p:   "d9313225f88406e5a55909c5aff5269a
+                86a7a9531534f7da2e4c303d8a318a72
+                1c3c0c95956809532fcf0e2449a6b525
+                b16aedf5aa0de657ba637b39"
+         ~a:   "feedfacedeadbeeffeedfacedeadbeef
+                abaddad2"
+         ~iv:  "9313225df88406e555909c5aff5269aa
+                6a7a9538534f7da1e4c303d2a318a728
+                c3c0c95156809539fcf0e2429a6b5254
+                16aedbf5a0de6a57a637b39b"
+         ~c:   "8ce24998625615b603a033aca13fb894
+                be9112a5c3a211a8ba262a3cca7e2ca7
+                01e4a9a4fba43c90ccdcb281d48c7c6f
+                d62875d2aca417034c34aee5"
+         ~t:   "619cc5aefffe0bfa462af43c1699d050"
+    ;
+    case ~key: "feffe9928665731c6d6a8f9467308308
+                feffe9928665731c"
+         ~p:   "d9313225f88406e5a55909c5aff5269a
+                86a7a9531534f7da2e4c303d8a318a72
+                1c3c0c95956809532fcf0e2449a6b525
+                b16aedf5aa0de657ba637b39"
+         ~a:   "feedfacedeadbeeffeedfacedeadbeef
+                abaddad2"
+         ~iv:  "cafebabefacedbaddecaf888"
+         ~c:   "3980ca0b3c00e841eb06fac4872a2757
+                859e1ceaa6efd984628593b40ca1e19c
+                7d773d00c144c525ac619d18c84a3f47
+                18e2448b2fe324d9ccda2710"
+         ~t:   "2519498e80f1478f37ba55bd6d27618c"
+    ;
+    case ~key: "feffe9928665731c6d6a8f9467308308
+                feffe9928665731c6d6a8f9467308308"
+         ~p:   "d9313225f88406e5a55909c5aff5269a
+                86a7a9531534f7da2e4c303d8a318a72
+                1c3c0c95956809532fcf0e2449a6b525
+                b16aedf5aa0de657ba637b39"
+         ~a:   "feedfacedeadbeeffeedfacedeadbeef
+                abaddad2"
+         ~iv:  "9313225df88406e555909c5aff5269aa
+                6a7a9538534f7da1e4c303d2a318a728
+                c3c0c95156809539fcf0e2429a6b5254
+                16aedbf5a0de6a57a637b39b"
+         ~c:   "5a8def2f0c9e53f1f75d7853659e2a20
+                eeb2b22aafde6419a058ab4f6f746bf4
+                0fc0c3b780f244452da3ebf1c5d82cde
+                a2418997200ef82e44ae7e3f"
+         ~t:   "a44a8266ee1c8eb0c8b5d4cf5ae9f19a"
 ]
 
-let cases_of f =
-  List.mapi @@ fun i params -> string_of_int i >:: f params
 
 let suite =
 
@@ -269,7 +281,7 @@ let suite =
 
     "AES-CBC" >::: [ cbc_selftest (module Block.AES.CBC) 100 ] ;
 
-    "AES-GCM" >::: cases_of gcm_check gcm_cases
+    "AES-GCM" >::: gcm_cases
 
   ]
 
