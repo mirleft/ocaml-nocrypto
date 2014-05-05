@@ -159,7 +159,8 @@ let md5_cases = [
 
   "hmac" >:::
     cases_of
-      (f2_eq ~msg:"md5-hmac" (fun key -> Hash.MD5.hmac ~key)) [
+      (f2_eq ~msg:"md5-hmac" (fun key -> Hash.MD5.hmac ~key))
+    [
 
       "2c 03 ca 51 71 a3 d2 d1 41 71 79 6f c8 b2 6c 54" ,
       "8b bb 87 f4 76 4f ba 6a 55 61 c9 80 d5 35 58 4f
@@ -183,7 +184,65 @@ let md5_cases = [
        0a 96 cb 60 49 2b 6e dd 71 a1 1e e5 7a 78 9b 73" ,
       "ce 44 c2 a1 c5 46 a7 08 a4 0a 7c f2 5e af b1 33" ;
     ] ;
-  ]
+]
+
+(* SHA *)
+
+let sha1_cases = [
+
+  "digest" >:::
+    cases_of (f1_eq ~msg:"sha1" Hash.SHA1.digest) [
+
+      "" ,
+      "da 39 a3 ee 5e 6b 4b 0d 32 55 bf ef 95 60 18 90
+       af d8 07 09" ;
+
+      "00" ,
+      "5b a9 3c 9d b0 cf f9 3f 52 b5 21 d7 42 0e 43 f6
+       ed a2 78 4f" ;
+
+      "89 d1 68 64 8d 06 0c f2 ed a1 9a a3 10 56 85 48
+       69 84 63 df 13 7c 96 5e b5 7b 23 ec b1 f8 e9 ef" ,
+      "00 6f 23 b3 5d 7d 09 78 03 35 68 97 ea 6e e3 3c
+       57 b2 11 ca" ;
+    ] ;
+
+  "hmac" >:::
+    cases_of
+      (f2_eq ~msg:"sha1-hmac" (fun key -> Hash.SHA1.hmac ~key))
+    [
+      "", "",
+      "fb db 1d 1b 18 aa 6c 08 32 4b 7d 64 b7 1f b7 63
+       70 69 0e 1d" ;
+
+      "9c 64 fc 6a 9a bb 1e 04 43 6d 58 49 3f 0d 30 21
+       d6 8f eb a9 67 c0 1f 9f c9 35 dc a5 95 9b 6c 07
+       4b 09 c0 39 bb c6 dc da 97 aa c8 ea 88 4e 17 e9
+       7c c6 d9 f7 73 70 e0 cb 1d 64 de 6d 57 91 31 b3" ,
+      "",
+      "f9 b1 39 0f 1d 88 09 1b 1d a4 4a d5 d6 33 28 65
+       c2 70 ca da";
+
+      "9c 64 fc 6a 9a bb 1e 04 43 6d 58 49 3f 0d 30 21
+       d6 8f eb a9 67 c0 1f 9f c9 35 dc a5 95 9b 6c 07
+       4b 09 c0 39 bb c6 dc da 97 aa c8 ea 88 4e 17 e9
+       7c c6 d9 f7 73 70 e0 cb 1d 64 de 6d 57 91 31 b3" ,
+      "0d 83 e2 e9 b3 98 e2 8b ea e0 59 7f 37 15 95 1a
+       4b 4c 3c ce 4b de 15 4f 53 da fb 2f b4 9f 03 ea" ,
+      "ca 02 cd 56 77 dc b5 c1 3e de da 34 51 d9 e2 5c
+       d9 29 4c 53" ;
+
+      "9c 64 fc 6a 9a bb 1e 04 43 6d 58 49 3f 0d 30 21
+       d6 8f eb a9 67 c0 1f 9f c9 35 dc a5 95 9b 6c 07
+       4b 09 c0 39 bb c6 dc da 97 aa c8 ea 88 4e 17 e9
+       7c c6 d9 f7 73 70 e0 cb 1d 64 de 6d 57 91 31 b3
+       8e 17 5f 4e de 38 f4 14 48 bc 74 56 05 7a 3c 3b" ,
+      "0d 83 e2 e9 b3 98 e2 8b ea e0 59 7f 37 15 95 1a
+       4b 4c 3c ce 4b de 15 4f 53 da fb 2f b4 9f 03 ea" ,
+      "7f f9 d5 9e 62 e8 d7 13 91 9f a2 a7 be 64 85 c5
+       a0 39 ec 04";
+    ] ;
+]
 
 
 (* aes gcm *)
@@ -334,6 +393,8 @@ let suite =
     "XOR" >::: [ xor_selftest 300 ; "example" >::: xor_cases ];
 
     "MD5" >::: md5_cases ;
+
+    "SHA1" >::: sha1_cases ;
 
     "3DES-ECB" >::: [ ecb_selftest (module Block.DES.ECB) 100 ] ;
 
