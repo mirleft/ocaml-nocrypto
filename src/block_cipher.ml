@@ -2,9 +2,6 @@
 open Common
 open Algo_types.Block
 
-module type T_ECB = Mode
-module type T_CBC = Mode_CBC
-
 let ba_of_cs = Cstruct.to_bigarray
 
 
@@ -27,7 +24,7 @@ module Modes = struct
       ( C.decrypt_block ~key cipher plain ; plain )
   end
 
-  module ECB_of ( C : Cipher_raw ) : Mode = struct
+  module ECB_of ( C : Cipher_raw ) : ECB = struct
 
     open Cstruct
 
@@ -52,7 +49,7 @@ module Modes = struct
 
   end
 
-  module CBC_of ( C : Cipher_raw ) : Mode_CBC = struct
+  module CBC_of ( C : Cipher_raw ) : CBC = struct
 
     open Cstruct
 
@@ -92,7 +89,7 @@ module Modes = struct
 
   end
 
-  module GCM_of ( C : Cipher_base ) : Mode_GCM = struct
+  module GCM_of ( C : Cipher_base ) : GCM = struct
 
     assert (C.block_size = 16)
 
@@ -177,3 +174,8 @@ module DES = struct
   module ECB  = Modes.ECB_of (Raw)
   module CBC  = Modes.CBC_of (Raw)
 end
+
+module type T_RAW = sig include Cipher_raw end
+module type T_ECB = sig include ECB end
+module type T_CBC = sig include CBC end
+module type T_GCM = sig include GCM end

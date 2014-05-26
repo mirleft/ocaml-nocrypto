@@ -1,6 +1,5 @@
-open Algo_types
 
-module type T = Stream_cipher
+module type T = sig include Algo_types.Stream_cipher end
 
-module ARC4 : Stream_cipher
+module ARC4 : T
 

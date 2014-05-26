@@ -112,12 +112,11 @@ let rsa_selftest ~bits n =
       cs
     in
 
-    let key = Rsa.generate ~e `Yes_this_is_debug_session bits in
-    let enc = Rsa.encrypt ~key:Rsa.(pub_of_priv key) msg in
-    let dec = Rsa.decrypt ~key enc
-    in
+    let key = RSA.(generate ~e `Yes_this_is_debug_session bits) in
+    let enc = RSA.(encrypt ~key:(pub_of_priv key) msg) in
+    let dec = RSA.(decrypt ~key enc) in
 
-    let key_s = Rsa.string_of_private_key key in
+    let key_s = RSA.string_of_private_key key in
     assert_cs_equal
       ~msg:("failed decryption with:\n" ^ key_s)
       msg dec

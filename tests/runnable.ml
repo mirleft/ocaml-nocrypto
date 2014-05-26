@@ -123,13 +123,13 @@ let time_rsa_generate () =
   let items = 100 in
   time @@ fun () ->
     for i = 1 to items do
-      ignore @@ Rsa.generate `Yes_this_is_debug_session 2048
+      ignore @@ RSA.generate `Yes_this_is_debug_session 2048
     done
 
 
 let rsa_feedback bits =
   let open Cstruct in
-  let open Rsa in
+  let open RSA in
 
   let def_e   = Z.of_int 0x10001 in
 

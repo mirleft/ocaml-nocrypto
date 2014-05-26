@@ -1,7 +1,7 @@
 open Common
 
-module type T     = Algo_types.Hash
-module type T_MAC = Algo_types.Hash_MAC
+module type T     = sig include Algo_types.Hash end
+module type T_MAC = sig include Algo_types.Hash_MAC end
 
 module type Base_hash = sig
   type t

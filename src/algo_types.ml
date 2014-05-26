@@ -80,7 +80,7 @@ module Block = struct
     val decrypt : key:key -> Cstruct.t -> Cstruct.t
   end
 
-  module type Mode = sig
+  module type ECB = sig
 
     type key
     val of_secret : Cstruct.t -> key
@@ -91,7 +91,7 @@ module Block = struct
     val decrypt : key:key -> Cstruct.t -> Cstruct.t
   end
 
-  module type Mode_CBC = sig
+  module type CBC = sig
 
     type key
     type result = { message : Cstruct.t ; iv : Cstruct.t }
@@ -103,7 +103,7 @@ module Block = struct
     val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
   end
 
-  module type Mode_GCM = sig
+  module type GCM = sig
 
     type key
     type result = { message : Cstruct.t ; tag : Cstruct.t }
