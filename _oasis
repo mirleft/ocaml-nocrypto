@@ -75,3 +75,10 @@ Executable "bench"
   Build$:         flag(tests)
   BuildDepends:   nocrypto, lwt, lwt.syntax, lwt.unix
 
+Executable "hashbench"
+  Path:           tests/
+  Install:        false
+  CompiledObject: native
+  MainIs:         hashbench.ml
+  Build$:         flag(tests)
+  BuildDepends:   nocrypto, cstruct, cstruct.unix, lwt, lwt.syntax, lwt.unix
