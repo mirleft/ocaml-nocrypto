@@ -28,3 +28,5 @@ val decrypt   : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
 val generate : ?g:Rng.g -> ?e:Z.t -> [< `Yes_this_is_debug_session ] -> int -> priv
 
 val string_of_private_key : priv -> string
+
+val pub_equal : pub -> pub -> bool
