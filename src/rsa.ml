@@ -131,6 +131,10 @@ let string_of_private_key { e; d; n; p; q; dp; dq; q' } =
   dq: %s
   q': %s" (f e) (f d) (f n) (f p) (f q) (f dp) (f dq) (f q')
 
+let pub_equal (p : pub) (p' : pub) =
+  Z.(p.e = p'.e) && Z.(p.n = p'.n)
+
+(*
 module PKCS1 = struct
   let padPKCS1_and_signRSA key msg =
 
@@ -234,3 +238,4 @@ module PKCS1 = struct
       None
 
 end
+ *)
