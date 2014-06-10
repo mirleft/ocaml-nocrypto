@@ -28,7 +28,7 @@ let to_cstruct { p ; gg ; _ } =
   Numeric.Z.(to_cstruct_be p, to_cstruct_be gg)
 
 let compute_public ({ p; gg; q } as group) x =
-  let x   = opt x (Z.(mod) x) q in
+  let x   = opt x ~f:(Z.(mod) x) q in
   let ggx = Z.(powm gg x p) in
   ({ x }, to_cstruct_sized group ggx)
 
@@ -41,7 +41,7 @@ let shared ({ p; _ } as group) { x } cs =
   to_cstruct_sized group secret
 
 let gen_secret ?g ({ p; q; _ } as group) =
-  compute_public group @@ Rng.Z.gen ?g (opt p id q)
+  compute_public group @@ Rng.Z.gen ?g (opt p ~f:id q)
 
 (* Find a "safe prime." Slow, but the group has good order. *)
 let gen_group ?g bits =

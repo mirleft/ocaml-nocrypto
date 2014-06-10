@@ -12,11 +12,11 @@ let id x = x
 
 let z_two = Z.of_int 2
 
-let opt a f = function
+let opt a ~f = function
   | Some x -> f x
   | None   -> a
 
-let map_opt f = function
+let map_opt ~f = function
   | Some x -> Some (f x)
   | None   -> None
 
@@ -87,8 +87,12 @@ module Cs = struct
     let cs = clone ~n cs2 in
     ( xor_into cs1 cs n ; cs )
 
-  let fill cs x =
-    for i = 0 to len cs - 1 do set_uint8 cs i x done
+  let fill ?(off = 0) ?len cs x =
+    let stop = match len with
+      | None      -> Cstruct.len cs - 1
+      | Some stop -> off + stop in
+    (* XXX larger steps? *)
+    for i = off to stop do set_uint8 cs i x done
 
   let create_with n x =
     let cs = create n in ( fill cs x ; cs )
