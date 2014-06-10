@@ -131,11 +131,13 @@ let string_of_private_key { e; d; n; p; q; dp; dq; q' } =
   dq: %s
   q': %s" (f e) (f d) (f n) (f p) (f q) (f dp) (f dq) (f q')
 
+
 module PKCS1 = struct
-  let padPKCS1_and_signRSA key msg =
+
+  let sign ~key msg =
 
     (* XXX XXX temp *)
-    let len = RSA.priv_bits key / 8 in
+    let len = priv_bits key / 8 in
 
     (* inspiration from RFC3447 EMSA-PKCS1-v1_5 and rsa_sign.c from OpenSSL *)
     (* also ocaml-ssh kex.ml *)
@@ -151,12 +153,12 @@ module PKCS1 = struct
       done;
       Cstruct.set_uint8 out (pred padlen) 0;
       Cstruct.blit msg 0 out padlen mlen;
-      Some (RSA.decrypt ~key out)
+      Some (decrypt ~key out)
     else
       None
 
-  let verifyRSA_and_unpadPKCS1 pubkey data =
-    let dat = RSA.encrypt ~key:pubkey data in
+  let verify ~key data =
+    let dat = encrypt ~key data in
     if (Cstruct.get_uint8 dat 0 = 0) && (Cstruct.get_uint8 dat 1 = 1) then
       let rec ff idx =
         match Cstruct.get_uint8 dat idx with
@@ -170,12 +172,12 @@ module PKCS1 = struct
     else
       None
 
-  let padPKCS1_and_encryptRSA pubkey data =
+  let encrypt ~key data =
     (* we're supposed to do the following:
        0x00 0x02 <random_not_zero> 0x00 data *)
 
     (* XXX XXX this is temp. *)
-    let msglen = RSA.pub_bits pubkey / 8 in
+    let msglen = pub_bits key / 8 in
 
     let open Cstruct in
     let padlen = msglen - (len data) in
@@ -207,15 +209,15 @@ module PKCS1 = struct
 
     (* merging all together *)
     blit data 0 msg padlen (len data);
-    RSA.encrypt ~key:pubkey msg
+    encrypt ~key msg
 
-  let decryptRSA_unpadPKCS1 key msg =
+  let decrypt ~key msg =
     (* XXX XXX temp *)
-    let msglen = RSA.priv_bits key / 8 in
+    let msglen = priv_bits key / 8 in
 
     let open Cstruct in
     if msglen == len msg then
-      let dec = RSA.decrypt ~key msg in
+      let dec = decrypt ~key msg in
       let rec check_padding cur start = function
         | 0                  -> let res = get_uint8 dec 0 = 0 in
                                 check_padding (res && cur) 1 1
