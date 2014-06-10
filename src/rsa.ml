@@ -134,43 +134,45 @@ let string_of_private_key { e; d; n; p; q; dp; dq; q' } =
 
 module PKCS1 = struct
 
+  open Cstruct
+
+  (* inspiration from RFC3447 EMSA-PKCS1-v1_5 and rsa_sign.c from OpenSSL *)
+  (* also ocaml-ssh kex.ml *)
+  (* msg.length must be 36 (16 MD5 + 20 SHA1) in TLS-1.0/1.1! *)
+  let signature_pad size msg =
+    let n = len msg in
+    match size - n with
+    | pad when pad <= 3 -> None
+    | pad ->
+        let cs = create size in
+        BE.set_uint16 cs 0 0x0001 ;
+        Cs.fill ~off:2 ~len:(pad - 3) cs 0xff ;
+        set_uint8 cs (pad - 1) 0x00 ;
+        blit msg 0 cs pad n ;
+        Some cs
+
+  (* No time-masking: public-key operation. *)
+  let signature_unpad padded =
+    try
+      match BE.get_uint16 padded 0 with
+      | 0x0001 ->
+          let rec ff i =
+            match get_uint8 padded i with
+            | 0xff -> ff (succ i)
+            | 0x00 -> Some (shift padded (i + 1))
+            | _    -> None in
+          ff 2
+      | _ -> None
+    with Invalid_argument _ -> None
+
   let sign ~key msg =
-
     (* XXX XXX temp *)
-    let len = priv_bits key / 8 in
-
-    (* inspiration from RFC3447 EMSA-PKCS1-v1_5 and rsa_sign.c from OpenSSL *)
-    (* also ocaml-ssh kex.ml *)
-    (* msg.length must be 36 (16 MD5 + 20 SHA1) in TLS-1.0/1.1! *)
-    let mlen = Cstruct.len msg in
-    let padlen = len - mlen in
-    if padlen > 3 then
-      let out = Cstruct.create len in
-      Cstruct.set_uint8 out 0 0;
-      Cstruct.set_uint8 out 1 1;
-      for i = 2 to (padlen - 2) do
-        Cstruct.set_uint8 out i 0xff;
-      done;
-      Cstruct.set_uint8 out (pred padlen) 0;
-      Cstruct.blit msg 0 out padlen mlen;
-      Some (decrypt ~key out)
-    else
-      None
+    let size = priv_bits key / 8 in
+    map_opt ~f:(decrypt ~key) @@ signature_pad size msg
 
   let verify ~key data =
-    let dat = encrypt ~key data in
-    if (Cstruct.get_uint8 dat 0 = 0) && (Cstruct.get_uint8 dat 1 = 1) then
-      let rec ff idx =
-        match Cstruct.get_uint8 dat idx with
-        | 0    -> Some (succ idx)
-        | 0xff -> ff (succ idx)
-        | _    -> None
-      in
-      match ff 2 with
-      | Some start -> Some (Cstruct.shift dat start)
-      | None       -> None
-    else
-      None
+    signature_unpad (encrypt ~key data)
+
 
   let encrypt ~key data =
     (* we're supposed to do the following:
