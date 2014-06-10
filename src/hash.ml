@@ -97,3 +97,22 @@ module SHAd256 = struct
   let digest = SHA256.(o digest digest)
   let digestv css = let s = init () in ( List.iter (feed s) css ; get s )
 end
+
+type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]
+type mac  = [ `MD5 | `SHA1 | `SHA256 | `SHA384 | `SHA512 ]
+
+let digest = function
+  | `MD5    -> MD5.digest
+  | `SHA1   -> SHA1.digest
+  | `SHA224 -> SHA224.digest
+  | `SHA256 -> SHA256.digest
+  | `SHA384 -> SHA384.digest
+  | `SHA512 -> SHA512.digest
+
+let mac fn ~key cs =
+  match fn with
+  | `MD5    -> MD5.hmac ~key cs
+  | `SHA1   -> SHA1.hmac ~key cs
+  | `SHA256 -> SHA256.hmac ~key cs
+  | `SHA384 -> SHA384.hmac ~key cs
+  | `SHA512 -> SHA512.hmac ~key cs
