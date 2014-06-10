@@ -139,7 +139,7 @@ module PKCS1 = struct
   (* inspiration from RFC3447 EMSA-PKCS1-v1_5 and rsa_sign.c from OpenSSL *)
   (* also ocaml-ssh kex.ml *)
   (* msg.length must be 36 (16 MD5 + 20 SHA1) in TLS-1.0/1.1! *)
-  let signature_pad size msg =
+  let pad_01 size msg =
     let n = len msg in
     match size - n with
     | pad when pad <= 3 -> None
@@ -152,14 +152,14 @@ module PKCS1 = struct
         Some cs
 
   (* No time-masking: public-key operation. *)
-  let signature_unpad padded =
+  let unpad_01 msg =
     try
-      match BE.get_uint16 padded 0 with
+      match BE.get_uint16 msg 0 with
       | 0x0001 ->
           let rec ff i =
-            match get_uint8 padded i with
+            match get_uint8 msg i with
             | 0xff -> ff (succ i)
-            | 0x00 -> Some (shift padded (i + 1))
+            | 0x00 -> Some (shift msg (i + 1))
             | _    -> None in
           ff 2
       | _ -> None
@@ -168,73 +168,66 @@ module PKCS1 = struct
   let sign ~key msg =
     (* XXX XXX temp *)
     let size = priv_bits key / 8 in
-    map_opt ~f:(decrypt ~key) @@ signature_pad size msg
+    map_opt ~f:(decrypt ~key) @@ pad_01 size msg
 
   let verify ~key data =
-    signature_unpad (encrypt ~key data)
+    unpad_01 (encrypt ~key data)
 
+  (* we're supposed to do the following:
+      0x00 0x02 <random_not_zero> 0x00 data *)
+  let pad_02 size msg =
+    let n = len msg in
+    match size - n with
+    | pad when pad <= 3 -> None
+    | pad ->
+        let cs      = create size in
+        let block   = Rng.(block_size * cdiv pad block_size) in
+        let pop buf = (get_uint8 buf 0, shift buf 1) in
+        let rec copybyte nonce = function
+          | i when i = pad - 1 -> ()
+          | i ->
+              match
+                try pop nonce with Invalid_argument _ ->
+                  pop (Rng.generate block)
+              with
+              | (0x00, nonce') -> copybyte nonce' i
+              | (x   , nonce') -> set_uint8 cs i x ; copybyte nonce' (succ i)
+        in
+        BE.set_uint16 cs 0 0x0002 ;
+        copybyte Cs.empty 2 ;
+        set_uint8 cs (pad - 1) 0x00 ;
+        blit msg 0 cs pad n ;
+        Some cs
 
-  let encrypt ~key data =
-    (* we're supposed to do the following:
-       0x00 0x02 <random_not_zero> 0x00 data *)
+  let unpad_02 msg =
+    let n = len msg in
+    let rec scan ok padding = function
+      | i when i = n -> (ok, padding)
+      | i ->
+          match (i, get_uint8 msg i, padding) with
+          | (0, b, _   ) -> scan (ok && b = 0) padding (succ i)
+          | (1, b, _   ) -> scan (ok && b = 2) padding (succ i)
+          | (_, 0, None) -> scan ok (Some (succ i)) (succ i)
+          | _            -> scan ok padding (succ i) 
+    in
+    if n > 3 then
+      match scan true None 0 with
+      | (true, Some start) -> Some (shift msg start)
+      | _                  -> None
+    else None
 
+  let encrypt ~key msg =
     (* XXX XXX this is temp. *)
     let msglen = pub_bits key / 8 in
-
-    let open Cstruct in
-    let padlen = msglen - (len data) in
-    let msg = create msglen in
-
-    (* the header 0x00 0x02 *)
-    set_uint8 msg 0 0;
-    set_uint8 msg 1 2;
-
-    let produce_random () = Rng.generate (2 * padlen) in
-
-    (* the non-zero random *)
-    let rec copybyte random = function
-      | x when x = pred padlen -> ()
-      | n                      ->
-         if len random = 0 then
-           copybyte (produce_random ()) n
-         else
-           let rest = shift random 1 in
-           match get_uint8 random 0 with
-           | 0 -> copybyte rest n
-           | r -> set_uint8 msg n r;
-                  copybyte rest (succ n)
-    in
-    copybyte (produce_random ()) 2;
-
-    (* footer 0x00 *)
-    set_uint8 msg (pred padlen) 0;
-
-    (* merging all together *)
-    blit data 0 msg padlen (len data);
-    encrypt ~key msg
+    match pad_02 msglen msg with
+    | None      -> invalid_arg "RSA.PKCS1.encrypt: key too small"
+    | Some msg' -> encrypt ~key msg'
 
   let decrypt ~key msg =
     (* XXX XXX temp *)
     let msglen = priv_bits key / 8 in
-
-    let open Cstruct in
-    if msglen == len msg then
-      let dec = decrypt ~key msg in
-      let rec check_padding cur start = function
-        | 0                  -> let res = get_uint8 dec 0 = 0 in
-                                check_padding (res && cur) 1 1
-        | 1                  -> let res = get_uint8 dec 1 = 2 in
-                                check_padding (res && cur) 2 2
-        | n when n >= msglen -> start
-        | n                  -> let res = get_uint8 dec n = 0 in
-                                let nxt = succ n in
-                                match cur, res with
-                                | true, true -> check_padding false nxt nxt
-                                | x   , _    -> check_padding x start nxt
-      in
-      let start = check_padding true 0 0 in
-      Some (Cstruct.shift dec start)
-    else
-      None
+    if Cstruct.len msg = msglen then
+      unpad_02 (decrypt ~key msg)
+    else None
 
 end
