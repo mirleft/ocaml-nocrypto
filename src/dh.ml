@@ -45,10 +45,11 @@ let gen_secret ?g ({ p; q; _ } as group) =
     | Some q -> q in
   compute_public group @@ Rng.Z.gen_r ?g z_two limit
 
-let shared ({ p; _ } as group) { x } cs =
-  let ggy    = Numeric.Z.of_cstruct_be cs in
-  let secret = Z.(powm ggy x p) in
-  to_cstruct_sized group secret
+let shared ({ p; gg; _ } as group) { x } cs =
+  match Numeric.Z.of_cstruct_be cs with
+  | ggy when ggy <= Z.one || ggy >= p || ggy = gg
+        -> invalid_arg "DH: degenerate message"
+  | ggy -> to_cstruct_sized group (Z.powm ggy x p)
 
 
 (* Find a "safe prime." Slow, but the group has good order. *)
