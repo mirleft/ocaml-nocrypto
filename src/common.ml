@@ -55,8 +55,21 @@ module Cs = struct
           ) 0 css in
         result
 
-  let equal cs1 cs2 =
-    to_bigarray cs1 = to_bigarray cs2
+  let equal cs1 cs2 = to_bigarray cs1 = to_bigarray cs2
+
+  let equal_with_masking cs1 cs2 =
+    let rec loop ok i = function
+      | n when n >= 8 ->
+          loop (LE.(get_uint64 cs1 i = get_uint64 cs2 i) && ok) (i + 8) (n - 8)
+      | n when n >= 4 ->
+          loop (LE.(get_uint32 cs1 i = get_uint32 cs2 i) && ok) (i + 4) (n - 4)
+      | n when n >= 2 ->
+          loop (LE.(get_uint16 cs1 i = get_uint16 cs2 i) && ok) (i + 2) (n - 2)
+      | 1             -> (get_uint8 cs1 i = get_uint8 cs2 i) && ok
+      | _             -> ok
+    in
+    let n1 = len cs1 and n2 = len cs2 in
+    loop true 0 (min n1 n2) && n1 = n2
 
   let clone ?n cs =
     let n  = match n with
