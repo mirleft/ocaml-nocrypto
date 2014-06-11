@@ -74,7 +74,7 @@ module Cs = struct
     if mask then
       eq_with_mask cs1 cs2
     else
-      to_bigarray cs1 = to_bigarray cs2
+      (len cs1 = len cs2) && (to_bigarray cs1 = to_bigarray cs2)
 
   let clone ?n cs =
     let n  = match n with
