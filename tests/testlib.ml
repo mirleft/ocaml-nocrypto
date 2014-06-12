@@ -501,8 +501,8 @@ let suite =
     ] ;
 
     "DHE" >::: [
-      dh_selftest ~bits:16  100 ;
-      dh_selftest ~bits:128 10  ;
+      dh_selftest ~bits:16  1000 ;
+      dh_selftest ~bits:128 100  ;
     ] ;
 
     "XOR" >::: [ xor_selftest 300 ; "example" >::: xor_cases ];
