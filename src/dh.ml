@@ -55,19 +55,15 @@ let shared ({ p; gg; _ } as group) { x } cs =
         -> invalid_arg "DH: degenerate message"
   | ggy -> to_cstruct_sized group (Z.powm ggy x p)
 
-(* Generate a group using a safe prime p = 2q + 1 (with q prime) as modulus and
- * group order of q. *)
-let rec gen_group ?g bits =
+(* Generate a group using a safe prime p = 2q + 1 (with q prime) as modulus,
+ * 2 or q as the generator and subgroup order of strictly q. *)
+let rec gen_group ?g ~bits =
   let (q, p) = Rng.safe_prime ?g ~bits in
-  (* Order can be either q or 2q. *)
-  let rec pick_gen = function
-    | []     -> gen_group ?g bits
-    | gg::gs ->
-        if Z.(powm gg q p = one) then { p; gg; q = Some q }
-        else pick_gen gs
-  in
-  pick_gen [q ; Z.two ; Z.three]
-
+  let candidate_gs = [ Z.two ; q ] in
+  try
+    let gg = List.find Z.(fun gg -> powm gg q p = one) candidate_gs in
+    { p; gg; q = Some q }
+  with Not_found -> Printf.printf "RESTART.\n%!"; gen_group ?g ~bits
 
 module Group = struct
 
