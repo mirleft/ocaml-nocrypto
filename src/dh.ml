@@ -52,11 +52,15 @@ let shared ({ p; gg; _ } as group) { x } cs =
   | ggy -> to_cstruct_sized group (Z.powm ggy x p)
 
 
-(* Find a "safe prime." Slow, but the group has good order. *)
-let gen_group ?g bits =
-  (* XXX Compute the order? *)
+(* Generate a group using a safe prime p = 2q + 1 (with q prime) as modulus.
+ * Currently uses q as the generator. However, all subgroup orders divide p - 1,
+ * so the generator could be just a fixed small prime as well?
+ * *)
+let rec gen_group ?g bits =
   let (gg, p) = Rng.safe_prime ?g ~bits in
-  { p; gg; q = None }
+  (* Order is either gg or p - 1. *)
+  let q = if Z.(powm gg gg p = one) then Some gg else None in
+  { p; gg; q }
 
 
 module Group = struct
