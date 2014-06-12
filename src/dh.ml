@@ -32,18 +32,21 @@ let compute_public ({ p; gg; q } as group) x =
     match q with
     | Some q when x >= q -> Z.(x mod q)
     | Some _ | None      -> x in
-  let ggx = Z.(powm gg x p) in
-  ({ x }, to_cstruct_sized group ggx)
+  match Z.(powm gg x p) with
+  | ggx when ggx = Z.one -> invalid_arg "DH: gg^x = 1 mod p"
+  | ggx                  -> ({ x }, to_cstruct_sized group ggx)
 
 let of_secret group ~s =
   compute_public group (Numeric.Z.of_cstruct_be s)
 
-let gen_secret ?g ({ p; q; _ } as group) =
+let rec gen_secret ?g ({ p; q; _ } as group) =
   let limit =
     match q with
     | None   -> Z.pred p
     | Some q -> q in
-  compute_public group @@ Rng.Z.gen_r ?g z_two limit
+  try
+    compute_public group @@ Rng.Z.gen_r ?g z_two limit
+  with Invalid_argument _ -> gen_secret ?g group
 
 let shared ({ p; gg; _ } as group) { x } cs =
   match Numeric.Z.of_cstruct_be cs with
