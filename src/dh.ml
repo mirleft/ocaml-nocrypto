@@ -61,9 +61,9 @@ let shared ({ p; gg; _ } as group) { x } cs =
  * *)
 let rec gen_group ?g bits =
   let (gg, p) = Rng.safe_prime ?g ~bits in
-  (* Order is either gg or p - 1. *)
-  let q = if Z.(powm gg gg p = one) then Some gg else None in
-  { p; gg; q }
+  (* Order is either gg or 2gg. *)
+  if Z.(powm gg gg p = one) then { p; gg; q = Some gg }
+  else gen_group ?g bits (* Refuse the composite-order subgroup. *)
 
 
 module Group = struct
