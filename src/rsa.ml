@@ -175,7 +175,7 @@ module PKCS1 = struct
 
   (* we're supposed to do the following:
       0x00 0x02 <random_not_zero> 0x00 data *)
-  let pad_02 size msg =
+  let pad_02 ?g size msg =
     let n = len msg in
     match size - n with
     | pad when pad <= 3 -> None
@@ -188,7 +188,7 @@ module PKCS1 = struct
           | i ->
               match
                 try pop nonce with Invalid_argument _ ->
-                  pop (Rng.generate block)
+                  pop (Rng.generate ?g block)
               with
               | (0x00, nonce') -> copybyte nonce' i
               | (x   , nonce') -> set_uint8 cs i x ; copybyte nonce' (succ i)
@@ -223,11 +223,11 @@ module PKCS1 = struct
     | None      -> invalid_arg "RSA.PKCS1.encrypt: key too small"
     | Some msg' -> encrypt ~key msg'
 
-  let decrypt ~key msg =
+  let decrypt ?mask ~key msg =
     (* XXX XXX temp *)
     let msglen = priv_bits key / 8 in
     if Cstruct.len msg = msglen then
-      unpad_02 (decrypt ~key msg)
+      unpad_02 (decrypt ?mask ~key msg)
     else None
 
 end
