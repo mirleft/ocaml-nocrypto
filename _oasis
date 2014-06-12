@@ -4,7 +4,7 @@ Version:      0.0.1
 Synopsis:     simple crypto for the modern age
 Authors:      David Kaloper <david@numm.org>
 Maintainers:  David Kaloper <david@numm.org>
-License:      BSD-3-clause
+License:      FreeBSD
 Homepage:     https://github.com/mirleft/ocaml-nocrypto
 Plugins:      META (0.4)
 BuildTools:   ocamlbuild
