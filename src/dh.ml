@@ -30,8 +30,8 @@ let to_cstruct { p ; gg ; _ } =
 let compute_public ({ p; gg; q } as group) x =
   let x =
     match q with
-    | None   -> x
-    | Some q -> Z.(x mod q) in
+    | Some q when x >= q -> Z.(x mod q)
+    | Some _ | None      -> x in
   let ggx = Z.(powm gg x p) in
   ({ x }, to_cstruct_sized group ggx)
 
