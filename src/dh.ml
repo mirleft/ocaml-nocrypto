@@ -51,7 +51,7 @@ let rec gen_secret ?g ({ p; q; _ } as group) =
 
 let shared ({ p; gg; _ } as group) { x } cs =
   match Numeric.Z.of_cstruct_be cs with
-  | ggy when ggy <= Z.one || ggy >= p || ggy = gg
+  | ggy when ggy <= Z.one || ggy >= (Z.pred p) || ggy = gg
         -> invalid_arg "DH: degenerate message"
   | ggy -> to_cstruct_sized group (Z.powm ggy x p)
 
