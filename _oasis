@@ -42,7 +42,7 @@ Library "nocrypto"
                    native/d3des.c,
                    native/d3des.h,
                    native/stubs.c
-  BuildDepends:    cstruct, zarith
+  BuildDepends:    cstruct, zarith, sexplib.syntax
 
   if flag(pedantic)
     CCOpt: -Wall -Wpedantic

@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 8dd8ac3e29f5cbde78d13fcfd139f71c)
+# DO NOT EDIT (digest: 281e998ea74383ff55f1e910e633e1a2)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -23,16 +23,22 @@
 "src/native/stubs.c": oasis_library_nocrypto_ccopt
 <src/nocrypto.{cma,cmxa}>: use_libnocrypto_stubs
 <src/*.ml{,i}>: pkg_cstruct
+<src/*.ml{,i}>: pkg_sexplib.syntax
 <src/*.ml{,i}>: pkg_zarith
 "src/native/sha2.c": pkg_cstruct
+"src/native/sha2.c": pkg_sexplib.syntax
 "src/native/sha2.c": pkg_zarith
 "src/native/md5.c": pkg_cstruct
+"src/native/md5.c": pkg_sexplib.syntax
 "src/native/md5.c": pkg_zarith
 "src/native/rijndael.c": pkg_cstruct
+"src/native/rijndael.c": pkg_sexplib.syntax
 "src/native/rijndael.c": pkg_zarith
 "src/native/d3des.c": pkg_cstruct
+"src/native/d3des.c": pkg_sexplib.syntax
 "src/native/d3des.c": pkg_zarith
 "src/native/stubs.c": pkg_cstruct
+"src/native/stubs.c": pkg_sexplib.syntax
 "src/native/stubs.c": pkg_zarith
 # Library testlib
 "tests/testlib.cmxs": use_testlib
@@ -40,6 +46,7 @@
 <tests/testrunner.{native,byte}>: pkg_cstruct
 <tests/testrunner.{native,byte}>: pkg_cstruct.unix
 <tests/testrunner.{native,byte}>: pkg_oUnit
+<tests/testrunner.{native,byte}>: pkg_sexplib.syntax
 <tests/testrunner.{native,byte}>: pkg_zarith
 <tests/testrunner.{native,byte}>: use_nocrypto
 <tests/testrunner.{native,byte}>: use_testlib
@@ -50,6 +57,7 @@
 "tests/runnable.native": pkg_lwt
 "tests/runnable.native": pkg_lwt.syntax
 "tests/runnable.native": pkg_lwt.unix
+"tests/runnable.native": pkg_sexplib.syntax
 "tests/runnable.native": pkg_zarith
 "tests/runnable.native": use_nocrypto
 # Executable hashbench
@@ -58,6 +66,7 @@
 "tests/hashbench.native": pkg_lwt
 "tests/hashbench.native": pkg_lwt.syntax
 "tests/hashbench.native": pkg_lwt.unix
+"tests/hashbench.native": pkg_sexplib.syntax
 "tests/hashbench.native": pkg_zarith
 "tests/hashbench.native": use_nocrypto
 <tests/*.ml{,i}>: pkg_cstruct
@@ -65,6 +74,7 @@
 <tests/*.ml{,i}>: pkg_lwt
 <tests/*.ml{,i}>: pkg_lwt.syntax
 <tests/*.ml{,i}>: pkg_lwt.unix
+<tests/*.ml{,i}>: pkg_sexplib.syntax
 <tests/*.ml{,i}>: pkg_zarith
 <tests/*.ml{,i}>: use_nocrypto
 # OASIS_STOP
