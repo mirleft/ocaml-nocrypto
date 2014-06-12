@@ -1,12 +1,13 @@
+open Sexplib.Conv
 open Common
 
 type group = {
   p  : Z.t        ;  (* The prime modulus *)
   gg : Z.t        ;  (* Group generator *)
   q  : Z.t option ;  (* `gg`'s order, maybe *)
-}
+} with sexp
 
-type secret = { x : Z.t }
+type secret = { x : Z.t } with sexp
 
 let to_cstruct_sized { p; _ } z =
   Numeric.Z.(to_cstruct_be ~size:(cdiv (bits p) 8) z)

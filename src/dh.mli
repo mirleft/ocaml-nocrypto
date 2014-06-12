@@ -1,3 +1,4 @@
+
 (* MODP Diffie-Hellman *)
 
 (* DH group parameters: a modulus and a generator. *)
@@ -28,7 +29,6 @@ val gen_group : ?g:Rng.g -> int -> group
 val gen_secret : ?g:Rng.g -> group -> secret * Cstruct.t
 
 (* Some standard groups. *)
-
 module Group : sig
 
   (* RFC2409 *)
@@ -48,3 +48,11 @@ module Group : sig
   val rfc_5114_3 : group
 
 end
+
+open Sexplib
+
+val sexp_of_group  : group -> Sexp.t
+val group_of_sexp  : Sexp.t -> group
+
+val sexp_of_secret : secret -> Sexp.t
+val secret_of_sexp : Sexp.t -> secret
