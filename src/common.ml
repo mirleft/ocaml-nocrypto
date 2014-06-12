@@ -31,6 +31,9 @@ module Z = struct
   open Sexplib.Conv
   let sexp_of_t z = sexp_of_string (Z.to_string z)
   let t_of_sexp s = Z.of_string (string_of_sexp s)
+
+  let two   = Z.of_int 2
+  let three = Z.of_int 3
 end
 
 module Cs = struct

@@ -46,7 +46,7 @@ let rec gen_secret ?g ({ p; q; _ } as group) =
     | None   -> Z.pred p
     | Some q -> q in
   try
-    compute_public group @@ Rng.Z.gen_r ?g z_two limit
+    compute_public group @@ Rng.Z.gen_r ?g Z.two limit
   with Invalid_argument _ -> gen_secret ?g group
 
 let shared ({ p; gg; _ } as group) { x } cs =
@@ -55,16 +55,18 @@ let shared ({ p; gg; _ } as group) { x } cs =
         -> invalid_arg "DH: degenerate message"
   | ggy -> to_cstruct_sized group (Z.powm ggy x p)
 
-
-(* Generate a group using a safe prime p = 2q + 1 (with q prime) as modulus.
- * Currently uses q as the generator. However, all subgroup orders divide p - 1,
- * so the generator could be just a fixed small prime as well?
- * *)
+(* Generate a group using a safe prime p = 2q + 1 (with q prime) as modulus and
+ * group order of q. *)
 let rec gen_group ?g bits =
-  let (gg, p) = Rng.safe_prime ?g ~bits in
-  (* Order is either gg or 2gg. *)
-  if Z.(powm gg gg p = one) then { p; gg; q = Some gg }
-  else gen_group ?g bits (* Refuse the composite-order subgroup. *)
+  let (q, p) = Rng.safe_prime ?g ~bits in
+  (* Order can be either q or 2q. *)
+  let rec pick_gen = function
+    | []     -> gen_group ?g bits
+    | gg::gs ->
+        if Z.(powm gg q p = one) then { p; gg; q = Some q }
+        else pick_gen gs
+  in
+  pick_gen [q ; Z.two ; Z.three]
 
 
 module Group = struct
