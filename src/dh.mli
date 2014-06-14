@@ -1,27 +1,30 @@
 
 (* MODP Diffie-Hellman *)
 
+exception Invalid_public_key
+
 (* DH parameters: a modulus, a generator and the optional subgroup order. *)
 type group = { p: Z.t ; gg : Z.t ; q : Z.t option }
 
 (* A private secret. *)
 type secret = { x : Z.t }
 
-(* Construct group. *)
+(* Construct `group`. The parameters are not validated in any way, not even as a
+ * sanity check. Be sure to trust your group. *)
 val group : p:Cstruct.t -> gg:Cstruct.t -> ?q:Cstruct.t -> unit -> group
 
 (* Extract group to cstruct as (p, g). *)
 val to_cstruct : group -> Cstruct.t * Cstruct.t
 
 (* Given group and a string serving as secret, generate `secret` and the public
- * part. *)
+ * part. Throws `Invalid_public_key` when the secret is bad. *)
 val of_secret : group -> s:Cstruct.t -> secret * Cstruct.t
 
 (* Generate a secret and the corresponding public message. *)
 val gen_secret : ?g:Rng.g -> group -> secret * Cstruct.t
 
 (* Given `group`, a `secret` and the other party's public message, recover the
- * shared secret. *)
+ * shared secret. Throws `Invalid_public_key` if the public key is incorrect. *)
 val shared : group -> secret -> Cstruct.t -> Cstruct.t
 
 (* Generate a `group` using a safe prime p = 2q + 1 (with q prime) as modulus, 2

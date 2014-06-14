@@ -1,6 +1,8 @@
 open Sexplib.Conv
 open Common
 
+exception Invalid_public_key
+
 type group = {
   p  : Z.t        ;  (* The prime modulus *)
   gg : Z.t        ;  (* Group generator *)
@@ -17,42 +19,41 @@ let group ~p ~gg ?q () =
     Numeric.Z.
       (of_cstruct_be p, of_cstruct_be gg, map_opt of_cstruct_be q)
   in
-  (* This is more of a sanity theck, as order can actually be a divisor of q. *)
-  ( match q with
-    | Some q ->
-        if Z.(powm gg q p <> one) then
-          invalid_arg "DH.group: bogus order"
-    | None -> () ) ;
   { p; gg; q }
 
 let to_cstruct { p ; gg ; _ } =
   Numeric.Z.(to_cstruct_be p, to_cstruct_be gg)
 
-let compute_public ({ p; gg; q } as group) x =
-  let x =
-    match q with
-    | Some q when x >= q -> Z.(x mod q)
-    | Some _ | None      -> x in
+(*
+ * Current thinking:
+ * g^y < 0 || g^y >= p : obviously not computed mod p
+ * g^y = 0 || g^y = 1  : shared secret is 0, resp. 1
+ * g^y = p - 1         : order of g^y is 2
+ * g^y = g             : y mod (p-1) is 1
+ *)
+let bad_public_key { p; gg; _ } ggx =
+  ggx <= Z.one || ggx >= Z.(pred p) || ggx = gg
+
+let public_of_secret ({ p; gg; _ } as group) x =
   match Z.(powm gg x p) with
-  | ggx when ggx = Z.one -> invalid_arg "DH: gg^x = 1 mod p"
-  | ggx                  -> ({ x }, to_cstruct_sized group ggx)
+  | ggx when bad_public_key group ggx
+        -> raise Invalid_public_key
+  | ggx -> ({ x }, to_cstruct_sized group ggx)
 
 let of_secret group ~s =
-  compute_public group (Numeric.Z.of_cstruct_be s)
+  public_of_secret group (Numeric.Z.of_cstruct_be s)
 
-let rec gen_secret ?g ({ p; q; _ } as group) =
-  let limit =
-    match q with
-    | None   -> Z.pred p
-    | Some q -> q in
-  try
-    compute_public group @@ Rng.Z.gen_r ?g Z.two limit
-  with Invalid_argument _ -> gen_secret ?g group
+let rec gen_secret ?g ({ p; gg; q } as group) =
+  let x = Rng.Z.gen_r ?g Z.two
+            ( match q with None -> Z.pred p | Some q -> q ) in
+  try public_of_secret group x
+  with Invalid_public_key -> gen_secret ?g group
 
+(* No time-masking. Does it matter in case of ephemeral DH??  *)
 let shared ({ p; gg; _ } as group) { x } cs =
   match Numeric.Z.of_cstruct_be cs with
-  | ggy when ggy <= Z.one || ggy >= (Z.pred p) || ggy = gg
-        -> invalid_arg "DH: degenerate message"
+  | ggy when bad_public_key group ggy
+        -> raise Invalid_public_key
   | ggy -> to_cstruct_sized group (Z.powm ggy x p)
 
 (* Generate a group using a safe prime p = 2q + 1 (with q prime) as modulus,
@@ -63,7 +64,7 @@ let rec gen_group ?g ~bits =
   try
     let gg = List.find Z.(fun gg -> powm gg q p = one) candidate_gs in
     { p; gg; q = Some q }
-  with Not_found -> Printf.printf "RESTART.\n%!"; gen_group ?g ~bits
+  with Not_found -> gen_group ?g ~bits
 
 module Group = struct
 
