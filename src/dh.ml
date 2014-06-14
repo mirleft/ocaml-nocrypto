@@ -42,10 +42,10 @@ let public_of_secret ({ p; gg; _ } as group) x =
         -> raise Invalid_public_key
   | ggx -> ({ x }, to_cstruct_sized group ggx)
 
-let of_secret group ~s =
+let secret_of_cstruct group ~s =
   public_of_secret group (Numeric.Z.of_cstruct_be s)
 
-let rec gen_secret ?g ({ p; gg; q } as group) =
+let rec gen_secret ?g ({ p; q; _ } as group) =
   let x = Rng.Z.gen_r ?g Z.two
             ( match q with None -> Z.pred p | Some q -> q ) in
   try public_of_secret group x

@@ -21,7 +21,7 @@ val to_cstruct : group -> Cstruct.t * Cstruct.t
 
 (* Given group and a string serving as secret, generate `secret` and the public
  * part. Throws `Invalid_public_key` when the secret is bad. *)
-val of_secret : group -> s:Cstruct.t -> secret * Cstruct.t
+val secret_of_cstruct : group -> s:Cstruct.t -> secret * Cstruct.t
 
 (* Generate a secret and the corresponding public message. *)
 val gen_secret : ?g:Rng.g -> group -> secret * Cstruct.t

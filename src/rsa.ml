@@ -182,14 +182,11 @@ module PKCS1 = struct
     | pad ->
         let cs      = create size in
         let block   = Rng.(block_size * cdiv pad block_size) in
-        let pop buf = (get_uint8 buf 0, shift buf 1) in
         let rec copybyte nonce = function
-          | i when i = pad - 1 -> ()
+          | i when i = pad - 1   -> ()
+          | i when Cs.null nonce -> copybyte Rng.(generate ?g block) i
           | i ->
-              match
-                try pop nonce with Invalid_argument _ ->
-                  pop (Rng.generate ?g block)
-              with
+              match (get_uint8 nonce 0, shift nonce 1) with
               | (0x00, nonce') -> copybyte nonce' i
               | (x   , nonce') -> set_uint8 cs i x ; copybyte nonce' (succ i)
         in
