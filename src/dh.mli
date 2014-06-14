@@ -9,6 +9,9 @@ type group = { p: Z.t ; gg : Z.t ; q : Z.t option }
 (* A private secret. *)
 type secret = { x : Z.t }
 
+(* Number of bits in the modulus. No-one knows the actual group order. *)
+val apparent_bit_size : group -> int
+
 (* Construct `group`. The parameters are not validated in any way, not even as a
  * sanity check. Be sure to trust your group. *)
 val group : p:Cstruct.t -> gg:Cstruct.t -> ?q:Cstruct.t -> unit -> group

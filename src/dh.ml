@@ -11,6 +11,8 @@ type group = {
 
 type secret = { x : Z.t } with sexp
 
+let apparent_bit_size { p; _ } = Numeric.Z.bits p
+
 let to_cstruct_sized { p; _ } z =
   Numeric.Z.(to_cstruct_be ~size:(cdiv (bits p) 8) z)
 
