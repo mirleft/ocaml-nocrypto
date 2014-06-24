@@ -9,12 +9,12 @@ module Rand = struct
 
   module type N = sig
 
+    type t
     module Rng : Rng
-    module N   : Numeric.T
 
-    val gen      : ?g:Rng.g -> N.t -> N.t
-    val gen_bits : ?g:Rng.g -> int -> N.t
-    val gen_r    : ?g:Rng.g -> N.t -> N.t -> N.t
+    val gen      : ?g:Rng.g -> t -> t
+    val gen_bits : ?g:Rng.g -> int -> t
+    val gen_r    : ?g:Rng.g -> t -> t -> t
   end
 
   module type Numeric = sig
@@ -27,10 +27,10 @@ module Rand = struct
     (* Generate a prime pair g, p with p = 2g + 1. *)
     val safe_prime : ?g:Rng.g -> bits:int -> Z.t * Z.t
 
-    module Int   : N with module Rng = Rng and module N = Numeric.Int
-    module Int32 : N with module Rng = Rng and module N = Numeric.Int32
-    module Int64 : N with module Rng = Rng and module N = Numeric.Int64
-    module Z     : N with module Rng = Rng and module N = Numeric.Z
+    module Int   : N with module Rng = Rng and type t = int
+    module Int32 : N with module Rng = Rng and type t = int32
+    module Int64 : N with module Rng = Rng and type t = int64
+    module Z     : N with module Rng = Rng and type t = Z.t
   end
 
 end
