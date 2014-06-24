@@ -9,7 +9,7 @@ module Numeric_of (Rng : Rng) = struct
   module N_gen (N : Numeric.T) = struct
 
     type t = N.t
-    module Rng = Rng
+    type g = Rng.g
 
     let gen ?g n =
       if n < N.one then invalid_arg "rng: non-positive bound" ;
