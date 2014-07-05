@@ -12,7 +12,8 @@ exception Unseeded_generator
 (* XXX Locking!! *)
 type g =
   { ctr            : Cstruct.t
-  ; mutable key    : Cstruct.t * AES_CTR.key
+  ; mutable secret : Cstruct.t
+  ; mutable key    : AES_CTR.key
   ; mutable trap   : (unit -> unit) option
   ; mutable seeded : bool
   }
@@ -20,28 +21,31 @@ type g =
 let create () =
   let k = Cs.create_with 32 0 in
   { ctr    = Cs.create_with 16 0
-  ; key    = (k, AES_CTR.of_secret k)
+  ; secret = k
+  ; key    = AES_CTR.of_secret k
   ; trap   = None
   ; seeded = false
   }
 
-let clone ~g: { ctr ; seeded ; key } =
-  { ctr = Cs.clone ctr ; key ; seeded ; trap = None }
+let clone ~g: { ctr ; seeded ; secret ; key } =
+  { ctr = Cs.clone ctr ; secret ; key ; seeded ; trap = None }
 
 let seeded ~g = g.seeded
 
 (* XXX We might want to erase the old key. *)
-let exchange_key ~g key = g.key <- (key, AES_CTR.of_secret key )
+let exchange_key ~g sec =
+  g.secret <- sec ;
+  g.key    <- AES_CTR.of_secret sec
 
 let reseedv ~g css =
-  exchange_key ~g @@ SHAd256.digestv (fst g.key :: css) ;
+  exchange_key ~g @@ SHAd256.digestv (g.secret :: css) ;
   Counter.increment g.ctr ;
   g.seeded <- true
 
 let reseed ~g cs = reseedv ~g [cs]
 
-let stream ~g:{ ctr ; key = (_, k) ; _ } bytes =
-  AES_CTR.stream ~ctr ~key:k bytes
+let stream ~g:{ ctr ; key ; _ } bytes =
+  AES_CTR.stream ~ctr ~key bytes
 
 let generate_rekey ~g bytes =
   let r1 = stream ~g bytes
