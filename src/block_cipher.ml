@@ -49,40 +49,6 @@ module Modes = struct
 
   end
 
-  module CTR_of ( C : Cipher_raw ) ( CNT : Counter ) : CTR = struct
-
-    open Cstruct
-
-    type result = { message : Cstruct.t ; ctr : Cstruct.t }
-    type key    = C.ekey
-
-    let (key_sizes, block_size) = C.(key_sizes, block_size)
-
-    let of_secret = C.e_of_secret
-
-    let stream ~key ~ctr size =
-      let rec loop ctr cs = function
-        | 0 -> ()
-        | n ->
-            C.encrypt_block ~key ctr cs ;
-            CNT.increment ctr ;
-            loop ctr (shift cs block_size) (pred n) in
-      let blocks = cdiv size block_size
-      and ctr    = Cs.clone ctr in
-      let res    = create (blocks * block_size) in
-      loop ctr res blocks ;
-      { message = sub res 0 size ; ctr }
-
-    let encrypt ~key ~ctr msg =
-      let size = len msg in
-      let res  = stream ~key ~ctr size in
-      Cs.xor_into msg res.message size ;
-      res
-
-    let decrypt = encrypt
-
-  end
-
   module CBC_of ( C : Cipher_raw ) : CBC = struct
 
     open Cstruct
@@ -123,6 +89,38 @@ module Modes = struct
 
   end
 
+  module CTR_of ( C : Cipher_raw ) ( CNT : Counter ) : CTR = struct
+
+    open Cstruct
+
+    type key = C.ekey
+
+    let (key_sizes, block_size) = C.(key_sizes, block_size)
+
+    let of_secret = C.e_of_secret
+
+    let stream ~key ~ctr size =
+      let rec loop ctr cs = function
+        | 0 -> ()
+        | n ->
+            C.encrypt_block ~key ctr cs ;
+            CNT.increment ctr ;
+            loop ctr (shift cs block_size) (pred n) in
+      let blocks = cdiv size block_size in
+      let res    = create (blocks * block_size) in
+      loop ctr res blocks ;
+      res
+
+    let encrypt ~key ~ctr msg =
+      let size = len msg in
+      let res  = stream ~key ~ctr size in
+      Cs.xor_into msg res size ;
+      res
+
+    let decrypt = encrypt
+
+  end
+
   module GCM_of ( C : Cipher_base ) : GCM = struct
 
     assert (C.block_size = 16)
@@ -151,7 +149,7 @@ end
 module Counters = struct
 
   open Cstruct
-  (* XXX only works on multiples of 8 bytes *)
+  (* XXX Counters for k*8 block sizes. *)
 
   module Inc_LE = struct
 
@@ -172,7 +170,7 @@ module Counters = struct
           let b = Int64.succ BE.(get_uint64 cs i) in
           BE.set_uint64 cs i b ;
           if b = 0L then inc cs (i - 8) in
-    inc cs (len cs - 8)
+      inc cs (len cs - 8)
   end
 end
 
