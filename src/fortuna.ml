@@ -1,35 +1,26 @@
+
 open Common
 open Hash
-open Cstruct
 
-module AES = Block_cipher.AES.Raw
+module Counter = Block_cipher.Counters.Inc_LE
+module AES_CTR = Block_cipher.AES.CTR (Counter)
 
-let block_size = AES.block_size
+let block_size = AES_CTR.block_size
 
 exception Unseeded_generator
 
-(* XXX locking *)
-
+(* XXX Locking!! *)
 type g =
   { ctr            : Cstruct.t
-  ; mutable key    : Cstruct.t * AES.ekey
+  ; mutable key    : Cstruct.t * AES_CTR.key
   ; mutable trap   : (unit -> unit) option
   ; mutable seeded : bool
   }
 
-let incr cs =
-  let rec loop = function
-    | 16 -> ()
-    | i  ->
-        let b = Int64.(succ @@ LE.get_uint64 cs i) in
-        LE.set_uint64 cs i b ;
-        if b = 0x00L then loop (i + 8) in
-  loop 0
-
 let create () =
   let k = Cs.create_with 32 0 in
   { ctr    = Cs.create_with 16 0
-  ; key    = (k, AES.e_of_secret k)
+  ; key    = (k, AES_CTR.of_secret k)
   ; trap   = None
   ; seeded = false
   }
@@ -39,35 +30,27 @@ let clone ~g: { ctr ; seeded ; key } =
 
 let seeded ~g = g.seeded
 
-
-(* XXX
- * We _might_ want to erase the old key, but the entire topic is a can of
- * worms in a memory-managed setting. What with compactifying GC and all. *)
-let exchange_key ~g key = g.key <- (key, AES.e_of_secret key )
+(* XXX We might want to erase the old key. *)
+let exchange_key ~g key = g.key <- (key, AES_CTR.of_secret key )
 
 let reseedv ~g css =
   exchange_key ~g @@ SHAd256.digestv (fst g.key :: css) ;
-  incr g.ctr ;
+  Counter.increment g.ctr ;
   g.seeded <- true
 
 let reseed ~g cs = reseedv ~g [cs]
 
-let aes_ctr_blocks ~g: { ctr ; key = (_, k) } blocks =
-  let result = Cstruct.create @@ blocks lsl 4 in
-  let rec loop res = function
-    | 0 -> result
-    | n ->
-        ( AES.encrypt_block k ctr res ; incr ctr ) ;
-        loop (shift res 16) (pred n) in
-  loop result blocks
+let stream ~g:{ ctr ; key = (_, k) ; _ } bytes =
+  AES_CTR.stream ~ctr ~key:k bytes
 
 let generate_rekey ~g bytes =
-  let r1 = aes_ctr_blocks ~g (cdiv bytes 16)
-  and r2 = aes_ctr_blocks ~g 2 in
+  let r1 = stream ~g bytes
+  and r2 = stream ~g 32 in
   exchange_key ~g r2 ;
-  sub r1 0 bytes
+  r1
 
 let generate ~g bytes =
+  if bytes < 0 then invalid_arg "negative size" ;
   if not g.seeded then raise Unseeded_generator ;
   let rec chunk = function
     | 0 -> []
@@ -115,7 +98,7 @@ module Accumulator = struct
     let pool = pool land 0x1f
     and src  = src  land 0xff in
     let h = acc.pools.(pool) in
-    SHAd256.feed h (Cs.of_bytes [ src ; len data ]) ;
+    SHAd256.feed h (Cs.of_bytes [ src ; Cstruct.len data ]) ;
     SHAd256.feed h data ;
     (* XXX This is clobbered on multi-pool. *)
     acc.gen.trap <- Some (fun () -> fire acc)
