@@ -49,6 +49,40 @@ module Modes = struct
 
   end
 
+  module CTR_of ( C : Cipher_raw ) ( CNT : Counter ) : CTR = struct
+
+    open Cstruct
+
+    type result = { message : Cstruct.t ; ctr : Cstruct.t }
+    type key    = C.ekey
+
+    let (key_sizes, block_size) = C.(key_sizes, block_size)
+
+    let of_secret = C.e_of_secret
+
+    let stream ~key ~ctr size =
+      let rec loop ctr cs = function
+        | 0 -> ()
+        | n ->
+            C.encrypt_block ~key ctr cs ;
+            CNT.increment ctr ;
+            loop ctr (shift cs block_size) (pred n) in
+      let blocks = cdiv size block_size
+      and ctr    = Cs.clone ctr in
+      let res    = create (blocks * block_size) in
+      loop ctr res blocks ;
+      { message = sub res 0 size ; ctr }
+
+    let encrypt ~key ~ctr msg =
+      let size = len msg in
+      let res  = stream ~key ~ctr size in
+      Cs.xor_into msg res.message size ;
+      res
+
+    let decrypt = encrypt
+
+  end
+
   module CBC_of ( C : Cipher_raw ) : CBC = struct
 
     open Cstruct
@@ -114,6 +148,34 @@ module Modes = struct
 
 end
 
+module Counters = struct
+
+  open Cstruct
+  (* XXX only works on multiples of 8 bytes *)
+
+  module Inc_LE = struct
+
+    let increment cs =
+      let rec inc cs i n =
+        if n >= 8 then
+          let b = Int64.succ LE.(get_uint64 cs i) in
+          LE.set_uint64 cs i b ;
+          if b = 0L then inc cs (i + 8) (n - 8) in
+      inc cs 0 (len cs)
+  end
+
+  module Inc_BE = struct
+
+    let increment cs =
+      let rec inc cs i =
+        if i >= 0 then
+          let b = Int64.succ BE.(get_uint64 cs i) in
+          BE.set_uint64 cs i b ;
+          if b = 0L then inc cs (i - 8) in
+    inc cs (len cs - 8)
+  end
+end
+
 
 module AES = struct
 
@@ -141,6 +203,7 @@ module AES = struct
 
   module ECB = Modes.ECB_of (Raw)
   module CBC = Modes.CBC_of (Raw)
+  module CTR = Modes.CTR_of (Raw)
   module GCM = Modes.GCM_of (Base)
 end
 
@@ -171,11 +234,15 @@ module DES = struct
 
   module Base = Modes.Base_of (Raw)
 
-  module ECB  = Modes.ECB_of (Raw)
-  module CBC  = Modes.CBC_of (Raw)
+  module ECB = Modes.ECB_of (Raw)
+  module CBC = Modes.CBC_of (Raw)
+  module CTR = Modes.CTR_of (Raw)
 end
+
+module type Counter = sig include Counter end
 
 module type T_RAW = sig include Cipher_raw end
 module type T_ECB = sig include ECB end
 module type T_CBC = sig include CBC end
 module type T_GCM = sig include GCM end
+module type T_CTR = functor (C : Counter) -> sig include CTR end

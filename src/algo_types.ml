@@ -103,6 +103,19 @@ module Block = struct
     val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
   end
 
+  module type CTR = sig
+
+    type key
+    type result = { message : Cstruct.t ; ctr : Cstruct.t }
+    val of_secret : Cstruct.t -> key
+
+    val key_sizes  : int array
+    val block_size : int
+    val stream  : key:key -> ctr:Cstruct.t -> int -> result
+    val encrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> result
+    val decrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> result
+  end
+
   module type GCM = sig
 
     type key
@@ -113,6 +126,10 @@ module Block = struct
     val block_size : int
     val encrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result
     val decrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result
+  end
+
+  module type Counter = sig
+    val increment : Cstruct.t -> unit
   end
 
 end
