@@ -109,7 +109,7 @@ module Modes = struct
       let blocks = cdiv size block_size in
       let res    = create (blocks * block_size) in
       loop ctr res blocks ;
-      res
+      sub res 0 size
 
     let encrypt ~key ~ctr msg =
       let size = len msg in
