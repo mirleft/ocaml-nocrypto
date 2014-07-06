@@ -55,6 +55,7 @@ let generate_rekey ~g bytes =
 
 let generate ~g bytes =
   if bytes < 0 then invalid_arg "negative size" ;
+  ( match g.trap with None -> () | Some f -> g.trap <- None ; f () );
   if not g.seeded then raise Unseeded_generator ;
   let rec chunk = function
     | 0 -> []
@@ -62,7 +63,6 @@ let generate ~g bytes =
         let n' = min n 0x10000 in
         generate_rekey ~g n' :: chunk (n - n')
   in
-  ( match g.trap with None -> () | Some f -> g.trap <- None ; f () );
   Cs.concat @@ chunk bytes
 
 
