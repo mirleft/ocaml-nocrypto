@@ -15,6 +15,6 @@ val seeded  : unit           -> bool
 val set_gen : g:g            -> unit
 
 module Accumulator : sig
-  val add    : src:int -> pool:int -> Cstruct.t -> unit
-  val add_rr : src:int -> Cstruct.t -> unit
+  val add    : source:int -> pool:int -> Cstruct.t -> unit
+  val add_rr : source:int -> Cstruct.t -> unit
 end

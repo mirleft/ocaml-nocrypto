@@ -98,11 +98,11 @@ module Accumulator = struct
     acc.count <- r ;
     reseedv ~g: acc.gen ent
 
-  let add ~acc ~src ~pool data =
-    let pool = pool land 0x1f
-    and src  = src  land 0xff in
+  let add ~acc ~source ~pool data =
+    let pool   = pool land 0x1f
+    and source = source land 0xff in
     let h = acc.pools.(pool) in
-    SHAd256.feed h (Cs.of_bytes [ src ; Cstruct.len data ]) ;
+    SHAd256.feed h (Cs.of_bytes [ source ; Cstruct.len data ]) ;
     SHAd256.feed h data ;
     (* XXX This is clobbered on multi-pool. *)
     acc.gen.trap <- Some (fun () -> fire acc)
@@ -113,9 +113,9 @@ module Accumulator = struct
    *)
   let add_rr ~acc =
     let pool = ref 0 in
-    fun ~src data ->
-      add ~acc ~src ~pool: !pool data ;
-      Pervasives.incr pool
+    fun ~source data ->
+      add ~acc ~source ~pool:!pool data ;
+      incr pool
 
 end
 
