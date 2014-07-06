@@ -54,11 +54,10 @@ let generate_rekey ~g bytes =
   r1
 
 let generate ~g bytes =
-  if bytes < 0 then invalid_arg "negative size" ;
   ( match g.trap with None -> () | Some f -> g.trap <- None ; f () );
   if not g.seeded then raise Unseeded_generator ;
   let rec chunk = function
-    | 0 -> []
+    | i when i <= 0 -> []
     | n ->
         let n' = min n 0x10000 in
         generate_rekey ~g n' :: chunk (n - n')
