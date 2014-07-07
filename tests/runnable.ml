@@ -173,7 +173,7 @@ let dh_feedback bits =
 
 let _ =
   Rng.reseed (Cstruct.of_string "\001\002\003\004");
-  forever (fun () -> dh_feedback 2048)
+  forever (fun () -> dh_feedback 1024)
 (*   forever (fun () -> rsa_feedback 2048) *)
 
 
