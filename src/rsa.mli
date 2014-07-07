@@ -1,34 +1,68 @@
 
-type pub  = { e : Z.t ; n : Z.t }
+(** RSA public-key cryptography. *)
 
-type priv = {
-  e : Z.t ; d : Z.t ; n  : Z.t ;
-  p : Z.t ; q : Z.t ; dp : Z.t ; dq : Z.t ; q' : Z.t
+(** A public key *)
+type pub  = {
+  e : Z.t ; (** Public exponent *)
+  n : Z.t ; (** Modulus *)
 }
 
-type mask = [ `No | `Yes | `Yes_with of Rng.g ]
+(** A private key (two-prime version) *)
+type priv = {
+  e  : Z.t ; (** Public exponent *)
+  d  : Z.t ; (** Private exponent *)
+  n  : Z.t ; (** Modulus *)
+  p  : Z.t ; (** [p], one of two primes *)
+  q  : Z.t ; (** [q], one of two primes *)
+  dp : Z.t ; (** [d mod (p-1)] *)
+  dq : Z.t ; (** [d mod (q-1)] *)
+  q' : Z.t ; (** [q^(-1) mod p] *)
+}
 
+(** Masking (blinding) request. *)
+type mask = [
+  | `No                (** Don't perform blinding. *)
+  | `Yes               (** Use default {!Rng.g} for blinding. *)
+  | `Yes_with of Rng.g (** Use the provided {!Rng.g} for blinding. *)
+]
+
+(** Bit-size of a public key. *)
 val pub_bits : pub -> int
+
+(** Bit-size of a private key. *)
 val priv_bits : priv -> int
 
+(** Construct a {!pub}. {!Cstruct.t} are taken to be big-endian. *)
 val pub : e:Cstruct.t -> n:Cstruct.t -> pub
 
+(** Construct a {!priv}. {!Cstruct.t} are taken to be big-endian. *)
 val priv : e:Cstruct.t -> d:Cstruct.t -> n:Cstruct.t ->
            p:Cstruct.t -> q:Cstruct.t ->
            dp:Cstruct.t -> dq:Cstruct.t -> q':Cstruct.t ->
            priv
 
+(** Compute a {!priv} from a minimal description. *)
 val priv' : e:Cstruct.t -> p:Cstruct.t -> q:Cstruct.t -> priv
 
+(** Extract the public component from a private key. *)
 val pub_of_priv : priv -> pub
 
-val encrypt   :               key:pub  -> Cstruct.t -> Cstruct.t
+(** [encrypt key message] is the encrypted message.
+  @raise Invalid_argument if [message] is too large for the [key]. *)
+val encrypt   : key:pub  -> Cstruct.t -> Cstruct.t
+
+(** [decrypt mask key message] is the decrypted message.
+  @raise Invalid_argument if [message] is too larger for the [key]. *)
 val decrypt   : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
 
-val generate : ?g:Rng.g -> ?e:Z.t -> [< `Yes_this_is_debug_session ] -> int -> priv
+(**
+ [generate g e bits] is a new {!priv}. [e] is given or [2^16+1]. [size] is in
+ bits. Finds two large random primes with [bits/2] significant bits and
+ computes the key. *)
+val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
 
-val string_of_private_key : priv -> string
 
+(** Module providing operations with {b PKCS1} padding. *)
 module PKCS1 : sig
 
   val sign   : key:priv -> Cstruct.t -> Cstruct.t option
@@ -38,3 +72,14 @@ module PKCS1 : sig
   val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
 
 end
+
+open Sexplib
+
+val sexp_of_pub : pub -> Sexp.t
+(** Represent a {!pub} as a {!Sexp.t} *)
+val pub_of_sexp : Sexp.t -> pub
+(** Convert a {!Sexp.t} to a {!pub}. *)
+val sexp_of_priv : priv -> Sexp.t
+(** Represent a {!priv} as a {!Sexp.t} *)
+val priv_of_sexp : Sexp.t -> priv
+(** Convert a {!Sexp.t} to a {!priv}. *)

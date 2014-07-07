@@ -1,11 +1,12 @@
+open Sexplib.Conv
 open Common
 
-type pub  = { e : Z.t ; n : Z.t }
+type pub  = { e : Z.t ; n : Z.t } with sexp
 
 type priv = {
   e : Z.t ; d : Z.t ; n  : Z.t ;
   p : Z.t ; q : Z.t ; dp : Z.t ; dq : Z.t ; q' : Z.t
-}
+} with sexp
 
 type mask = [ `No | `Yes | `Yes_with of Rng.g ]
 
@@ -97,15 +98,8 @@ and decrypt ?(mask = `Yes) ~key cs =
   Numeric.Z.(to_cstruct_be ~size @@ decrypt_z ~mask ~key @@ of_cstruct_be cs)
 
 
-(* XXX
- * All kinds bad. Default public exponent should probably be smaller than
- * 2^16+1. Two bits of key are rigged.
- * And even then the key is not guaranteed to be bull `bits` long.
- *)
-let generate ?g ?(e = Z.of_int 0x10001) promise bits =
-
-  let `Yes_this_is_debug_session = promise in
-
+(* XXX FIXME: Does not guarantee full `bits` of modulus. *)
+let generate ?g ?(e = Z.of_int 0x10001) bits =
   let (p, q) =
     let rec attempt bits =
       let (p, q) = (Rng.prime ?g ~bits, Rng.prime ?g ~bits) in
