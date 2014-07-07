@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 281e998ea74383ff55f1e910e633e1a2)
+# DO NOT EDIT (digest: 4fd3080b077283d86824c19f2b9eec56)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -21,6 +21,13 @@
 "src/native/rijndael.c": oasis_library_nocrypto_ccopt
 "src/native/d3des.c": oasis_library_nocrypto_ccopt
 "src/native/stubs.c": oasis_library_nocrypto_ccopt
+<src/nocrypto.{cma,cmxa}>: oasis_library_nocrypto_byte
+<src/*.ml{,i}>: oasis_library_nocrypto_byte
+"src/native/sha2.c": oasis_library_nocrypto_byte
+"src/native/md5.c": oasis_library_nocrypto_byte
+"src/native/rijndael.c": oasis_library_nocrypto_byte
+"src/native/d3des.c": oasis_library_nocrypto_byte
+"src/native/stubs.c": oasis_library_nocrypto_byte
 <src/nocrypto.{cma,cmxa}>: use_libnocrypto_stubs
 <src/*.ml{,i}>: pkg_cstruct
 <src/*.ml{,i}>: pkg_sexplib.syntax

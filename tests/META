@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: 1e30df610ca9a000cb111756fd12950b)
-version = "0.0.1"
+# DO NOT EDIT (digest: 702dbccc3a5c9fa74eabffbba29f5d9d)
+version = "0.1.0"
 description = "simple crypto for the modern age"
 requires = "nocrypto oUnit cstruct.unix"
 archive(byte) = "testlib.cma"

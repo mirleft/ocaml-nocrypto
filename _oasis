@@ -1,16 +1,15 @@
 OASISFormat:  0.4
 Name:         nocrypto
-Version:      0.0.1
+Version:      0.1.0
 Synopsis:     simple crypto for the modern age
 Authors:      David Kaloper <david@numm.org>
 Maintainers:  David Kaloper <david@numm.org>
 License:      FreeBSD
 Homepage:     https://github.com/mirleft/ocaml-nocrypto
-Plugins:      META (0.4)
+Plugins:      META (0.4), DevFiles (0.4)
 BuildTools:   ocamlbuild
 Description:
-  Crypto? And _without_ objects?
-  It's more likely than you think!
+  A simple cryptographic library.
 
 
 Flag "pedantic"
@@ -43,6 +42,7 @@ Library "nocrypto"
                    native/d3des.h,
                    native/stubs.c
   BuildDepends:    cstruct, zarith, sexplib.syntax
+  ByteOpt:         -w A-4-33-40-41-42-43-34-44
 
   if flag(pedantic)
     CCOpt: -Wall -Wpedantic
