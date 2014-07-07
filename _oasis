@@ -88,5 +88,5 @@ Document api
   Type: ocamlbuild (0.3)
   BuildTools+: ocamldoc
   XOcamlbuildPath: doc
-  XOcamlbuildModules: src/Nocrypto
+  XOcamlbuildModules: src/Nocrypto, src/Rsa, src/Dh
   Install: false

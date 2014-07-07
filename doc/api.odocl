@@ -1,4 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: 48aa850a60451453d74d83dcbea3d030)
+# DO NOT EDIT (digest: cba7748f36785dc817f218e8ebf2658e)
 src/Nocrypto
+src/Rsa
+src/Dh
 # OASIS_STOP
