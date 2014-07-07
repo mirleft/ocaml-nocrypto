@@ -1,7 +1,7 @@
 # OASIS_START
-# DO NOT EDIT (digest: 14de974c054a495cc1a1f1f2d4b64cd5)
-version = "0.1.0"
-description = "simple crypto for the modern age"
+# DO NOT EDIT (digest: d35b06cef3a0ca31d53a4802eb42d358)
+version = "0.1.1"
+description = "Simple crypto for the modern age"
 requires = "cstruct zarith sexplib.syntax"
 archive(byte) = "nocrypto.cma"
 archive(byte, plugin) = "nocrypto.cma"

@@ -1,7 +1,7 @@
 OASISFormat:  0.4
 Name:         nocrypto
-Version:      0.1.0
-Synopsis:     simple crypto for the modern age
+Version:      0.1.1
+Synopsis:     Simple crypto for the modern age
 Authors:      David Kaloper <david@numm.org>
 Maintainers:  David Kaloper <david@numm.org>
 License:      FreeBSD
