@@ -82,3 +82,11 @@ Executable "hashbench"
   MainIs:         hashbench.ml
   Build$:         flag(tests)
   BuildDepends:   nocrypto, cstruct, cstruct.unix, lwt, lwt.syntax, lwt.unix
+
+Document api
+  Title: Documentation and API reference
+  Type: ocamlbuild (0.3)
+  BuildTools+: ocamldoc
+  XOcamlbuildPath: doc
+  XOcamlbuildModules: src/Nocrypto
+  Install: false

@@ -6,5 +6,6 @@ setup.log
 
 *.native
 *.byte
+*.docdir
 
 gmon.out
