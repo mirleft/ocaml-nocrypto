@@ -82,5 +82,3 @@ let is_base64_char c =
   try ( ignore @@ emap (int_of_char c) ; true )
   with Not_found -> false
 
-let is_whitespace =
-  function ' ' | '\n' | '\r' | '\t' -> true | _ -> false

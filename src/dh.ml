@@ -19,7 +19,7 @@ let to_cstruct_sized { p; _ } z =
 let group ~p ~gg ?q () =
   let (p, gg, q) =
     Numeric.Z.
-      (of_cstruct_be p, of_cstruct_be gg, map_opt of_cstruct_be q)
+      (of_cstruct_be p, of_cstruct_be gg, map_opt ~f:of_cstruct_be q)
   in
   { p; gg; q }
 
@@ -52,7 +52,7 @@ let rec gen_secret ?g ({ p; q; _ } as group) =
   with Invalid_public_key -> gen_secret ?g group
 
 (* No time-masking. Does it matter in case of ephemeral DH??  *)
-let shared ({ p; gg; _ } as group) { x } cs =
+let shared ({ p; _ } as group) { x } cs =
   match Numeric.Z.of_cstruct_be cs with
   | ggy when bad_public_key group ggy
         -> raise Invalid_public_key

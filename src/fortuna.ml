@@ -27,7 +27,7 @@ let create () =
   ; seeded = false
   }
 
-let clone ~g: { ctr ; seeded ; secret ; key } =
+let clone ~g: { ctr ; seeded ; secret ; key ; _ } =
   { ctr = Cs.clone ctr ; secret ; key ; seeded ; trap = None }
 
 let seeded ~g = g.seeded

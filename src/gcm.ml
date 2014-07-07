@@ -60,7 +60,7 @@ module GF128 = struct
   let ( * ) = mul
   and ( + ) = add
 
-  let rec pow x n =
+  let pow x n =
     let rec loop acc b = function
       | 0                  -> acc
       | e when e mod 2 = 1 -> loop (acc * b) b (pred e)
@@ -117,9 +117,9 @@ let gcm ~cipher ~mode ~key ~iv ?(adata=Cs.empty) data =
 
   let data' = gctr ~cipher ~key ~icb:(incr32 j0) data in
 
-  let (pdata, cdata) = match mode with
-    | `Encrypt -> (data , data')
-    | `Decrypt -> (data', data ) in
+  let cdata = match mode with
+    | `Encrypt -> data'
+    | `Decrypt -> data in
 
   let s = ghash ~key:h @@
           Cs.concat [ adata ; padding adata

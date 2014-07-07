@@ -225,9 +225,6 @@ module DES = struct
       des3_xform_into key (ba_of_cs src) (ba_of_cs dst)
 
     let decrypt_block = encrypt_block
-
-    and transform_blk2 key src dst =
-      des3_xform_into2 key (ba_of_cs src) (ba_of_cs dst)
   end
 
   module Base = Modes.Base_of (Raw)
