@@ -111,20 +111,6 @@ let generate ?g ?(e = Z.of_int 0x10001) bits =
   priv_of_primes ~e ~p ~q
 
 
-let string_of_private_key { e; d; n; p; q; dp; dq; q' } =
-  let f = Z.to_string in
-  Printf.sprintf
-"RSA key
-  e : %s
-  d : %s
-  n : %s
-  p : %s
-  q : %s
-  dp: %s
-  dq: %s
-  q': %s" (f e) (f d) (f n) (f p) (f q) (f dp) (f dq) (f q')
-
-
 module PKCS1 = struct
 
   open Cstruct
