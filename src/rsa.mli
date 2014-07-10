@@ -76,10 +76,7 @@ end
 open Sexplib
 
 val sexp_of_pub : pub -> Sexp.t
-(** Represent a {!pub} as a {!Sexp.t} *)
 val pub_of_sexp : Sexp.t -> pub
-(** Convert a {!Sexp.t} to a {!pub}. *)
+
 val sexp_of_priv : priv -> Sexp.t
-(** Represent a {!priv} as a {!Sexp.t} *)
 val priv_of_sexp : Sexp.t -> priv
-(** Convert a {!Sexp.t} to a {!priv}. *)

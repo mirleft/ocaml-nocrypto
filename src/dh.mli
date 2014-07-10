@@ -85,10 +85,7 @@ end
 open Sexplib
 
 val sexp_of_group  : group -> Sexp.t
-(** Represent a {!group} as {!Sexp.t}. *)
 val group_of_sexp  : Sexp.t -> group
-(** Convert a {!Sexp.t} to a {!group}. *)
+
 val sexp_of_secret : secret -> Sexp.t
-(** Represent a {!secret} as {!Sexp.t}. *)
 val secret_of_sexp : Sexp.t -> secret
-(** Convert a {!Sexp.t} to a {!secret}. *)
