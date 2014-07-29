@@ -147,15 +147,17 @@ let mac nonce adata p tlen key =
 
 let ccm key nonce ?adata data tlen =
   let t = mac nonce adata data tlen key in
-  Cstruct.hexdump t ;
 
-  let firstblock = gen_block 0 nonce key in
+  let firstblock = gen_block 0 nonce key
+  and blocks = blocks (len data) nonce key
+  in
 
-  Common.Cs.xor_into (blocks (len data) nonce key) p (len p) ;
+  Common.Cs.xor_into blocks data (len data) ;
+
   Common.Cs.xor_into firstblock t (len t) ;
-  let c = p <+> t in
-  Printf.printf "c" ;
-  hexdump c ;
+
+  let c = data <+> t in
+
   c
 
 let decrypt key nonce ?adata cipher tlen =
@@ -171,8 +173,8 @@ let decrypt key nonce ?adata cipher tlen =
 
   Common.Cs.xor_into firstblock (sub cipher pclen tlen) tlen ;
   let t = sub cipher pclen tlen in
-  Printf.printf "t" ; hexdump t ;
 
   let t' = mac nonce adata p tlen key in
   (* assert t' = t *)
-  Printf.printf "t'" ; hexdump t'
+  hexdump t' ; hexdump t ;
+  p
