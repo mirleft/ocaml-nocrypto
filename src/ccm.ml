@@ -111,80 +111,28 @@ let n = cs_of_list [ 0x10 ; 0x11 ; 0x12 ; 0x13 ; 0x14 ; 0x15 ; 0x16 ]
 let p = cs_of_list [ 0x20 ; 0x21 ; 0x22 ; 0x23 ]
 let k = Block_cipher.AES.Raw.e_of_secret (cs_of_list [ 0x40 ; 0x41 ; 0x42 ; 0x43 ; 0x44 ; 0x45 ; 0x46 ; 0x47 ; 0x48 ; 0x49 ; 0x4A ; 0x4B ; 0x4C ; 0x4D ; 0x4E ; 0x4F ])
 
-let ccm key nonce ?adata data tlen =
-  let ada = match adata with
-    | Some x -> gen_adata x
-    | None   -> Common.Cs.empty
-  in
-  let bs = (format nonce adata data tlen) <+> ada <+> pad16 data in
+let gen_block idx nonce key =
+  let ctr = gen_ctr nonce idx in
+  Block_cipher.AES.Raw.encrypt_block ~key ctr ctr ;
+  ctr
 
-  let mac blocks tlen =
-    let rec loop last block =
-      match len block with
-      | 0 -> last
-      | _ ->
-         Common.Cs.xor_into last block 16 ;
-         Block_cipher.AES.Raw.encrypt_block ~key block block ;
-         loop (sub block 0 16)
-              (shift block 16)
-    in
-    let last = loop (Common.Cs.create_with 16 0) blocks in
-    sub last 0 tlen
-  in
-
-  let t = mac bs tlen in
-  Cstruct.hexdump t ;
-
-  let gen_block idx =
-    let ctr = gen_ctr nonce idx in
-    Block_cipher.AES.Raw.encrypt_block ~key ctr ctr ;
-    ctr
-  in
-
-  let blocks data =
-    let ctrblocks = Common.cdiv (len data) 16 + 1 in
-    let rec ctrloop idx = function
-      | 1 -> Common.Cs.empty
-      | n ->
-         let ctr = gen_block idx in
-         ctr <+> ctrloop (idx + 1) (n - 1)
-    in
-    ctrloop 1 ctrblocks
-  in
-
-  let firstblock = gen_block 0 in
-
-  Common.Cs.xor_into (blocks data) p (len p) ;
-  Common.Cs.xor_into firstblock t (len t) ;
-  let c = p <+> t in
-  Printf.printf "c" ;
-  hexdump c
-
-let decrypt key nonce ?adata cipher tlen =
-  let pclen = len cipher - tlen in
-  assert (pclen > 0);
-  let ctrblocks = Common.cdiv pclen 16 + 1 in
+let blocks dlen nonce key =
+  let ctrblocks = Common.cdiv dlen 16 + 1 in
   let rec ctrloop idx = function
-    | 0 -> []
+    | 1 -> Common.Cs.empty
     | n ->
-       let ctr = gen_ctr nonce idx in
-       Block_cipher.AES.Raw.encrypt_block ~key ctr ctr ;
-       ctr :: ctrloop (idx + 1) (n - 1)
+       let ctr = gen_block idx nonce key in
+       ctr <+> ctrloop (idx + 1) (n - 1)
   in
-  let blocks = ctrloop 0 ctrblocks in
-  let block1 = List.hd (List.tl blocks) in
-  Common.Cs.xor_into block1 cipher pclen ;
-  let p = sub cipher 0 pclen in
-  let block0 = List.hd blocks in
-  Common.Cs.xor_into block0 (sub cipher pclen tlen) tlen ;
-  let t = sub cipher pclen tlen in
-  Printf.printf "t" ; hexdump t ;
+  ctrloop 1 ctrblocks
 
+let mac nonce adata p tlen key =
   let ada = match adata with
     | Some x -> gen_adata x
     | None   -> Common.Cs.empty
   in
-  let bs = (format nonce adata p tlen) <+> ada <+> pad16 p in
+  let blocks = (format nonce adata p tlen) <+> ada <+> pad16 p in
+
   let rec loop last block =
     match len block with
     | 0 -> last
@@ -194,7 +142,37 @@ let decrypt key nonce ?adata cipher tlen =
        loop (sub block 0 16)
             (shift block 16)
   in
-  let last = loop (Common.Cs.create_with 16 0) bs in
-  let t' = sub last 0 tlen in
+  let last = loop (Common.Cs.create_with 16 0) blocks in
+  sub last 0 tlen
+
+let ccm key nonce ?adata data tlen =
+  let t = mac nonce adata data tlen key in
+  Cstruct.hexdump t ;
+
+  let firstblock = gen_block 0 nonce key in
+
+  Common.Cs.xor_into (blocks (len data) nonce key) p (len p) ;
+  Common.Cs.xor_into firstblock t (len t) ;
+  let c = p <+> t in
+  Printf.printf "c" ;
+  hexdump c ;
+  c
+
+let decrypt key nonce ?adata cipher tlen =
+  let pclen = len cipher - tlen in
+  assert (pclen > 0);
+
+  let firstblock = gen_block 0 nonce key
+  and blocks = blocks pclen nonce key
+  in
+
+  Common.Cs.xor_into blocks cipher pclen ;
+  let p = sub cipher 0 pclen in
+
+  Common.Cs.xor_into firstblock (sub cipher pclen tlen) tlen ;
+  let t = sub cipher pclen tlen in
+  Printf.printf "t" ; hexdump t ;
+
+  let t' = mac nonce adata p tlen key in
   (* assert t' = t *)
   Printf.printf "t'" ; hexdump t'
