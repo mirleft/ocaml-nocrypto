@@ -117,33 +117,45 @@ let ccm key nonce ?adata data tlen =
     | None   -> Common.Cs.empty
   in
   let bs = (format nonce adata data tlen) <+> ada <+> pad16 data in
-  let rec loop last block =
-    match len block with
-    | 0 -> last
-    | _ ->
-       Common.Cs.xor_into last block 16 ;
-       Block_cipher.AES.Raw.encrypt_block ~key block block ;
-       loop (sub block 0 16)
-            (shift block 16)
+
+  let mac blocks tlen =
+    let rec loop last block =
+      match len block with
+      | 0 -> last
+      | _ ->
+         Common.Cs.xor_into last block 16 ;
+         Block_cipher.AES.Raw.encrypt_block ~key block block ;
+         loop (sub block 0 16)
+              (shift block 16)
+    in
+    let last = loop (Common.Cs.create_with 16 0) blocks in
+    sub last 0 tlen
   in
-  let last = loop (Common.Cs.create_with 16 0) bs in
-  let t = sub last 0 tlen in
+
+  let t = mac bs tlen in
   Cstruct.hexdump t ;
-  let ctrblocks = Common.cdiv (len data) 16 + 1 in
-  let rec ctrloop idx = function
-    | 0 -> []
-    | n ->
-       let ctr = gen_ctr nonce idx in
-       Block_cipher.AES.Raw.encrypt_block ~key ctr ctr ;
-       ctr :: ctrloop (idx + 1) (n - 1)
+
+  let gen_block idx =
+    let ctr = gen_ctr nonce idx in
+    Block_cipher.AES.Raw.encrypt_block ~key ctr ctr ;
+    ctr
   in
-  let blocks = ctrloop 0 ctrblocks in
-  Printf.printf "ctrblocks" ;
-  List.iter hexdump blocks ;
-  let block0 = sub (List.hd blocks) 0 (len p) in
-  let block1 = sub (List.hd (List.tl blocks)) 0 (len t) in
-  Common.Cs.xor_into block1 p (len p) ;
-  Common.Cs.xor_into block0 t (len t) ;
+
+  let blocks data =
+    let ctrblocks = Common.cdiv (len data) 16 + 1 in
+    let rec ctrloop idx = function
+      | 1 -> Common.Cs.empty
+      | n ->
+         let ctr = gen_block idx in
+         ctr <+> ctrloop (idx + 1) (n - 1)
+    in
+    ctrloop 1 ctrblocks
+  in
+
+  let firstblock = gen_block 0 in
+
+  Common.Cs.xor_into (blocks data) p (len p) ;
+  Common.Cs.xor_into firstblock t (len t) ;
   let c = p <+> t in
   Printf.printf "c" ;
   hexdump c
