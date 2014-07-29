@@ -22,6 +22,21 @@ let bits n =
   in
   go 0 n
 
+let flags bit6 len1 len2 =
+  assert (len1 < 8 && len2 < 8);
+  let byte = Cstruct.create 1
+  and data = bit6 lsl 6 + len1 lsl 3 + len2 in
+  Cstruct.set_uint8 byte 0 data ;
+  byte
+
+let encode_len size value =
+  let b = Cstruct.create size in
+  let rec ass num = function
+    | 0 -> Cstruct.set_uint8 b 0 num ; b
+    | m -> Cstruct.set_uint8 b m (num land 0xff) ; ass (num lsr 8) (pred m)
+  in
+  ass value (pred size)
+
 let format nonce adata plain t (* mac len *) =
   let q = len plain in
   (* n + q = 15 *)
@@ -34,31 +49,17 @@ let format nonce adata plain t (* mac len *) =
   assert (small_q > 0 && small_q > bits q) ;
   (* first byte (flags): *)
   (* reserved | adata | (t - 2) / 2 | q - 1 *)
-  let flags =
-    let b6 = match adata with
-      | Some _ -> 1
-      | None   -> 0
-    and b543 = (t - 2) / 2
-    and b210 = small_q - 1
-    in
-    let value = (b6 lsl 6) + (b543 lsl 3) + b210
-    and byte = create 1 in
-    set_uint8 byte 0 value ;
-    byte
+  let b6 = match adata with
+    | Some _ -> 1
+    | None   -> 0
   in
+  let flag = flags b6 ((t - 2) / 2) (small_q - 1) in
   (* first octet block:
      0          : flags
      1..15 - q  : N
      16 - q..15 : Q *)
-  let qblock =
-    let b = create small_q in
-    let rec ass num = function
-      | 0 -> set_uint8 b 0 num ; b
-      | m -> set_uint8 b m (num land 0xff) ; ass (num lsr 8) (m - 1)
-    in
-    ass q (small_q - 1);
-  in
-  flags <+> nonce <+> qblock
+  let qblock = encode_len small_q q in
+  flag <+> nonce <+> qblock
 
 let cs_of_list l =
   let b = create (List.length l) in
@@ -69,17 +70,9 @@ let cs_of_list l =
   go 0 l ;
   b
 
-let create0 n =
-  let b = create n in
-  let rec go = function
-    | m when n = m -> b
-    | m            -> set_uint8 b m 0 ; go (m + 1)
-  in
-  go 0
-
 let pad16 b =
-  let pad = create0 (16 - len b mod 16) in
-  b <+> pad
+  let size = Cstruct.len b in
+  Common.Cs.rpad b (size + (16 - size mod 16)) 0
 
 let gen_adata a =
   let lbuf =
@@ -99,24 +92,19 @@ let gen_adata a =
   in
   pad16 (lbuf <+> a)
 
-let gen_ctr nonce i =
+let gen_ctr_stub nonce =
   let n = len nonce in
   let small_q = 15 - n in
-  let flags =
-    let b = create 1 in
-    set_uint8 b 0 (small_q - 1) ;
-    b
-  in
-  let count =
-    let b = create small_q in
-    let rec ass num = function
-      | 0 -> set_uint8 b 0 num ; b
-      | m -> set_uint8 b m (num land 0xff) ; ass (num lsr 8) (m - 1)
-    in
-    ass i (small_q - 1);
-  in
-  flags <+> nonce <+> count
+  let flag = flags 0 0 (small_q - 1) in
+  (flag <+> nonce, small_q)
 
+let gen_ctr_post i small_q =
+  let count = encode_len small_q i in
+  count
+
+let gen_ctr nonce i =
+  let pre, q = gen_ctr_stub nonce in
+  pre <+> gen_ctr_post i q
 
 let a = cs_of_list [ 0x00 ; 0x01 ; 0x02 ; 0x03 ; 0x04 ; 0x05 ; 0x06 ; 0x07 ]
 let n = cs_of_list [ 0x10 ; 0x11 ; 0x12 ; 0x13 ; 0x14 ; 0x15 ; 0x16 ]
@@ -126,7 +114,7 @@ let k = Block_cipher.AES.Raw.e_of_secret (cs_of_list [ 0x40 ; 0x41 ; 0x42 ; 0x43
 let ccm key nonce ?adata data tlen =
   let ada = match adata with
     | Some x -> gen_adata x
-    | None   -> create0 0
+    | None   -> Common.Cs.empty
   in
   let bs = (format nonce adata data tlen) <+> ada <+> pad16 data in
   let rec loop last block =
@@ -138,7 +126,7 @@ let ccm key nonce ?adata data tlen =
        loop (sub block 0 16)
             (shift block 16)
   in
-  let last = loop (create0 16) bs in
+  let last = loop (Common.Cs.create_with 16 0) bs in
   let t = sub last 0 tlen in
   Cstruct.hexdump t ;
   let ctrblocks = Common.cdiv (len data) 16 + 1 in
@@ -182,7 +170,7 @@ let decrypt key nonce ?adata cipher tlen =
 
   let ada = match adata with
     | Some x -> gen_adata x
-    | None   -> create0 0
+    | None   -> Common.Cs.empty
   in
   let bs = (format nonce adata p tlen) <+> ada <+> pad16 p in
   let rec loop last block =
@@ -194,7 +182,7 @@ let decrypt key nonce ?adata cipher tlen =
        loop (sub block 0 16)
             (shift block 16)
   in
-  let last = loop (create0 16) bs in
+  let last = loop (Common.Cs.create_with 16 0) bs in
   let t' = sub last 0 tlen in
   (* assert t' = t *)
   Printf.printf "t'" ; hexdump t'
