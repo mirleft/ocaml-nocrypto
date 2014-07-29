@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 4af55b449ff2dd34c40f98f442cd41cf)
+# DO NOT EDIT (digest: 9a892dc1b9e2a64d38a5b045238f10d4)
 Nocrypto
 Common
 Numeric
@@ -9,6 +9,7 @@ Block_cipher
 Fortuna
 Rng
 Stream_cipher
+Ccm
 Gcm
 Rsa
 Dh
