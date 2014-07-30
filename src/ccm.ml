@@ -1,14 +1,5 @@
 
-open Cstruct
-
-  let append cs1 cs2 =
-    let l1 = len cs1 and l2 = len cs2 in
-    let cs = create (l1 + l2) in
-    blit cs1 0 cs 0 l1 ;
-    blit cs2 0 cs l1 l2 ;
-    cs
-
-let (<+>) = append
+let (<+>) = Common.Cs.append
 
 
 let valid_t = [ 4 ; 6 ; 8 ; 10 ; 12 ; 14 ; 16 ] (* octet length of mac *)
@@ -38,10 +29,10 @@ let encode_len size value =
   ass value (pred size)
 
 let format nonce adata plain t (* mac len *) =
-  let q = len plain in
+  let q = Cstruct.len plain in
   (* n + q = 15 *)
   (* a < 2 ^ 64 *)
-  let n = len nonce in
+  let n = Cstruct.len nonce in
   let small_q = 15 - n in
   assert (List.mem small_q valid_small_q) ;
   assert (List.mem t valid_t) ;
@@ -61,39 +52,30 @@ let format nonce adata plain t (* mac len *) =
   let qblock = encode_len small_q q in
   flag <+> nonce <+> qblock
 
-let cs_of_list l =
-  let b = create (List.length l) in
-  let rec go idx = function
-    | []    -> ()
-    | x::xs -> set_uint8 b idx x ; go (idx + 1) xs
-  in
-  go 0 l ;
-  b
-
 let pad16 b =
   let size = Cstruct.len b in
   Common.Cs.rpad b (size + (16 - size mod 16)) 0
 
 let gen_adata a =
   let lbuf =
-    match len a with
+    match Cstruct.len a with
     | x when x < (1 lsl 16 - 1 lsl 8) ->
-       let buf = create 2 in
-       BE.set_uint16 buf 0 x ;
+       let buf = Cstruct.create 2 in
+       Cstruct.BE.set_uint16 buf 0 x ;
        buf
     | x when x < (1 lsl 32)           ->
-       let buf = create 4 in
-       BE.set_uint32 buf 0 (Int32.of_int x) ;
-       cs_of_list [0xff ; 0xfe] <+> buf
+       let buf = Cstruct.create 4 in
+       Cstruct.BE.set_uint32 buf 0 (Int32.of_int x) ;
+       Common.Cs.of_bytes [0xff ; 0xfe] <+> buf
     | x                               ->
-       let buf = create 8 in
-       BE.set_uint64 buf 0 (Int64.of_int x) ;
-       cs_of_list [0xff ; 0xff] <+> buf
+       let buf = Cstruct.create 8 in
+       Cstruct.BE.set_uint64 buf 0 (Int64.of_int x) ;
+       Common.Cs.of_bytes [0xff ; 0xff] <+> buf
   in
   pad16 (lbuf <+> a)
 
 let gen_ctr_stub nonce =
-  let n = len nonce in
+  let n = Cstruct.len nonce in
   let small_q = 15 - n in
   let flag = flags 0 0 (small_q - 1) in
   (flag <+> nonce, small_q)
@@ -106,10 +88,10 @@ let gen_ctr nonce i =
   let pre, q = gen_ctr_stub nonce in
   pre <+> gen_ctr_post i q
 
-let a = cs_of_list [ 0x00 ; 0x01 ; 0x02 ; 0x03 ; 0x04 ; 0x05 ; 0x06 ; 0x07 ]
-let n = cs_of_list [ 0x10 ; 0x11 ; 0x12 ; 0x13 ; 0x14 ; 0x15 ; 0x16 ]
-let p = cs_of_list [ 0x20 ; 0x21 ; 0x22 ; 0x23 ]
-let k = Block_cipher.AES.Raw.e_of_secret (cs_of_list [ 0x40 ; 0x41 ; 0x42 ; 0x43 ; 0x44 ; 0x45 ; 0x46 ; 0x47 ; 0x48 ; 0x49 ; 0x4A ; 0x4B ; 0x4C ; 0x4D ; 0x4E ; 0x4F ])
+let a = Common.Cs.of_bytes [ 0x00 ; 0x01 ; 0x02 ; 0x03 ; 0x04 ; 0x05 ; 0x06 ; 0x07 ]
+let n = Common.Cs.of_bytes [ 0x10 ; 0x11 ; 0x12 ; 0x13 ; 0x14 ; 0x15 ; 0x16 ]
+let p = Common.Cs.of_bytes [ 0x20 ; 0x21 ; 0x22 ; 0x23 ]
+let k = Block_cipher.AES.Raw.e_of_secret (Common.Cs.of_bytes [ 0x40 ; 0x41 ; 0x42 ; 0x43 ; 0x44 ; 0x45 ; 0x46 ; 0x47 ; 0x48 ; 0x49 ; 0x4A ; 0x4B ; 0x4C ; 0x4D ; 0x4E ; 0x4F ])
 
 let gen_block idx nonce key =
   let ctr = gen_ctr nonce idx in
@@ -134,47 +116,37 @@ let mac nonce adata p tlen key =
   let blocks = (format nonce adata p tlen) <+> ada <+> pad16 p in
 
   let rec loop last block =
-    match len block with
+    match Cstruct.len block with
     | 0 -> last
     | _ ->
        Common.Cs.xor_into last block 16 ;
        Block_cipher.AES.Raw.encrypt_block ~key block block ;
-       loop (sub block 0 16)
-            (shift block 16)
+       loop (Cstruct.sub block 0 16)
+            (Cstruct.shift block 16)
   in
   let last = loop (Common.Cs.create_with 16 0) blocks in
-  sub last 0 tlen
+  Cstruct.sub last 0 tlen
 
 let ccm key nonce ?adata data tlen =
   let t = mac nonce adata data tlen key in
-
   let firstblock = gen_block 0 nonce key
-  and blocks = blocks (len data) nonce key
+  and blocks = blocks (Cstruct.len data) nonce key
   in
-
-  Common.Cs.xor_into blocks data (len data) ;
-
-  Common.Cs.xor_into firstblock t (len t) ;
-
-  let c = data <+> t in
-
-  c
+  Common.Cs.xor_into blocks data (Cstruct.len data) ;
+  Common.Cs.xor_into firstblock t (Cstruct.len t) ;
+  data <+> t
 
 let decrypt key nonce ?adata cipher tlen =
-  let pclen = len cipher - tlen in
+  let pclen = Cstruct.len cipher - tlen in
   assert (pclen > 0);
-
   let firstblock = gen_block 0 nonce key
   and blocks = blocks pclen nonce key
   in
-
   Common.Cs.xor_into blocks cipher pclen ;
-  let p = sub cipher 0 pclen in
-
-  Common.Cs.xor_into firstblock (sub cipher pclen tlen) tlen ;
-  let t = sub cipher pclen tlen in
-
+  let p = Cstruct.sub cipher 0 pclen in
+  Common.Cs.xor_into firstblock (Cstruct.sub cipher pclen tlen) tlen ;
+  let t = Cstruct.sub cipher pclen tlen in
   let t' = mac nonce adata p tlen key in
   (* assert t' = t *)
-  hexdump t' ; hexdump t ;
+  Cstruct.hexdump t' ; Cstruct.hexdump t ;
   p
