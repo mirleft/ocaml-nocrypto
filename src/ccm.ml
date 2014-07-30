@@ -37,7 +37,6 @@ let format nonce adata plain t (* mac len *) =
   assert (List.mem small_q valid_small_q) ;
   assert (List.mem t valid_t) ;
   assert (List.mem n valid_n) ;
-  assert (small_q > 0 && small_q > bits q) ;
   (* first byte (flags): *)
   (* reserved | adata | (t - 2) / 2 | q - 1 *)
   let b6 = match adata with
@@ -54,7 +53,10 @@ let format nonce adata plain t (* mac len *) =
 
 let pad16 b =
   let size = Cstruct.len b in
-  Common.Cs.rpad b (size + (16 - size mod 16)) 0
+  if size mod 16 = 0 then
+    b
+  else
+    Common.Cs.rpad b (size + (16 - size mod 16)) 0
 
 let gen_adata a =
   let lbuf =
@@ -124,6 +126,7 @@ let mac cipher nonce adata p tlen key =
 
 let generation_encryption ~cipher ~key ~nonce ~maclen ?adata data =
   let t = mac cipher nonce adata data maclen key in
+
   let firstblock = gen_block cipher 0 nonce key
   and blocks = blocks cipher (Cstruct.len data) nonce key
   in

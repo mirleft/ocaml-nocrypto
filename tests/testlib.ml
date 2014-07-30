@@ -491,7 +491,7 @@ let gcm_cases =
 
 
 let ccm_cases =
-
+(* from SP800-38C_updated-July20_2007.pdf appendix C *)
   let case ~key ~p ~a ~nonce ~c ~maclen =
     ( AES.CCM.of_secret (Cs.of_hex key),
       Cs.of_hex p, Cs.of_hex a, Cs.of_hex nonce, Cs.of_hex c, maclen ) in
@@ -500,9 +500,9 @@ let ccm_cases =
     let open AES.CCM in
     let p' = Common.Cs.clone p in
     let cip = AES.CCM.encrypt_authenticate ~key ~nonce ~adata ~maclen p in
-    assert_cs_equal ~msg:"encrypt" cip c ;
+    assert_cs_equal ~msg:"encrypt" c cip ;
     match AES.CCM.decrypt_verify ~key ~nonce ~adata ~maclen c with
-      | Some x -> assert_cs_equal ~msg:"decrypt" x p'
+      | Some x -> assert_cs_equal ~msg:"decrypt" p' x
       | None -> assert_failure "decryption broken"
   in
 
@@ -514,7 +514,25 @@ let ccm_cases =
                   ~nonce:  "10111213141516"
                   ~c:      "7162015b4dac255d"
                   ~maclen: 4
+
            ;
+
+             case ~key:    "40414243 44454647 48494a4b 4c4d4e4f"
+                  ~p:      "20212223 24252627 28292a2b 2c2d2e2f"
+                  ~a:      "00010203 04050607 08090a0b 0c0d0e0f"
+                  ~nonce:  "10111213 14151617"
+                  ~c:      "d2a1f0e0 51ea5f62 081a7792 073d593d 1fc64fbf accd"
+                  ~maclen: 6
+
+           ;
+
+             case ~key:    "404142434445464748494a4b4c4d4e4f"
+                  ~p:      "202122232425262728292a2b2c2d2e2f3031323334353637"
+                  ~a:      "000102030405060708090a0b0c0d0e0f10111213"
+                  ~nonce:  "101112131415161718191a1b"
+                  ~c:      "e3b201a9f5b71a7a9b1ceaeccd97e70b6176aad9a4428aa5484392fbc1b09951"
+                  ~maclen: 8
+
            ]
 
 let suite =
