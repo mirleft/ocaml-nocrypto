@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 4af55b449ff2dd34c40f98f442cd41cf)
+# DO NOT EDIT (digest: 5ff5cddcef6bf0dda1314b04629147b2)
 Nocrypto
 Common
 Numeric
@@ -14,4 +14,5 @@ Rsa
 Dh
 Algo_types
 Base64
+Ccm
 # OASIS_STOP

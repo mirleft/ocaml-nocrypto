@@ -6,6 +6,7 @@ module type T_RAW = sig include Block.Cipher_raw end
 module type T_ECB = sig include Block.ECB end
 module type T_CBC = sig include Block.CBC end
 module type T_GCM = sig include Block.GCM end
+module type T_CCM = sig include Block.CCM end
 module type T_CTR = functor (C : Block.Counter) -> sig include Block.CTR end
 
 module Counters : sig
@@ -19,6 +20,7 @@ module AES : sig
   module CBC : T_CBC
   module CTR : T_CTR
   module GCM : T_GCM
+  module CCM : T_CCM
 end
 
 module DES : sig

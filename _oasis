@@ -35,7 +35,8 @@ Library "nocrypto"
                    Rsa,
                    Dh,
                    Algo_types,
-                   Base64
+                   Base64,
+                   Ccm
   CSources:        native/sha2.c,
                    native/sha2.h,
                    native/md5.c,
