@@ -490,6 +490,33 @@ let gcm_cases =
 ]
 
 
+let ccm_cases =
+
+  let case ~key ~p ~a ~nonce ~c ~maclen =
+    ( AES.CCM.of_secret (Cs.of_hex key),
+      Cs.of_hex p, Cs.of_hex a, Cs.of_hex nonce, Cs.of_hex c, maclen ) in
+
+  let check (key, p, adata, nonce, c, maclen) _ =
+    let open AES.CCM in
+    let p' = Common.Cs.clone p in
+    let cip = AES.CCM.encrypt_authenticate ~key ~nonce ~adata ~maclen p in
+    assert_cs_equal ~msg:"encrypt" cip c ;
+    match AES.CCM.decrypt_verify ~key ~nonce ~adata ~maclen c with
+      | Some x -> assert_cs_equal ~msg:"decrypt" x p'
+      | None -> assert_failure "decryption broken"
+  in
+
+  cases_of check [
+
+             case ~key:    "404142434445464748494a4b4c4d4e4f"
+                  ~p:      "20212223"
+                  ~a:      "0001020304050607"
+                  ~nonce:  "10111213141516"
+                  ~c:      "7162015b4dac255d"
+                  ~maclen: 4
+           ;
+           ]
+
 let suite =
 
   "All" >::: [
@@ -521,8 +548,9 @@ let suite =
 
     "AES-CBC" >::: [ cbc_selftest (module Block.AES.CBC) 100 ] ;
 
-    "AES-GCM" >::: gcm_cases
+    "AES-GCM" >::: gcm_cases ;
 
+    "AES-CCM" >::: ccm_cases
   ]
 
 (*

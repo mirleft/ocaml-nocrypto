@@ -88,27 +88,22 @@ let gen_ctr nonce i =
   let pre, q = gen_ctr_stub nonce in
   pre <+> gen_ctr_post i q
 
-let a = Common.Cs.of_bytes [ 0x00 ; 0x01 ; 0x02 ; 0x03 ; 0x04 ; 0x05 ; 0x06 ; 0x07 ]
-let n = Common.Cs.of_bytes [ 0x10 ; 0x11 ; 0x12 ; 0x13 ; 0x14 ; 0x15 ; 0x16 ]
-let p = Common.Cs.of_bytes [ 0x20 ; 0x21 ; 0x22 ; 0x23 ]
-let k = Block_cipher.AES.Raw.e_of_secret (Common.Cs.of_bytes [ 0x40 ; 0x41 ; 0x42 ; 0x43 ; 0x44 ; 0x45 ; 0x46 ; 0x47 ; 0x48 ; 0x49 ; 0x4A ; 0x4B ; 0x4C ; 0x4D ; 0x4E ; 0x4F ])
-
-let gen_block idx nonce key =
+let gen_block cipher idx nonce key =
   let ctr = gen_ctr nonce idx in
-  Block_cipher.AES.Raw.encrypt_block ~key ctr ctr ;
+  cipher ~key ctr ctr ;
   ctr
 
-let blocks dlen nonce key =
+let blocks cipher dlen nonce key =
   let ctrblocks = Common.cdiv dlen 16 + 1 in
   let rec ctrloop idx = function
     | 1 -> Common.Cs.empty
     | n ->
-       let ctr = gen_block idx nonce key in
+       let ctr = gen_block cipher idx nonce key in
        ctr <+> ctrloop (idx + 1) (n - 1)
   in
   ctrloop 1 ctrblocks
 
-let mac nonce adata p tlen key =
+let mac cipher nonce adata p tlen key =
   let ada = match adata with
     | Some x -> gen_adata x
     | None   -> Common.Cs.empty
@@ -120,33 +115,34 @@ let mac nonce adata p tlen key =
     | 0 -> last
     | _ ->
        Common.Cs.xor_into last block 16 ;
-       Block_cipher.AES.Raw.encrypt_block ~key block block ;
+       cipher ~key block block ;
        loop (Cstruct.sub block 0 16)
             (Cstruct.shift block 16)
   in
   let last = loop (Common.Cs.create_with 16 0) blocks in
   Cstruct.sub last 0 tlen
 
-let ccm key nonce ?adata data tlen =
-  let t = mac nonce adata data tlen key in
-  let firstblock = gen_block 0 nonce key
-  and blocks = blocks (Cstruct.len data) nonce key
+let generation_encryption ~cipher ~key ~nonce ~maclen ?adata data =
+  let t = mac cipher nonce adata data maclen key in
+  let firstblock = gen_block cipher 0 nonce key
+  and blocks = blocks cipher (Cstruct.len data) nonce key
   in
   Common.Cs.xor_into blocks data (Cstruct.len data) ;
   Common.Cs.xor_into firstblock t (Cstruct.len t) ;
   data <+> t
 
-let decrypt key nonce ?adata cipher tlen =
-  let pclen = Cstruct.len cipher - tlen in
+let decryption_verification ~cipher ~key ~nonce ~maclen ?adata data =
+  let pclen = Cstruct.len data - maclen in
   assert (pclen > 0);
-  let firstblock = gen_block 0 nonce key
-  and blocks = blocks pclen nonce key
+  let firstblock = gen_block cipher 0 nonce key
+  and blocks = blocks cipher pclen nonce key
   in
-  Common.Cs.xor_into blocks cipher pclen ;
-  let p = Cstruct.sub cipher 0 pclen in
-  Common.Cs.xor_into firstblock (Cstruct.sub cipher pclen tlen) tlen ;
-  let t = Cstruct.sub cipher pclen tlen in
-  let t' = mac nonce adata p tlen key in
+  Common.Cs.xor_into blocks data pclen ;
+  let p = Cstruct.sub data 0 pclen in
+  Common.Cs.xor_into firstblock (Cstruct.sub data pclen maclen) maclen ;
+  let t = Cstruct.sub data pclen maclen in
+  let t' = mac cipher nonce adata p maclen key in
   (* assert t' = t *)
-  Cstruct.hexdump t' ; Cstruct.hexdump t ;
-  p
+  match Common.Cs.equal t' t with
+  | true  -> Some p
+  | false -> None
