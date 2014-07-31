@@ -9,3 +9,7 @@ setup.log
 *.docdir
 
 gmon.out
+
+src/nc_native_sizes.ml
+src/nc_generated.ml
+src/native/nc_generated_stubs.c
