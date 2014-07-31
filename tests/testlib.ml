@@ -495,6 +495,7 @@ let suite =
   "All" >::: [
 
     "RSA" >::: [
+(*       rsa_selftest ~bits:8    1000 ; *)
       rsa_selftest ~bits:16   1000 ;
       rsa_selftest ~bits:128  100  ;
       rsa_selftest ~bits:1024 10   ;
