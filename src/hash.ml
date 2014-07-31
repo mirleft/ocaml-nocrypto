@@ -19,21 +19,21 @@ module Full_hash (H : Base_hash) = struct
 
   open Native
 
-  type t = bigstring
+  type t = char Ctypes.ptr
 
   let block_size  = H.block_size
   and digest_size = H.digest_size
 
   let init () =
-    let t = Conv.bigstring_create H.ssize in
-    ( H.init Conv.(bs_ptr t); t )
+    let t = Ctypes.(allocate_n char ~count:H.ssize) in
+    ( H.init t; t )
 
   let feed t cs =
-    H.update Conv.(bs_ptr t) Conv.(cs_ptr cs) Conv.(cs_len_size_t cs)
+    H.update t Conv.(cs_ptr cs) Conv.(cs_len_size_t cs)
 
   let get t =
     let res = Cstruct.create H.digest_size in
-    ( H.final Conv.(cs_ptr res) Conv.(bs_ptr t); res )
+    ( H.final Conv.(cs_ptr res) t; res )
 
   let digestv css =
     let t = init () in ( List.iter (feed t) css ; get t )
@@ -42,6 +42,7 @@ module Full_hash (H : Base_hash) = struct
     let t = init () in ( feed t cs ; get t )
 
 end
+
 module Full_hash_hmac (H : Base_hash) = struct
 
   open Cs

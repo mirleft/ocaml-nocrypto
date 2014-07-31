@@ -189,12 +189,12 @@ module AES = struct
 
     let bail msg = invalid_arg ("Nocrypto: AES: " ^ msg)
 
-    let of_secret ~init cs =
-      let size = cs.Cstruct.len in
+    let of_secret ~init sec =
+      let size = sec.Cstruct.len in
       if size <> 16 && size <> 24 && size <> 32 then
         bail "secret is not 16, 24 or 32 bytes" ;
       let rk = Ctypes.(allocate_n ulong ~count:(AES.rklength size)) in
-      init rk Conv.(cs_ptr cs) (size * 8) ;
+      init rk Conv.(cs_ptr sec) (size * 8) ;
       (rk, AES.nrounds size)
 
     let e_of_secret cs = of_secret ~init:AES.setup_enc cs
