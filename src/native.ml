@@ -1,6 +1,9 @@
 
 open Bigarray
-type ba = (char, int8_unsigned_elt, c_layout) Array1.t
+
+type bigstring = (char, int8_unsigned_elt, c_layout) Array1.t
+
+type ba = bigstring
 
 external md5_init    : unit -> ba       = "caml_nc_init_MD5"
 external md5_feed    : ba -> ba -> unit = "caml_nc_feed_MD5"    "noalloc"
@@ -29,3 +32,28 @@ external aes_decrypt_into : ba -> ba -> ba -> unit = "caml_nc_aes_Dec" "noalloc"
 external des3_create_key   : ba -> int -> ba        = "caml_nc_des_create_key"
 external des3_xform_into   : ba -> ba -> ba -> unit = "caml_nc_des_transform"  "noalloc"
 external des3_xform_into2  : ba -> ba -> ba -> unit = "caml_nc_des_transform2" "noalloc"
+
+open Ctypes
+open PosixTypes
+
+module Conv = struct
+
+  let bigstring_create = Bigarray.(Array1.create char c_layout)
+
+  let bs_ptr bs = bigarray_start array1 bs
+
+  let cs_ptr cs =
+    bigarray_start array1 Cstruct.(to_bigarray cs)
+(*     bigarray_start array1 cs.Cstruct.buffer +@ cs.Cstruct.off *) (* XXX *)
+
+  let cs_len_size_t cs = Unsigned.Size_t.of_int cs.Cstruct.len
+
+end
+
+module Bindings (F : sig
+  type 'a fn
+  val foreign : string -> ('a -> 'b) Ctypes.fn -> ('a -> 'b) fn
+end) = struct
+
+
+end
