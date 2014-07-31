@@ -5,7 +5,7 @@ type bigstring = (char, int8_unsigned_elt, c_layout) Array1.t
 
 type ba = bigstring
 
-external md5_init    : unit -> ba       = "caml_nc_init_MD5"
+(* external md5_init    : unit -> ba       = "caml_nc_init_MD5"
 external md5_feed    : ba -> ba -> unit = "caml_nc_feed_MD5"    "noalloc"
 external md5_get     : ba -> ba         = "caml_nc_get_MD5"
 external sha1_init   : unit -> ba       = "caml_nc_init_SHA1"
@@ -22,7 +22,7 @@ external sha384_feed : ba -> ba -> unit = "caml_nc_feed_SHA384" "noalloc"
 external sha384_get  : ba -> ba         = "caml_nc_get_SHA384"
 external sha512_init : unit -> ba       = "caml_nc_init_SHA512"
 external sha512_feed : ba -> ba -> unit = "caml_nc_feed_SHA512" "noalloc"
-external sha512_get  : ba -> ba         = "caml_nc_get_SHA512"
+external sha512_get  : ba -> ba         = "caml_nc_get_SHA512" *)
 
 external aes_create_enc   : ba -> ba               = "caml_nc_aes_create_Enc_key"
 external aes_create_dec   : ba -> ba               = "caml_nc_aes_create_Dec_key"
@@ -55,5 +55,29 @@ module Bindings (F : sig
   val foreign : string -> ('a -> 'b) Ctypes.fn -> ('a -> 'b) fn
 end) = struct
 
+  module Gen_hash (H : sig val ssize : int val pre : string end) = struct
+
+    let ssize = H.ssize
+
+    (* data: const uint8_t*)
+    let init =
+      (* state -> unit *)
+      F.foreign (H.pre ^ "_Init")   @@ ptr char @-> returning void
+    and update =
+      (* state -> input -> unit *)
+      F.foreign (H.pre ^ "_Update") @@ ptr char @-> ptr char @-> size_t @-> returning void
+    and final =
+      (* result -> state -> unit *)
+      F.foreign (H.pre ^ "_Final")  @@ ptr char @-> ptr char @-> returning void
+  end
+
+  open Nc_native_sizes
+
+  module MD5    = Gen_hash (struct let ssize = sizeof_MD5_CTX let pre = "MD5"    end)
+  module SHA1   = Gen_hash (struct let ssize = sizeof_SHA_CTX let pre = "SHA1"   end)
+  module SHA224 = Gen_hash (struct let ssize = sizeof_SHA_CTX let pre = "SHA224" end)
+  module SHA256 = Gen_hash (struct let ssize = sizeof_SHA_CTX let pre = "SHA256" end)
+  module SHA384 = Gen_hash (struct let ssize = sizeof_SHA_CTX let pre = "SHA384" end)
+  module SHA512 = Gen_hash (struct let ssize = sizeof_SHA_CTX let pre = "SHA512" end)
 
 end
