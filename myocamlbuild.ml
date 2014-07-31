@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 8921885a981694cf9bf816a58fb64c28) *)
+(* DO NOT EDIT (digest: 51e376e62b6706893ab7b221a5c1984b) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -612,7 +612,7 @@ let package_default =
        [
           (["oasis_library_nocrypto_ccopt"; "compile"],
             [
-               (OASISExpr.EBool true, S []);
+               (OASISExpr.EBool true, S [A "-ccopt"; A "-I${pkg_ctypes}/.."]);
                (OASISExpr.EFlag "pedantic",
                  S [A "-ccopt"; A "-Wall"; A "-ccopt"; A "-Wpedantic"])
             ]);
