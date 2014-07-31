@@ -1,9 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: 0ed730e6cf7a762b27f30ece7be75cfb)
+# DO NOT EDIT (digest: 25683b126dda14d3a946a9ddfe317a8d)
 native/sha2.o
 native/md5.o
 native/rijndael.o
 native/d3des.o
 native/nc_generated_stubs.o
-native/stubs.o
 # OASIS_STOP

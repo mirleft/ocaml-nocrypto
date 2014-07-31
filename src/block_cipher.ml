@@ -2,8 +2,6 @@
 open Nc_common
 open Algo_types.Block
 
-let ba_of_cs = Cstruct.to_bigarray
-
 
 module Modes = struct
 
@@ -179,26 +177,6 @@ module Conv     = Native.Conv
 
 module AES = struct
 
-(*   module Raw : Cipher_raw = struct
-
-    open Native
-
-    type ekey = ba
-    type dkey = ba
-
-    let e_of_secret = o aes_create_enc ba_of_cs
-    and d_of_secret = o aes_create_dec ba_of_cs
-
-    let key_sizes  = [| 16; 24; 32 |]
-    let block_size = 16
-
-    let encrypt_block ~key src dst =
-      aes_encrypt_into key (ba_of_cs src) (ba_of_cs dst)
-
-    and decrypt_block ~key src dst =
-      aes_decrypt_into key (ba_of_cs src) (ba_of_cs dst)
-  end *)
-
   module Raw : Cipher_raw = struct
 
     open Bindings
@@ -237,29 +215,11 @@ module AES = struct
   module CBC = Modes.CBC_of (Raw)
   module CTR = Modes.CTR_of (Raw)
   module GCM = Modes.GCM_of (Base)
+
 end
 
 
 module DES = struct
-
-(*   module Raw = struct
-
-    open Native
-
-    type ekey = ba
-    type dkey = ba
-
-    let e_of_secret k = des3_create_key (ba_of_cs k) 0
-    and d_of_secret k = des3_create_key (ba_of_cs k) 1
-
-    let key_sizes  = [| 24 |]
-    let block_size = 8
-
-    let encrypt_block ~key src dst =
-      des3_xform_into key (ba_of_cs src) (ba_of_cs dst)
-
-    let decrypt_block = encrypt_block
-  end *)
 
   module Raw = struct
 
@@ -298,6 +258,7 @@ module DES = struct
   module ECB = Modes.ECB_of (Raw)
   module CBC = Modes.CBC_of (Raw)
   module CTR = Modes.CTR_of (Raw)
+
 end
 
 module type Counter = sig include Counter end

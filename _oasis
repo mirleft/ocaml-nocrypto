@@ -57,8 +57,7 @@ Library "nocrypto"
                    native/rijndael.h,
                    native/d3des.c,
                    native/d3des.h,
-                   native/nc_generated_stubs.c,
-                   native/stubs.c
+                   native/nc_generated_stubs.c
   BuildDepends:    cstruct, zarith, ctypes, sexplib.syntax
   CCOpt:           -I$pkg_ctypes/..
   BuildTools+:     ffi_gen
