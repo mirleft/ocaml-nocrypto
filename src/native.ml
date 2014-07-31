@@ -29,9 +29,9 @@ external aes_create_dec   : ba -> ba               = "caml_nc_aes_create_Dec_key
 external aes_encrypt_into : ba -> ba -> ba -> unit = "caml_nc_aes_Enc" "noalloc"
 external aes_decrypt_into : ba -> ba -> ba -> unit = "caml_nc_aes_Dec" "noalloc" *)
 
-external des3_create_key   : ba -> int -> ba        = "caml_nc_des_create_key"
+(* external des3_create_key   : ba -> int -> ba        = "caml_nc_des_create_key"
 external des3_xform_into   : ba -> ba -> ba -> unit = "caml_nc_des_transform"  "noalloc"
-external des3_xform_into2  : ba -> ba -> ba -> unit = "caml_nc_des_transform2" "noalloc"
+external des3_xform_into2  : ba -> ba -> ba -> unit = "caml_nc_des_transform2" "noalloc" *)
 
 open Ctypes
 open PosixTypes
@@ -97,4 +97,16 @@ end) = struct
     let rklength keybytes = keybytes + 28
     and nrounds  keybytes = keybytes / 4 + 6
   end
+
+  module D3DES = struct
+
+    let en0 = 0
+    and de1 = 1
+
+    let des3key = F.foreign "des3key" @@ ptr char @-> short @-> returning void
+    and cp3key  = F.foreign "cp3key"  @@ ptr ulong @-> returning void
+    and use3key = F.foreign "use3key" @@ ptr ulong @-> returning void
+    and ddes    = F.foreign "Ddes"    @@ ptr char @-> ptr char @-> returning void
+  end
+
 end

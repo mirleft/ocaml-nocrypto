@@ -242,7 +242,7 @@ end
 
 module DES = struct
 
-  module Raw = struct
+(*   module Raw = struct
 
     open Native
 
@@ -259,6 +259,38 @@ module DES = struct
       des3_xform_into key (ba_of_cs src) (ba_of_cs dst)
 
     let decrypt_block = encrypt_block
+  end *)
+
+  module Raw = struct
+
+    open Bindings
+
+    let key_sizes  = [| 24 |]
+    let block_size = 8
+
+    type ekey = Unsigned.ulong Ctypes.ptr
+    type dkey = Unsigned.ulong Ctypes.ptr
+
+    let bail msg = invalid_arg ("Nocrypto: DES: " ^ msg)
+
+    let of_secret ~direction sec =
+      if sec.Cstruct.len <> 24 then bail "secret is not 24 bytes" ;
+      let cooked = Ctypes.(allocate_n ulong ~count:96) in
+      D3DES.des3key Conv.(cs_ptr sec) direction ;
+      D3DES.cp3key cooked ;
+      cooked
+
+    let e_of_secret cs = of_secret ~direction:D3DES.en0 cs
+    and d_of_secret cs = of_secret ~direction:D3DES.de1 cs
+
+    let encrypt_block ~key src dst =
+      if src.Cstruct.len < 8 || dst.Cstruct.len < 8 then
+        bail "message or ciphertext is shorter than 8 bytes" ;
+      D3DES.use3key key;
+      D3DES.ddes Conv.(cs_ptr src) Conv.(cs_ptr dst)
+
+    let decrypt_block = encrypt_block
+
   end
 
   module Base = Modes.Base_of (Raw)
