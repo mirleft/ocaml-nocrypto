@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # This scriptlet tries to extract sizes from C headers and make them available
 # as OCaml values.
