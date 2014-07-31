@@ -1,5 +1,5 @@
 
-open Common
+open Nc_common
 open Algo_types.Block
 
 let ba_of_cs = Cstruct.to_bigarray
@@ -174,10 +174,12 @@ module Counters = struct
   end
 end
 
+module Bindings = Native.Bindings (Nc_generated)
+module Conv     = Native.Conv
 
 module AES = struct
 
-  module Raw : Cipher_raw = struct
+(*   module Raw : Cipher_raw = struct
 
     open Native
 
@@ -195,6 +197,38 @@ module AES = struct
 
     and decrypt_block ~key src dst =
       aes_decrypt_into key (ba_of_cs src) (ba_of_cs dst)
+  end *)
+
+  module Raw : Cipher_raw = struct
+
+    open Bindings
+
+    let key_sizes  = [| 16; 24; 32 |]
+    let block_size = 16
+
+    type ekey = (Unsigned.ulong Ctypes.ptr) * int
+    type dkey = (Unsigned.ulong Ctypes.ptr) * int
+
+    let bail msg = invalid_arg ("Nocrypto: AES: " ^ msg)
+
+    let of_secret ~init cs =
+      let size = cs.Cstruct.len in
+      if size <> 16 && size <> 24 && size <> 32 then
+        bail "secret is not 16, 24 or 32 bytes" ;
+      let rk = Ctypes.(allocate_n ulong ~count:(AES.rklength size)) in
+      init rk Conv.(cs_ptr cs) (size * 8) ;
+      (rk, AES.nrounds size)
+
+    let e_of_secret cs = of_secret ~init:AES.setup_enc cs
+    and d_of_secret cs = of_secret ~init:AES.setup_dec cs
+
+    let transform ~f ~key:(rk, rounds) src dst =
+      if src.Cstruct.len < 16 || dst.Cstruct.len < 16 then
+        bail "message or ciphertext is shorter than 16 bytes" ;
+      f rk rounds Conv.(cs_ptr src) Conv.(cs_ptr dst)
+
+    let encrypt_block ~key src dst = transform ~f:AES.enc ~key src dst
+    and decrypt_block ~key src dst = transform ~f:AES.dec ~key src dst
   end
 
   module Base = Modes.Base_of (Raw)

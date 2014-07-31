@@ -24,10 +24,10 @@ external sha512_init : unit -> ba       = "caml_nc_init_SHA512"
 external sha512_feed : ba -> ba -> unit = "caml_nc_feed_SHA512" "noalloc"
 external sha512_get  : ba -> ba         = "caml_nc_get_SHA512" *)
 
-external aes_create_enc   : ba -> ba               = "caml_nc_aes_create_Enc_key"
+(* external aes_create_enc   : ba -> ba               = "caml_nc_aes_create_Enc_key"
 external aes_create_dec   : ba -> ba               = "caml_nc_aes_create_Dec_key"
 external aes_encrypt_into : ba -> ba -> ba -> unit = "caml_nc_aes_Enc" "noalloc"
-external aes_decrypt_into : ba -> ba -> ba -> unit = "caml_nc_aes_Dec" "noalloc"
+external aes_decrypt_into : ba -> ba -> ba -> unit = "caml_nc_aes_Dec" "noalloc" *)
 
 external des3_create_key   : ba -> int -> ba        = "caml_nc_des_create_key"
 external des3_xform_into   : ba -> ba -> ba -> unit = "caml_nc_des_transform"  "noalloc"
@@ -80,4 +80,21 @@ end) = struct
   module SHA384 = Gen_hash (struct let ssize = sizeof_SHA_CTX let pre = "SHA384" end)
   module SHA512 = Gen_hash (struct let ssize = sizeof_SHA_CTX let pre = "SHA512" end)
 
+  module AES = struct
+
+    let setup_enc = F.foreign "rijndaelSetupEncrypt" @@
+      ptr ulong @-> ptr char @-> int @-> returning int
+
+    and setup_dec = F.foreign "rijndaelSetupDecrypt" @@
+      ptr ulong @-> ptr char @-> int @-> returning int
+
+    and enc = F.foreign "rijndaelEncrypt" @@
+      ptr ulong @-> int @-> ptr char @-> ptr char @-> returning void
+
+    and dec = F.foreign "rijndaelDecrypt" @@
+      ptr ulong @-> int @-> ptr char @-> ptr char @-> returning void
+
+    let rklength keybytes = keybytes + 28
+    and nrounds  keybytes = keybytes / 4 + 6
+  end
 end
