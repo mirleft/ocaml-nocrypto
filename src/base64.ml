@@ -1,5 +1,5 @@
 
-open Common
+open Nc_common
 open Cstruct
 
 let sym     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
