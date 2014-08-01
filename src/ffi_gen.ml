@@ -6,8 +6,8 @@ let includes = "
 #include \"d3des.h\"
 "
 
-let c_stubs  = "src/native/nc_generated_stubs.c" 
-let ml_stubs = "src/nc_generated.ml" 
+let c_stubs  = "src/native/nc_generated_stubs.c"
+let ml_stubs = "src/nc_generated.ml"
 
 let with_formatter ~path f =
   let chan = open_out path in
