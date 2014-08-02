@@ -494,13 +494,13 @@ let ccm_cases =
 (* from SP800-38C_updated-July20_2007.pdf appendix C *)
   let open AES.CCM in
   let case ~key ~p ~a ~nonce ~c ~maclen =
-    ( of_secret (Cs.of_hex key),
-      Cs.of_hex p, Cs.of_hex a, Cs.of_hex nonce, Cs.of_hex c, maclen ) in
+    ( of_secret ~maclen (Cs.of_hex key),
+      Cs.of_hex p, Cs.of_hex a, Cs.of_hex nonce, Cs.of_hex c ) in
 
-  let check (key, p, adata, nonce, c, maclen) _ =
-    let cip = encrypt_authenticate ~key ~nonce ~adata ~maclen p in
+  let check (key, p, adata, nonce, c) _ =
+    let cip = encrypt ~key ~nonce ~adata p in
     assert_cs_equal ~msg:"encrypt" c cip ;
-    match decrypt_verify ~key ~nonce ~adata ~maclen c with
+    match decrypt ~key ~nonce ~adata c with
       | Some x -> assert_cs_equal ~msg:"decrypt" p x
       | None -> assert_failure "decryption broken"
   in

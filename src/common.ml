@@ -177,3 +177,12 @@ module Cs = struct
     | (cs, i, _     ) -> sub cs 0 i
 
 end
+
+module Arr = struct
+
+  let mem x arr =
+    let rec scan = function
+      | -1 -> false
+      | n  -> arr.(n) = x || scan (pred n) in
+    scan (Array.length arr - 1)
+end

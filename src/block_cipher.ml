@@ -148,17 +148,23 @@ module Modes = struct
 
     assert (C.block_size = 16)
 
-    type key    = C.ekey
+    type key = C.ekey * int
 
-    let of_secret = C.e_of_secret
+    let bail msg = invalid_arg ("Nocrypto: CCM: " ^ msg)
 
-    let (key_sizes, block_size) = C.(key_sizes, block_size)
     let mac_sizes = [| 4; 6; 8; 10; 12; 14; 16 |]
 
-    let encrypt_authenticate ~key ~nonce ~maclen ?adata cs =
+    let of_secret ~maclen sec =
+      if Arr.mem maclen mac_sizes then
+        (C.e_of_secret sec, maclen)
+      else bail "invalid MAC length"
+
+    let (key_sizes, block_size) = C.(key_sizes, block_size)
+
+    let encrypt ~key:(key, maclen) ~nonce ?adata cs =
       Ccm.generation_encryption ~cipher:C.encrypt_block ~key ~nonce ~maclen ?adata cs
 
-    let decrypt_verify ~key ~nonce ~maclen ?adata cs =
+    let decrypt ~key:(key, maclen) ~nonce ?adata cs =
       Ccm.decryption_verification ~cipher:C.encrypt_block ~key ~nonce ~maclen ?adata cs
 
   end
