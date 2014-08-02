@@ -2,9 +2,8 @@ open Common
 
 let (<+>) = Cs.append
 
-let valid_t = [ 4 ; 6 ; 8 ; 10 ; 12 ; 14 ; 16 ] (* octet length of mac *)
-let valid_small_q = [ 2 ; 3 ; 4 ; 5 ; 6 ; 7 ; 8 ] (* octet length of octet length of plain *)
-let valid_n = [ 7 ; 8 ; 9 ; 10 ; 11 ; 12 ; 13 ] (* octet length of nonce *)
+let is_valid_small_q q = q >= 2 && q <= 8  (* octet length of octet length of plain *)
+let is_valid_n n       = n >= 7 && n <= 13 (* octet length of nonce *)
 
 let block_size = 16
 
@@ -30,11 +29,10 @@ let encode_len size value =
 let format nonce adata q t (* mac len *) =
   (* n + q = 15 *)
   (* a < 2 ^ 64 *)
-  (* t is coming in as valid by interface. *)
   let n = Cstruct.len nonce in
   let small_q = 15 - n in
-  assert (List.mem small_q valid_small_q) ;
-  assert (List.mem n valid_n) ;
+  assert (is_valid_small_q small_q) ;
+  assert (is_valid_n n) ;
   (* first byte (flags): *)
   (* reserved | adata | (t - 2) / 2 | q - 1 *)
   let b6 = match adata with
@@ -89,7 +87,7 @@ let prepare_header nonce adata tlen plen =
     | Some x -> gen_adata x
     | None   -> Cs.empty
   in
-  (format nonce adata plen tlen) <+> ada
+  format nonce adata plen tlen <+> ada
 
 type mode = Encrypt | Decrypt
 
