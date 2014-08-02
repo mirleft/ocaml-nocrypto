@@ -2,8 +2,6 @@ open Common
 
 let (<+>) = Cs.append
 
-let is_valid_small_q q = q >= 2 && q <= 8  (* octet length of octet length of plain *)
-
 let block_size = 16
 
 let flags bit6 len1 len2 =
@@ -26,11 +24,11 @@ let encode_len size value =
   b
 
 let format nonce adata q t (* mac len *) =
+  (* assume n <- [7..13] *)
   (* n + q = 15 *)
   (* a < 2 ^ 64 *)
   let n = Cstruct.len nonce in
   let small_q = 15 - n in
-  assert (is_valid_small_q small_q) ;
   (* first byte (flags): *)
   (* reserved | adata | (t - 2) / 2 | q - 1 *)
   let b6 = match adata with
