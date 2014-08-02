@@ -2,10 +2,6 @@ open Common
 
 let (<+>) = Cs.append
 
-let valid_t = [ 4 ; 6 ; 8 ; 10 ; 12 ; 14 ; 16 ] (* octet length of mac *)
-let valid_small_q = [ 2 ; 3 ; 4 ; 5 ; 6 ; 7 ; 8 ] (* octet length of octet length of plain *)
-let valid_n = [ 7 ; 8 ; 9 ; 10 ; 11 ; 12 ; 13 ] (* octet length of nonce *)
-
 let block_size = 16
 
 let flags bit6 len1 len2 =
@@ -28,13 +24,12 @@ let encode_len size value =
   b
 
 let format nonce adata q t (* mac len *) =
+  (* assume n <- [7..13] *)
+  (* assume t is valid mac size *)
   (* n + q = 15 *)
   (* a < 2 ^ 64 *)
   let n = Cstruct.len nonce in
   let small_q = 15 - n in
-  assert (List.mem small_q valid_small_q) ;
-  assert (List.mem t valid_t) ;
-  assert (List.mem n valid_n) ;
   (* first byte (flags): *)
   (* reserved | adata | (t - 2) / 2 | q - 1 *)
   let b6 = match adata with
@@ -89,7 +84,7 @@ let prepare_header nonce adata tlen plen =
     | Some x -> gen_adata x
     | None   -> Cs.empty
   in
-  (format nonce adata plen tlen) <+> ada
+  format nonce adata plen tlen <+> ada
 
 type mode = Encrypt | Decrypt
 
@@ -162,12 +157,17 @@ let generation_encryption ~cipher ~key ~nonce ~maclen ?adata data =
   cdata <+> t
 
 let decryption_verification ~cipher ~key ~nonce ~maclen ?adata data =
-  let pclen = Cstruct.len data - maclen in
-  assert (pclen > 0);
-  let cdata, t = crypto_core ~cipher ~mode:Decrypt ~key ~nonce ~maclen ?adata (Cstruct.sub data 0 pclen) in
-  let t' = Cs.clone (Cstruct.sub data pclen maclen) in
-  crypto_t t' nonce cipher key ;
-  (* assert t' = t *)
-  match Cs.equal t' t with
-  | true  -> Some cdata
-  | false -> None
+  let () =
+    let nsize = Cstruct.len nonce in
+    if nsize < 7 || nsize > 13 then
+      invalid_arg "Nocrypto: CCM: invalid nonce length" in
+  if Cstruct.len data <= maclen then
+    None
+  else
+    let pclen = Cstruct.len data - maclen in
+    let cdata, t = crypto_core ~cipher ~mode:Decrypt ~key ~nonce ~maclen ?adata (Cstruct.sub data 0 pclen) in
+    let t' = Cs.clone (Cstruct.sub data pclen maclen) in
+    crypto_t t' nonce cipher key ;
+    match Cs.equal t' t with
+    | true  -> Some cdata
+    | false -> None
