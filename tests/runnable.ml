@@ -186,6 +186,7 @@ let dh_feedback bits =
  * CBC ctypes to_bytestring: 4.13
  * CBC stubs: 3.30
  *)
+
 (* let _ =
   Rng.reseed (Cstruct.of_string "\000");
   let cs  = Rng.generate (16 * 1000000)
@@ -197,12 +198,12 @@ let dh_feedback bits =
     done *)
 
 
-
 (*
  * SHA1 ctypes parith: 1.5967
  * SHA1 ctypes to_bytestring: 4.6133
  * SHA1 stubs: 2.54
  *)
+
 (* let _ =
   let rngs size n =
     let rec loop acc = function
@@ -216,6 +217,7 @@ let dh_feedback bits =
     for x = 1 to 5 do
       ignore @@ Hash.SHA1.digestv css
     done *)
+
 
 (* let _ =
   Rng.reseed (Cstruct.of_string "\001\002\003\004");

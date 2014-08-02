@@ -33,6 +33,23 @@ Executable "ffi_gen"
 
 Library "nocrypto"
   Path:            src/
+#   Pack:            true
+#   Modules:         Rng,
+#                    Hash,
+#                    Stream_cipher,
+#                    Block_cipher,
+#                    Rsa,
+#                    Dh,
+#                    Fortuna,
+#                    Base64,
+#                    Numeric,
+#                    Nc_common
+#   InternalModules: Nc_native_sizes,
+#                    Nc_generated,
+#                    Native,
+#                    Algo_types,
+#                    Gcm
+#
   Modules:         Nocrypto
   InternalModules: Native,
                    Nc_native_sizes,
@@ -49,6 +66,7 @@ Library "nocrypto"
                    Dh,
                    Algo_types,
                    Base64
+
   CSources:        native/sha2.c,
                    native/sha2.h,
                    native/md5.c,
