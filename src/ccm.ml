@@ -25,6 +25,7 @@ let encode_len size value =
 
 let format nonce adata q t (* mac len *) =
   (* assume n <- [7..13] *)
+  (* assume t is valid mac size *)
   (* n + q = 15 *)
   (* a < 2 ^ 64 *)
   let n = Cstruct.len nonce in
