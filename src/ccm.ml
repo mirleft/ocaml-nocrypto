@@ -3,7 +3,6 @@ open Common
 let (<+>) = Cs.append
 
 let is_valid_small_q q = q >= 2 && q <= 8  (* octet length of octet length of plain *)
-let is_valid_n n       = n >= 7 && n <= 13 (* octet length of nonce *)
 
 let block_size = 16
 
@@ -32,7 +31,6 @@ let format nonce adata q t (* mac len *) =
   let n = Cstruct.len nonce in
   let small_q = 15 - n in
   assert (is_valid_small_q small_q) ;
-  assert (is_valid_n n) ;
   (* first byte (flags): *)
   (* reserved | adata | (t - 2) / 2 | q - 1 *)
   let b6 = match adata with
@@ -160,6 +158,10 @@ let generation_encryption ~cipher ~key ~nonce ~maclen ?adata data =
   cdata <+> t
 
 let decryption_verification ~cipher ~key ~nonce ~maclen ?adata data =
+  let () =
+    let nsize = Cstruct.len nonce in
+    if nsize < 7 || nsize > 13 then
+      invalid_arg "Nocrypto: CCM: invalid nonce length" in
   if Cstruct.len data <= maclen then
     None
   else
