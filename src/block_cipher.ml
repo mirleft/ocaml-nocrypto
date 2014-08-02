@@ -144,6 +144,25 @@ module Modes = struct
 
   end
 
+  module CCM_of ( C : Cipher_raw ) : CCM = struct
+
+    assert (C.block_size = 16)
+
+    type key    = C.ekey
+
+    let of_secret = C.e_of_secret
+
+    let (key_sizes, block_size) = C.(key_sizes, block_size)
+    let mac_sizes = [| 4; 6; 8; 10; 12; 14; 16 |]
+
+    let encrypt_authenticate ~key ~nonce ~maclen ?adata cs =
+      Ccm.generation_encryption ~cipher:C.encrypt_block ~key ~nonce ~maclen ?adata cs
+
+    let decrypt_verify ~key ~nonce ~maclen ?adata cs =
+      Ccm.decryption_verification ~cipher:C.encrypt_block ~key ~nonce ~maclen ?adata cs
+
+  end
+
 end
 
 module Counters = struct
@@ -203,6 +222,7 @@ module AES = struct
   module CBC = Modes.CBC_of (Raw)
   module CTR = Modes.CTR_of (Raw)
   module GCM = Modes.GCM_of (Base)
+  module CCM = Modes.CCM_of (Raw)
 end
 
 
@@ -240,4 +260,5 @@ module type T_RAW = sig include Cipher_raw end
 module type T_ECB = sig include ECB end
 module type T_CBC = sig include CBC end
 module type T_GCM = sig include GCM end
+module type T_CCM = sig include CCM end
 module type T_CTR = functor (C : Counter) -> sig include CTR end
