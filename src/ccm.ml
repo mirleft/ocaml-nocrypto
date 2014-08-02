@@ -30,10 +30,10 @@ let encode_len size value =
 let format nonce adata q t (* mac len *) =
   (* n + q = 15 *)
   (* a < 2 ^ 64 *)
+  (* t is coming in as valid by interface. *)
   let n = Cstruct.len nonce in
   let small_q = 15 - n in
   assert (List.mem small_q valid_small_q) ;
-  assert (List.mem t valid_t) ;
   assert (List.mem n valid_n) ;
   (* first byte (flags): *)
   (* reserved | adata | (t - 2) / 2 | q - 1 *)
