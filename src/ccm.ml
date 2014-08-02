@@ -46,10 +46,7 @@ let format nonce adata q t (* mac len *) =
 
 let pad_block b =
   let size = Cstruct.len b in
-  if size mod block_size = 0 then
-    b
-  else
-    b <+> Cs.create_with (block_size - size mod block_size) 0
+  Cs.rpad b (cdiv size block_size * block_size) 0
 
 let gen_adata a =
   let lbuf =
