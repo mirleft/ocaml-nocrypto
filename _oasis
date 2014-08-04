@@ -70,7 +70,8 @@ Library "nocrypto"
                    native/d3des.c,
                    native/d3des.h,
                    native/nocrypto_stubs.c
-  BuildDepends:    cstruct, zarith, ctypes, sexplib.syntax
+  BuildDepends:    cstruct, zarith, ctypes, ctypes.stubs, sexplib.syntax
+  XMETARequires:   cstruct, zarith, ctypes.stubs, sexplib
   CCOpt:           -I$pkg_ctypes/..
   BuildTools:      nocrypto_bindgen
   ByteOpt:         -w A-4-33-40-41-42-43-34-44
