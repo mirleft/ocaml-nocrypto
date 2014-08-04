@@ -76,7 +76,7 @@ Library "nocrypto"
 Executable "nocrypto_bindgen"
   MainIs:         nocrypto_bindgen.ml
   Install:        false
-  Path:           src
+  Path:           src_gen
   BuildDepends:   cstruct, ctypes.stubs
 
 Library "testlib"
