@@ -127,6 +127,18 @@ module Block = struct
     val decrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result
   end
 
+  module type CCM = sig
+
+    type key
+    val of_secret : maclen:int -> Cstruct.t -> key
+
+    val key_sizes  : int array
+    val mac_sizes  : int array
+    val block_size : int
+    val encrypt : key:key -> nonce:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> Cstruct.t
+    val decrypt : key:key -> nonce:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> Cstruct.t option
+  end
+
   module type Counter = sig
     val increment : Cstruct.t -> unit
   end

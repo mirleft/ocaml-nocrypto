@@ -129,7 +129,7 @@ module Cs = struct
   let rpad cs size x =
     let l   = len cs
     and cs' = create size in
-    assert (size >= l) ;
+    if size < l then invalid_arg "Nocrypto.Common.Cs.rpad: size < len";
     blit cs 0 cs' 0 l ;
     for i = l to size - 1 do set_uint8 cs' i x done ;
     cs'
@@ -138,7 +138,7 @@ module Cs = struct
     let l   = len cs
     and cs' = create size in
     let i0  = size - l in
-    assert (size >= l) ;
+    if size < l then invalid_arg "Nocrypto.Common.Cs.lpad: size < len";
     blit cs 0 cs' i0 l ;
     for i = 0 to i0 - 1 do set_uint8 cs' i x done ;
     cs'
@@ -176,4 +176,13 @@ module Cs = struct
     | (_ , _, Some _) -> invalid_arg "of_hex: dangling nibble"
     | (cs, i, _     ) -> sub cs 0 i
 
+end
+
+module Arr = struct
+
+  let mem x arr =
+    let rec scan = function
+      | -1 -> false
+      | n  -> arr.(n) = x || scan (pred n) in
+    scan (Array.length arr - 1)
 end

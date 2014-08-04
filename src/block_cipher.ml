@@ -142,6 +142,31 @@ module Modes = struct
 
   end
 
+  module CCM_of ( C : Cipher_raw ) : CCM = struct
+
+    assert (C.block_size = 16)
+
+    type key = C.ekey * int
+
+    let bail msg = invalid_arg ("Nocrypto: CCM: " ^ msg)
+
+    let mac_sizes = [| 4; 6; 8; 10; 12; 14; 16 |]
+
+    let of_secret ~maclen sec =
+      if Arr.mem maclen mac_sizes then
+        (C.e_of_secret sec, maclen)
+      else bail "invalid MAC length"
+
+    let (key_sizes, block_size) = C.(key_sizes, block_size)
+
+    let encrypt ~key:(key, maclen) ~nonce ?adata cs =
+      Ccm.generation_encryption ~cipher:C.encrypt_block ~key ~nonce ~maclen ?adata cs
+
+    let decrypt ~key:(key, maclen) ~nonce ?adata cs =
+      Ccm.decryption_verification ~cipher:C.encrypt_block ~key ~nonce ~maclen ?adata cs
+
+  end
+
 end
 
 module Counters = struct
@@ -214,7 +239,7 @@ module AES = struct
   module CBC = Modes.CBC_of (Raw)
   module CTR = Modes.CTR_of (Raw)
   module GCM = Modes.GCM_of (Base)
-
+  module CCM = Modes.CCM_of (Raw)
 end
 
 
@@ -266,4 +291,5 @@ module type T_RAW = sig include Cipher_raw end
 module type T_ECB = sig include ECB end
 module type T_CBC = sig include CBC end
 module type T_GCM = sig include GCM end
+module type T_CCM = sig include CCM end
 module type T_CTR = functor (C : Counter) -> sig include CTR end
