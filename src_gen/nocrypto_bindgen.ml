@@ -17,7 +17,7 @@ let _ =
 
   with_formatter ~path:c_stubs (fun fmt ->
     Format.fprintf fmt "%s" includes ;
-    Cstubs.write_c fmt ~prefix:"nocrypto" (module Native.Bindings));
+    Cstubs.write_c fmt ~prefix:"nocrypto" (module Bindings.Make));
 
   with_formatter ~path:ml_stubs (fun fmt ->
-    Cstubs.write_ml fmt ~prefix:"nocrypto" (module Native.Bindings))
+    Cstubs.write_ml fmt ~prefix:"nocrypto" (module Bindings.Make))

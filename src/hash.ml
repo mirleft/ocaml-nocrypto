@@ -65,7 +65,7 @@ module Full_hash_hmac (H : Base_hash) = struct
     digest (outer <> digest (inner <> message))
 end
 
-module Bindings = Native.Bindings (Nocrypto_generated)
+module Bindings = Native.Bindings
 
 module MD5 = Full_hash_hmac ( struct
   include Bindings.MD5

@@ -37,14 +37,16 @@ Library "nocrypto"
 #                    Nc_common
 #   InternalModules: Nocrypto_generated_sizes,
 #                    Nocrypto_generated,
+#                    Bindings
 #                    Native,
 #                    Algo_types,
 #                    Gcm
 #
   Modules:         Nocrypto
-  InternalModules: Native,
-                   Nocrypto_generated_sizes,
+  InternalModules: Nocrypto_generated_sizes,
                    Nocrypto_generated,
+                   Bindings,
+                   Native,
                    Nc_common,
                    Numeric,
                    Hash,
@@ -79,7 +81,7 @@ Executable "nocrypto_bindgen"
   MainIs:         nocrypto_bindgen.ml
   Install:        false
   Path:           src_gen
-  BuildDepends:   cstruct, ctypes.stubs
+  BuildDepends:   ctypes.stubs
 
 Library "testlib"
   Path:         tests/
