@@ -10,6 +10,6 @@ setup.log
 
 gmon.out
 
-src/nc_native_sizes.ml
-src/nc_generated.ml
-src/native/nc_generated_stubs.c
+src/nocrypto_generated_sizes.ml
+src/nocrypto_generated.ml
+src/native/nocrypto_stubs.c

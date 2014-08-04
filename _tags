@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: e95b1e185bbfc1c7f7fff90a0c4d8c78)
+# DO NOT EDIT (digest: c5ed6fbf8265fcc94debe1fc32cf384e)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -13,9 +13,9 @@
 ".git": not_hygienic
 "_darcs": -traverse
 "_darcs": not_hygienic
-# Executable ffi_gen
-"src/ffi_gen.native": pkg_cstruct
-"src/ffi_gen.native": pkg_ctypes.stubs
+# Executable nocrypto_bindgen
+"src/nocrypto_bindgen.native": pkg_cstruct
+"src/nocrypto_bindgen.native": pkg_ctypes.stubs
 # Library nocrypto
 "src/nocrypto.cmxs": use_nocrypto
 <src/*.ml{,i}>: oasis_library_nocrypto_ccopt
@@ -23,14 +23,14 @@
 "src/native/md5.c": oasis_library_nocrypto_ccopt
 "src/native/rijndael.c": oasis_library_nocrypto_ccopt
 "src/native/d3des.c": oasis_library_nocrypto_ccopt
-"src/native/nc_generated_stubs.c": oasis_library_nocrypto_ccopt
+"src/native/nocrypto_stubs.c": oasis_library_nocrypto_ccopt
 <src/nocrypto.{cma,cmxa}>: oasis_library_nocrypto_byte
 <src/*.ml{,i}>: oasis_library_nocrypto_byte
 "src/native/sha2.c": oasis_library_nocrypto_byte
 "src/native/md5.c": oasis_library_nocrypto_byte
 "src/native/rijndael.c": oasis_library_nocrypto_byte
 "src/native/d3des.c": oasis_library_nocrypto_byte
-"src/native/nc_generated_stubs.c": oasis_library_nocrypto_byte
+"src/native/nocrypto_stubs.c": oasis_library_nocrypto_byte
 <src/nocrypto.{cma,cmxa}>: use_libnocrypto_stubs
 <src/*.ml{,i}>: pkg_cstruct
 <src/*.ml{,i}>: pkg_ctypes
@@ -57,11 +57,11 @@
 "src/native/d3des.c": pkg_ctypes.stubs
 "src/native/d3des.c": pkg_sexplib.syntax
 "src/native/d3des.c": pkg_zarith
-"src/native/nc_generated_stubs.c": pkg_cstruct
-"src/native/nc_generated_stubs.c": pkg_ctypes
-"src/native/nc_generated_stubs.c": pkg_ctypes.stubs
-"src/native/nc_generated_stubs.c": pkg_sexplib.syntax
-"src/native/nc_generated_stubs.c": pkg_zarith
+"src/native/nocrypto_stubs.c": pkg_cstruct
+"src/native/nocrypto_stubs.c": pkg_ctypes
+"src/native/nocrypto_stubs.c": pkg_ctypes.stubs
+"src/native/nocrypto_stubs.c": pkg_sexplib.syntax
+"src/native/nocrypto_stubs.c": pkg_zarith
 # Library testlib
 "tests/testlib.cmxs": use_testlib
 # Executable test_runner

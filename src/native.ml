@@ -41,7 +41,7 @@ end) = struct
       F.foreign (H.pre ^ "_Final")  @@ ptr char @-> ptr char @-> returning void
   end
 
-  open Nc_native_sizes
+  open Nocrypto_generated_sizes
 
   module MD5    = Gen_hash (struct let ssize = sizeof_MD5_CTX let pre = "MD5"    end)
   module SHA1   = Gen_hash (struct let ssize = sizeof_SHA_CTX let pre = "SHA1"   end)

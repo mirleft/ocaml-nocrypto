@@ -1,13 +1,13 @@
 
+let c_stubs  = "src/native/nocrypto_stubs.c"
+let ml_stubs = "src/nocrypto_generated.ml"
+
 let includes = "
 #include \"sha2.h\"
 #include \"md5.h\"
 #include \"rijndael.h\"
 #include \"d3des.h\"
 "
-
-let c_stubs  = "src/native/nc_generated_stubs.c"
-let ml_stubs = "src/nc_generated.ml"
 
 let with_formatter ~path f =
   let chan = open_out path in

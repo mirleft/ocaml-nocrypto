@@ -11,7 +11,7 @@ set -e
 [[ -d ${1} ]] && [[ -d ${2} ]] || exit 1
 
 CDIR=${1}
-MLNAME="${2}/nc_native_sizes.ml"
+MLNAME="${2}/nocrypto_generated_sizes.ml"
 
 if [[ -z ${CC} ]]; then
   CC=clang

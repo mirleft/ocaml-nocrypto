@@ -172,7 +172,7 @@ module Counters = struct
   end
 end
 
-module Bindings = Native.Bindings (Nc_generated)
+module Bindings = Native.Bindings (Nocrypto_generated)
 module Conv     = Native.Conv
 
 module AES = struct
