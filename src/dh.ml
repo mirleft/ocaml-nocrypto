@@ -1,5 +1,5 @@
 open Sexplib.Conv
-open Common
+open Nc_common
 
 exception Invalid_public_key
 

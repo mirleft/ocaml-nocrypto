@@ -171,10 +171,52 @@ let dh_feedback bits =
   assert (Cs.equal sh1 sh2);
   Cstruct.hexdump sh1
 
-let _ =
+(* let _ =
   Rng.reseed (Cstruct.of_string "\001\002\003\004");
-  forever (fun () -> dh_feedback 1024)
+  forever (fun () -> dh_feedback 1024) *)
 (*   forever (fun () -> rsa_feedback 2048) *)
+
+
+(*
+ * ECB ctypes parith: 2.53
+ * ECB ctypes to_bytestring: 4.05
+ * ECB stubs: 3.11
+ *
+ * CBC ctypes parith: 2.72
+ * CBC ctypes to_bytestring: 4.13
+ * CBC stubs: 3.30
+ *)
+
+(* let _ =
+  Rng.reseed (Cstruct.of_string "\000");
+  let cs  = Rng.generate (16 * 1000000)
+  and iv  = Cstruct.of_string "abcdABCDefghEFGH"
+  and key = Block.AES.CBC.of_secret (Cstruct.of_string "desu1234desu1234") in
+  time @@ fun () ->
+    for x = 1 to 10 do
+      ignore @@ Block.AES.CBC.encrypt ~key ~iv cs
+    done *)
+
+
+(*
+ * SHA1 ctypes parith: 1.5967
+ * SHA1 ctypes to_bytestring: 4.6133
+ * SHA1 stubs: 2.54
+ *)
+
+(* let _ =
+  let rngs size n =
+    let rec loop acc = function
+      | 0 -> acc
+      | n -> loop (Rng.generate size :: acc) (pred n) in
+    loop [] n
+  in
+  Rng.reseed (Cstruct.of_string "\000");
+  let css = rngs 16 1000000 in
+  time @@ fun () ->
+    for x = 1 to 5 do
+      ignore @@ Hash.SHA1.digestv css
+    done *)
 
 
 (* let _ =

@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: fd022157b137f15531e4504158b35441)
+# DO NOT EDIT (digest: f062789ec4d73bd8ce0a8ecfbb2d47a4)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -13,6 +13,9 @@
 ".git": not_hygienic
 "_darcs": -traverse
 "_darcs": not_hygienic
+# Executable nocrypto_bindgen
+"src_gen/nocrypto_bindgen.byte": pkg_ctypes.stubs
+<src_gen/*.ml{,i}>: pkg_ctypes.stubs
 # Library nocrypto
 "src/nocrypto.cmxs": use_nocrypto
 <src/*.ml{,i}>: oasis_library_nocrypto_ccopt
@@ -20,38 +23,52 @@
 "src/native/md5.c": oasis_library_nocrypto_ccopt
 "src/native/rijndael.c": oasis_library_nocrypto_ccopt
 "src/native/d3des.c": oasis_library_nocrypto_ccopt
-"src/native/stubs.c": oasis_library_nocrypto_ccopt
+"src/native/nocrypto_stubs.c": oasis_library_nocrypto_ccopt
 <src/nocrypto.{cma,cmxa}>: oasis_library_nocrypto_byte
 <src/*.ml{,i}>: oasis_library_nocrypto_byte
 "src/native/sha2.c": oasis_library_nocrypto_byte
 "src/native/md5.c": oasis_library_nocrypto_byte
 "src/native/rijndael.c": oasis_library_nocrypto_byte
 "src/native/d3des.c": oasis_library_nocrypto_byte
-"src/native/stubs.c": oasis_library_nocrypto_byte
+"src/native/nocrypto_stubs.c": oasis_library_nocrypto_byte
 <src/nocrypto.{cma,cmxa}>: use_libnocrypto_stubs
 <src/*.ml{,i}>: pkg_cstruct
+<src/*.ml{,i}>: pkg_ctypes
+<src/*.ml{,i}>: pkg_ctypes.stubs
 <src/*.ml{,i}>: pkg_sexplib.syntax
 <src/*.ml{,i}>: pkg_zarith
 "src/native/sha2.c": pkg_cstruct
+"src/native/sha2.c": pkg_ctypes
+"src/native/sha2.c": pkg_ctypes.stubs
 "src/native/sha2.c": pkg_sexplib.syntax
 "src/native/sha2.c": pkg_zarith
 "src/native/md5.c": pkg_cstruct
+"src/native/md5.c": pkg_ctypes
+"src/native/md5.c": pkg_ctypes.stubs
 "src/native/md5.c": pkg_sexplib.syntax
 "src/native/md5.c": pkg_zarith
 "src/native/rijndael.c": pkg_cstruct
+"src/native/rijndael.c": pkg_ctypes
+"src/native/rijndael.c": pkg_ctypes.stubs
 "src/native/rijndael.c": pkg_sexplib.syntax
 "src/native/rijndael.c": pkg_zarith
 "src/native/d3des.c": pkg_cstruct
+"src/native/d3des.c": pkg_ctypes
+"src/native/d3des.c": pkg_ctypes.stubs
 "src/native/d3des.c": pkg_sexplib.syntax
 "src/native/d3des.c": pkg_zarith
-"src/native/stubs.c": pkg_cstruct
-"src/native/stubs.c": pkg_sexplib.syntax
-"src/native/stubs.c": pkg_zarith
+"src/native/nocrypto_stubs.c": pkg_cstruct
+"src/native/nocrypto_stubs.c": pkg_ctypes
+"src/native/nocrypto_stubs.c": pkg_ctypes.stubs
+"src/native/nocrypto_stubs.c": pkg_sexplib.syntax
+"src/native/nocrypto_stubs.c": pkg_zarith
 # Library testlib
 "tests/testlib.cmxs": use_testlib
 # Executable test_runner
 <tests/testrunner.{native,byte}>: pkg_cstruct
 <tests/testrunner.{native,byte}>: pkg_cstruct.unix
+<tests/testrunner.{native,byte}>: pkg_ctypes
+<tests/testrunner.{native,byte}>: pkg_ctypes.stubs
 <tests/testrunner.{native,byte}>: pkg_oUnit
 <tests/testrunner.{native,byte}>: pkg_sexplib.syntax
 <tests/testrunner.{native,byte}>: pkg_zarith
@@ -61,6 +78,8 @@
 <tests/*.ml{,i}>: use_testlib
 # Executable bench
 "tests/runnable.native": pkg_cstruct
+"tests/runnable.native": pkg_ctypes
+"tests/runnable.native": pkg_ctypes.stubs
 "tests/runnable.native": pkg_lwt
 "tests/runnable.native": pkg_lwt.syntax
 "tests/runnable.native": pkg_lwt.unix
@@ -73,11 +92,15 @@
 # Executable hashbench
 "tests/hashbench.native": pkg_cstruct
 "tests/hashbench.native": pkg_cstruct.unix
+"tests/hashbench.native": pkg_ctypes
+"tests/hashbench.native": pkg_ctypes.stubs
 "tests/hashbench.native": pkg_sexplib.syntax
 "tests/hashbench.native": pkg_zarith
 "tests/hashbench.native": use_nocrypto
 <tests/*.ml{,i}>: pkg_cstruct
 <tests/*.ml{,i}>: pkg_cstruct.unix
+<tests/*.ml{,i}>: pkg_ctypes
+<tests/*.ml{,i}>: pkg_ctypes.stubs
 <tests/*.ml{,i}>: pkg_sexplib.syntax
 <tests/*.ml{,i}>: pkg_zarith
 <tests/*.ml{,i}>: use_nocrypto

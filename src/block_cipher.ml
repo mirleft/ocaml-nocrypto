@@ -1,8 +1,6 @@
 
-open Common
+open Nc_common
 open Algo_types.Block
-
-let ba_of_cs = Cstruct.to_bigarray
 
 
 module Modes = struct
@@ -199,27 +197,40 @@ module Counters = struct
   end
 end
 
+open Native
 
 module AES = struct
 
   module Raw : Cipher_raw = struct
 
-    open Native
-
-    type ekey = ba
-    type dkey = ba
-
-    let e_of_secret = o aes_create_enc ba_of_cs
-    and d_of_secret = o aes_create_dec ba_of_cs
+    open Bindings
 
     let key_sizes  = [| 16; 24; 32 |]
     let block_size = 16
 
-    let encrypt_block ~key src dst =
-      aes_encrypt_into key (ba_of_cs src) (ba_of_cs dst)
+    type ekey = (Unsigned.ulong Ctypes.ptr) * int
+    type dkey = (Unsigned.ulong Ctypes.ptr) * int
 
-    and decrypt_block ~key src dst =
-      aes_decrypt_into key (ba_of_cs src) (ba_of_cs dst)
+    let bail msg = invalid_arg ("Nocrypto: AES: " ^ msg)
+
+    let of_secret ~init sec =
+      let size = sec.Cstruct.len in
+      if size <> 16 && size <> 24 && size <> 32 then
+        bail "secret is not 16, 24 or 32 bytes" ;
+      let rk = Ctypes.(allocate_n ulong ~count:(AES.rklength size)) in
+      init rk Conv.(cs_ptr sec) (size * 8) ;
+      (rk, AES.nrounds size)
+
+    let e_of_secret cs = of_secret ~init:AES.setup_enc cs
+    and d_of_secret cs = of_secret ~init:AES.setup_dec cs
+
+    let transform ~f ~key:(rk, rounds) src dst =
+      if src.Cstruct.len < 16 || dst.Cstruct.len < 16 then
+        bail "message or ciphertext is shorter than 16 bytes" ;
+      f rk rounds Conv.(cs_ptr src) Conv.(cs_ptr dst)
+
+    let encrypt_block ~key src dst = transform ~f:AES.enc ~key src dst
+    and decrypt_block ~key src dst = transform ~f:AES.dec ~key src dst
   end
 
   module Base = Modes.Base_of (Raw)
@@ -236,21 +247,34 @@ module DES = struct
 
   module Raw = struct
 
-    open Native
-
-    type ekey = ba
-    type dkey = ba
-
-    let e_of_secret k = des3_create_key (ba_of_cs k) 0
-    and d_of_secret k = des3_create_key (ba_of_cs k) 1
+    open Bindings
 
     let key_sizes  = [| 24 |]
     let block_size = 8
 
+    type ekey = Unsigned.ulong Ctypes.ptr
+    type dkey = Unsigned.ulong Ctypes.ptr
+
+    let bail msg = invalid_arg ("Nocrypto: DES: " ^ msg)
+
+    let of_secret ~direction sec =
+      if sec.Cstruct.len <> 24 then bail "secret is not 24 bytes" ;
+      let cooked = Ctypes.(allocate_n ulong ~count:96) in
+      D3DES.des3key Conv.(cs_ptr sec) direction ;
+      D3DES.cp3key cooked ;
+      cooked
+
+    let e_of_secret cs = of_secret ~direction:D3DES.en0 cs
+    and d_of_secret cs = of_secret ~direction:D3DES.de1 cs
+
     let encrypt_block ~key src dst =
-      des3_xform_into key (ba_of_cs src) (ba_of_cs dst)
+      if src.Cstruct.len < 8 || dst.Cstruct.len < 8 then
+        bail "message or ciphertext is shorter than 8 bytes" ;
+      D3DES.use3key key;
+      D3DES.ddes Conv.(cs_ptr src) Conv.(cs_ptr dst)
 
     let decrypt_block = encrypt_block
+
   end
 
   module Base = Modes.Base_of (Raw)
@@ -258,6 +282,7 @@ module DES = struct
   module ECB = Modes.ECB_of (Raw)
   module CBC = Modes.CBC_of (Raw)
   module CTR = Modes.CTR_of (Raw)
+
 end
 
 module type Counter = sig include Counter end

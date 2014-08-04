@@ -1,4 +1,4 @@
-open Common
+open Nc_common
 
 module type T_core = sig
   type t

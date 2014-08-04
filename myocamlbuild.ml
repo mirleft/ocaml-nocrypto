@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 8921885a981694cf9bf816a58fb64c28) *)
+(* DO NOT EDIT (digest: 51e376e62b6706893ab7b221a5c1984b) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -612,7 +612,7 @@ let package_default =
        [
           (["oasis_library_nocrypto_ccopt"; "compile"],
             [
-               (OASISExpr.EBool true, S []);
+               (OASISExpr.EBool true, S [A "-ccopt"; A "-I${pkg_ctypes}/.."]);
                (OASISExpr.EFlag "pedantic",
                  S [A "-ccopt"; A "-Wall"; A "-ccopt"; A "-Wpedantic"])
             ]);
@@ -634,4 +634,23 @@ let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
 # 636 "myocamlbuild.ml"
 (* OASIS_STOP *)
-Ocamlbuild_plugin.dispatch dispatch_default;;
+
+open Ocamlbuild_plugin;;
+
+dispatch @@ MyOCamlbuildBase.dispatch_combine [
+  begin function
+    | After_rules ->
+        rule "cstubs: generation"
+          ~prods:["src/native/%_stubs.c"; "src/%_generated.ml"]
+          ~deps: ["src_gen/%_bindgen.byte"]
+          (fun env build -> Cmd (A(env "src_gen/%_bindgen.byte")));
+        copy_rule "cstubs: copy bindings descriptions"
+          "src_gen/bindings.ml"
+          "src/bindings.ml" ;
+        copy_rule "cstubs: copy header representations"
+          "src_gen/nocrypto_generated_sizes.ml"
+          "src/nocrypto_generated_sizes.ml" ;
+    | _ -> ()
+  end;
+  dispatch_default
+]

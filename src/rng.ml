@@ -1,6 +1,6 @@
 
 open Algo_types.Rand
-open Common
+open Nc_common
 
 module Numeric_of (Rng : Rng) = struct
 

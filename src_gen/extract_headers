@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+#
+# This scriptlet tries to extract sizes from C headers and make them available
+# as OCaml values.
+#
+# It is evil and this should be a part of ctypes.
+#
+
+set -e
+
+[[ -d ${1} ]] && [[ -d ${2} ]] || exit 1
+
+CDIR=${1}
+MLNAME="${2}/nocrypto_generated_sizes.ml"
+
+if [[ -z ${CC} ]]; then
+  CC=clang
+fi
+
+TMPL="tmp.nocrypto-config.XXXXXXXXXX"
+CBIT=$(mktemp --tmpdir ${TMPL}.c)
+COUT=$(mktemp --tmpdir ${TMPL})
+MLBIT=$(mktemp --tmpdir ${TMPL}.ml)
+
+trap "rm -f ${CBIT} ${COUT} ${MLBIT}" EXIT
+
+cat >> ${CBIT} <<HALT
+
+#include <stdio.h>
+#include "md5.h"
+#include "sha2.h"
+
+int main () {
+
+  printf ("MD5_CTX %lu\n", sizeof (MD5_CTX));
+  printf ("SHA_CTX %lu\n", sizeof (SHA_CTX));
+
+  return 0;
+}
+HALT
+
+${CC} -I${CDIR} ${CBIT} -o ${COUT}
+
+cat > ${MLNAME} <<HALT
+
+(*
+ * Kludgy way to extract info from C headers.
+ *
+ * Machine-dependent; should not be commited. Should not exist even.
+ *)
+
+HALT
+
+${COUT} | awk '{ print("let sizeof_" $1 " = " $2) }' >> ${MLNAME}

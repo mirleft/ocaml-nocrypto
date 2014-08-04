@@ -11,4 +11,4 @@ module Base64  = Base64
 module Numeric = Numeric
 
 (* XXX debug *)
-module Common  = Common
+module Common  = Nc_common
