@@ -634,4 +634,24 @@ let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
 # 636 "myocamlbuild.ml"
 (* OASIS_STOP *)
-Ocamlbuild_plugin.dispatch dispatch_default;;
+
+open Ocamlbuild_plugin;;
+
+dispatch
+  (MyOCamlbuildBase.dispatch_combine [
+    begin function
+    | After_rules ->
+      rule "cstubs: generation"
+(*         ~prods:["lib/native/%_generated_stubs.c"; "lib/%_generated.ml"]
+        ~deps: ["lib_gen/%_bindgen.byte"] *)
+        ~prods:["src/native/%_stubs.c"; "src/%_generated.ml"]
+        ~deps: ["src/%_bindgen.byte"]
+        (fun env build ->
+(*           Cmd (A(env "lib_gen/%_bindgen.byte"))); *)
+          Cmd (A(env "src/%_bindgen.byte")));
+(*       copy_rule "cstubs: copy source files"
+        "lib_gen/native.ml" "lib/native.ml" *)
+    | _ -> ()
+    end;
+    dispatch_default
+  ])
