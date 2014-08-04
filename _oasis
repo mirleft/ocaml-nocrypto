@@ -11,6 +11,8 @@ BuildTools:   ocamlbuild
 Description:
   A simple cryptographic library.
 
+PreConfCommand      : ./src_gen/extract_headers src/native src_gen/
+PreDistcleanCommand : rm -f src_gen/nocrypto_generated_sizes.ml
 
 Flag "pedantic"
   Description: Make the C compiler go hardcore
