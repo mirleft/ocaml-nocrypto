@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 7770307aca89d3e8b2cfecc96a197eb6)
+# DO NOT EDIT (digest: 1ac789fb619170ff23b17207fd38b041)
 Uncommon
 Base64
 Hash
@@ -14,7 +14,7 @@ Nocrypto_generated_sizes
 Nocrypto_generated
 Bindings
 Native
-Algo_types
+Types
 Gcm
 Ccm
 # OASIS_STOP

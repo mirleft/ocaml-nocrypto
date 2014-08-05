@@ -1,4 +1,4 @@
-open Algo_types
+open Types
 
 module type Counter = sig include Block.Counter end
 

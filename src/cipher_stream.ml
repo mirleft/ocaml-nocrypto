@@ -1,5 +1,5 @@
 
-module type T = sig include Algo_types.Stream_cipher end
+module type T = sig include Types.Stream_cipher end
 
 module ARC4 = struct
 

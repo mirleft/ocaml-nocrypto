@@ -1,6 +1,6 @@
 (** A global instance of {!Fortuna}. *)
 
-open Algo_types
+open Types
 
 module Numeric_of :
   functor (Rng : Random.Rng) -> Random.Numeric with type g = Rng.g
