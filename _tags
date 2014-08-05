@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: f062789ec4d73bd8ce0a8ecfbb2d47a4)
+# DO NOT EDIT (digest: f22a4b4ab78335b84544613508d258ee)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -18,6 +18,20 @@
 <src_gen/*.ml{,i}>: pkg_ctypes.stubs
 # Library nocrypto
 "src/nocrypto.cmxs": use_nocrypto
+"src/rng.cmx": for-pack(Nocrypto)
+"src/hash.cmx": for-pack(Nocrypto)
+"src/stream_cipher.cmx": for-pack(Nocrypto)
+"src/block_cipher.cmx": for-pack(Nocrypto)
+"src/rsa.cmx": for-pack(Nocrypto)
+"src/dh.cmx": for-pack(Nocrypto)
+"src/fortuna.cmx": for-pack(Nocrypto)
+"src/base64.cmx": for-pack(Nocrypto)
+"src/numeric.cmx": for-pack(Nocrypto)
+"src/nc_common.cmx": for-pack(Nocrypto)
+"src/native.cmx": for-pack(Nocrypto)
+"src/algo_types.cmx": for-pack(Nocrypto)
+"src/gcm.cmx": for-pack(Nocrypto)
+"src/ccm.cmx": for-pack(Nocrypto)
 <src/*.ml{,i}>: oasis_library_nocrypto_ccopt
 "src/native/sha2.c": oasis_library_nocrypto_ccopt
 "src/native/md5.c": oasis_library_nocrypto_ccopt
@@ -105,3 +119,7 @@
 <tests/*.ml{,i}>: pkg_zarith
 <tests/*.ml{,i}>: use_nocrypto
 # OASIS_STOP
+
+"src/nocrypto_generated_sizes.cmx": for-pack(Nocrypto)
+"src/nocrypto_generated.cmx": for-pack(Nocrypto)
+"src/bindings.cmx": for-pack(Nocrypto)

@@ -24,43 +24,42 @@ Flag "benchmarks"
 
 Library "nocrypto"
   Path:            src/
-#   Pack:            true
-#   Modules:         Rng,
-#                    Hash,
-#                    Stream_cipher,
-#                    Block_cipher,
-#                    Rsa,
-#                    Dh,
-#                    Fortuna,
-#                    Base64,
-#                    Numeric,
-#                    Nc_common
-#   InternalModules: Nocrypto_generated_sizes,
-#                    Nocrypto_generated,
-#                    Bindings
-#                    Native,
-#                    Algo_types,
-#                    Gcm
-#
-  Modules:         Nocrypto
+  Pack:            true
+  Modules:         Rng,
+                   Hash,
+                   Stream_cipher,
+                   Block_cipher,
+                   Rsa,
+                   Dh,
+                   Fortuna,
+                   Base64,
+                   Numeric,
+                   Nc_common
   InternalModules: Nocrypto_generated_sizes,
                    Nocrypto_generated,
                    Bindings,
                    Native,
-                   Nc_common,
-                   Numeric,
-                   Hash,
-                   Block_cipher,
-                   Fortuna,
-                   Rng,
-                   Stream_cipher,
-                   Ccm,
-                   Gcm,
-                   Rsa,
-                   Dh,
                    Algo_types,
-                   Base64
-
+                   Gcm,
+                   Ccm
+#  Modules:         Nocrypto
+#  InternalModules: Nocrypto_generated_sizes,
+#                   Nocrypto_generated,
+#                   Bindings,
+#                   Native,
+#                   Nc_common,
+#                   Numeric,
+#                   Hash,
+#                   Block_cipher,
+#                   Fortuna,
+#                   Rng,
+#                   Stream_cipher,
+#                   Ccm,
+#                   Gcm,
+#                   Rsa,
+#                   Dh,
+#                   Algo_types,
+#                   Base64
   CSources:        native/sha2.c,
                    native/sha2.h,
                    native/md5.c,
@@ -75,7 +74,6 @@ Library "nocrypto"
   CCOpt:           -I$pkg_ctypes/..
   BuildTools:      nocrypto_bindgen
   ByteOpt:         -w A-4-33-40-41-42-43-34-44
-
   if flag(pedantic)
     CCOpt: -Wall -Wpedantic
 
