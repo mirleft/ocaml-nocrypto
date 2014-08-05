@@ -1,4 +1,4 @@
-open Types
+open Module_types
 open Uncommon
 
 module Numeric_of (Rng : Random.Rng) = struct

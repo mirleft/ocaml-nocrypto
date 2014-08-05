@@ -39,7 +39,7 @@ Library "nocrypto"
                    Nocrypto_generated,
                    Bindings,
                    Native,
-                   Types,
+                   Module_types,
                    Gcm,
                    Ccm
   CSources:        native/sha2.c,

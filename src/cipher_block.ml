@@ -1,6 +1,6 @@
 
 open Uncommon
-open Types.Block
+open Module_types.Block
 
 
 module Modes = struct

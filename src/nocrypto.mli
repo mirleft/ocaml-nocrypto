@@ -1,5 +1,5 @@
 
-module Types : module type of Types
+module Module_types : module type of Module_types
 
 module Base64   : module type of Base64
 module Numeric  : module type of Numeric
@@ -23,7 +23,7 @@ module Fortuna : module type of Fortuna
 
 module Rng : sig
 
-  open Types
+  open Module_types
 
   module Numeric_of :
     functor (Rng : Random.Rng) -> Random.Numeric with type g = Rng.g

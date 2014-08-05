@@ -1,4 +1,4 @@
-open Types
+open Module_types
 
 module type Counter = sig include Block.Counter end
 
