@@ -17,10 +17,9 @@ if [[ -z ${CC} ]]; then
   CC=clang
 fi
 
-TMPL="tmp.nocrypto-config.XXXXXXXXXX"
-CBIT=$(mktemp --tmpdir ${TMPL}.c)
-COUT=$(mktemp --tmpdir ${TMPL})
-MLBIT=$(mktemp --tmpdir ${TMPL}.ml)
+COUT=$(mktemp)
+CBIT=$COUT".c"
+MLBIT=$COUT".ml"
 
 trap "rm -f ${CBIT} ${COUT} ${MLBIT}" EXIT
 
