@@ -1,7 +1,7 @@
 open Algo_types
 open Nc_common
 
-module Numeric_of (Rng : Rand.Rng) = struct
+module Numeric_of (Rng : Random.Rng) = struct
 
   type g = Rng.g
 
@@ -92,6 +92,7 @@ let block_size = block_size
 let generate ?(g = !gref) n = generate ~g n
 
 module Accumulator = struct
+  (* XXX breaks down after set_gen. Make `g` and `acc` one-to-one? *)
   let acc    = Accumulator.create ~g:!gref
   let add    = Accumulator.add ~acc
   and add_rr = Accumulator.add_rr ~acc
@@ -103,4 +104,4 @@ include ( Numeric_of (
     let block_size = block_size
     let generate   = generate
   end
-) : Rand.Numeric with type g := g )
+) : Random.Numeric with type g := g )

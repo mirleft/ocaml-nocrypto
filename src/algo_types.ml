@@ -1,31 +1,49 @@
 
-module Rand = struct
+module Random = struct
+  (** Module types connected to random number generation. *)
 
   module type Rng = sig
+    (** The core random generator signature. *)
+
     type g
+    (** State type for this generator. *)
     val block_size : int
-    val generate   : ?g:g -> int -> Cstruct.t
+    (** Internally, this generator's {!generate} always produces [k * block_size] bytes. *)
+    val generate : ?g:g -> int -> Cstruct.t
+    (** [generate ~g n] produces [n] random bytes, using either the given or a
+      default {!g}. *)
   end
 
   module type N = sig
+    (** Typed random number extraction. *)
 
     type t
+    (** The type of extracted values. *)
     type g
+    (** Random generator. *)
 
-    val gen      : ?g:g -> t -> t
+    val gen : ?g:g -> t -> t
+    (** [gen ~g n] picks a value in the interval [\[0, n - 1\]] uniformly at random. *)
+    val gen_r : ?g:g -> t -> t -> t
+    (** [gen_r ~g low high] picks a value from the interval [\[low, high - 1\]]
+      uniformly at random. *)
     val gen_bits : ?g:g -> int -> t
-    val gen_r    : ?g:g -> t -> t -> t
+    (** [gen_bits ~g n] picks a value with exactly [n] significant bits,
+      uniformly at random. *)
   end
 
   module type Numeric = sig
+    (** A full suite of numeric extractions. *)
 
     type g
+    (** Random generator. *)
 
-    (* Generate a prime taking this many bits. First bit is 1. *)
     val prime : ?g:g -> bits:int -> Z.t
-
-    (* Generate a prime pair g, p with p = 2g + 1. *)
+    (** [prime ~g ~bits] generates a prime with [bits] significant bits, that
+      is, from the interval [\[2^(bits - 1), 2^bits - 1\]]. *)
     val safe_prime : ?g:g -> bits:int -> Z.t * Z.t
+    (** [safe_prime ~g ~bits] gives a prime pair [(g, p)] such that [p = 2g + 1]
+      and [p] has [bits] significant bits. *)
 
     module Int   : N with type g = g and type t = int
     module Int32 : N with type g = g and type t = int32
