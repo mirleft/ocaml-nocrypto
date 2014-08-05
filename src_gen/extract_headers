@@ -18,8 +18,8 @@ if [[ -z ${CC} ]]; then
 fi
 
 COUT=$(mktemp)
-CBIT=${COUT}.c
-MLBIT=${COUT}.ml
+CBIT="${COUT}.c"
+MLBIT="${COUT}.ml"
 
 trap "rm -f ${CBIT} ${COUT} ${MLBIT}" EXIT
 
