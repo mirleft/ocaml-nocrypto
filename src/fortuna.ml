@@ -2,8 +2,8 @@
 open Common
 open Hash
 
-module Counter = Block_cipher.Counters.Inc_LE
-module AES_CTR = Block_cipher.AES.CTR (Counter)
+module Counter = Cipher_block.Counters.Inc_LE
+module AES_CTR = Cipher_block.AES.CTR (Counter)
 
 let block_size = AES_CTR.block_size
 

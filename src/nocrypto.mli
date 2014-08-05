@@ -4,8 +4,8 @@ module Numeric    : module type of Numeric
 module Common  : module type of Common
 
 module Hash          : module type of Hash
-module Block_cipher  : module type of Block_cipher
-module Stream_cipher : module type of Stream_cipher
+module Cipher_block  : module type of Cipher_block
+module Cipher_stream : module type of Cipher_stream
 
 module Fortuna : module type of Fortuna
 
