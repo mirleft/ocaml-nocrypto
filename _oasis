@@ -126,5 +126,5 @@ Document api
   Type: ocamlbuild (0.3)
   BuildTools+: ocamldoc
   XOcamlbuildPath: doc
-  XOcamlbuildModules: src/Nocrypto, src/Rsa, src/Dh
+  XOcamlbuildModules: src/Nocrypto, src/Fortuna, src/Rsa, src/Dh
   Install: false
