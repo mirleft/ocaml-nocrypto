@@ -38,8 +38,7 @@ val pub : e:Cstruct.t -> n:Cstruct.t -> pub
 (** Construct a {!priv}. {!Cstruct.t} are taken to be big-endian. *)
 val priv : e:Cstruct.t -> d:Cstruct.t -> n:Cstruct.t ->
            p:Cstruct.t -> q:Cstruct.t ->
-           dp:Cstruct.t -> dq:Cstruct.t -> q':Cstruct.t ->
-           priv
+           dp:Cstruct.t -> dq:Cstruct.t -> q':Cstruct.t -> priv
 
 (** Compute a {!priv} from a minimal description. *)
 val priv' : e:Cstruct.t -> p:Cstruct.t -> q:Cstruct.t -> priv
@@ -73,10 +72,8 @@ module PKCS1 : sig
 
 end
 
-open Sexplib
+val sexp_of_pub : pub -> Sexplib.Sexp.t
+val pub_of_sexp : Sexplib.Sexp.t -> pub
 
-val sexp_of_pub : pub -> Sexp.t
-val pub_of_sexp : Sexp.t -> pub
-
-val sexp_of_priv : priv -> Sexp.t
-val priv_of_sexp : Sexp.t -> priv
+val sexp_of_priv : priv -> Sexplib.Sexp.t
+val priv_of_sexp : Sexplib.Sexp.t -> priv
