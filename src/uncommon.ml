@@ -1,3 +1,4 @@
+(** [Uncommon] is a [Common], now with less name clashes. *)
 
 let sign = function
   | 0            -> 0
@@ -129,7 +130,7 @@ module Cs = struct
   let rpad cs size x =
     let l   = len cs
     and cs' = create size in
-    if size < l then invalid_arg "Nocrypto.Common.Cs.rpad: size < len";
+    if size < l then invalid_arg "Nocrypto.Uncommon.Cs.rpad: size < len";
     blit cs 0 cs' 0 l ;
     for i = l to size - 1 do set_uint8 cs' i x done ;
     cs'
@@ -138,7 +139,7 @@ module Cs = struct
     let l   = len cs
     and cs' = create size in
     let i0  = size - l in
-    if size < l then invalid_arg "Nocrypto.Common.Cs.lpad: size < len";
+    if size < l then invalid_arg "Nocrypto.Uncommon.Cs.lpad: size < len";
     blit cs 0 cs' i0 l ;
     for i = 0 to i0 - 1 do set_uint8 cs' i x done ;
     cs'

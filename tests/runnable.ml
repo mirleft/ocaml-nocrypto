@@ -1,7 +1,7 @@
 
 open Lwt
 open Nocrypto
-open Common
+open Nocrypto.Uncommon
 
 
 let time f =
@@ -123,13 +123,13 @@ let time_rsa_generate () =
   let items = 100 in
   time @@ fun () ->
     for i = 1 to items do
-      ignore @@ RSA.generate 2048
+      ignore @@ Rsa.generate 2048
     done
 
 
 let rsa_feedback bits =
   let open Cstruct in
-  let open RSA in
+  let open Rsa in
 
   let def_e   = Z.of_int 0x10001 in
 
@@ -159,14 +159,14 @@ let rsa_feedback bits =
 
 
 let dh_feedback bits =
-  let p = DH.gen_group bits in
-(*   let p = DH.Group.rfc_5114_3 in *)
+  let p = Dh.gen_group bits in
+(*   let p = Dh.Group.rfc_5114_3 in *)
 
-  let (s1, m1) = DH.gen_secret p
-  and (s2, m2) = DH.gen_secret p in
+  let (s1, m1) = Dh.gen_secret p
+  and (s2, m2) = Dh.gen_secret p in
 
-  let sh1 = DH.shared p s1 m2
-  and sh2 = DH.shared p s2 m1 in
+  let sh1 = Dh.shared p s1 m2
+  and sh2 = Dh.shared p s2 m1 in
 
   assert (Cs.equal sh1 sh2);
   Cstruct.hexdump sh1

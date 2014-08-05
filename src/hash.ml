@@ -1,4 +1,4 @@
-open Common
+open Uncommon
 
 module type T     = sig include Algo_types.Hash end
 module type T_MAC = sig include Algo_types.Hash_MAC end

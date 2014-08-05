@@ -1,5 +1,5 @@
 open Algo_types
-open Common
+open Uncommon
 
 module Numeric_of (Rng : Random.Rng) = struct
 

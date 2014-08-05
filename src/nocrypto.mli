@@ -1,7 +1,7 @@
 
-module Base64     : module type of Base64
-module Numeric    : module type of Numeric
-module Common  : module type of Common
+module Base64   : module type of Base64
+module Numeric  : module type of Numeric
+module Uncommon : module type of Uncommon
 
 module Hash          : module type of Hash
 module Cipher_block  : module type of Cipher_block

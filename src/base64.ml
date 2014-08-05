@@ -1,5 +1,5 @@
 
-open Common
+open Uncommon
 open Cstruct
 
 let sym     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"

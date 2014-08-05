@@ -1,7 +1,7 @@
 open OUnit2
 
 open Nocrypto
-open Nocrypto.Common
+open Nocrypto.Uncommon
 
 
 let rec blocks_of_cs n cs =
@@ -362,6 +362,7 @@ let sha2_cases = [
 (* aes gcm *)
 
 let gcm_cases =
+  let open Cipher_block in
 
   let case ~key ~p ~a ~iv ~c ~t =
     ( AES.GCM.of_secret (Cs.of_hex key),
@@ -491,7 +492,7 @@ let gcm_cases =
 
 (* from SP800-38C_updated-July20_2007.pdf appendix C *)
 let ccm_cases =
-  let open AES.CCM in
+  let open Cipher_block.AES.CCM in
   let case ~key ~p ~a ~nonce ~c ~maclen =
     ( of_secret ~maclen (Cs.of_hex key),
       Cs.of_hex p, Cs.of_hex a, Cs.of_hex nonce, Cs.of_hex c ) in
