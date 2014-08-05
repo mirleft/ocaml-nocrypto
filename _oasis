@@ -25,16 +25,16 @@ Flag "benchmarks"
 Library "nocrypto"
   Path:            src/
   Pack:            true
-  Modules:         Rng,
+  Modules:         Common,
+                   Base64,
                    Hash,
                    Stream_cipher,
                    Block_cipher,
-                   Rsa,
-                   Dh,
-                   Fortuna,
-                   Base64,
                    Numeric,
-                   Nc_common
+                   Fortuna,
+                   Rng,
+                   Rsa,
+                   Dh
   InternalModules: Nocrypto_generated_sizes,
                    Nocrypto_generated,
                    Bindings,
@@ -42,24 +42,6 @@ Library "nocrypto"
                    Algo_types,
                    Gcm,
                    Ccm
-#  Modules:         Nocrypto
-#  InternalModules: Nocrypto_generated_sizes,
-#                   Nocrypto_generated,
-#                   Bindings,
-#                   Native,
-#                   Nc_common,
-#                   Numeric,
-#                   Hash,
-#                   Block_cipher,
-#                   Fortuna,
-#                   Rng,
-#                   Stream_cipher,
-#                   Ccm,
-#                   Gcm,
-#                   Rsa,
-#                   Dh,
-#                   Algo_types,
-#                   Base64
   CSources:        native/sha2.c,
                    native/sha2.h,
                    native/md5.c,

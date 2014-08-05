@@ -1,5 +1,5 @@
 open Sexplib.Conv
-open Nc_common
+open Common
 
 type pub  = { e : Z.t ; n : Z.t } with sexp
 

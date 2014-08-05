@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: f22a4b4ab78335b84544613508d258ee)
+# DO NOT EDIT (digest: 99262eb8b9ab94d02465637dfe07eaa2)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -18,16 +18,16 @@
 <src_gen/*.ml{,i}>: pkg_ctypes.stubs
 # Library nocrypto
 "src/nocrypto.cmxs": use_nocrypto
-"src/rng.cmx": for-pack(Nocrypto)
+"src/common.cmx": for-pack(Nocrypto)
+"src/base64.cmx": for-pack(Nocrypto)
 "src/hash.cmx": for-pack(Nocrypto)
 "src/stream_cipher.cmx": for-pack(Nocrypto)
 "src/block_cipher.cmx": for-pack(Nocrypto)
+"src/numeric.cmx": for-pack(Nocrypto)
+"src/fortuna.cmx": for-pack(Nocrypto)
+"src/rng.cmx": for-pack(Nocrypto)
 "src/rsa.cmx": for-pack(Nocrypto)
 "src/dh.cmx": for-pack(Nocrypto)
-"src/fortuna.cmx": for-pack(Nocrypto)
-"src/base64.cmx": for-pack(Nocrypto)
-"src/numeric.cmx": for-pack(Nocrypto)
-"src/nc_common.cmx": for-pack(Nocrypto)
 "src/native.cmx": for-pack(Nocrypto)
 "src/algo_types.cmx": for-pack(Nocrypto)
 "src/gcm.cmx": for-pack(Nocrypto)

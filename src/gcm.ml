@@ -1,7 +1,7 @@
 (*
  * Based mostly on NIST 800-38D.
  *)
-open Nc_common
+open Common
 
 module I128 = struct
 

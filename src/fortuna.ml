@@ -1,5 +1,5 @@
 
-open Nc_common
+open Common
 open Hash
 
 module Counter = Block_cipher.Counters.Inc_LE

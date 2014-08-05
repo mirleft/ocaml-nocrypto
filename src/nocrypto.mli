@@ -1,7 +1,7 @@
 
 module Base64     : module type of Base64
 module Numeric    : module type of Numeric
-module Nc_common  : module type of Nc_common
+module Common  : module type of Common
 
 module Hash          : module type of Hash
 module Block_cipher  : module type of Block_cipher
@@ -10,6 +10,7 @@ module Stream_cipher : module type of Stream_cipher
 module Fortuna : module type of Fortuna
 
 (* XXX XXX XXX
+ *
  * Inter-module references, packing and `module type of` don't like each
  * other. Figure something out to avoid re-pasting the interfaces here. *)
 
