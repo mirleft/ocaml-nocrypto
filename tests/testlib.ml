@@ -1,8 +1,7 @@
-
 open OUnit2
+
 open Nocrypto
-open Common
-open Block
+open Nocrypto.Common
 
 
 let rec blocks_of_cs n cs =
@@ -53,7 +52,7 @@ let cases_of f =
 
 (* randomized selfies *)
 
-let ecb_selftest ( m : (module Block.T_ECB) ) n =
+let ecb_selftest ( m : (module Cipher_block.T_ECB) ) n =
   let module C = ( val m ) in
   let check _ =
     let data  = Rng.generate (C.block_size * 8)
@@ -65,7 +64,7 @@ let ecb_selftest ( m : (module Block.T_ECB) ) n =
   in
   "selftest" >:: times ~n check
 
-let cbc_selftest ( m : (module Block.T_CBC) ) n  =
+let cbc_selftest ( m : (module Cipher_block.T_CBC) ) n  =
   let module C = ( val m ) in
   let (!) f x = (f x).C.message in
   let check _ =
@@ -112,9 +111,9 @@ let rsa_selftest ~bits n =
       cs
     in
 
-    let key = RSA.(generate ~e bits) in
-    let enc = RSA.(encrypt ~key:(pub_of_priv key) msg) in
-    let dec = RSA.(decrypt ~key enc) in
+    let key = Rsa.(generate ~e bits) in
+    let enc = Rsa.(encrypt ~key:(pub_of_priv key) msg) in
+    let dec = Rsa.(decrypt ~key enc) in
 
     let key_s = Sexplib.Sexp.to_string_hum Rsa.(sexp_of_priv key) in
     assert_cs_equal
@@ -125,13 +124,13 @@ let dh_selftest ~bits n =
 
   "selftest" >:: times ~n @@ fun _ ->
 
-    let p = DH.gen_group bits in
+    let p = Dh.gen_group bits in
 
-    let (s1, m1) = DH.gen_secret p
-    and (s2, m2) = DH.gen_secret p in
+    let (s1, m1) = Dh.gen_secret p
+    and (s2, m2) = Dh.gen_secret p in
 
-    let sh1 = DH.shared p s1 m2
-    and sh2 = DH.shared p s2 m1 in
+    let sh1 = Dh.shared p s1 m2
+    and sh2 = Dh.shared p s2 m1 in
 
     assert_cs_equal ~msg:"shared secret" sh1 sh2
 
@@ -553,13 +552,13 @@ let suite =
 
     "SHA2" >::: sha2_cases ;
 
-    "3DES-ECB" >::: [ ecb_selftest (module Block.DES.ECB) 100 ] ;
+    "3DES-ECB" >::: [ ecb_selftest (module Cipher_block.DES.ECB) 100 ] ;
 
-    "3DES-ECB" >::: [ cbc_selftest (module Block.AES.CBC) 100 ] ;
+    "3DES-ECB" >::: [ cbc_selftest (module Cipher_block.AES.CBC) 100 ] ;
 
-    "AES-ECB" >::: [ ecb_selftest (module Block.AES.ECB) 100 ] ;
+    "AES-ECB" >::: [ ecb_selftest (module Cipher_block.AES.ECB) 100 ] ;
 
-    "AES-CBC" >::: [ cbc_selftest (module Block.AES.CBC) 100 ] ;
+    "AES-CBC" >::: [ cbc_selftest (module Cipher_block.AES.CBC) 100 ] ;
 
     "AES-GCM" >::: gcm_cases ;
 
