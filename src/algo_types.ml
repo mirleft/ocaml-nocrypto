@@ -19,18 +19,18 @@ module Rand = struct
 
   module type Numeric = sig
 
-    module Rng : Rng
+    type g
 
     (* Generate a prime taking this many bits. First bit is 1. *)
-    val prime      : ?g:Rng.g -> bits:int -> Z.t
+    val prime : ?g:g -> bits:int -> Z.t
 
     (* Generate a prime pair g, p with p = 2g + 1. *)
-    val safe_prime : ?g:Rng.g -> bits:int -> Z.t * Z.t
+    val safe_prime : ?g:g -> bits:int -> Z.t * Z.t
 
-    module Int   : N with type g = Rng.g and type t = int
-    module Int32 : N with type g = Rng.g and type t = int32
-    module Int64 : N with type g = Rng.g and type t = int64
-    module Z     : N with type g = Rng.g and type t = Z.t
+    module Int   : N with type g = g and type t = int
+    module Int32 : N with type g = g and type t = int32
+    module Int64 : N with type g = g and type t = int64
+    module Z     : N with type g = g and type t = Z.t
   end
 
 end

@@ -2,7 +2,6 @@ open Nc_common
 
 module type T_core = sig
   type t
-  val bound : t -> int
   val zero : t
   val one  : t
   val (lsr)  : t -> int -> t
@@ -19,6 +18,7 @@ module type T_core = sig
   val to_int32 : t -> int32
   val to_int64 : t -> int64
   val to_string : t -> string
+  val bound : t -> int
 end
 
 module type T = sig
@@ -163,9 +163,8 @@ module Repr ( N : T_core ) = struct
 end
 
 module T (N : T_core) : T with type t = N.t = struct
-  module Repr_ = Repr (N)
   include N
-  include Repr_
+  include Repr (N)
 end
 
 module Int   = T (Int_core  )

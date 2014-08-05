@@ -1,13 +1,13 @@
 
-open Algo_types.Rand
+open Algo_types
 
-module Numeric_of : functor (Rng : Rng) -> Numeric
-  with module Rng = Rng
+module Numeric_of :
+  functor (Rng : Rand.Rng) -> Rand.Numeric with type g = Rng.g
 
-module Def_rng : Rng with type g = Fortuna.g
+type g = Fortuna.g
 
-include Numeric with module Rng = Def_rng
-include Rng with type g = Fortuna.g
+include Rand.Rng     with type g := g
+include Rand.Numeric with type g := g
 
 val reseed  : Cstruct.t      -> unit
 val reseedv : Cstruct.t list -> unit

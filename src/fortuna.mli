@@ -1,6 +1,7 @@
 
-type g
 exception Unseeded_generator
+
+type g
 
 val block_size : int
 

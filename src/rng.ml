@@ -1,10 +1,9 @@
-
-open Algo_types.Rand
+open Algo_types
 open Nc_common
 
-module Numeric_of (Rng : Rng) = struct
+module Numeric_of (Rng : Rand.Rng) = struct
 
-  module Rng = Rng
+  type g = Rng.g
 
   module N_gen (N : Numeric.T) = struct
 
@@ -76,29 +75,32 @@ module Numeric_of (Rng : Rng) = struct
 
 end
 
-module Def_rng = struct
-  open Fortuna
 
-  type g = Fortuna.g
+type g = Fortuna.g
 
-  let g = ref (create ())
-  let reseedv       = reseedv ~g:!g
-  and reseed        = reseed  ~g:!g
-  and seeded ()     = seeded  ~g:!g
-  and set_gen ~g:g' = g := g'
+open Fortuna
 
-  let block_size = block_size
-  let generate ?(g = !g) n = generate ~g n
+let gref = ref (create ())
 
-  module Accumulator = struct
-    open Accumulator
-    let acc    = create ~g:!g
-    let add    = add    ~acc
-    let add_rr = add_rr ~acc
-  end
+let reseedv    = reseedv ~g:!gref
+and reseed     = reseed  ~g:!gref
+and seeded ()  = seeded  ~g:!gref
+and set_gen ~g = gref := g
+
+let block_size = block_size
+
+let generate ?(g = !gref) n = generate ~g n
+
+module Accumulator = struct
+  let acc    = Accumulator.create ~g:!gref
+  let add    = Accumulator.add ~acc
+  and add_rr = Accumulator.add_rr ~acc
 end
 
-module Nums = Numeric_of ( Def_rng )
-
-include Def_rng
-include Nums
+include ( Numeric_of (
+  struct
+    type g = Fortuna.g
+    let block_size = block_size
+    let generate   = generate
+  end
+) : Rand.Numeric with type g := g )
