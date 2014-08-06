@@ -11,8 +11,6 @@ BuildTools:   ocamlbuild
 Description:
   A simple cryptographic library.
 
-PreConfCommand      : ./src_gen/extract_headers src/native src_gen/
-PreDistcleanCommand : rm -f src_gen/nocrypto_generated_sizes.ml
 
 Flag "pedantic"
   Description: Make the C compiler go hardcore
@@ -35,8 +33,7 @@ Library "nocrypto"
                    Rng,
                    Rsa,
                    Dh
-  InternalModules: Nocrypto_generated_sizes,
-                   Nocrypto_generated,
+  InternalModules: Nocrypto_generated,
                    Bindings,
                    Native,
                    Module_types,
@@ -50,6 +47,7 @@ Library "nocrypto"
                    native/rijndael.h,
                    native/d3des.c,
                    native/d3des.h,
+                   native/nocrypto_stubs_sizes.c,
                    native/nocrypto_stubs.c
   BuildDepends:    cstruct, zarith, ctypes, ctypes.stubs, sexplib.syntax
   XMETARequires:   cstruct, zarith, ctypes.stubs, sexplib

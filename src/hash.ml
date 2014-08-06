@@ -9,7 +9,7 @@ module type Base_hash = sig
 
   val block_size  : int
   val digest_size : int
-  val ssize       : int
+  val ssize       : unit -> Unsigned.size_t
   val init   : char ptr -> unit
   val update : char ptr -> char ptr -> PosixTypes.size_t -> unit
   val final  : char ptr -> char ptr -> unit
@@ -23,9 +23,10 @@ module Full_hash (H : Base_hash) = struct
 
   let block_size  = H.block_size
   and digest_size = H.digest_size
+  and struct_size = Unsigned.Size_t.to_int H.(ssize ())
 
   let init () =
-    let t = Ctypes.(allocate_n char ~count:H.ssize) in
+    let t = Ctypes.(allocate_n char ~count:struct_size) in
     ( H.init t; t )
 
   let feed t cs =

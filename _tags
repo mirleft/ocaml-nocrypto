@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: ca6217eea496aca637958873e361a6cb)
+# DO NOT EDIT (digest: 2a5947e591321fcbfe0bc5cd4e319a9b)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -37,6 +37,7 @@
 "src/native/md5.c": oasis_library_nocrypto_ccopt
 "src/native/rijndael.c": oasis_library_nocrypto_ccopt
 "src/native/d3des.c": oasis_library_nocrypto_ccopt
+"src/native/nocrypto_stubs_sizes.c": oasis_library_nocrypto_ccopt
 "src/native/nocrypto_stubs.c": oasis_library_nocrypto_ccopt
 <src/nocrypto.{cma,cmxa}>: oasis_library_nocrypto_byte
 <src/*.ml{,i}>: oasis_library_nocrypto_byte
@@ -44,6 +45,7 @@
 "src/native/md5.c": oasis_library_nocrypto_byte
 "src/native/rijndael.c": oasis_library_nocrypto_byte
 "src/native/d3des.c": oasis_library_nocrypto_byte
+"src/native/nocrypto_stubs_sizes.c": oasis_library_nocrypto_byte
 "src/native/nocrypto_stubs.c": oasis_library_nocrypto_byte
 <src/nocrypto.{cma,cmxa}>: use_libnocrypto_stubs
 <src/*.ml{,i}>: pkg_cstruct
@@ -71,6 +73,11 @@
 "src/native/d3des.c": pkg_ctypes.stubs
 "src/native/d3des.c": pkg_sexplib.syntax
 "src/native/d3des.c": pkg_zarith
+"src/native/nocrypto_stubs_sizes.c": pkg_cstruct
+"src/native/nocrypto_stubs_sizes.c": pkg_ctypes
+"src/native/nocrypto_stubs_sizes.c": pkg_ctypes.stubs
+"src/native/nocrypto_stubs_sizes.c": pkg_sexplib.syntax
+"src/native/nocrypto_stubs_sizes.c": pkg_zarith
 "src/native/nocrypto_stubs.c": pkg_cstruct
 "src/native/nocrypto_stubs.c": pkg_ctypes
 "src/native/nocrypto_stubs.c": pkg_ctypes.stubs
@@ -120,6 +127,5 @@
 <tests/*.ml{,i}>: use_nocrypto
 # OASIS_STOP
 
-"src/nocrypto_generated_sizes.cmx": for-pack(Nocrypto)
 "src/nocrypto_generated.cmx": for-pack(Nocrypto)
 "src/bindings.cmx": for-pack(Nocrypto)

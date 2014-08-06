@@ -8,29 +8,36 @@ struct
 
   open Ctypes
 
-  module Gen_hash (H : sig val ssize : int val pre : string end) = struct
+  module Gen_hash (H : sig
+    val ssize : (unit -> Unsigned.size_t) F.fn
+    val name  : string
+  end) = struct
 
     let ssize = H.ssize
 
     let init =
       (* state -> unit *)
-      F.foreign (H.pre ^ "_Init")   @@ ptr char @-> returning void
+      F.foreign (H.name ^ "_Init")   @@ ptr char @-> returning void
     and update =
       (* state -> input -> unit *)
-      F.foreign (H.pre ^ "_Update") @@ ptr char @-> ptr char @-> size_t @-> returning void
+      F.foreign (H.name ^ "_Update") @@ ptr char @-> ptr char @-> size_t @-> returning void
     and final =
       (* result -> state -> unit *)
-      F.foreign (H.pre ^ "_Final")  @@ ptr char @-> ptr char @-> returning void
+      F.foreign (H.name ^ "_Final")  @@ ptr char @-> ptr char @-> returning void
   end
 
-  open Nocrypto_generated_sizes
+  module Size_of = struct
+    let md5 = F.foreign "nocrypto_stub_sizeof_md5_ctx" @@ void @-> returning size_t
+    let sha = F.foreign "nocrypto_stub_sizeof_sha_ctx" @@ void @-> returning size_t
+  end
 
-  module MD5    = Gen_hash (struct let ssize = sizeof_MD5_CTX let pre = "MD5"    end)
-  module SHA1   = Gen_hash (struct let ssize = sizeof_SHA_CTX let pre = "SHA1"   end)
-  module SHA224 = Gen_hash (struct let ssize = sizeof_SHA_CTX let pre = "SHA224" end)
-  module SHA256 = Gen_hash (struct let ssize = sizeof_SHA_CTX let pre = "SHA256" end)
-  module SHA384 = Gen_hash (struct let ssize = sizeof_SHA_CTX let pre = "SHA384" end)
-  module SHA512 = Gen_hash (struct let ssize = sizeof_SHA_CTX let pre = "SHA512" end)
+
+  module MD5    = Gen_hash (struct let ssize = Size_of.md5 let name = "MD5"    end)
+  module SHA1   = Gen_hash (struct let ssize = Size_of.sha let name = "SHA1"   end)
+  module SHA224 = Gen_hash (struct let ssize = Size_of.sha let name = "SHA224" end)
+  module SHA256 = Gen_hash (struct let ssize = Size_of.sha let name = "SHA256" end)
+  module SHA384 = Gen_hash (struct let ssize = Size_of.sha let name = "SHA384" end)
+  module SHA512 = Gen_hash (struct let ssize = Size_of.sha let name = "SHA512" end)
 
   module AES = struct
 

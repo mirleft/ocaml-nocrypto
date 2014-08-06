@@ -9,5 +9,3 @@ setup.log
 *.docdir
 
 gmon.out
-
-src_gen/nocrypto_generated_sizes.ml

@@ -647,9 +647,6 @@ dispatch @@ MyOCamlbuildBase.dispatch_combine [
         copy_rule "cstubs: copy bindings descriptions"
           "src_gen/bindings.ml"
           "src/bindings.ml" ;
-        copy_rule "cstubs: copy header representations"
-          "src_gen/nocrypto_generated_sizes.ml"
-          "src/nocrypto_generated_sizes.ml" ;
     | _ -> ()
   end;
   dispatch_default
