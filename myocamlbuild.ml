@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 51e376e62b6706893ab7b221a5c1984b) *)
+(* DO NOT EDIT (digest: dcc45b087319b4d2ef313490f02128cf) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -605,7 +605,8 @@ let package_default =
                "src/native/sha2.h";
                "src/native/md5.h";
                "src/native/rijndael.h";
-               "src/native/d3des.h"
+               "src/native/d3des.h";
+               "src/native/nocrypto_stubs.h"
             ])
        ];
      flags =
@@ -632,7 +633,7 @@ let package_default =
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
-# 636 "myocamlbuild.ml"
+# 637 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 open Ocamlbuild_plugin;;
@@ -641,7 +642,7 @@ dispatch @@ MyOCamlbuildBase.dispatch_combine [
   begin function
     | After_rules ->
         rule "cstubs: generation"
-          ~prods:["src/native/%_stubs.c"; "src/%_generated.ml"]
+          ~prods:["src/native/%_generated_stubs.c"; "src/%_generated.ml"]
           ~deps: ["src_gen/%_bindgen.byte"]
           (fun env build -> Cmd (A(env "src_gen/%_bindgen.byte")));
         copy_rule "cstubs: copy bindings descriptions"

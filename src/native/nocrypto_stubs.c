@@ -1,5 +1,4 @@
-#include "md5.h"
-#include "sha2.h"
+#include "nocrypto_stubs.h"
 
 size_t nocrypto_stub_sizeof_md5_ctx () {
   return sizeof (MD5_CTX);

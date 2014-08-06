@@ -47,8 +47,9 @@ Library "nocrypto"
                    native/rijndael.h,
                    native/d3des.c,
                    native/d3des.h,
-                   native/nocrypto_stubs_sizes.c,
-                   native/nocrypto_stubs.c
+                   native/nocrypto_stubs.h,
+                   native/nocrypto_stubs.c,
+                   native/nocrypto_generated_stubs.c
   BuildDepends:    cstruct, zarith, ctypes, ctypes.stubs, sexplib.syntax
   XMETARequires:   cstruct, zarith, ctypes.stubs, sexplib
   CCOpt:           -I$pkg_ctypes/..
