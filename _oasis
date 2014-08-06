@@ -104,5 +104,5 @@ Document api
   Type: ocamlbuild (0.3)
   BuildTools+: ocamldoc
   XOcamlbuildPath: doc
-  XOcamlbuildModules: src/Nocrypto, src/Algo_types, src/Fortuna, src/Rng, src/Rsa, src/Dh
+  XOcamlbuildModules: src/Nocrypto, src/Module_types, src/Fortuna, src/Rng, src/Rsa, src/Dh
   Install: false
