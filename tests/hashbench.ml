@@ -18,9 +18,9 @@ let sha512 = (module SHA512 : T)
 let hashes = [
   "md5"   , md5    ;
   "sha1"  , sha1   ;
-  "sha224", sha224 ;
+(*   "sha224", sha224 ; *)
   "sha256", sha256 ;
-  "sha384", sha384 ;
+(*   "sha384", sha384 ; *)
   "sha512", sha512
   ]
 
@@ -32,7 +32,11 @@ let run path =
   time ~label:"total" @@ fun () ->
     hashes |> List.iter @@ fun (label, h) ->
       let module H = (val h : T) in
-      time ~label @@ fun () -> ignore @@ H.digest cs
+      time ~label (fun () -> ignore @@ H.digest cs);
+      time ~label:(label ^ "-chunks") @@ fun () ->
+        for x = 0 to Cstruct.len cs / 32 - 1 do
+          ignore @@ H.digest Cstruct.(sub cs (x * 32) 32)
+        done
 
 let _ = run Sys.argv.(1)
 
