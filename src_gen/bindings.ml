@@ -16,13 +16,10 @@ struct
     let ssize = H.ssize
 
     let init =
-      (* state -> unit *)
       F.foreign (H.name ^ "_Init")   @@ ptr void @-> returning void
     and update =
-      (* state -> input -> unit *)
       F.foreign (H.name ^ "_Update") @@ ptr void @-> ptr char @-> size_t @-> returning void
     and final =
-      (* result -> state -> unit *)
       F.foreign (H.name ^ "_Final")  @@ ptr char @-> ptr void @-> returning void
   end
 
