@@ -130,10 +130,10 @@ module Repr ( N : T_core ) = struct
 
   let of_cstruct_be cs = of_bits_be cs (Cstruct.len cs * 8)
 
-  let byte1 = N.of_int 0xff
-  and byte2 = N.of_int 0xffff
-  and byte3 = N.of_int 0xffffff
-  and byte7 = N.of_int 0xffffffffffffff
+  let byte1 = N.of_int64 0xffL
+  and byte2 = N.of_int64 0xffffL
+  and byte3 = N.of_int64 0xffffffL
+  and byte7 = N.of_int64 0xffffffffffffffL
 
   let into_cstruct_be n cs =
     let open Cstruct in
