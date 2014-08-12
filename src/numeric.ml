@@ -18,7 +18,7 @@ module type T_core = sig
   val to_int32 : t -> int32
   val to_int64 : t -> int64
   val to_string : t -> string
-  val bound : t -> int
+  val bit_bound : t -> int
 end
 
 module type T = sig
@@ -32,7 +32,7 @@ end
 
 module Int_core = struct
   type t = int
-  let bound _ = Sys.word_size
+  let bit_bound _ = Sys.word_size
   let zero = 0 and one  = 1
   let (lsr)  = (lsr)
   let (lsl)  = (lsl)
@@ -52,7 +52,7 @@ end
 
 module Int32_core = struct
   include Int32
-  let bound _ = 32
+  let bit_bound _ = 32
   let (lsr)  = shift_right_logical
   let (lsl)  = shift_left
   let (land) = logand
@@ -66,7 +66,7 @@ end
 
 module Int64_core = struct
   include Int64
-  let bound _ = 64
+  let bit_bound _ = 64
   let (lsr)  = shift_right_logical
   let (lsl)  = shift_left
   let (land) = logand
@@ -77,7 +77,7 @@ module Int64_core = struct
 end
 
 module Z_core = struct
-  let bound z = Z.size z * 64
+  let bit_bound z = Z.size z * 64
   include Z
   let (lsr) = shift_right
   let (lsl) = shift_left
@@ -99,7 +99,7 @@ module Repr ( N : T_core ) = struct
           if upper = N.zero then
             scan acc (bound - mid) i
           else scan (acc + mid) (bound - mid) upper in
-    scan 0 N.(bound i) i
+    scan 0 N.(bit_bound i) i
 
   let of_bits_be cs b =
     let open Cstruct in

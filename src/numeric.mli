@@ -24,7 +24,7 @@ module type T = sig
   val to_int64 : t -> int64
   val to_string : t -> string
 
-  val bound : t -> int
+  val bit_bound : t -> int
 
   val bits            : t -> int
   val of_bits_be      : Cstruct.t -> int -> t
