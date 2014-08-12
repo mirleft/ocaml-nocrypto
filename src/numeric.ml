@@ -32,7 +32,7 @@ end
 
 module Int_core = struct
   type t = int
-  let bound _ = 64
+  let bound _ = Sys.word_size
   let zero = 0 and one  = 1
   let (lsr)  = (lsr)
   let (lsl)  = (lsl)
