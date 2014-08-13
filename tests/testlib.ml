@@ -52,6 +52,23 @@ let cases_of f =
 
 (* randomized selfies *)
 
+let extract_selftest (type a) ~typ (rmod, nmod : a Rng.m * a Numeric.m) ~bound n =
+  let module N = (val nmod) in
+  let module R = (val rmod) in
+  typ ^ "selftest" >:: times ~n @@ fun _ ->
+    let r = R.gen bound in
+    let s = N.(of_cstruct_be @@ to_cstruct_be r)
+    and t = N.(of_cstruct_be @@ to_cstruct_be ~size:24 r) in
+    assert_equal r s;
+    assert_equal r t
+
+let reencode_selftest ~size n =
+  "selftest" >:: times ~n @@ fun _ ->
+    let cs  = Rng.generate size in
+    let cs' = Numeric.Z.(to_cstruct_be ~size @@ of_cstruct_be cs) in
+    assert_cs_equal cs cs'
+
+
 let random_n_selftest (type a) ~typ (m : a Rng.m) n (bounds : (a * a) list) =
   let module N = (val m) in
   let rec check = function
@@ -545,6 +562,17 @@ let ccm_cases =
 let suite =
 
   "All" >::: [
+
+    "Numeric extraction 1" >::: [
+      extract_selftest ~typ:"int" (Rng.int, Numeric.int) ~bound:max_int 1000;
+      extract_selftest ~typ:"int32" (Rng.int32, Numeric.int32) ~bound:Int32.max_int 1000;
+      extract_selftest ~typ:"int64" (Rng.int64, Numeric.int64) ~bound:Int64.max_int 1000;
+      extract_selftest ~typ:"z" (Rng.z, Numeric.z) ~bound:Z.(of_int64 Int64.max_int) 1000;
+    ] ;
+
+    "Numeric extraction 2" >::: [
+      reencode_selftest ~size:37 2000
+    ];
 
     "RNG extraction" >::: [
       random_n_selftest "int" Rng.int 1000 [
