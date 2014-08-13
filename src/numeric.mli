@@ -38,3 +38,10 @@ module Int   : T with type t = int
 module Int32 : T with type t = int32
 module Int64 : T with type t = int64 
 module Z     : T with type t = Z.t
+
+type 'a m = (module T with type t = 'a)
+
+val int   : int   m
+val int32 : int32 m
+val int64 : int64 m
+val z     : Z.t   m
