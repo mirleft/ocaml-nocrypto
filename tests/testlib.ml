@@ -52,6 +52,19 @@ let cases_of f =
 
 (* randomized selfies *)
 
+let random_n_selftest (type a) ~typ (m : a Rng.m) n (bounds : (a * a) list) =
+  let module N = (val m) in
+  let rec check = function
+    | []               -> ()
+    | (lo, hi)::bounds ->
+        let aux () =
+          let x = N.gen_r lo hi in
+          if x < lo || x >= hi then assert_failure "range error" in
+        times ~n aux () ;
+        check bounds
+  in
+  typ ^ "selftest" >:: fun _ -> check bounds
+
 let ecb_selftest ( m : (module Cipher_block.T_ECB) ) n =
   let module C = ( val m ) in
   let check _ =
@@ -532,6 +545,23 @@ let ccm_cases =
 let suite =
 
   "All" >::: [
+
+    "RNG extraction" >::: [
+      random_n_selftest "int" Rng.int 1000 [
+        (1, 2); (0, 129); (7, 136); (0, 536870913);
+      ] ;
+      random_n_selftest "int32" Rng.int32 1000 [
+        (7l, 136l); (0l, 536870913l);
+      ] ;
+      random_n_selftest "int64" Rng.int64 1000 [
+        (7L, 136L); (0L, 536870913L); (0L, 2305843009213693953L);
+      ] ;
+      random_n_selftest "Z" Rng.z 1000 [
+        Z.(of_int 7, of_int 135);
+        Z.(of_int 0, of_int 536870913);
+        Z.(of_int 0, of_int64 2305843009213693953L)
+      ] ;
+    ] ;
 
     "RSA" >::: [
 (*       rsa_selftest ~bits:8    1000 ; *)
