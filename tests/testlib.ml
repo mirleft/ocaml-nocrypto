@@ -52,7 +52,7 @@ let cases_of f =
 
 (* randomized selfies *)
 
-let extract_selftest (type a) ~typ (rmod, nmod : a Rng.m * a Numeric.m) ~bound n =
+let n_encode_decode_selftest (type a) ~typ ~bound (rmod, nmod : a Rng.m * a Numeric.m) n =
   let module N = (val nmod) in
   let module R = (val rmod) in
   typ ^ "selftest" >:: times ~n @@ fun _ ->
@@ -62,25 +62,21 @@ let extract_selftest (type a) ~typ (rmod, nmod : a Rng.m * a Numeric.m) ~bound n
     assert_equal r s;
     assert_equal r t
 
-let reencode_selftest ~size n =
-  "selftest" >:: times ~n @@ fun _ ->
-    let cs  = Rng.generate size in
-    let cs' = Numeric.Z.(to_cstruct_be ~size @@ of_cstruct_be cs) in
+let n_decode_reencode_selftest (type a) ~typ ~bytes (nmod : a Numeric.m) n =
+  let module N = (val nmod) in
+  typ ^ " selftest" >:: times ~n @@ fun _ ->
+    let cs  = Rng.generate bytes in
+    let cs' = N.(to_cstruct_be ~size:bytes @@ of_cstruct_be cs) in
     assert_cs_equal cs cs'
-
 
 let random_n_selftest (type a) ~typ (m : a Rng.m) n (bounds : (a * a) list) =
   let module N = (val m) in
-  let rec check = function
-    | []               -> ()
-    | (lo, hi)::bounds ->
-        let aux () =
-          let x = N.gen_r lo hi in
-          if x < lo || x >= hi then assert_failure "range error" in
-        times ~n aux () ;
-        check bounds
-  in
-  typ ^ "selftest" >:: fun _ -> check bounds
+  typ ^ " selftest" >::: (
+    bounds |> List.map @@ fun (lo, hi) ->
+      "selftest" >:: times ~n @@ fun _ ->
+        let x = N.gen_r lo hi in
+        if x < lo || x >= hi then assert_failure "range error"
+  )
 
 let ecb_selftest ( m : (module Cipher_block.T_ECB) ) n =
   let module C = ( val m ) in
@@ -559,19 +555,28 @@ let ccm_cases =
          ~maclen: 8
   ]
 
+let int_safe_bytes = (cdiv Sys.word_size 8) - 1
+
 let suite =
 
   "All" >::: [
 
     "Numeric extraction 1" >::: [
-      extract_selftest ~typ:"int" ~bound:max_int (Rng.int, Numeric.int) 1000 ;
-      extract_selftest ~typ:"int32" ~bound:Int32.max_int (Rng.int32, Numeric.int32) 1000 ;
-      extract_selftest ~typ:"int64" ~bound:Int64.max_int (Rng.int64, Numeric.int64) 1000 ;
-      extract_selftest ~typ:"z" ~bound:Z.(of_int64 Int64.max_int) (Rng.z, Numeric.z) 1000 ;
+      n_encode_decode_selftest
+        ~typ:"int"   ~bound:max_int (Rng.int, Numeric.int) 2000 ;
+      n_encode_decode_selftest
+        ~typ:"int32" ~bound:Int32.max_int (Rng.int32, Numeric.int32) 2000 ;
+      n_encode_decode_selftest
+        ~typ:"int64" ~bound:Int64.max_int (Rng.int64, Numeric.int64) 2000 ;
+      n_encode_decode_selftest
+        ~typ:"z"     ~bound:Z.(of_int64 Int64.max_int) (Rng.z, Numeric.z) 2000 ;
     ] ;
 
     "Numeric extraction 2" >::: [
-      reencode_selftest ~size:37 2000
+      n_decode_reencode_selftest ~typ:"int"   ~bytes:int_safe_bytes Numeric.int 2000 ;
+      n_decode_reencode_selftest ~typ:"int32" ~bytes:4  Numeric.int32 2000 ;
+      n_decode_reencode_selftest ~typ:"int64" ~bytes:8  Numeric.int64 2000 ;
+      n_decode_reencode_selftest ~typ:"z"     ~bytes:37 Numeric.z     2000 ;
     ];
 
     "RNG extraction" >::: [
