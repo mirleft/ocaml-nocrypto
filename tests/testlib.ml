@@ -80,20 +80,18 @@ let random_n_selftest (type a) ~typ (m : a Rng.m) n (bounds : (a * a) list) =
 
 let ecb_selftest ( m : (module Cipher_block.T_ECB) ) n =
   let module C = ( val m ) in
-  let check _ =
+  "selftest" >:: times ~n @@ fun _ ->
     let data  = Rng.generate (C.block_size * 8)
     and key   = C.of_secret @@ Rng.generate (sample C.key_sizes) in
     let data' =
       C.( data |> encrypt ~key |> encrypt ~key
                |> decrypt ~key |> decrypt ~key ) in
     assert_cs_equal ~msg:"ecb mismatch" data data'
-  in
-  "selftest" >:: times ~n check
 
 let cbc_selftest ( m : (module Cipher_block.T_CBC) ) n  =
   let module C = ( val m ) in
   let (!) f x = (f x).C.message in
-  let check _ =
+  "selftest" >:: times ~n @@ fun _ ->
     let data = Rng.generate (C.block_size * 8)
     and iv   = Rng.generate C.block_size
     and key  = C.of_secret @@ Rng.generate (sample C.key_sizes) in
@@ -102,8 +100,6 @@ let cbc_selftest ( m : (module Cipher_block.T_CBC) ) n  =
                |> !(decrypt ~key ~iv) |> !(decrypt ~key ~iv) )
     in
     assert_cs_equal ~msg:"cbc mismatch" data data'
-  in
-  "selftest" >:: times ~n check
 
 let xor_selftest n =
   "selftest" >:: times ~n @@ fun _ ->
