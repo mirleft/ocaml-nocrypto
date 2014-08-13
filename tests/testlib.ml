@@ -564,10 +564,10 @@ let suite =
   "All" >::: [
 
     "Numeric extraction 1" >::: [
-      extract_selftest ~typ:"int" (Rng.int, Numeric.int) ~bound:max_int 1000;
-      extract_selftest ~typ:"int32" (Rng.int32, Numeric.int32) ~bound:Int32.max_int 1000;
-      extract_selftest ~typ:"int64" (Rng.int64, Numeric.int64) ~bound:Int64.max_int 1000;
-      extract_selftest ~typ:"z" (Rng.z, Numeric.z) ~bound:Z.(of_int64 Int64.max_int) 1000;
+      extract_selftest ~typ:"int" ~bound:max_int (Rng.int, Numeric.int) 1000 ;
+      extract_selftest ~typ:"int32" ~bound:Int32.max_int (Rng.int32, Numeric.int32) 1000 ;
+      extract_selftest ~typ:"int64" ~bound:Int64.max_int (Rng.int64, Numeric.int64) 1000 ;
+      extract_selftest ~typ:"z" ~bound:Z.(of_int64 Int64.max_int) (Rng.z, Numeric.z) 1000 ;
     ] ;
 
     "Numeric extraction 2" >::: [
