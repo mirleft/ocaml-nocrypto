@@ -50,11 +50,13 @@ module Random = struct
     module Int64 : N with type g = g and type t = int64
     module Z     : N with type g = g and type t = Z.t
 
-    type 'a m = (module N with type g = g and type t = 'a)
-    val int   : int   m
-    val int32 : int32 m
-    val int64 : int64 m
-    val z     : Z.t   m
+    module Fc : sig
+      type 'a t = (module N with type g = g and type t = 'a)
+      val int   : int   t
+      val int32 : int32 t
+      val int64 : int64 t
+      val z     : Z.t   t
+    end
   end
 
 end

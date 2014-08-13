@@ -172,9 +172,10 @@ module Int32 = T (Int32_core)
 module Int64 = T (Int64_core)
 module Z     = T (Z_core    )
 
-type 'a m = (module T with type t = 'a)
-
-let int   : int   m = (module Int)
-let int32 : int32 m = (module Int32)
-let int64 : int64 m = (module Int64)
-let z     : Z.t   m = (module Z)
+module Fc = struct
+  type 'a t = (module T with type t = 'a)
+  let int   : int   t = (module Int)
+  let int32 : int32 t = (module Int32)
+  let int64 : int64 t = (module Int64)
+  let z     : Z.t   t = (module Z)
+end

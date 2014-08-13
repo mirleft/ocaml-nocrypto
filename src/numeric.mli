@@ -1,5 +1,9 @@
 
 module type T = sig
+  (** An augmented numeric type, consisting of basic common numeric ops,
+      a range of converstions to and from variously-sized int types, and
+      a few basic function for representing such numbers as {!Cstruct.t}.
+  *)
 
   type t
 
@@ -36,12 +40,13 @@ end
 
 module Int   : T with type t = int
 module Int32 : T with type t = int32
-module Int64 : T with type t = int64 
+module Int64 : T with type t = int64
 module Z     : T with type t = Z.t
 
-type 'a m = (module T with type t = 'a)
-
-val int   : int   m
-val int32 : int32 m
-val int64 : int64 m
-val z     : Z.t   m
+module Fc : sig
+  type 'a t = (module T with type t = 'a)
+  val int   : int   t
+  val int32 : int32 t
+  val int64 : int64 t
+  val z     : Z.t   t
+end

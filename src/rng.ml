@@ -39,12 +39,13 @@ module Numeric_of (Rng : Random.Rng) = struct
   module Int64 = N_gen (Numeric.Int64)
   module ZN    = N_gen (Numeric.Z    )
 
-  type 'a m = (module Random.N with type g = g and type t = 'a)
-
-  let int   : int   m = (module Int)
-  let int32 : int32 m = (module Int32)
-  let int64 : int64 m = (module Int64)
-  let z     : Z.t   m = (module ZN)
+  module Fc = struct
+    type 'a t = (module Random.N with type g = g and type t = 'a)
+    let int   : int   t = (module Int)
+    let int32 : int32 t = (module Int32)
+    let int64 : int64 t = (module Int64)
+    let z     : Z.t   t = (module ZN)
+  end
 
   (* XXX
   * This is fishy. Most significant bit is always set to avoid reducing moduli,

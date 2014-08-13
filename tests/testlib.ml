@@ -52,7 +52,8 @@ let cases_of f =
 
 (* randomized selfies *)
 
-let n_encode_decode_selftest (type a) ~typ ~bound (rmod, nmod : a Rng.m * a Numeric.m) n =
+let n_encode_decode_selftest
+    (type a) ~typ ~bound (rmod, nmod : a Rng.Fc.t * a Numeric.Fc.t) n =
   let module N = (val nmod) in
   let module R = (val rmod) in
   typ ^ "selftest" >:: times ~n @@ fun _ ->
@@ -62,14 +63,14 @@ let n_encode_decode_selftest (type a) ~typ ~bound (rmod, nmod : a Rng.m * a Nume
     assert_equal r s;
     assert_equal r t
 
-let n_decode_reencode_selftest (type a) ~typ ~bytes (nmod : a Numeric.m) n =
+let n_decode_reencode_selftest (type a) ~typ ~bytes (nmod : a Numeric.Fc.t) n =
   let module N = (val nmod) in
   typ ^ " selftest" >:: times ~n @@ fun _ ->
     let cs  = Rng.generate bytes in
     let cs' = N.(to_cstruct_be ~size:bytes @@ of_cstruct_be cs) in
     assert_cs_equal cs cs'
 
-let random_n_selftest (type a) ~typ (m : a Rng.m) n (bounds : (a * a) list) =
+let random_n_selftest (type a) ~typ (m : a Rng.Fc.t) n (bounds : (a * a) list) =
   let module N = (val m) in
   typ ^ " selftest" >::: (
     bounds |> List.map @@ fun (lo, hi) ->
@@ -559,33 +560,33 @@ let suite =
 
     "Numeric extraction 1" >::: [
       n_encode_decode_selftest
-        ~typ:"int"   ~bound:max_int (Rng.int, Numeric.int) 2000 ;
+        ~typ:"int"   ~bound:max_int (Rng.Fc.int, Numeric.Fc.int) 2000 ;
       n_encode_decode_selftest
-        ~typ:"int32" ~bound:Int32.max_int (Rng.int32, Numeric.int32) 2000 ;
+        ~typ:"int32" ~bound:Int32.max_int (Rng.Fc.int32, Numeric.Fc.int32) 2000 ;
       n_encode_decode_selftest
-        ~typ:"int64" ~bound:Int64.max_int (Rng.int64, Numeric.int64) 2000 ;
+        ~typ:"int64" ~bound:Int64.max_int (Rng.Fc.int64, Numeric.Fc.int64) 2000 ;
       n_encode_decode_selftest
-        ~typ:"z"     ~bound:Z.(of_int64 Int64.max_int) (Rng.z, Numeric.z) 2000 ;
+        ~typ:"z"     ~bound:Z.(of_int64 Int64.max_int) (Rng.Fc.z, Numeric.Fc.z) 2000 ;
     ] ;
 
     "Numeric extraction 2" >::: [
-      n_decode_reencode_selftest ~typ:"int"   ~bytes:int_safe_bytes Numeric.int 2000 ;
-      n_decode_reencode_selftest ~typ:"int32" ~bytes:4  Numeric.int32 2000 ;
-      n_decode_reencode_selftest ~typ:"int64" ~bytes:8  Numeric.int64 2000 ;
-      n_decode_reencode_selftest ~typ:"z"     ~bytes:37 Numeric.z     2000 ;
+      n_decode_reencode_selftest ~typ:"int"   ~bytes:int_safe_bytes Numeric.Fc.int 2000 ;
+      n_decode_reencode_selftest ~typ:"int32" ~bytes:4  Numeric.Fc.int32 2000 ;
+      n_decode_reencode_selftest ~typ:"int64" ~bytes:8  Numeric.Fc.int64 2000 ;
+      n_decode_reencode_selftest ~typ:"z"     ~bytes:37 Numeric.Fc.z     2000 ;
     ];
 
     "RNG extraction" >::: [
-      random_n_selftest "int" Rng.int 1000 [
+      random_n_selftest "int" Rng.Fc.int 1000 [
         (1, 2); (0, 129); (7, 136); (0, 536870913);
       ] ;
-      random_n_selftest "int32" Rng.int32 1000 [
+      random_n_selftest "int32" Rng.Fc.int32 1000 [
         (7l, 136l); (0l, 536870913l);
       ] ;
-      random_n_selftest "int64" Rng.int64 1000 [
+      random_n_selftest "int64" Rng.Fc.int64 1000 [
         (7L, 136L); (0L, 536870913L); (0L, 2305843009213693953L);
       ] ;
-      random_n_selftest "Z" Rng.z 1000 [
+      random_n_selftest "Z" Rng.Fc.z 1000 [
         Z.(of_int 7, of_int 135);
         Z.(of_int 0, of_int 536870913);
         Z.(of_int 0, of_int64 2305843009213693953L)
