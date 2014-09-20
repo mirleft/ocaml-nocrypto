@@ -26,7 +26,7 @@ module Full_hash (H : Base_hash) = struct
   and struct_size = Unsigned.Size_t.to_int H.(ssize ())
 
   let init () =
-    let t = Conv.allocate_voidp struct_size in
+    let t = Conv.allocate_voidp ~count:struct_size in
     ( H.init t; t )
 
   let feed t cs =
