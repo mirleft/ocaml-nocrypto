@@ -9,10 +9,10 @@ type group = {
   p  : Z.t ;        (** modulus *)
   gg : Z.t ;        (** generator *)
   q  : Z.t option ; (** subgroup order; potentially unknown *)
-}
+} with sexp
 
 (** A private secret. *)
-type secret = { x : Z.t }
+type secret = { x : Z.t } with sexp
 
 (** Bit size of the modulus (not the subgroup order, which might not be known). *)
 val apparent_bit_size : group -> int
@@ -74,9 +74,3 @@ module Group : sig
   (** From RFC 5114. *)
 
 end
-
-val sexp_of_group  : group -> Sexplib.Sexp.t
-val group_of_sexp  : Sexplib.Sexp.t -> group
-
-val sexp_of_secret : secret -> Sexplib.Sexp.t
-val secret_of_sexp : Sexplib.Sexp.t -> secret

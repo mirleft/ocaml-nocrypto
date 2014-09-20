@@ -5,7 +5,7 @@
 type pub  = {
   e : Z.t ; (** Public exponent *)
   n : Z.t ; (** Modulus *)
-}
+} with sexp
 
 (** A private key (two-prime version) *)
 type priv = {
@@ -17,7 +17,7 @@ type priv = {
   dp : Z.t ; (** [d mod (p-1)] *)
   dq : Z.t ; (** [d mod (q-1)] *)
   q' : Z.t ; (** [q^(-1) mod p] *)
-}
+} with sexp
 
 (** Masking (blinding) request. *)
 type mask = [
@@ -71,9 +71,3 @@ module PKCS1 : sig
   val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
 
 end
-
-val sexp_of_pub : pub -> Sexplib.Sexp.t
-val pub_of_sexp : Sexplib.Sexp.t -> pub
-
-val sexp_of_priv : priv -> Sexplib.Sexp.t
-val priv_of_sexp : Sexplib.Sexp.t -> priv

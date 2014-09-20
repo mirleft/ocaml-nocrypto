@@ -46,8 +46,8 @@ end
 
 module Rsa : sig
 
-  type pub  = { e : Z.t ; n : Z.t ; }
-  type priv = { e  : Z.t ; d  : Z.t ; n  : Z.t ; p  : Z.t ; q  : Z.t ; dp : Z.t ; dq : Z.t ; q' : Z.t ; }
+  type pub  = { e : Z.t ; n : Z.t ; } with sexp
+  type priv = { e  : Z.t ; d  : Z.t ; n  : Z.t ; p  : Z.t ; q  : Z.t ; dp : Z.t ; dq : Z.t ; q' : Z.t ; } with sexp
 
   type mask = [ | `No | `Yes | `Yes_with of Rng.g ]
 
@@ -73,19 +73,14 @@ module Rsa : sig
     val encrypt :               key:pub  -> Cstruct.t -> Cstruct.t
     val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
   end
-
-  val sexp_of_pub  : pub -> Sexplib.Sexp.t
-  val pub_of_sexp  : Sexplib.Sexp.t -> pub
-  val sexp_of_priv : priv -> Sexplib.Sexp.t
-  val priv_of_sexp : Sexplib.Sexp.t -> priv
 end
 
 module Dh : sig
 
   exception Invalid_public_key
 
-  type group = { p  : Z.t ; gg : Z.t ; q  : Z.t option ; }
-  type secret = { x : Z.t }
+  type group = { p  : Z.t ; gg : Z.t ; q  : Z.t option ; } with sexp
+  type secret = { x : Z.t } with sexp
 
   val apparent_bit_size : group -> int
   val group : p:Cstruct.t -> gg:Cstruct.t -> ?q:Cstruct.t -> unit -> group
@@ -109,9 +104,4 @@ module Dh : sig
     val rfc_5114_2 : group
     val rfc_5114_3 : group
   end
-
-  val sexp_of_group  : group -> Sexplib.Sexp.t
-  val group_of_sexp  : Sexplib.Sexp.t -> group
-  val sexp_of_secret : secret -> Sexplib.Sexp.t
-  val secret_of_sexp : Sexplib.Sexp.t -> secret
 end
