@@ -105,8 +105,9 @@ module SHAd256 = struct
   let digestv css = let s = init () in ( List.iter (feed s) css ; get s )
 end
 
-type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]
-type mac  = [ `MD5 | `SHA1 | `SHA256 | `SHA384 | `SHA512 ]
+type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] with sexp
+
+type mac  = [ `MD5 | `SHA1 | `SHA256 | `SHA384 | `SHA512 ] with sexp
 
 let digest = function
   | `MD5    -> MD5.digest

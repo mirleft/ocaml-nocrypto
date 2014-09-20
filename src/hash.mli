@@ -12,8 +12,8 @@ module SHAd256 : T
 
 (* A set of simpler short-hands for common operations over varying hashes. *)
 
-type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]
-type mac  = [ `MD5 | `SHA1 | `SHA256 | `SHA384 | `SHA512 ]
+type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] with sexp
+type mac  = [ `MD5 | `SHA1 | `SHA256 | `SHA384 | `SHA512 ] with sexp
 
 val digest : [< hash ] -> Cstruct.t -> Cstruct.t
 val mac    : [< mac ] -> key:Cstruct.t -> Cstruct.t -> Cstruct.t
