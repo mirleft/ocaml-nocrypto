@@ -123,3 +123,11 @@ let mac fn ~key cs =
   | `SHA256 -> SHA256.hmac ~key cs
   | `SHA384 -> SHA384.hmac ~key cs
   | `SHA512 -> SHA512.hmac ~key cs
+
+let digest_size = function
+  | `MD5    -> MD5.digest_size
+  | `SHA1   -> SHA1.digest_size
+  | `SHA224 -> SHA224.digest_size
+  | `SHA256 -> SHA256.digest_size
+  | `SHA384 -> SHA384.digest_size
+  | `SHA512 -> SHA512.digest_size
