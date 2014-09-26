@@ -117,7 +117,6 @@ module PKCS1 = struct
 
   (* inspiration from RFC3447 EMSA-PKCS1-v1_5 and rsa_sign.c from OpenSSL *)
   (* also ocaml-ssh kex.ml *)
-  (* msg.length must be 36 (16 MD5 + 20 SHA1) in TLS-1.0/1.1! *)
   let pad_01 size msg =
     let n = len msg in
     match size - n with
@@ -146,14 +145,13 @@ module PKCS1 = struct
 
   let sign ~key msg =
     (* XXX XXX temp *)
-    let size = priv_bits key / 8 in
+    let size = cdiv (priv_bits key) 8 in
     map_opt ~f:(decrypt ~key) @@ pad_01 size msg
 
   let verify ~key data =
     unpad_01 (encrypt ~key data)
 
-  (* we're supposed to do the following:
-      0x00 0x02 <random_not_zero> 0x00 data *)
+  (* 0x00 0x02 <random_not_zero> 0x00 data *)
   let pad_02 ?g size msg =
     let n = len msg in
     match size - n with
@@ -194,14 +192,14 @@ module PKCS1 = struct
 
   let encrypt ~key msg =
     (* XXX XXX this is temp. *)
-    let msglen = pub_bits key / 8 in
+    let msglen = cdiv (pub_bits key) 8 in
     match pad_02 msglen msg with
     | None      -> invalid_arg "RSA.PKCS1.encrypt: key too small"
     | Some msg' -> encrypt ~key msg'
 
   let decrypt ?mask ~key msg =
     (* XXX XXX temp *)
-    let msglen = priv_bits key / 8 in
+    let msglen = cdiv (priv_bits key) 8 in
     if Cstruct.len msg = msglen then
       unpad_02 (decrypt ?mask ~key msg)
     else None
