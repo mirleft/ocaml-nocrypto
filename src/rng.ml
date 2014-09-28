@@ -55,17 +55,12 @@ module Numeric_of (Rng : Random.Rng) = struct
   let prime ?g ~bits =
     if bits < 2 then invalid_arg "Rng.prime: < 2 bits" ;
 
-    let limit = Z.(pow z_two) bits
-    and mask  = Z.(pow z_two) (bits - 1) in
+    let limit = Z.((lsl) one) bits
+    and mask  = Z.((lsl) one) (bits - 1) in
 
     let rec attempt () =
-      let p = Z.(ZN.gen_bits ?g bits lor mask) in
-      match Z.probab_prime p 25 with
-      | 0 ->
-        ( match Z.nextprime p with
-          | p' when p' < limit -> p'
-          | _                  -> attempt () )
-      | _ -> p in
+      let p = Z.(nextprime @@ ZN.gen_bits ?g bits lor mask) in
+      if p < limit then p else attempt () in
     attempt ()
 
   let rec safe_prime ?g ~bits =
