@@ -107,7 +107,7 @@ let generate ?g ?(e = Z.of_int 0x10001) bits =
       let cond = (p <> q) &&
                  Z.(gcd e (pred p) = one) &&
                  Z.(gcd e (pred q) = one) in
-      if cond then (p, q) else attempt () in
+      if cond then (max p q, min p q) else attempt () in
     attempt () in
   priv_of_primes ~e ~p ~q
 
