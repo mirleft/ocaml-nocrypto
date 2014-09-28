@@ -47,24 +47,20 @@ module Numeric_of (Rng : Random.Rng) = struct
     let z     : Z.t   t = (module ZN)
   end
 
-  (* XXX
-  * This is fishy. Most significant bit is always set to avoid reducing moduli,
-  * but this drops 1 bit of randomness. Investigate.
-  *)
+  let prime ?g ?(msb = 1) ~bits =
+    if bits < 2 || bits < msb then invalid_arg "Rng.prime: bits too small";
 
-  let prime ?g ~bits =
-    if bits < 2 then invalid_arg "Rng.prime: < 2 bits" ;
-
-    let limit = Z.((lsl) one) bits
-    and mask  = Z.((lsl) one) (bits - 1) in
+    let limit = Z.(one lsl bits)
+    and mask  = Z.((lsl) (pred (one lsl msb))) (bits - msb) in
 
     let rec attempt () =
       let p = Z.(nextprime @@ ZN.gen_bits ?g bits lor mask) in
       if p < limit then p else attempt () in
     attempt ()
 
+  (* XXX Add ~msb param for p? *)
   let rec safe_prime ?g ~bits =
-    let gg = prime ?g ~bits:(bits - 1) in
+    let gg = prime ?g ~msb:1 ~bits:(bits - 1) in
     let p  = Z.(gg * z_two + one) in
     match Z.probab_prime p 25 with
     | 0 -> safe_prime ?g ~bits

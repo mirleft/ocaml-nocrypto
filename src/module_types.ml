@@ -38,9 +38,11 @@ module Random = struct
     type g
     (** Random generator. *)
 
-    val prime : ?g:g -> bits:int -> Z.t
-    (** [prime ~g ~bits] generates a prime with [bits] significant bits, that
-        is, from the interval [\[2^(bits - 1), 2^bits - 1\]]. *)
+    val prime : ?g:g -> ?msb:int -> bits:int -> Z.t
+    (** [prime ~g ~msb ~bits] generates a prime smaller than [2^bits], such that
+        its [msb] most significant bits are set.
+        [prime ~g ~msb:1 ~bits] (the default) yields a prime in the interval
+        [\[2^(bits - 1), 2^bits - 1\]]. *)
     val safe_prime : ?g:g -> bits:int -> Z.t * Z.t
     (** [safe_prime ~g ~bits] gives a prime pair [(g, p)] such that [p = 2g + 1]
         and [p] has [bits] significant bits. *)
