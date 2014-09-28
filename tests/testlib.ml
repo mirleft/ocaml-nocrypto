@@ -119,28 +119,26 @@ let xor_selftest n =
 
 
 let rsa_selftest ~bits n =
-  let _e = Z.of_int 0x10001
-  and _3 = Z.of_int 3 in
+  let e = Z.(if bits < 24 then of_int 3 else of_int 0x0001) in
 
   "selftest" >:: times ~n @@ fun _ ->
-
-    let e = Z.( if bits < 24 then _3 else _e )
-
-    and msg =
+    let msg =
       let size = cdiv bits 8 in
       let cs = Rng.generate size in
-      Cstruct.set_uint8 cs 0 0 ;
+      Cstruct.set_uint8 cs 0 0;
       Cstruct.(set_uint8 cs 1 @@ max 1 (get_uint8 cs 1)) ;
-      cs
-    in
+      cs in
 
     let key = Rsa.(generate ~e bits) in
     let enc = Rsa.(encrypt ~key:(pub_of_priv key) msg) in
     let dec = Rsa.(decrypt ~key enc) in
 
     let key_s = Sexplib.Sexp.to_string_hum Rsa.(sexp_of_priv key) in
+    assert_equal
+      ~msg:Printf.(sprintf "key size not %d bits:\n%s" bits key_s)
+      bits Rsa.(priv_bits key);
     assert_cs_equal
-      ~msg:("failed decryption with:\n" ^ key_s)
+      ~msg:Printf.(sprintf "failed decryption with:\n%s" key_s)
       msg dec
 
 let dh_selftest ~bits n =
@@ -596,7 +594,7 @@ let suite =
     "RSA" >::: [
 (*       rsa_selftest ~bits:8    1000 ; *)
       rsa_selftest ~bits:16   1000 ;
-      rsa_selftest ~bits:128  100  ;
+      rsa_selftest ~bits:131  100  ;
       rsa_selftest ~bits:1024 10   ;
     ] ;
 
