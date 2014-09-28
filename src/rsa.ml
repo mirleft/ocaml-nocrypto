@@ -98,16 +98,17 @@ and decrypt ?(mask = `Yes) ~key cs =
   Numeric.Z.(to_cstruct_be ~size @@ decrypt_z ~mask ~key @@ of_cstruct_be cs)
 
 
-(* XXX FIXME: Does not guarantee full `bits` of modulus. *)
 let generate ?g ?(e = Z.of_int 0x10001) bits =
+  let msb      = 2
+  and (pb, qb) = (bits / 2, bits - bits / 2) in
   let (p, q) =
-    let rec attempt bits =
-      let (p, q) = (Rng.prime ?g ~bits, Rng.prime ?g ~bits) in
+    let rec attempt () =
+      let (p, q) = (Rng.prime ?g ~msb ~bits:pb, Rng.prime ?g ~msb ~bits:qb) in
       let cond = (p <> q) &&
                  Z.(gcd e (pred p) = one) &&
                  Z.(gcd e (pred q) = one) in
-      if cond then (p, q) else attempt bits in
-    attempt (bits / 2) in
+      if cond then (p, q) else attempt () in
+    attempt () in
   priv_of_primes ~e ~p ~q
 
 

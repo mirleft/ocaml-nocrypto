@@ -54,10 +54,8 @@ val encrypt   : key:pub  -> Cstruct.t -> Cstruct.t
   @raise Invalid_argument if [message] is too larger for the [key]. *)
 val decrypt   : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
 
-(**
- [generate g e bits] is a new {!priv}. [e] is given or [2^16+1]. [size] is in
- bits. Finds two large random primes with [bits/2] significant bits and
- computes the key. *)
+(** [generate g e bits] is a new {!priv}. [e] is given or [2^16+1]. [size] is
+    in bits. *)
 val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
 
 
