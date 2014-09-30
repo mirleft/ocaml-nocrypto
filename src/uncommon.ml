@@ -1,11 +1,9 @@
 (** [Uncommon] is a [Common], now with less name clashes. *)
 
-let sign = function
-  | 0            -> 0
-  | x when x > 0 ->  1
-  | _            -> -1
-
-let cdiv x y = x / y + sign (x mod y)
+let cdiv x y =
+  if x > 0 && y > 0 then (x + y - 1) / y
+  else if x < 0 && y < 0 then (x + y + 1) / y
+  else x / y
 
 let o f g h = f (g h)
 

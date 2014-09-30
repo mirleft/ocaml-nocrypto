@@ -49,14 +49,10 @@ and priv_bits ({ n; _ } : priv) = Numeric.Z.bits n
 
 let encrypt_unsafe ~key: ({ e; n } : pub) msg = Z.(powm msg e n)
 
-let mod_ x n = match Z.sign x with
-  | -1 -> Z.(x mod n + n)
-  |  _ -> Z.(x mod n)
-
 let decrypt_unsafe ~key: ({ p; q; dp; dq; q'; _} : priv) c =
   let m1 = Z.(powm c dp p)
   and m2 = Z.(powm c dq q) in
-  let h  = Z.(mod_ (q' * (m1 - m2)) p) in
+  let h  = Z.(erem (q' * (m1 - m2)) p) in
   Z.(m2 + h * q)
 
 let decrypt_blinded_unsafe ?g ~key: ({ e; n; _} as key : priv) c =
