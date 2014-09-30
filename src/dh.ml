@@ -19,7 +19,7 @@ let to_cstruct_sized { p; _ } z =
 let group ~p ~gg ?q () =
   let (p, gg, q) =
     Numeric.Z.
-      (of_cstruct_be p, of_cstruct_be gg, map_opt ~f:of_cstruct_be q)
+      (of_cstruct_be p, of_cstruct_be gg, Option.map ~f:of_cstruct_be q)
   in
   { p; gg; q }
 

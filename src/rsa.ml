@@ -34,16 +34,14 @@ let priv_of_primes ~e ~p ~q =
   let dp = Z.(d mod (pred p))
   and dq = Z.(d mod (pred q))
   and q' = Z.(invert q p) in
-  { e  = e  ; d  = d  ; n = n ;
-    p  = p  ; q  = q  ;
-    dp = dp ; dq = dq ; q' = q' }
+  { e; d; n; p; q; dp; dq; q' }
 
 let priv' ~e ~p ~q =
   let (e, p, q) =
     Numeric.Z.(of_cstruct_be e, of_cstruct_be p, of_cstruct_be q) in
   priv_of_primes ~e ~p ~q
 
-let pub_of_priv ({ e; n; _ } : priv) = { e = e ; n = n }
+let pub_of_priv ({ e; n; _ } : priv) = { e ; n }
 
 (* XXX handle this more gracefully... *)
 let pub_bits  ({ n; _ } : pub)  = Numeric.Z.bits n
@@ -64,7 +62,7 @@ let decrypt_unsafe ~key: ({ p; q; dp; dq; q'; _} : priv) c =
 let decrypt_blinded_unsafe ?g ~key: ({ e; n; _} as key : priv) c =
 
   let rec nonce () =
-    let x = Rng.Z.gen_r ?g z_two n in
+    let x = Rng.Z.gen_r ?g Z.two n in
     if Z.(gcd x n = one) then x else nonce () in
 
   let r  = nonce () in
@@ -147,7 +145,7 @@ module PKCS1 = struct
   let sign ~key msg =
     (* XXX XXX temp *)
     let size = cdiv (priv_bits key) 8 in
-    map_opt ~f:(decrypt ~key) @@ pad_01 size msg
+    Option.map ~f:(decrypt ~key) @@ pad_01 size msg
 
   let verify ~key data =
     unpad_01 (encrypt ~key data)

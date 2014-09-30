@@ -61,7 +61,7 @@ module Numeric_of (Rng : Random.Rng) = struct
   (* XXX Add ~msb param for p? *)
   let rec safe_prime ?g ~bits =
     let gg = prime ?g ~msb:1 ~bits:(bits - 1) in
-    let p  = Z.(gg * z_two + one) in
+    let p  = Z.(gg * two + one) in
     match Z.probab_prime p 25 with
     | 0 -> safe_prime ?g ~bits
     | _ -> (gg, p)

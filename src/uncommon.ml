@@ -11,15 +11,20 @@ let o f g h = f (g h)
 
 let id x = x
 
-let z_two = Z.of_int 2
+module Option = struct
 
-let opt a ~f = function
-  | Some x -> f x
-  | None   -> a
+  let v_map ~default ~f = function
+    | Some x -> f x
+    | None   -> default
 
-let map_opt ~f = function
-  | Some x -> Some (f x)
-  | None   -> None
+  let value ~default = function
+    | Some x -> x
+    | None   -> default
+
+  let map ~f = function
+    | Some x -> Some (f x)
+    | None   -> None
+end
 
 let string_fold ~f ~z str =
   let st = ref z in
