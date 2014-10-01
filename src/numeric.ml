@@ -1,5 +1,7 @@
 open Uncommon
 
+module Z_orig = Z
+
 module type T_core = sig
   type t
   val zero : t
@@ -179,3 +181,17 @@ module Fc = struct
   let int64 : int64 t = (module Int64)
   let z     : Z.t   t = (module Z)
 end
+
+
+(* Handbook of Applied Cryptography, Table 4.4:
+ * Miller-Rabin rounds for composite probability <= 1/2^80. *)
+let pseudoprime z =
+  let i = match Z.bits z with
+    | i when i >= 1300 ->  2
+    | i when i >=  850 ->  3
+    | i when i >=  650 ->  4
+    | i when i >=  350 ->  8
+    | i when i >=  250 -> 12
+    | i when i >=  150 -> 18
+    | _                -> 27 in
+  Z_orig.probab_prime z i <> 0

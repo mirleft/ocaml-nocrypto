@@ -50,3 +50,6 @@ module Fc : sig
   val int64 : int64 t
   val z     : Z.t   t
 end
+
+(* Misc elementary number theory functions. *)
+val pseudoprime : Z.t -> bool
