@@ -109,7 +109,7 @@ let xor_selftest n =
 
 
 let gen_rsa ~bits =
-  let e     = Z.(if bits < 24 then of_int 3 else of_int 0x0001) in
+  let e     = Z.(if bits < 24 then ~$3 else ~$0x10001) in
   let key   = Rsa.(generate ~e bits) in
   let key_s = Sexplib.Sexp.to_string_hum Rsa.(sexp_of_priv key) in
   assert_equal
