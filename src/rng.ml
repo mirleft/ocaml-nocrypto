@@ -47,12 +47,12 @@ module Numeric_of (Rng : Random.Rng) = struct
     let z     : Z.t   t = (module ZN)
   end
 
+  (* Invalid combinations of ~bits and ~msb will loop forever, but there is no
+   * way to quickly determine upfront whether there are any primes in the
+   * interval. *)
   let prime ?g ?(msb = 1) ~bits =
-    if bits < 2 || bits < msb then invalid_arg "Rng.prime: bits too small";
-
     let limit = Z.(one lsl bits)
     and mask  = Z.((lsl) (pred (one lsl msb))) (bits - msb) in
-
     let rec attempt () =
       let p = Z.(nextprime @@ ZN.gen_bits ?g bits lor mask) in
       if p < limit then p else attempt () in
@@ -62,9 +62,7 @@ module Numeric_of (Rng : Random.Rng) = struct
   let rec safe_prime ?g ~bits =
     let gg = prime ?g ~msb:1 ~bits:(bits - 1) in
     let p  = Z.(gg * two + one) in
-    match Z.probab_prime p 25 with
-    | 0 -> safe_prime ?g ~bits
-    | _ -> (gg, p)
+    if Numeric.pseudoprime p then (gg, p) else safe_prime ?g ~bits
 
 (*     |+ Pocklington primality test specialized for `a = 2`. +|
     if Z.(gcd (of_int 3) p = one) then (gg, p)

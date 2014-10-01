@@ -61,6 +61,8 @@ let shared ({ p; _ } as group) { x } cs =
 (* Generate a group using a safe prime p = 2q + 1 (with q prime) as modulus,
  * 2 or q as the generator and subgroup order of strictly q. *)
 let rec gen_group ?g ~bits =
+  if bits < 3 then
+    invalid_arg "Dh.gen_group: requested group size < 3 bits";
   let (q, p) = Rng.safe_prime ?g ~bits in
   let candidate_gs = [ Z.two ; q ] in
   try
@@ -71,7 +73,7 @@ let rec gen_group ?g ~bits =
 module Group = struct
 
   let hex = Cs.of_hex
-  let two = Numeric.Z.to_cstruct_be (Z.of_int 2)
+  let two = Numeric.Z.to_cstruct_be Z.two
 
   (* Oakley groups from RFC2409 *)
 

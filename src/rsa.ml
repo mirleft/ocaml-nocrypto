@@ -92,12 +92,18 @@ and decrypt ?(mask = `Yes) ~key cs =
   Numeric.Z.(to_cstruct_be ~size @@ decrypt_z ~mask ~key @@ of_cstruct_be cs)
 
 
-let generate ?g ?(e = Z.of_int 0x10001) bits =
-  let msb      = 2
+let generate ?g ?(e = Z.(~$0x10001)) bits =
+  let () =
+    if bits < 10 then
+      invalid_arg "Rsa.generate: requested key size < 10 bits";
+    if Numeric.(Z.bits e >= bits || not (pseudoprime e)) || e < Z.three then
+      invalid_arg "Rsa.generate: e invalid or too small"
+  in
+  let msb = 2
   and (pb, qb) = (bits / 2, bits - bits / 2) in
   let (p, q) =
     let rec attempt () =
-      let (p, q) = (Rng.prime ?g ~msb ~bits:pb, Rng.prime ?g ~msb ~bits:qb) in
+      let (p, q) = Rng.(prime ?g ~msb ~bits:pb, prime ?g ~msb ~bits:qb) in
       let cond = (p <> q) &&
                  Z.(gcd e (pred p) = one) &&
                  Z.(gcd e (pred q) = one) in
