@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 015a9172689e9186a921003aab525de3)
+# DO NOT EDIT (digest: 5b3af12015e1c000a166ad8528502737)
 Uncommon
 Base64
 Hash
@@ -9,6 +9,7 @@ Numeric
 Fortuna
 Rng
 Rsa
+Dsa
 Dh
 Nocrypto_generated
 Bindings
