@@ -1,5 +1,7 @@
 open OUnit2
 
+open Notest
+
 open Nocrypto
 open Nocrypto.Uncommon
 
@@ -15,20 +17,8 @@ let rec range a b =
 let rec times ~n f a =
   if n > 0 then ( ignore (f a) ; times ~n:(pred n) f a )
 
-let hex_of_cs cs =
-  let b = Buffer.create 16 in
-  Cstruct.hexdump_to_buffer b cs ; Buffer.contents b
-
 let sample arr =
   let ix = Rng.Int.gen Array.(length arr) in arr.(ix)
-
-
-let assert_cs_equal ?pp_diff ?msg =
-  assert_equal
-    ~cmp:Cs.equal
-    ~printer:hex_of_cs
-    ?pp_diff
-    ?msg
 
 let assert_cs_not_equal ~msg cs1 cs2 =
   if Cs.equal cs1 cs2 then
