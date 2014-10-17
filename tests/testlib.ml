@@ -640,7 +640,9 @@ let suite =
 
     "AES-GCM" >::: gcm_cases ;
 
-    "AES-CCM" >::: ccm_cases
+    "AES-CCM" >::: ccm_cases ;
+
+    "DSA" >::: Dsa_tests.dsa_suite
   ]
 
 (*
