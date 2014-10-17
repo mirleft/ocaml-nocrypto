@@ -75,6 +75,25 @@ module Rsa : sig
   end
 end
 
+module Dsa : sig
+
+  type pub = { p : Z.t ; q : Z.t ; g : Z.t ; y : Z.t } with sexp
+  type priv = { p : Z.t ; q : Z.t ; g : Z.t ; x : Z.t ; y : Z.t } with sexp
+
+  val pub : p:Cstruct.t -> q:Cstruct.t -> g:Cstruct.t -> y:Cstruct.t -> pub
+  val priv : p:Cstruct.t -> q:Cstruct.t -> g:Cstruct.t -> x:Cstruct.t -> y:Cstruct.t -> priv
+  val pub_of_priv : priv -> pub
+
+  type mask = [ | `No | `Yes ]
+
+  val generate : int -> int -> priv
+
+  val sign   : key:priv -> ?mask:mask -> ?k:Cstruct.t -> hash:Hash.hash -> Cstruct.t -> (Cstruct.t * Cstruct.t)
+  val verify : key:pub -> hash:Hash.hash -> Cstruct.t -> (Cstruct.t * Cstruct.t) -> bool
+end
+
+
+
 module Dh : sig
 
   exception Invalid_public_key
