@@ -1,5 +1,5 @@
 # OPAM packages needed to build tests.
-OPAM_PACKAGES="cstruct ctypes zarith oUnit"
+OPAM_PACKAGES="sexplib cstruct ctypes zarith oUnit"
 
 case "$OCAML_VERSION" in
     4.01.0) ppa=avsm/ocaml41+opam11 ;;
@@ -9,7 +9,7 @@ esac
 
 echo "yes" | sudo add-apt-repository ppa:$ppa
 sudo apt-get update -qq
-sudo apt-get install -qq ocaml ocaml-native-compilers camlp4-extra opam libgmp-dev
+sudo apt-get install -qq ocaml ocaml-native-compilers camlp4-extra opam aspcud libgmp-dev
 
 export OPAMYES=1
 
