@@ -1,20 +1,18 @@
 
-module type T     = sig include Module_types.Hash end
-module type T_MAC = sig include Module_types.Hash_MAC end
+module type T = sig include Module_types.Hash end
 
-module MD5     : T_MAC
-module SHA1    : T_MAC
-module SHA224  : T_MAC
-module SHA256  : T_MAC
-module SHA384  : T_MAC
-module SHA512  : T_MAC
-module SHAd256 : T
+module MD5     : T
+module SHA1    : T
+module SHA224  : T
+module SHA256  : T
+module SHA384  : T
+module SHA512  : T
+module SHAd256 : sig include Module_types.Basic_hash end
 
 (* A set of simpler short-hands for common operations over varying hashes. *)
 
 type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] with sexp
-type mac  = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] with sexp
 
-val digest : [< hash ] -> Cstruct.t -> Cstruct.t
-val mac    : [< mac ] -> key:Cstruct.t -> Cstruct.t -> Cstruct.t
+val digest      : [< hash ] -> Cstruct.t -> Cstruct.t
+val mac         : [< hash ] -> key:Cstruct.t -> Cstruct.t -> Cstruct.t
 val digest_size : [< hash ] -> int

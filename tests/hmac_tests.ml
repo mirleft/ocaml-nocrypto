@@ -105,12 +105,11 @@ let sha1_inputs =
 let md5_inputs =
   let k, d = List.split sha1_inputs in
   let keys =
-    List.mapi (fun i x -> if i == 3 || i == 5 || i == 6 then
-                            x
-                          else
-                            Cstruct.(sub x 0 (min (len x) 16)))
-              k
-  in
+    List.mapi (fun i x ->
+      if i == 3 || i == 5 || i == 6 then
+        x
+      else Cstruct.(sub x 0 (min (len x) 16)))
+    k in
   List.combine keys d
 
 let md5_results = [

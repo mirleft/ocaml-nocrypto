@@ -1,7 +1,6 @@
 open Uncommon
 
-module type T     = sig include Module_types.Hash end
-module type T_MAC = sig include Module_types.Hash_MAC end
+module type T = sig include Module_types.Hash end
 
 module type Base_hash = sig
 
@@ -15,7 +14,7 @@ module type Base_hash = sig
   val final  : char ptr -> unit ptr -> unit
 end
 
-module Full_hash (H : Base_hash) = struct
+module Wrap_native (H : Base_hash) = struct
 
   open Native
 
@@ -44,11 +43,11 @@ module Full_hash (H : Base_hash) = struct
 
 end
 
-module Full_hash_hmac (H : Base_hash) = struct
+module Hash_of (H : Base_hash) = struct
 
   open Cs
 
-  include Full_hash (H)
+  include Wrap_native (H)
 
   let opad = create_with block_size 0x5c
   let ipad = create_with block_size 0x36
@@ -68,32 +67,32 @@ end
 
 module Bindings = Native.Bindings
 
-module MD5 = Full_hash_hmac ( struct
+module MD5 = Hash_of ( struct
   include Bindings.MD5
   let (digest_size, block_size) = (16, 64)
 end )
 
-module SHA1 = Full_hash_hmac ( struct
+module SHA1 = Hash_of ( struct
   include Bindings.SHA1
   let (digest_size, block_size) = (20, 64)
 end )
 
-module SHA224 = Full_hash_hmac ( struct
+module SHA224 = Hash_of ( struct
   include Bindings.SHA224
   let (digest_size, block_size) = (28, 64)
 end )
 
-module SHA256 = Full_hash_hmac ( struct
+module SHA256 = Hash_of ( struct
   include Bindings.SHA256
   let (digest_size, block_size) = (32, 64)
 end )
 
-module SHA384 = Full_hash_hmac ( struct
+module SHA384 = Hash_of ( struct
   include Bindings.SHA384
   let (digest_size, block_size) = (48, 128)
 end )
 
-module SHA512 = Full_hash_hmac ( struct
+module SHA512 = Hash_of ( struct
   include Bindings.SHA512
   let (digest_size, block_size) = (64, 128)
 end )

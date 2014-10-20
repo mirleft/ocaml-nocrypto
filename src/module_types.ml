@@ -63,7 +63,7 @@ module Random = struct
 
 end
 
-module type Hash = sig
+module type Basic_hash = sig
   (** A hashing algorithm. *)
 
   type t (** A changing hashing context. *)
@@ -78,10 +78,10 @@ module type Hash = sig
   val digestv : Cstruct.t list -> Cstruct.t (** Digest in one go. *)
 end
 
-module type Hash_MAC = sig
+module type Hash = sig
   (** A hashing algorithm equipped with HMAC. *)
 
-  include Hash
+  include Basic_hash
 
   val hmac : key:Cstruct.t -> Cstruct.t -> Cstruct.t
   (** [hmac ~key bytes] is authentication code for [bytes] under the secret

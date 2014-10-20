@@ -5,26 +5,6 @@ open Notest
 open Nocrypto
 open Nocrypto.Uncommon
 
-
-let rec blocks_of_cs n cs =
-  let open Cstruct in
-  if len cs <= n then [ cs ]
-  else sub cs 0 n :: blocks_of_cs n (shift cs n)
-
-let rec range a b =
-  if a > b then [] else a :: range (succ a) b
-
-let rec times ~n f a =
-  if n > 0 then ( ignore (f a) ; times ~n:(pred n) f a )
-
-let sample arr =
-  let ix = Rng.Int.gen Array.(length arr) in arr.(ix)
-
-let assert_cs_not_equal ~msg cs1 cs2 =
-  if Cs.equal cs1 cs2 then
-    assert_failure @@ msg ^ "\n" ^ hex_of_cs cs1
-
-
 let f1_eq ?msg f (a, b) _ =
   let (a, b) = Cs.(of_hex a, of_hex b) in
   assert_cs_equal ?msg (f a) b
@@ -38,7 +18,6 @@ let f2_eq ?msg f (a, b, c) =
 
 let cases_of f =
   List.map @@ fun params -> test_case (f params)
-
 
 (* randomized selfies *)
 
@@ -196,7 +175,7 @@ let hash_cases ( m : (module Hash.T) ) ~hash =
     "digestv" >::: cases_of (f1_blk_eq H.digestv) hash ;
   ]
 
-let hash_cases_mac ( m : (module Hash.T_MAC) ) ~hash ~mac =
+let hash_cases_mac ( m : (module Hash.T) ) ~hash ~mac =
   let module H = ( val m ) in
   [ "digest"  >::: cases_of (f1_eq H.digest) hash ;
     "digestv" >::: cases_of (f1_blk_eq H.digestv) hash ;
