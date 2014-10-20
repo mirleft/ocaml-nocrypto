@@ -94,7 +94,7 @@ let gen_generator p q =
 
 let gen_key_pair p q g =
   let c = Rng.Z.gen_r Z.one q in
-  let x = Z.(succ (c mod (pred q))) in
+  let x = Z.(succ (c mod (pred q))) in (* x should not be 0! *)
   let y = Z.(powm g x p) in
   (x, y)
  *)
@@ -106,10 +106,70 @@ let generate l n =
   { p; q; g; x; y } *)
   assert false
 
-
+(*
+(* NIST FIPS 186-4 *)
 let gen_k p q g =
   let c = Rng.Z.gen_r Z.one q in
   Z.(c mod (q - Z.one) + one)
+ *)
+
+(* RFC6979; Section 3.1 *)
+let bits_to_int qlen input =
+  let blen = 8 * Cstruct.len input in
+  let i = Numeric.Z.of_cstruct_be input in
+  if qlen < blen then
+    (* take qlen leftmost things *)
+    let shift = blen - qlen in
+    Numeric.Z.(i lsr shift)
+  else
+    i
+
+(* RFC6979; Section 3.2 *)
+let generate_k hash h1 q x =
+  let open Cstruct in
+  let (<+>) = Cs.append in
+
+  let hlen = Hash.digest_size hash
+  and null = Cs.create_with 1 0
+  and one = Cs.create_with 1 1
+  and qlen = Numeric.Z.bits q
+  in
+  let h1 =
+    let h1 = bits_to_int qlen h1 in
+    let z2 = Z.(h1 - q) in
+    let out = if z2 < Z.zero then h1 else z2 in
+    Numeric.Z.to_cstruct_be ~size:(cdiv qlen 8) out
+  in
+
+  let x = Numeric.Z.to_cstruct_be ~size:(cdiv qlen 8) x in
+  let v = Cs.create_with hlen 1 in
+  let key = Cs.create_with hlen 0 in
+  let key = Hash.mac hash ~key (v <+> null <+> x <+> h1) in
+  let v = Hash.mac hash ~key v in
+  let key = Hash.mac hash ~key (v <+> one <+> x <+> h1) in
+  let v = Hash.mac hash ~key v in
+
+  let rec doit key v =
+    let rec grow t v =
+      match cdiv qlen 8 - len t with
+      | x when x = 0 -> (t, v)
+      | x when x <= hlen ->
+         let v = Hash.mac hash ~key v in
+         (t <+> (Cstruct.sub v 0 x), v)
+      | x ->
+         let v = Hash.mac hash ~key v in
+         grow (t <+> v) v
+    in
+    let t, v = grow (create 0) v in
+    let k = bits_to_int qlen t in
+    if Z.one <= k && k < q then
+      k
+    else
+      let key = Hash.mac hash ~key (v <+> null) in
+      let v = Hash.mac hash ~key v in
+      doit key v
+  in
+  doit key v
 
 type mask = [ | `No | `Yes ]
 
@@ -123,22 +183,20 @@ let sign_ { p; q; g; x; _ } k inv_k m =
 
 let sign ~key:({ p; q; g; x; _ } as priv) ?(mask = `Yes) ?k ~hash m =
   let size = cdiv (Numeric.Z.bits q) 8 in
-  let hashbytes = min size (Hash.digest_size hash) in
   let hm = Hash.digest hash m in
-  let hm = Cstruct.sub hm 0 hashbytes in
-  let hm = Numeric.Z.of_cstruct_be hm in
+  let hmnum = bits_to_int (Numeric.Z.bits q) hm in
   let rec tryme () =
     let k = match k with
       | Some k -> Numeric.Z.of_cstruct_be k
-      | None -> gen_k p q g
+      | None -> generate_k hash hm q x
     in
-    let key, k, inv_k, hm =
+    let key, k, inv_k, hmnum =
       match mask with
-      | `No  -> (priv, k, Z.(invert k q), hm)
+      | `No  -> (priv, k, Z.(invert k q), hmnum)
       | `Yes -> let blind = Rng.Z.gen_r Z.one q in
-                ({ priv with x = Z.(x * blind) }, k, Z.(invert (blind * k) q), Z.(hm * blind))
+                ({ priv with x = Z.(x * blind) }, k, Z.(invert (blind * k) q), Z.(hmnum * blind))
     in
-    match sign_ key k inv_k hm with
+    match sign_ key k inv_k hmnum with
     | None -> tryme ()
     | Some (r, s) -> Numeric.Z.(to_cstruct_be ~size r, to_cstruct_be ~size s)
   in
@@ -147,11 +205,9 @@ let sign ~key:({ p; q; g; x; _ } as priv) ?(mask = `Yes) ?k ~hash m =
 let verify ~key:({ p ; q ; g ; y } : pub) ~hash m (r, s) =
   let r = Numeric.Z.of_cstruct_be r
   and s = Numeric.Z.of_cstruct_be s
-  and hashbytes = min (Hash.digest_size hash) (cdiv (Numeric.Z.bits q) 8)
   in
   let hm = Hash.digest hash m in
-  let hm = Cstruct.sub hm 0 hashbytes in
-  let hm = Numeric.Z.of_cstruct_be hm in
+  let hm = bits_to_int (Numeric.Z.bits q) hm in
   if r > Z.zero && s > Z.zero && r < q && s < q then
     let w = Z.(invert s q) in
     let u1 = Z.(hm * w mod q) in
