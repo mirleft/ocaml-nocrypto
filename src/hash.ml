@@ -78,7 +78,7 @@ module SHA1 = Full_hash_hmac ( struct
   let (digest_size, block_size) = (20, 64)
 end )
 
-module SHA224 = Full_hash ( struct
+module SHA224 = Full_hash_hmac ( struct
   include Bindings.SHA224
   let (digest_size, block_size) = (28, 64)
 end )
@@ -107,7 +107,7 @@ end
 
 type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] with sexp
 
-type mac  = [ `MD5 | `SHA1 | `SHA256 | `SHA384 | `SHA512 ] with sexp
+type mac  = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] with sexp
 
 let digest = function
   | `MD5    -> MD5.digest
@@ -121,6 +121,7 @@ let mac fn ~key cs =
   match fn with
   | `MD5    -> MD5.hmac ~key cs
   | `SHA1   -> SHA1.hmac ~key cs
+  | `SHA224 -> SHA224.hmac ~key cs
   | `SHA256 -> SHA256.hmac ~key cs
   | `SHA384 -> SHA384.hmac ~key cs
   | `SHA512 -> SHA512.hmac ~key cs
