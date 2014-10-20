@@ -32,6 +32,7 @@ Library "nocrypto"
                    Fortuna,
                    Rng,
                    Rsa,
+                   Dsa,
                    Dh
   InternalModules: Nocrypto_generated,
                    Bindings,
@@ -66,7 +67,7 @@ Executable "nocrypto_bindgen"
 
 Library "testlib"
   Path:         tests/
-  Modules:      Notest, Hmac_tests, Testlib
+  Modules:      Notest, Hmac_tests, Dsa_tests, Testlib
   Install:      false
   Build$:       flag(tests)
   BuildDepends: nocrypto, oUnit, cstruct.unix
