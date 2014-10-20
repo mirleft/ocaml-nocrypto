@@ -630,6 +630,8 @@ let suite =
 
     "SHA2" >::: sha2_cases ;
 
+    "HMAC" >::: Hmac_tests.hmac_suite ;
+
     "3DES-ECB" >::: [ ecb_selftest (module Cipher_block.DES.ECB) 100 ] ;
 
     "3DES-ECB" >::: [ cbc_selftest (module Cipher_block.AES.CBC) 100 ] ;
