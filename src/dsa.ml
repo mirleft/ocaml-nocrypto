@@ -89,21 +89,10 @@ let rec sign_z ?k:k0 ?(mask = `Yes) ~key z =
     sign_z ?k:k0 ~key z
   else (r, s)
 
-let verify ~key:({ p ; q ; gg ; y } : pub) ~hash m (r, s) =
-  let r = Numeric.Z.of_cstruct_be r
-  and s = Numeric.Z.of_cstruct_be s
-  in
-  let hm = Hash.digest hash m in
-  let hm = Numeric.Z.(of_bits_be hm (cdiv (bits q) 8)) in
-  if r > Z.zero && s > Z.zero && r < q && s < q then
-    let w = Z.(invert s q) in
-    let u1 = Z.(hm * w mod q) in
-    let u2 = Z.(r * w mod q) in
-    let v = Z.(((powm gg u1 p * powm y u2 p) mod p) mod q) in
-    if v = r then
-      true
-    else
-      false
-  else
-    false
-
+let verify_z ~key:({ p; q; gg; y }: priv ) (r, s) z =
+  let v () =
+    let w  = Z.invert s q in
+    let u1 = Z.(z * w mod q)
+    and u2 = Z.(r * w mod q) in
+    Z.((powm gg u1 p * powm y u2 p) mod p mod q) in
+  Z.zero < r && r < q && Z.zero < s && s < q && v () = r
