@@ -65,61 +65,6 @@ let k_hmac_drgb ~key:{ q; x } z =
   Hmac_drgb_256.reseed ~g xh1;
   Hmac_num.Z.gen_r ~g Z.one q
 
-(*
-(* NIST FIPS 186-4 *)
-let gen_k p q g =
-  let c = Rng.Z.gen_r Z.one q in
-  Z.(c mod (q - Z.one) + one)
- *)
-
-
-(* RFC6979; Section 3.2 *)
-let generate_k hash h1 q x =
-  let open Cstruct in
-  let (<+>) = Cs.append in
-
-  let hlen = Hash.digest_size hash
-  and null = Cs.create_with 1 0
-  and one = Cs.create_with 1 1
-  and qlen = Numeric.Z.bits q
-  in
-  let h1 =
-    let h1 = Numeric.Z.of_bits_be h1 qlen in
-    let z2 = Z.(h1 - q) in
-    let out = if z2 < Z.zero then h1 else z2 in
-    Numeric.Z.to_cstruct_be ~size:(cdiv qlen 8) out
-  in
-
-  let x = Numeric.Z.to_cstruct_be ~size:(cdiv qlen 8) x in
-  let v = Cs.create_with hlen 1 in
-  let key = Cs.create_with hlen 0 in
-  let key = Hash.mac hash ~key (v <+> null <+> x <+> h1) in
-  let v = Hash.mac hash ~key v in
-  let key = Hash.mac hash ~key (v <+> one <+> x <+> h1) in
-  let v = Hash.mac hash ~key v in
-
-  let rec doit key v =
-    let rec grow t v =
-      match cdiv qlen 8 - len t with
-      | x when x = 0 -> (t, v)
-      | x when x <= hlen ->
-         let v = Hash.mac hash ~key v in
-         (t <+> (Cstruct.sub v 0 x), v)
-      | x ->
-         let v = Hash.mac hash ~key v in
-         grow (t <+> v) v
-    in
-    let t, v = grow (create 0) v in
-    let k = Numeric.Z.of_bits_be t qlen in
-    if Z.one <= k && k < q then
-      k
-    else
-      let key = Hash.mac hash ~key (v <+> null) in
-      let v = Hash.mac hash ~key v in
-      doit key v
-  in
-  doit key v
-
 type mask = [ | `No | `Yes ]
 
 let sign_ { p; q; gg; x; _ } k inv_k m =
@@ -137,7 +82,7 @@ let sign ~key:({ p; q; gg; x; _ } as priv) ?(mask = `Yes) ?k ~hash m =
   let rec tryme () =
     let k = match k with
       | Some k -> Numeric.Z.of_cstruct_be k
-      | None -> generate_k hash hm q x
+      | None -> k_hmac_drgb ~key:priv hmnum
     in
     let key, k, inv_k, hmnum =
       match mask with

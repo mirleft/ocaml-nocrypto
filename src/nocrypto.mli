@@ -89,7 +89,7 @@ module Dsa : sig
 
   type mask = [ | `No | `Yes ]
 
-  val generate_k : Hash.hash -> Cstruct.t -> Z.t -> Z.t -> Z.t
+(*   val generate_k : Hash.hash -> Cstruct.t -> Z.t -> Z.t -> Z.t *)
 
   val generate : ?g:Rng.g -> keysize -> priv
 
