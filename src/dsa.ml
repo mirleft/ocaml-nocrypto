@@ -72,16 +72,6 @@ let gen_k p q g =
   Z.(c mod (q - Z.one) + one)
  *)
 
-(* RFC6979; Section 3.1 *)
-let bits_to_int qlen input =
-  let blen = 8 * Cstruct.len input in
-  let i = Numeric.Z.of_cstruct_be input in
-  if qlen < blen then
-    (* take qlen leftmost things *)
-    let shift = blen - qlen in
-    Numeric.Z.(i lsr shift)
-  else
-    i
 
 (* RFC6979; Section 3.2 *)
 let generate_k hash h1 q x =
@@ -94,7 +84,7 @@ let generate_k hash h1 q x =
   and qlen = Numeric.Z.bits q
   in
   let h1 =
-    let h1 = bits_to_int qlen h1 in
+    let h1 = Numeric.Z.of_bits_be h1 qlen in
     let z2 = Z.(h1 - q) in
     let out = if z2 < Z.zero then h1 else z2 in
     Numeric.Z.to_cstruct_be ~size:(cdiv qlen 8) out
@@ -120,7 +110,7 @@ let generate_k hash h1 q x =
          grow (t <+> v) v
     in
     let t, v = grow (create 0) v in
-    let k = bits_to_int qlen t in
+    let k = Numeric.Z.of_bits_be t qlen in
     if Z.one <= k && k < q then
       k
     else
@@ -143,7 +133,7 @@ let sign_ { p; q; gg; x; _ } k inv_k m =
 let sign ~key:({ p; q; gg; x; _ } as priv) ?(mask = `Yes) ?k ~hash m =
   let size = cdiv (Numeric.Z.bits q) 8 in
   let hm = Hash.digest hash m in
-  let hmnum = bits_to_int (Numeric.Z.bits q) hm in
+  let hmnum = Numeric.Z.(of_bits_be hm (bits q)) in
   let rec tryme () =
     let k = match k with
       | Some k -> Numeric.Z.of_cstruct_be k
@@ -166,7 +156,7 @@ let verify ~key:({ p ; q ; gg ; y } : pub) ~hash m (r, s) =
   and s = Numeric.Z.of_cstruct_be s
   in
   let hm = Hash.digest hash m in
-  let hm = bits_to_int (Numeric.Z.bits q) hm in
+  let hm = Numeric.Z.(of_bits_be hm (cdiv (bits q) 8)) in
   if r > Z.zero && s > Z.zero && r < q && s < q then
     let w = Z.(invert s q) in
     let u1 = Z.(hm * w mod q) in
