@@ -1,7 +1,8 @@
 open Sexplib.Conv
 open Uncommon
 
-(* good values for l,n are: (1024, 160) (2048, 224) (2048, 256) (3072, 256) *)
+module Hmac_drgb_256 = Hmac_drgb.Make (Hash.SHA256)
+module Hmac_num      = Rng.Numeric_of (Hmac_drgb_256)
 
 type pub  = { p : Z.t ; q : Z.t ; gg : Z.t ; y : Z.t } with sexp
 type priv = { p : Z.t ; q : Z.t ; gg : Z.t ; x : Z.t ; y : Z.t } with sexp
@@ -55,6 +56,14 @@ let generate ?g size =
   let x = Rng.Z.gen_r ?g Z.one q in
   let y = Z.(powm gg x p) in
   { p; q; gg; x; y }
+
+let k_hmac_drgb ~key:{ q; x } z =
+  let xh1 =
+    let repr = Numeric.Z.(to_cstruct_be ~size:(cdiv (bits q) 8)) in
+    Cs.(repr x <> repr Z.(z mod q)) in
+  let g = Hmac_drgb_256.create () in
+  Hmac_drgb_256.reseed ~g xh1;
+  Hmac_num.Z.gen_r ~g Z.one q
 
 (*
 (* NIST FIPS 186-4 *)
