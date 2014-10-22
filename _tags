@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: cd6222b75c76bdb672d6c286d896a284)
+# DO NOT EDIT (digest: c0b541107df3f816c87492d19a04398c)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -25,6 +25,7 @@
 "src/cipher_block.cmx": for-pack(Nocrypto)
 "src/numeric.cmx": for-pack(Nocrypto)
 "src/fortuna.cmx": for-pack(Nocrypto)
+"src/hmac_drgb.cmx": for-pack(Nocrypto)
 "src/rng.cmx": for-pack(Nocrypto)
 "src/rsa.cmx": for-pack(Nocrypto)
 "src/dsa.cmx": for-pack(Nocrypto)

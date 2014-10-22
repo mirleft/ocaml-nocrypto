@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 5b3af12015e1c000a166ad8528502737)
+# DO NOT EDIT (digest: 5a67fb1419c8b17d2e1b190ee5a9dab6)
 Uncommon
 Base64
 Hash
@@ -7,6 +7,7 @@ Cipher_stream
 Cipher_block
 Numeric
 Fortuna
+Hmac_drgb
 Rng
 Rsa
 Dsa

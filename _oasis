@@ -30,6 +30,7 @@ Library "nocrypto"
                    Cipher_block,
                    Numeric,
                    Fortuna,
+                   Hmac_drgb,
                    Rng,
                    Rsa,
                    Dsa,

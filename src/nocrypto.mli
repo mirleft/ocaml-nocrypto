@@ -9,7 +9,8 @@ module Hash          : module type of Hash
 module Cipher_block  : module type of Cipher_block
 module Cipher_stream : module type of Cipher_stream
 
-module Fortuna : module type of Fortuna
+module Fortuna   : module type of Fortuna
+module Hmac_drgb : module type of Hmac_drgb
 
 (* XXX XXX XXX
  *
