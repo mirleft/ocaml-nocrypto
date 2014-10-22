@@ -6,6 +6,8 @@ open Nocrypto
 open Nocrypto.Uncommon
 
 (*
+
+(*
 # CAVS 11.2
 # "SigGen" information for "dsa2_values"
 # Mod sizes selected: L=1024, N=160, SHA-1 L=1024, N=160, SHA-224 L=1024, N=160, SHA-256 L=1024, N=160, SHA-384 L=1024, N=160, SHA-512 L=2048, N=224, SHA-1 L=2048, N=224, SHA-224 L=2048, N=224, SHA-256 L=2048, N=224, SHA-384 L=2048, N=224, SHA-512 L=2048, N=256, SHA-1 L=2048, N=256, SHA-224 L=2048, N=256, SHA-256 L=2048, N=256, SHA-384 L=2048, N=256, SHA-512 L=3072, N=256, SHA-1 L=3072, N=256, SHA-224 L=3072, N=256, SHA-256 L=3072, N=256, SHA-384 L=3072, N=256, SHA-512
@@ -2465,3 +2467,5 @@ let dsa_suite =
 
   List.mapi (fun i f -> "RFC6979 DSA 1024 " ^ string_of_int i >:: f) rfc6979_dsa_1024 @
   List.mapi (fun i f -> "RFC6979 DSA 2048 " ^ string_of_int i >:: f) rfc6979_dsa_2048
+
+*)
