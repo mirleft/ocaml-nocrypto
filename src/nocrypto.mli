@@ -77,11 +77,11 @@ end
 
 module Dsa : sig
 
-  type pub = { p : Z.t ; q : Z.t ; g : Z.t ; y : Z.t } with sexp
-  type priv = { p : Z.t ; q : Z.t ; g : Z.t ; x : Z.t ; y : Z.t } with sexp
+  type pub = { p : Z.t ; q : Z.t ; gg : Z.t ; y : Z.t } with sexp
+  type priv = { p : Z.t ; q : Z.t ; gg : Z.t ; x : Z.t ; y : Z.t } with sexp
 
-  val pub : p:Cstruct.t -> q:Cstruct.t -> g:Cstruct.t -> y:Cstruct.t -> pub
-  val priv : p:Cstruct.t -> q:Cstruct.t -> g:Cstruct.t -> x:Cstruct.t -> y:Cstruct.t -> priv
+  val pub : p:Cstruct.t -> q:Cstruct.t -> gg:Cstruct.t -> y:Cstruct.t -> pub
+  val priv : p:Cstruct.t -> q:Cstruct.t -> gg:Cstruct.t -> x:Cstruct.t -> y:Cstruct.t -> priv
   val pub_of_priv : priv -> pub
 
   type mask = [ | `No | `Yes ]

@@ -3,27 +3,27 @@ open Uncommon
 
 (* good values for l,n are: (1024, 160) (2048, 224) (2048, 256) (3072, 256) *)
 
-type pub = { p : Z.t ; q : Z.t ; g : Z.t ; y : Z.t } with sexp
-type priv = { p : Z.t ; q : Z.t ; g : Z.t ; x : Z.t ; y : Z.t } with sexp
+type pub  = { p : Z.t ; q : Z.t ; gg : Z.t ; y : Z.t } with sexp
+type priv = { p : Z.t ; q : Z.t ; gg : Z.t ; x : Z.t ; y : Z.t } with sexp
 
-let pub ~p ~q ~g ~y =
+let pub ~p ~q ~gg ~y =
   Numeric.Z.({
-    p = of_cstruct_be p ;
-    q = of_cstruct_be q ;
-    g = of_cstruct_be g ;
-    y = of_cstruct_be y ;
+    p  = of_cstruct_be p  ;
+    q  = of_cstruct_be q  ;
+    gg = of_cstruct_be gg ;
+    y  = of_cstruct_be y  ;
   })
 
-let priv ~p ~q ~g ~x ~y =
+let priv ~p ~q ~gg ~x ~y =
   Numeric.Z.({
-    p = of_cstruct_be p ;
-    q = of_cstruct_be q ;
-    g = of_cstruct_be g ;
-    x = of_cstruct_be x ;
-    y = of_cstruct_be y ;
+    p  = of_cstruct_be p  ;
+    q  = of_cstruct_be q  ;
+    gg = of_cstruct_be gg ;
+    x  = of_cstruct_be x  ;
+    y  = of_cstruct_be y  ;
   })
 
-let pub_of_priv { p; q; g; x; y } = { p; q; g; y }
+let pub_of_priv { p; q; gg; x; y } = { p; q; gg; y }
 
 (* XXX: This does not work yet...
 let gen_probable_primes l n =
@@ -173,15 +173,15 @@ let generate_k hash h1 q x =
 
 type mask = [ | `No | `Yes ]
 
-let sign_ { p; q; g; x; _ } k inv_k m =
-  let r = Z.((powm g k p) mod q) in
+let sign_ { p; q; gg; x; _ } k inv_k m =
+  let r = Z.((powm gg k p) mod q) in
   let s = Z.(inv_k * (m + x * r) mod q) in
   if r = Z.zero || s = Z.zero then
     None
   else
     Some (r, s)
 
-let sign ~key:({ p; q; g; x; _ } as priv) ?(mask = `Yes) ?k ~hash m =
+let sign ~key:({ p; q; gg; x; _ } as priv) ?(mask = `Yes) ?k ~hash m =
   let size = cdiv (Numeric.Z.bits q) 8 in
   let hm = Hash.digest hash m in
   let hmnum = bits_to_int (Numeric.Z.bits q) hm in
@@ -202,7 +202,7 @@ let sign ~key:({ p; q; g; x; _ } as priv) ?(mask = `Yes) ?k ~hash m =
   in
   tryme ()
 
-let verify ~key:({ p ; q ; g ; y } : pub) ~hash m (r, s) =
+let verify ~key:({ p ; q ; gg ; y } : pub) ~hash m (r, s) =
   let r = Numeric.Z.of_cstruct_be r
   and s = Numeric.Z.of_cstruct_be s
   in
@@ -212,7 +212,7 @@ let verify ~key:({ p ; q ; g ; y } : pub) ~hash m (r, s) =
     let w = Z.(invert s q) in
     let u1 = Z.(hm * w mod q) in
     let u2 = Z.(r * w mod q) in
-    let v = Z.(((powm g u1 p * powm y u2 p) mod p) mod q) in
+    let v = Z.(((powm gg u1 p * powm y u2 p) mod p) mod q) in
     if v = r then
       true
     else
