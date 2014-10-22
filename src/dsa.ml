@@ -71,35 +71,23 @@ let k_hmac_drgb ~key:{ q; x } z =
   Hmac_drgb_256.reseed ~g xh1;
   Hmac_num.Z.gen_r ~g Z.one q
 
-let sign_ { p; q; gg; x; _ } k inv_k m =
-  let r = Z.((powm gg k p) mod q) in
-  let s = Z.(inv_k * (m + x * r) mod q) in
+let rec sign_z ?k:k0 ?(mask = `Yes) ~key z =
+  let { p; q; gg; x } = key in
+  let k  = match k0 with Some k -> k | None -> k_hmac_drgb ~key z in
+  let k' = Z.invert k q
+  and r  = match expand_mask mask with
+(*     | `Yes ->
+        let (m1, m2) = Rng.Z.(gen_r ?g Z.one q, gen_r ?g Z.one q) in
+        Z.(powm gg (k + m1 * q + m2) p * powm gg (q - m2) p mod p mod q) in *)
+    | `No    -> Z.(powm gg k p mod q)
+    | `Yes g ->
+        let m  = Rng.Z.gen_r ?g Z.one q in
+        let m' = Z.invert m q in
+        Z.(powm (powm gg m p) (m' * k mod q) p mod q) in
+  let s  = Z.(k' * (z + x * r) mod q) in
   if r = Z.zero || s = Z.zero then
-    None
-  else
-    Some (r, s)
-
-let sign ~key:({ p; q; gg; x; _} as priv) ?(mask = `Yes) ?k ~hash m =
-  let size = cdiv (Numeric.Z.bits q) 8 in
-  let hm = Hash.digest hash m in
-  let hmnum = Numeric.Z.(of_bits_be hm (bits q)) in
-  let rec tryme () =
-    let k = match k with
-      | Some k -> Numeric.Z.of_cstruct_be k
-      | None -> k_hmac_drgb ~key:priv hmnum
-    in
-    let key, k, inv_k, hmnum =
-      match mask with
-      | `No  -> (priv, k, Z.(invert k q), hmnum)
-      | `Yes -> let blind = Rng.Z.gen_r Z.one q in
-                ({ priv with x = Z.(x * blind) }, k, Z.(invert (blind * k) q), Z.(hmnum * blind))
-      | `Yes_with _ -> assert false
-    in
-    match sign_ key k inv_k hmnum with
-    | None -> tryme ()
-    | Some (r, s) -> Numeric.Z.(to_cstruct_be ~size r, to_cstruct_be ~size s)
-  in
-  tryme ()
+    sign_z ?k:k0 ~key z
+  else (r, s)
 
 let verify ~key:({ p ; q ; gg ; y } : pub) ~hash m (r, s) =
   let r = Numeric.Z.of_cstruct_be r
