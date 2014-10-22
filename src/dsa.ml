@@ -7,8 +7,6 @@ module Hmac_num      = Rng.Numeric_of (Hmac_drgb_256)
 type pub  = { p : Z.t ; q : Z.t ; gg : Z.t ; y : Z.t } with sexp
 type priv = { p : Z.t ; q : Z.t ; gg : Z.t ; x : Z.t ; y : Z.t } with sexp
 
-type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `LN of int * int ]
-
 let pub ~p ~q ~gg ~y =
   Numeric.Z.({
     p  = of_cstruct_be p  ;
@@ -28,25 +26,33 @@ let priv ~p ~q ~gg ~x ~y =
 
 let pub_of_priv { p; q; gg; x; y } = { p; q; gg; y }
 
+type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `LN of int * int ]
+
 let expand_size = function
-  | `Fips1024 -> (1024, 160)
-  | `Fips2048 -> (2048, 256)
-  | `Fips3072 -> (3072, 256)
+  | `Fips1024  -> (1024, 160)
+  | `Fips2048  -> (2048, 256)
+  | `Fips3072  -> (3072, 256)
   | `LN (l, n) -> (l, n)
 
-let params ?g size =
-  let (l, n) = expand_size size in
+type mask = [ `No | `Yes | `Yes_with of Rng.g ]
 
+let expand_mask = function
+  | `No         -> `No
+  | `Yes        -> `Yes None
+  | `Yes_with g -> `Yes (Some g)
+
+
+let params ?g size =
   let rec p_scan q a =
     let p = Z.(q * a + ~$1) in
-    if Numeric.pseudoprime p then (p, a) else p_scan q Z.(a + ~$2) in
-
-  let rec g_scan p a =
+    if Numeric.pseudoprime p then (p, a) else p_scan q Z.(a + ~$2)
+  and g_scan p a =
     let seed = Rng.Z.gen_r ?g Z.one p in
     let gg   = Z.(powm seed a p) in
-    if gg <> Z.one then gg else g_scan p a in
-
-  let q = Rng.prime ?g ~msb:1 ~bits:n in
+    if gg <> Z.one then gg else g_scan p a
+  in
+  let (l, n) = expand_size size in
+  let q      = Rng.prime ?g ~msb:1 ~bits:n in
   let (p, a) = p_scan q @@ Z.((lsl) ~$3) (l - n - 1) in
   let gg     = g_scan p a in
   (p, q, gg)
@@ -65,8 +71,6 @@ let k_hmac_drgb ~key:{ q; x } z =
   Hmac_drgb_256.reseed ~g xh1;
   Hmac_num.Z.gen_r ~g Z.one q
 
-type mask = [ | `No | `Yes ]
-
 let sign_ { p; q; gg; x; _ } k inv_k m =
   let r = Z.((powm gg k p) mod q) in
   let s = Z.(inv_k * (m + x * r) mod q) in
@@ -75,7 +79,7 @@ let sign_ { p; q; gg; x; _ } k inv_k m =
   else
     Some (r, s)
 
-let sign ~key:({ p; q; gg; x; _ } as priv) ?(mask = `Yes) ?k ~hash m =
+let sign ~key:({ p; q; gg; x; _} as priv) ?(mask = `Yes) ?k ~hash m =
   let size = cdiv (Numeric.Z.bits q) 8 in
   let hm = Hash.digest hash m in
   let hmnum = Numeric.Z.(of_bits_be hm (bits q)) in
@@ -89,6 +93,7 @@ let sign ~key:({ p; q; gg; x; _ } as priv) ?(mask = `Yes) ?k ~hash m =
       | `No  -> (priv, k, Z.(invert k q), hmnum)
       | `Yes -> let blind = Rng.Z.gen_r Z.one q in
                 ({ priv with x = Z.(x * blind) }, k, Z.(invert (blind * k) q), Z.(hmnum * blind))
+      | `Yes_with _ -> assert false
     in
     match sign_ key k inv_k hmnum with
     | None -> tryme ()
