@@ -90,7 +90,7 @@ module Dsa : sig
 
   val generate : ?g:Rng.g -> keysize -> priv
 
-  val sign   : ?mask:mask -> ?k:Cstruct.t -> key:priv -> Cstruct.t -> Cstruct.t * Cstruct.t
+  val sign   : ?mask:mask -> ?k:Z.t -> key:priv -> Cstruct.t -> Cstruct.t * Cstruct.t
   val verify : key:pub -> Cstruct.t * Cstruct.t -> Cstruct.t -> bool
 
   module K_gen (H : Hash.T) : sig
