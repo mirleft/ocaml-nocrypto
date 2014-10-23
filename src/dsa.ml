@@ -74,9 +74,6 @@ let rec sign_z ?k:k0 ?(mask = `Yes) ~key:({ p; q; gg; x; _ } as key) z =
   let k  = match k0 with Some k -> k | None -> k_hmac_drgb ~key z in
   let k' = Z.invert k q
   and r  = match expand_mask mask with
-(*     | `Yes ->
-        let (m1, m2) = Rng.Z.(gen_r ?g Z.one q, gen_r ?g Z.one q) in
-        Z.(powm gg (k + m1 * q + m2) p * powm gg (q - m2) p mod p mod q) in *)
     | `No    -> Z.(powm gg k p mod q)
     | `Yes g ->
         let m  = Rng.Z.gen_r ?g Z.one q in
