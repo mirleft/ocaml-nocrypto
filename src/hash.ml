@@ -99,8 +99,8 @@ end )
 
 module SHAd256 = struct
   include SHA256
-  let get    = SHA256.(o digest get)
-  let digest = SHA256.(o digest digest)
+  let get    = SHA256.(digest &. get)
+  let digest = SHA256.(digest &. digest)
   let digestv css = let s = init () in ( List.iter (feed s) css ; get s )
 end
 
