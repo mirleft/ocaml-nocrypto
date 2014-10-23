@@ -59,6 +59,8 @@ module Random = struct
       val int64 : int64 t
       val z     : Z.t   t
     end
+
+    val strict : bool -> unit
   end
 
 end

@@ -64,6 +64,8 @@ module K_gen (H : Hash.T) = struct
   module R_gen = Hmac_drgb.Make (H)
   module R_num = Rng.Numeric_of (R_gen)
 
+  let () = R_num.strict true
+
   let z_gen ~key:{ q; x; _ } z =
     let xh1 =
       let repr = Numeric.Z.(to_cstruct_be ~size:(cdiv (bits q) 8)) in

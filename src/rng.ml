@@ -5,6 +5,8 @@ module Numeric_of (Rng : Random.Rng) = struct
 
   type g = Rng.g
 
+  let relax = ref true
+
   module N_gen (N : Numeric.T) = struct
 
     type t = N.t
@@ -13,10 +15,10 @@ module Numeric_of (Rng : Random.Rng) = struct
     let gen ?g n =
       if n < N.one then invalid_arg "rng: non-positive bound" ;
 
-      let size   = N.bits (N.pred n) in
+      let size   = N.bits (N.pred n)
+      and items  = if !relax then 2 else 1 in
       let octets = cdiv size 8 in
-      (* Generating octets * 4 makes ~94% cases covered in a single run. *)
-      let batch  = Rng.(block_size * cdiv (octets * 4) block_size) in
+      let batch  = Rng.(block_size * cdiv (octets * items) block_size) in
 
       let rec attempt cs =
         try
@@ -27,12 +29,20 @@ module Numeric_of (Rng : Random.Rng) = struct
 
     let gen_r ?g a b = N.(a + gen ?g (b - a))
 
-    let gen_bits ?g bits =
+    let rec gen_r_strict ?g a b =
+      let x = gen ?g b in
+      if x < a then gen_r_strict ?g a b else a
 
+    let gen_r ?g a b = (if !relax then gen_r else gen_r_strict) ?g a b
+
+    let gen_bits ?g bits =
       let octets = cdiv bits 8 in
       let cs     = Rng.(generate ?g octets) in
       N.of_bits_be cs bits
+
   end
+
+  let strict s = relax := not s
 
   module Int   = N_gen (Numeric.Int  )
   module Int32 = N_gen (Numeric.Int32)
