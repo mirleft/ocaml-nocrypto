@@ -92,8 +92,8 @@ module Dsa : sig
 
   val generate : ?g:Rng.g -> keysize -> priv
 
-(*   val sign   : key:priv -> ?mask:mask -> ?k:Cstruct.t -> hash:Hash.hash -> Cstruct.t -> (Cstruct.t * Cstruct.t)
-  val verify : key:pub -> hash:Hash.hash -> Cstruct.t -> (Cstruct.t * Cstruct.t) -> bool *)
+  val sign   : ?mask:mask -> ?k:Cstruct.t -> key:priv -> Cstruct.t -> Cstruct.t * Cstruct.t
+  val verify : key:pub -> Cstruct.t * Cstruct.t -> Cstruct.t -> bool
 end
 
 

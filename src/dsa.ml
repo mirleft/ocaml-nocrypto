@@ -89,10 +89,22 @@ let rec sign_z ?k:k0 ?(mask = `Yes) ~key z =
     sign_z ?k:k0 ~key z
   else (r, s)
 
-let verify_z ~key:({ p; q; gg; y }: priv ) (r, s) z =
+let verify_z ~key:({ p; q; gg; y }: pub ) (r, s) z =
   let v () =
     let w  = Z.invert s q in
     let u1 = Z.(z * w mod q)
     and u2 = Z.(r * w mod q) in
     Z.((powm gg u1 p * powm y u2 p) mod p mod q) in
   Z.zero < r && r < q && Z.zero < s && s < q && v () = r
+
+let sign ?mask ?k ~(key : priv) msg =
+  let size = Numeric.Z.bits key.q
+  and k    = Option.map Numeric.Z.of_cstruct_be k in
+  let (r, s) = sign_z ?mask ?k ~key Numeric.Z.(of_bits_be msg size) in
+  Numeric.Z.(to_cstruct_be ~size r, to_cstruct_be ~size s)
+
+let verify ~(key : pub) (r, s) msg =
+  let size = Numeric.Z.bits key.q in
+  let (r, s, z) =
+    Numeric.Z.(of_bits_be r size, of_bits_be s size, of_bits_be msg size) in
+  verify_z ~key (r, s) z
