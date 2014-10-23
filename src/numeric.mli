@@ -31,7 +31,7 @@ module type T = sig
   val bit_bound : t -> int
 
   val bits            : t -> int
-  val of_bits_be      : Cstruct.t -> int -> t
+  val of_bits_be      : bits:int -> Cstruct.t -> t
   val of_cstruct_be   : Cstruct.t -> t
   val to_cstruct_be   : ?size:int -> t -> Cstruct.t
   val into_cstruct_be : t -> Cstruct.t -> unit

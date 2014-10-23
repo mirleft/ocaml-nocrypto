@@ -15,14 +15,14 @@ module Numeric_of (Rng : Random.Rng) = struct
     let gen ?g n =
       if n < N.one then invalid_arg "rng: non-positive bound" ;
 
-      let size   = N.bits (N.pred n)
+      let bits   = N.bits (N.pred n)
       and items  = if !relax then 2 else 1 in
-      let octets = cdiv size 8 in
+      let octets = cdiv bits 8 in
       let batch  = Rng.(block_size * cdiv (octets * items) block_size) in
 
       let rec attempt cs =
         try
-          let x = N.of_bits_be cs size in
+          let x = N.of_bits_be ~bits cs in
           if x < n then x else attempt (Cstruct.shift cs octets)
         with | Invalid_argument _ -> attempt Rng.(generate ?g batch) in
       attempt Rng.(generate ?g batch)
@@ -38,7 +38,7 @@ module Numeric_of (Rng : Random.Rng) = struct
     let gen_bits ?g bits =
       let octets = cdiv bits 8 in
       let cs     = Rng.(generate ?g octets) in
-      N.of_bits_be cs bits
+      N.of_bits_be ~bits cs
 
   end
 

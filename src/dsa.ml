@@ -74,7 +74,7 @@ module K_gen (H : Hash.T) = struct
     R_gen.reseed ~g xh1;
     R_num.Z.gen_r ~g Z.one q
 
-  let generate ~key cs = Numeric.Z.(of_bits_be cs (bits key.q))
+  let generate ~key cs = Numeric.Z.(of_bits_be ~bits:(bits key.q) cs)
 end
 
 module K_gen_sha256 = K_gen (Hash.SHA256)
@@ -100,12 +100,12 @@ let verify_z ~key:({ p; q; gg; y }: pub ) (r, s) z =
   Z.zero < r && r < q && Z.zero < s && s < q && v () = r
 
 let sign ?mask ?k ~(key : priv) msg =
-  let size   = Numeric.Z.bits key.q in
-  let (r, s) = sign_z ?mask ?k ~key Numeric.Z.(of_bits_be msg size) in
+  let bits   = Numeric.Z.bits key.q in
+  let size   = cdiv bits 8 in
+  let (r, s) = sign_z ?mask ?k ~key (Numeric.Z.of_bits_be ~bits msg) in
   Numeric.Z.(to_cstruct_be ~size r, to_cstruct_be ~size s)
 
 let verify ~(key : pub) (r, s) msg =
-  let size = Numeric.Z.bits key.q in
-  let (r, s, z) =
-    Numeric.Z.(of_bits_be r size, of_bits_be s size, of_bits_be msg size) in
+  let of_bits   = Numeric.Z.(of_bits_be ~bits:(bits key.q)) in
+  let (r, s, z) = (of_bits r, of_bits s, of_bits msg) in
   verify_z ~key (r, s) z
