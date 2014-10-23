@@ -62,7 +62,7 @@ module Hash_of (H : Base_hash) = struct
     let key = norm key in
     let outer = xor key opad
     and inner = xor key ipad in
-    digest (outer <> digest (inner <> message))
+    digestv [ outer ; digestv [ inner ; message ] ]
 end
 
 module Bindings = Native.Bindings
