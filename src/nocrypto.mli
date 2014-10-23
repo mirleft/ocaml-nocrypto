@@ -78,8 +78,8 @@ end
 
 module Dsa : sig
 
-  type pub = { p : Z.t ; q : Z.t ; gg : Z.t ; y : Z.t } with sexp
   type priv = { p : Z.t ; q : Z.t ; gg : Z.t ; x : Z.t ; y : Z.t } with sexp
+  type pub  = { p : Z.t ; q : Z.t ; gg : Z.t ; y : Z.t } with sexp
 
   type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `LN of int * int ]
   type mask    = [ `No | `Yes | `Yes_with of Rng.g ]
@@ -88,12 +88,14 @@ module Dsa : sig
   val priv : p:Cstruct.t -> q:Cstruct.t -> gg:Cstruct.t -> x:Cstruct.t -> y:Cstruct.t -> priv
   val pub_of_priv : priv -> pub
 
-(*   val generate_k : Hash.hash -> Cstruct.t -> Z.t -> Z.t -> Z.t *)
-
   val generate : ?g:Rng.g -> keysize -> priv
 
   val sign   : ?mask:mask -> ?k:Cstruct.t -> key:priv -> Cstruct.t -> Cstruct.t * Cstruct.t
   val verify : key:pub -> Cstruct.t * Cstruct.t -> Cstruct.t -> bool
+
+  module K_gen (H : Hash.T) : sig
+    val generate : key:priv -> Cstruct.t -> Z.t
+  end
 end
 
 

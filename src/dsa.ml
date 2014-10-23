@@ -1,9 +1,6 @@
 open Sexplib.Conv
 open Uncommon
 
-module Hmac_drgb_256 = Hmac_drgb.Make (Hash.SHA256)
-module Hmac_num      = Rng.Numeric_of (Hmac_drgb_256)
-
 type pub  = { p : Z.t ; q : Z.t ; gg : Z.t ; y : Z.t } with sexp
 type priv = { p : Z.t ; q : Z.t ; gg : Z.t ; x : Z.t ; y : Z.t } with sexp
 
@@ -62,16 +59,26 @@ let generate ?g size =
   let y = Z.(powm gg x p) in
   { p; q; gg; x; y }
 
-let k_hmac_drgb ~key:{ q; x; _ } z =
-  let xh1 =
-    let repr = Numeric.Z.(to_cstruct_be ~size:(cdiv (bits q) 8)) in
-    Cs.(repr x <> repr Z.(z mod q)) in
-  let g = Hmac_drgb_256.create () in
-  Hmac_drgb_256.reseed ~g xh1;
-  Hmac_num.Z.gen_r ~g Z.one q
+module K_gen (H : Hash.T) = struct
+
+  module R_gen = Hmac_drgb.Make (H)
+  module R_num = Rng.Numeric_of (R_gen)
+
+  let z_gen ~key:{ q; x; _ } z =
+    let xh1 =
+      let repr = Numeric.Z.(to_cstruct_be ~size:(cdiv (bits q) 8)) in
+      Cs.(repr x <> repr Z.(z mod q)) in
+    let g = R_gen.create () in
+    R_gen.reseed ~g xh1;
+    R_num.Z.gen_r ~g Z.one q
+
+  let generate ~key cs = Numeric.Z.(of_bits_be cs (bits key.q))
+end
+
+module K_gen_sha256 = K_gen (Hash.SHA256)
 
 let rec sign_z ?k:k0 ?(mask = `Yes) ~key:({ p; q; gg; x; _ } as key) z =
-  let k  = match k0 with Some k -> k | None -> k_hmac_drgb ~key z in
+  let k  = match k0 with Some k -> k | None -> K_gen_sha256.z_gen ~key z in
   let k' = Z.invert k q
   and r  = match expand_mask mask with
     | `No    -> Z.(powm gg k p mod q)
