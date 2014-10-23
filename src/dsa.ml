@@ -24,7 +24,7 @@ let priv ~p ~q ~gg ~x ~y =
     y  = of_cstruct_be y  ;
   })
 
-let pub_of_priv { p; q; gg; x; y } = { p; q; gg; y }
+let pub_of_priv { p; q; gg; y; _ } = { p; q; gg; y }
 
 type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `LN of int * int ]
 
@@ -40,7 +40,6 @@ let expand_mask = function
   | `No         -> `No
   | `Yes        -> `Yes None
   | `Yes_with g -> `Yes (Some g)
-
 
 let params ?g size =
   let rec p_scan q a =
@@ -63,7 +62,7 @@ let generate ?g size =
   let y = Z.(powm gg x p) in
   { p; q; gg; x; y }
 
-let k_hmac_drgb ~key:{ q; x } z =
+let k_hmac_drgb ~key:{ q; x; _ } z =
   let xh1 =
     let repr = Numeric.Z.(to_cstruct_be ~size:(cdiv (bits q) 8)) in
     Cs.(repr x <> repr Z.(z mod q)) in
@@ -71,8 +70,7 @@ let k_hmac_drgb ~key:{ q; x } z =
   Hmac_drgb_256.reseed ~g xh1;
   Hmac_num.Z.gen_r ~g Z.one q
 
-let rec sign_z ?k:k0 ?(mask = `Yes) ~key z =
-  let { p; q; gg; x } = key in
+let rec sign_z ?k:k0 ?(mask = `Yes) ~key:({ p; q; gg; x; _ } as key) z =
   let k  = match k0 with Some k -> k | None -> k_hmac_drgb ~key z in
   let k' = Z.invert k q
   and r  = match expand_mask mask with
