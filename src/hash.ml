@@ -104,9 +104,8 @@ module SHAd256 = struct
   let digestv css = let s = init () in ( List.iter (feed s) css ; get s )
 end
 
-type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] with sexp
 
-type mac  = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] with sexp
+type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] with sexp
 
 let digest = function
   | `MD5    -> MD5.digest
@@ -116,14 +115,13 @@ let digest = function
   | `SHA384 -> SHA384.digest
   | `SHA512 -> SHA512.digest
 
-let mac fn ~key cs =
-  match fn with
-  | `MD5    -> MD5.hmac ~key cs
-  | `SHA1   -> SHA1.hmac ~key cs
-  | `SHA224 -> SHA224.hmac ~key cs
-  | `SHA256 -> SHA256.hmac ~key cs
-  | `SHA384 -> SHA384.hmac ~key cs
-  | `SHA512 -> SHA512.hmac ~key cs
+let mac = function
+  | `MD5    -> MD5.hmac
+  | `SHA1   -> SHA1.hmac
+  | `SHA224 -> SHA224.hmac
+  | `SHA256 -> SHA256.hmac
+  | `SHA384 -> SHA384.hmac
+  | `SHA512 -> SHA512.hmac
 
 let digest_size = function
   | `MD5    -> MD5.digest_size
@@ -132,3 +130,11 @@ let digest_size = function
   | `SHA256 -> SHA256.digest_size
   | `SHA384 -> SHA384.digest_size
   | `SHA512 -> SHA512.digest_size
+
+let module_of = function
+  | `MD5    -> (module MD5 : T)
+  | `SHA1   -> (module SHA1 : T)
+  | `SHA224 -> (module SHA224 : T)
+  | `SHA256 -> (module SHA256 : T)
+  | `SHA384 -> (module SHA384 : T)
+  | `SHA512 -> (module SHA512 : T)

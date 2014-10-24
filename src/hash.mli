@@ -16,3 +16,4 @@ type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] with sexp
 val digest      : [< hash ] -> Cstruct.t -> Cstruct.t
 val mac         : [< hash ] -> key:Cstruct.t -> Cstruct.t -> Cstruct.t
 val digest_size : [< hash ] -> int
+val module_of   : [< hash ] -> (module T)
