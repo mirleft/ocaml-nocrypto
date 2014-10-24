@@ -67,14 +67,13 @@ module K_gen (H : Hash.T) = struct
   let () = R_num.strict true
 
   let z_gen ~key:{ q; x; _ } z =
-    let xh1 =
-      let repr = Numeric.Z.(to_cstruct_be ~size:(cdiv (bits q) 8)) in
-      Cs.(repr x <> repr Z.(z mod q)) in
-    let g = R_gen.create () in
-    R_gen.reseed ~g xh1;
+    let repr = Numeric.Z.(to_cstruct_be ~size:(cdiv (bits q) 8)) in
+    let g    = R_gen.create () in
+    R_gen.reseed ~g Cs.(repr x <> repr Z.(z mod q));
     R_num.Z.gen_r ~g Z.one q
 
-  let generate ~key cs = Numeric.Z.(of_cstruct_be ~bits:(bits key.q) cs)
+  let generate ~key cs =
+    z_gen ~key Numeric.Z.(of_cstruct_be ~bits:(bits key.q) cs)
 end
 
 module K_gen_sha256 = K_gen (Hash.SHA256)
@@ -88,7 +87,7 @@ let rec sign_z ?(mask = `Yes) ?k:k0 ~key:({ p; q; gg; x; _ } as key) z =
         let m  = Rng.Z.gen_r ?g Z.one q in
         let m' = Z.invert m q in
         Z.(powm (powm gg m p) (m' * k mod q) p mod q) in
-  let s  = Z.(k' * (z + x * r) mod q) in
+  let s = Z.(k' * (z + x * r) mod q) in
   if r = Z.zero || s = Z.zero then sign_z ~mask ?k:k0 ~key z else (r, s)
 
 let verify_z ~key:({ p; q; gg; y }: pub ) (r, s) z =
