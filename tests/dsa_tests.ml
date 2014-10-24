@@ -2175,19 +2175,23 @@ let sha512_n256_cases2 =
 ]
 
 
-(* let private_key ~p ~q ~g ~x ~y =
-  Dsa.priv ~p:(Cs.of_hex p) ~q:(Cs.of_hex q) ~g:(Cs.of_hex g) ~x:(Cs.of_hex x) ~y:(Cs.of_hex y)
+let private_key ~p ~q ~g ~x ~y =
+  Dsa.priv ~p:(Cs.of_hex p) ~q:(Cs.of_hex q) ~gg:(Cs.of_hex g) ~x:(Cs.of_hex x) ~y:(Cs.of_hex y)
 
-let test_rfc6979 ~(priv_k:Dsa.priv) ~msg ~hash ~k ~r ~s  _ =
+let test_rfc6979 ~priv:({ Dsa.q; x } as priv) ~msg ~hash ~k ~r ~s  _ =
   let h1 = Hash.digest hash msg in
-  let q, x = Nocrypto.Dsa.(priv_k.q, priv_k.x) in
-  let myk = Numeric.Z.to_cstruct_be (Dsa.generate_k hash h1 q x) in
-  assert_cs_equal k myk ;
-  dsa_test ~priv:priv_k ~msg ~r ~s ~hash ()
+  let k' =
+    let module H = (val (Hash.module_of hash)) in
+    let module K = Dsa.K_gen (H) in
+    K.generate ~key:priv h1 in
+  assert_cs_equal
+    ~msg:"computed k" k
+    Numeric.Z.(to_cstruct_be ~size:(cdiv (bits priv.Dsa.q) 8) k') ;
+  dsa_test ~priv ~msg ~k:k' ~r ~s ~hash ()
 
 
 let rfc6979_dsa_1024 =
-  let priv_k = private_key
+  let priv = private_key
  ~p:"86F5CA03DCFEB225063FF830A0C769B9DD9D6153AD91D7CE27F787C43278B447
        E6533B86B18BED6E8A48B784A14C252C5BE0DBF60B86D6385BD2F12FB763ED88
        73ABFD3F5BA2E0A8C0A59082EAC056935E529DAF7C610467899C77ADEDFC846C
@@ -2205,14 +2209,12 @@ let rfc6979_dsa_1024 =
   in
 
   let case ~msg ~hash ~k ~r ~s =
-    test_rfc6979 ~priv_k ~msg:(Cstruct.of_string msg) ~k:(Cs.of_hex k) ~r:(Cs.of_hex r) ~s:(Cs.of_hex s) ~hash
-  in
-
-  [ case ~msg:"sample"
-         ~hash:`SHA1
-         ~k:"7BDB6B0FF756E1BB5D53583EF979082F9AD5BD5B"
-         ~r:"2E1A0C2562B2912CAAF89186FB0F42001585DA55"
-         ~s:"29EFB6B0AFF2D7A68EB70CA313022253B9A88DF5" ;
+    test_rfc6979 ~priv ~msg:(Cstruct.of_string msg) ~k:(Cs.of_hex k) ~r:(Cs.of_hex r) ~s:(Cs.of_hex s) ~hash
+  in [
+    case ~msg:"sample" ~hash:`SHA1
+    ~k:"7BDB6B0FF756E1BB5D53583EF979082F9AD5BD5B"
+    ~r:"2E1A0C2562B2912CAAF89186FB0F42001585DA55"
+    ~s:"29EFB6B0AFF2D7A68EB70CA313022253B9A88DF5" ;
 
     case ~hash:`SHA224 ~msg:"sample"
    ~k:"562097C06782D60C3037BA7BE104774344687649"
@@ -2257,10 +2259,11 @@ let rfc6979_dsa_1024 =
     case ~hash:`SHA512 ~msg:"test"
    ~k:"65D2C2EEB175E370F28C75BFCDC028D22C7DBE9C"
    ~r:"8EA47E475BA8AC6F2D821DA3BD212D11A3DEB9A0"
-   ~s:"7C670C7AD72B6C050C109E1790008097125433E8" ]
+   ~s:"7C670C7AD72B6C050C109E1790008097125433E8"
+  ]
 
 let rfc6979_dsa_2048 =
-  let priv_k = private_key
+  let priv = private_key
    ~p:"9DB6FB5951B66BB6FE1E140F1D2CE5502374161FD6538DF1648218642F0B5C48
        C8F7A41AADFA187324B87674FA1822B00F1ECF8136943D7C55757264E5A1A44F
        FE012E9936E00C1D3E9310B01C7D179805D3058B2A9F4BB6F9716BFE6117C6B5
@@ -2290,11 +2293,9 @@ let rfc6979_dsa_2048 =
   in
 
   let case ~msg ~hash ~k ~r ~s =
-    test_rfc6979 ~priv_k ~msg:(Cstruct.of_string msg) ~k:(Cs.of_hex k) ~r:(Cs.of_hex r) ~s:(Cs.of_hex s) ~hash
-  in
-
-  [
-   case ~hash:`SHA1 ~msg:"sample"
+    test_rfc6979 ~priv ~msg:(Cstruct.of_string msg) ~k:(Cs.of_hex k) ~r:(Cs.of_hex r) ~s:(Cs.of_hex s) ~hash
+  in [
+    case ~hash:`SHA1 ~msg:"sample"
    ~k:"888FA6F7738A41BDC9846466ABDB8174C0338250AE50CE955CA16230F9CBD53E"
    ~r:"3A1B2DBD7489D6ED7E608FD036C83AF396E290DBD602408E8677DAABD6E7445A"
    ~s:"D26FCBA19FA3E3058FFC02CA1596CDBB6E0D20CB37B06054F7E36DED0CDBBCCF" ;
@@ -2304,10 +2305,12 @@ let rfc6979_dsa_2048 =
    ~r:"DC9F4DEADA8D8FF588E98FED0AB690FFCE858DC8C79376450EB6B76C24537E2C"
    ~s:"A65A9C3BC7BABE286B195D5DA68616DA8D47FA0097F36DD19F517327DC848CEC" ;
 
+
    case ~hash:`SHA256 ~msg:"sample"
    ~k:"8926A27C40484216F052F4427CFD5647338B7B3939BC6573AF4333569D597C52"
    ~r:"EACE8BDBBE353C432A795D9EC556C6D021F7A03F42C36E9BC87E4AC7932CC809"
    ~s:"7081E175455F9247B812B74583E9E94F9EA79BD640DC962533B0680793A38D53" ;
+
 
    case ~hash:`SHA384 ~msg:"sample"
    ~k:"C345D5AB3DA0A5BCB7EC8F8FB7A7E96069E03B206371EF7D83E39068EC564920"
@@ -2343,7 +2346,8 @@ let rfc6979_dsa_2048 =
    ~k:"AFF1651E4CD6036D57AA8B2A05CCF1A9D5A40166340ECBBDC55BE10B568AA0AA"
    ~r:"89EC4BB1400ECCFF8E7D9AA515CD1DE7803F2DAFF09693EE7FD1353E90A68307"
    ~s:"C9F0BDABCC0D880BB137A994CC7F3980CE91CC10FAF529FC46565B15CEA854E1"
-  ] *)
+
+  ]
 
 let dsa_suite =
   List.mapi (fun i f -> "DSA SHA1 " ^ string_of_int i >:: f) sha1_cases @
@@ -2367,6 +2371,5 @@ let dsa_suite =
   List.mapi (fun i f -> "DSA SHA384 N256 2 " ^ string_of_int i >:: f) sha384_n256_cases2 @
   List.mapi (fun i f -> "DSA SHA512 N256 2 " ^ string_of_int i >:: f) sha512_n256_cases2 @
 
-(*   List.mapi (fun i f -> "RFC6979 DSA 1024 " ^ string_of_int i >:: f) rfc6979_dsa_1024 @
-  List.mapi (fun i f -> "RFC6979 DSA 2048 " ^ string_of_int i >:: f) rfc6979_dsa_2048 *)
-  []
+  List.mapi (fun i f -> "RFC6979 DSA 1024 " ^ string_of_int i >:: f) rfc6979_dsa_1024 @
+  List.mapi (fun i f -> "RFC6979 DSA 2048 " ^ string_of_int i >:: f) rfc6979_dsa_2048
