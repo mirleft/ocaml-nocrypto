@@ -623,7 +623,7 @@ let suite =
 
     "AES-CCM" >::: ccm_cases ;
 
-(*     "DSA" >::: Dsa_tests.dsa_suite *)
+    "DSA" >::: Dsa_tests.dsa_suite
   ]
 
 (*
