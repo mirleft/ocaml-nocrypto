@@ -114,7 +114,7 @@ let time_z_of_bits () =
     let rec loop cs = function
       | 0 -> ()
       | n ->
-          ignore (Numeric.Z.of_bits_be ~bits:(7 * 8 + 3) cs);
+          ignore (Numeric.Z.of_cstruct_be ~bits:(7 * 8 + 3) cs);
           loop (Cstruct.shift cs 8) (pred n) in
     loop cs items
 

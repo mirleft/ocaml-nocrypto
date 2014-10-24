@@ -22,7 +22,7 @@ module Numeric_of (Rng : Random.Rng) = struct
 
       let rec attempt cs =
         try
-          let x = N.of_bits_be ~bits cs in
+          let x = N.of_cstruct_be ~bits cs in
           if x < n then x else attempt (Cstruct.shift cs octets)
         with | Invalid_argument _ -> attempt Rng.(generate ?g batch) in
       attempt Rng.(generate ?g batch)
@@ -38,7 +38,7 @@ module Numeric_of (Rng : Random.Rng) = struct
     let gen_bits ?g bits =
       let octets = cdiv bits 8 in
       let cs     = Rng.(generate ?g octets) in
-      N.of_bits_be ~bits cs
+      N.of_cstruct_be ~bits cs
 
   end
 

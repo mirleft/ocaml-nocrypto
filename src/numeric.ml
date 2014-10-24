@@ -26,8 +26,7 @@ end
 module type T = sig
   include T_core
   val bits            : t -> int
-  val of_bits_be      : bits:int -> Cstruct.t -> t
-  val of_cstruct_be   : Cstruct.t -> t
+  val of_cstruct_be   : ?bits:int -> Cstruct.t -> t
   val to_cstruct_be   : ?size:int -> t -> Cstruct.t
   val into_cstruct_be : t -> Cstruct.t -> unit
 end
@@ -103,7 +102,7 @@ module Repr ( N : T_core ) = struct
           else scan (acc + mid) (bound - mid) upper in
     scan 0 N.(bit_bound i) i
 
-  let of_bits_be ~bits cs =
+  let of_cstruct_be ?bits cs =
     let open Cstruct in
     let open BE in
 
@@ -128,9 +127,9 @@ module Repr ( N : T_core ) = struct
           N.(of_int x lsr b' + acc lsl b)
       | _              -> acc
     in
-    loop N.zero 0 bits
-
-  let of_cstruct_be cs = of_bits_be ~bits:(Cstruct.len cs * 8) cs
+    loop N.zero 0 @@ match bits with
+      | None   -> Cstruct.len cs * 8
+      | Some b -> min b (Cstruct.len cs * 8)
 
   let byte1 = N.of_int64 0xffL
   and byte2 = N.of_int64 0xffffL
