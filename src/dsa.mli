@@ -40,16 +40,24 @@ val pub_of_priv : priv -> pub
     not be validated. *)
 val generate : ?g:Rng.g -> keysize -> priv
 
-(** [sign mask k key digest] is the signature, a pair of {!Cstruct.t}
+(** [sign mask k fips key digest] is the signature, a pair of {!Cstruct.t}s
     representing [r] and [s] in big-endian.
-    [digest] is the full digest of the actual message.
-    [k], the random component, can either be provided, or is deterministically
-    derived as per RFC6979, using SHA256. *)
-val sign : ?mask:mask -> ?k:Z.t -> key:priv -> Cstruct.t -> Cstruct.t * Cstruct.t
 
-(** [verify key (r, s) digest] verifies that the pair [(r, s)] is the signature
-    of [digest], the message digest, under the private counterpart to [key]. *)
-val verify : key:pub -> Cstruct.t * Cstruct.t -> Cstruct.t -> bool
+    [digest] is the full digest of the actual message.
+
+    [k], the random component, can either be provided, or is deterministically
+    derived as per RFC6979, using SHA256.
+
+    [fips] parameter control the exact interpretation of [digest]: when set,
+    only its leftmost [bits(q)] bits are taken into account, as specified by
+    both FIPS.186-4 and RFC6979; when unset, the entire [digest] is taken into
+    account, as widely practiced. Defaults to [false].  *)
+val sign : ?mask:mask -> ?k:Z.t -> ?fips:bool -> key:priv -> Cstruct.t -> Cstruct.t * Cstruct.t
+
+(** [verify fips key (r, s) digest] verifies that the pair [(r, s)] is the signature
+    of [digest], the message digest, under the private counterpart to [key]. See
+    {!sign} for the meaning of [fips].  *)
+val verify : ?fips:bool -> key:pub -> Cstruct.t * Cstruct.t -> Cstruct.t -> bool
 
 (** [K_gen] can be instantiated over a hashing module to obtain an RFC6979
     compliant [k]-generator over that hash. *)

@@ -67,6 +67,9 @@ let generate ?g size =
   let y = Z.(powm gg x p) in
   { p; q; gg; x; y }
 
+let z_of_digest ~fips bits =
+  Numeric.Z.of_cstruct_be ?bits:(if fips then Some bits else None)
+
 module K_gen (H : Hash.T) = struct
 
   module R_gen = Hmac_drgb.Make (H)
@@ -81,7 +84,7 @@ module K_gen (H : Hash.T) = struct
     R_num.Z.gen_r ~g Z.one q
 
   let generate ~key cs =
-    z_gen ~key Numeric.Z.(of_cstruct_be ~bits:(bits key.q) cs)
+    z_gen ~key (z_of_digest ~fips:true Numeric.Z.(bits key.q) cs)
 end
 
 module K_gen_sha256 = K_gen (Hash.SHA256)
@@ -106,13 +109,13 @@ let verify_z ~key:({ p; q; gg; y }: pub ) (r, s) z =
     Z.((powm gg u1 p * powm y u2 p) mod p mod q) in
   Z.zero < r && r < q && Z.zero < s && s < q && v () = r
 
-let sign ?mask ?k ~(key : priv) msg =
+let sign ?mask ?k ?(fips = true) ~(key : priv) digest =
   let bits   = Numeric.Z.bits key.q in
   let size   = cdiv bits 8 in
-  let (r, s) = sign_z ?mask ?k ~key (Numeric.Z.of_cstruct_be ~bits msg) in
+  let (r, s) = sign_z ?mask ?k ~key (z_of_digest ~fips bits digest) in
   Numeric.Z.(to_cstruct_be ~size r, to_cstruct_be ~size s)
 
-let verify ~(key : pub) (r, s) msg =
-  let z      = Numeric.Z.(of_cstruct_be ~bits:(bits key.q) msg)
-  and (r, s) = Numeric.Z.(of_cstruct_be r, of_cstruct_be s) in
+let verify ?(fips = true) ~(key : pub) (r, s) digest =
+  let z      = z_of_digest ~fips Numeric.Z.(bits key.q) digest in
+  let (r, s) = Numeric.Z.(of_cstruct_be r, of_cstruct_be s) in
   verify_z ~key (r, s) z
