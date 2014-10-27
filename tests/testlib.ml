@@ -627,6 +627,16 @@ let suite =
   ]
 
 (*
+(* TODO: check numeric extractors. *)
+(* e.g. this case backtracks 4 times: *)
+  let g = Fortuna.create () in
+  Fortuna.reseed ~g Cstruct.(of_string "a") in
+  assert_equal ~msg
+    Z.(of_string "287217607585902539923938909620913327313")
+    (Rng.Z.gen ~g Z.(pow ~$2 128 + ~$1))
+*)
+
+(*
   pk_wat:
     ((e 3) (d 24667) (n 37399) (p 149) (q 251) (dp 99) (dq 167) (q' 19))
   x_wat:
