@@ -23,13 +23,13 @@ let priv ~p ~q ~gg ~x ~y =
 
 let pub_of_priv { p; q; gg; y; _ } = { p; q; gg; y }
 
-type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `LN of int * int ]
+type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `Exactly of int * int ]
 
 let expand_size = function
   | `Fips1024  -> (1024, 160)
   | `Fips2048  -> (2048, 256)
   | `Fips3072  -> (3072, 256)
-  | `LN (l, n) -> (l, n)
+  | `Exactly (l, n) -> (l, n)
 
 type mask = [ `No | `Yes | `Yes_with of Rng.g ]
 
@@ -38,19 +38,27 @@ let expand_mask = function
   | `Yes        -> `Yes None
   | `Yes_with g -> `Yes (Some g)
 
+(*
+ * FIPS.186-4-style derivation:
+ * - p and q are derived using a method numerically like the one described in
+ *   A.1.1.2, adapted to use the native rng.
+ * - g is derived as per A.2.1.
+ *)
 let params ?g size =
-  let rec p_scan q a =
-    let p = Z.(q * a + ~$1) in
-    if Numeric.pseudoprime p then (p, a) else p_scan q Z.(a + ~$2)
-  and g_scan p a =
-    let seed = Rng.Z.gen_r ?g Z.one p in
-    let gg   = Z.(powm seed a p) in
-    if gg <> Z.one then gg else g_scan p a
-  in
   let (l, n) = expand_size size in
-  let q      = Rng.prime ?g ~msb:1 ~bits:n in
-  let (p, a) = p_scan q @@ Z.((lsl) ~$3) (l - n - 1) in
-  let gg     = g_scan p a in
+  let q = Rng.prime ?g ~msb:1 ~bits:n in
+  let p =
+    let q_q  = Z.(q * ~$2)
+    and mask = Z.((lsl) one) (l - 1) in
+    until Numeric.pseudoprime @@ fun () ->
+      let w = Rng.Z.gen_bits ?g l in
+      let x = Z.(w lor mask) in
+      Z.(x - (x mod q_q) + one) in
+  let gg =
+    let e = Z.(pred p / q) in
+    until ((<>) Z.one) @@ fun () ->
+      let h = Rng.Z.gen_r ?g Z.(~$2) Z.(pred p) in
+      Z.(powm h e p) in
   (p, q, gg)
 
 let generate ?g size =

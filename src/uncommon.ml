@@ -9,6 +9,9 @@ let (&.) f g = fun h -> f (g h)
 
 let id x = x
 
+let rec until p f =
+  let r = f () in if p r then r else until p f
+
 module Option = struct
 
   let v_map ~default ~f = function

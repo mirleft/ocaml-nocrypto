@@ -81,10 +81,10 @@ module Dsa : sig
   type priv = { p : Z.t ; q : Z.t ; gg : Z.t ; x : Z.t ; y : Z.t } with sexp
   type pub  = { p : Z.t ; q : Z.t ; gg : Z.t ; y : Z.t } with sexp
 
-  type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `LN of int * int ]
+  type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `Exactly of int * int ]
   type mask    = [ `No | `Yes | `Yes_with of Rng.g ]
 
-  val pub : p:Cstruct.t -> q:Cstruct.t -> gg:Cstruct.t -> y:Cstruct.t -> pub
+  val pub  : p:Cstruct.t -> q:Cstruct.t -> gg:Cstruct.t -> y:Cstruct.t -> pub
   val priv : p:Cstruct.t -> q:Cstruct.t -> gg:Cstruct.t -> x:Cstruct.t -> y:Cstruct.t -> priv
   val pub_of_priv : priv -> pub
 
