@@ -51,8 +51,7 @@ val generate : ?g:Rng.g -> keysize -> priv
 val sign : ?mask:mask -> ?k:Z.t -> key:priv -> Cstruct.t -> Cstruct.t * Cstruct.t
 
 (** [verify fips key (r, s) digest] verifies that the pair [(r, s)] is the signature
-    of [digest], the message digest, under the private counterpart to [key]. See
-    {!sign} for the meaning of [fips].  *)
+    of [digest], the message digest, under the private counterpart to [key]. *)
 val verify : key:pub -> Cstruct.t * Cstruct.t -> Cstruct.t -> bool
 
 (** [K_gen] can be instantiated over a hashing module to obtain an RFC6979
