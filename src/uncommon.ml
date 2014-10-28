@@ -158,6 +158,46 @@ module Cs = struct
     in
     (aux 1 set_uint8, aux 4 BE.set_uint32, aux 8 BE.set_uint64)
 
+  let rec shift_left_inplace cs = function
+    | 0 -> ()
+    | bits when bits mod 8 = 0 ->
+        let off = bits / 8 in
+        for i = 0 to cs.len - 1 - off do
+          set_uint8 cs i @@ get_uint8 cs (i + off)
+        done ;
+        fill ~off:(cs.len - off) cs 0x00
+    | bits when bits < 8 ->
+        let foo = 8 - bits in
+        for i = 0 to cs.len - 2 do
+          let b1 = get_uint8 cs i
+          and b2 = get_uint8 cs (i + 1) in
+          set_uint8 cs i ((b1 lsl bits) lor (b2 lsr foo))
+        done ;
+        set_uint8 cs (cs.len - 1) @@ get_uint8 cs (cs.len - 1) lsl bits
+    | bits ->
+        shift_left_inplace cs (8 * (bits / 8)) ;
+        shift_left_inplace cs (bits mod 8)
+
+  let rec shift_right_inplace cs = function
+    | 0 -> ()
+    | bits when bits mod 8 = 0 ->
+        let off = bits / 8 in
+        for i = cs.len - 1 downto off do
+          set_uint8 cs i @@ get_uint8 cs (i - off)
+        done ;
+        fill ~len:off cs 0x00
+    | bits when bits < 8 ->
+        let foo = 8 - bits in
+        for i = cs.len - 1 downto 1 do
+          let b1 = get_uint8 cs i
+          and b2 = get_uint8 cs (i - 1) in
+          set_uint8 cs i ((b2 lsl foo) lor (b1 lsr bits))
+        done ;
+        set_uint8 cs 0 @@ get_uint8 cs 0 lsr bits
+    | bits ->
+        shift_right_inplace cs (8 * (bits / 8));
+        shift_right_inplace cs (bits mod 8)
+
   let of_hex str =
     let hexdigit = function
       | 'a' .. 'f' as x -> int_of_char x - 87
@@ -182,6 +222,15 @@ module Cs = struct
     with
     | (_ , _, Some _) -> invalid_arg "of_hex: dangling nibble"
     | (cs, i, _     ) -> sub cs 0 i
+
+
+  let (lsl) cs bits =
+    let cs' = clone cs in
+    shift_left_inplace cs' bits ; cs'
+
+  and (lsr) cs bits =
+    let cs' = clone cs in
+    shift_right_inplace cs' bits ; cs'
 
 end
 
