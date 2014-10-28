@@ -71,6 +71,7 @@ end
     entire [digest]. In cases where {!sign} and {!verify} seem incompatible with
     a given implementation (esp. if {!sign} produces signatures with the [s]
     component different from the other implementation's), it might help to
-    pre-process [digest] using this function ([sign ~key (massage ~key digest)]).
+    pre-process [digest] using this function
+    (e.g. [sign ~key (massage ~key:(pub_of_priv key) digest)]).
 *)
-val massage : key:priv -> Cstruct.t -> Cstruct.t
+val massage : key:pub -> Cstruct.t -> Cstruct.t

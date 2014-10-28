@@ -97,7 +97,7 @@ module Dsa : sig
     val generate : key:priv -> Cstruct.t -> Z.t
   end
 
-  val massage : key:priv -> Cstruct.t -> Cstruct.t
+  val massage : key:pub -> Cstruct.t -> Cstruct.t
 end
 
 
