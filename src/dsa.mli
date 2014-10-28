@@ -47,17 +47,13 @@ val generate : ?g:Rng.g -> keysize -> priv
 
     [k], the random component, can either be provided, or is deterministically
     derived as per RFC6979, using SHA256.
-
-    [fips] parameter control the exact interpretation of [digest]: when set,
-    only its leftmost [bits(q)] bits are taken into account, as specified by
-    both FIPS.186-4 and RFC6979; when unset, the entire [digest] is taken into
-    account, as widely practiced. Defaults to [false].  *)
-val sign : ?mask:mask -> ?k:Z.t -> ?fips:bool -> key:priv -> Cstruct.t -> Cstruct.t * Cstruct.t
+*)
+val sign : ?mask:mask -> ?k:Z.t -> key:priv -> Cstruct.t -> Cstruct.t * Cstruct.t
 
 (** [verify fips key (r, s) digest] verifies that the pair [(r, s)] is the signature
     of [digest], the message digest, under the private counterpart to [key]. See
     {!sign} for the meaning of [fips].  *)
-val verify : ?fips:bool -> key:pub -> Cstruct.t * Cstruct.t -> Cstruct.t -> bool
+val verify : key:pub -> Cstruct.t * Cstruct.t -> Cstruct.t -> bool
 
 (** [K_gen] can be instantiated over a hashing module to obtain an RFC6979
     compliant [k]-generator over that hash. *)
@@ -66,3 +62,15 @@ module K_gen (H : Hash.T) : sig
       message digest to a [k] suitable for seeding the signing process. *)
   val generate : key:priv -> Cstruct.t -> Z.t
 end
+
+(** [massage key digest] is the numeric value of [digest] taken modulo [q] and
+    represented in the leftmost [bits(q)] bits of the result.
+
+    Both FIPS.186-4 and RFC6979 specify that only the leftmost [bits(q)] bits of
+    [digest] are to be taken into account, but some implementations consider the
+    entire [digest]. In cases where {!sign} and {!verify} seem incompatible with
+    a given implementation (esp. if {!sign} produces signatures with the [s]
+    component different from the other implementation's), it might help to
+    pre-process [digest] using this function ([sign ~key (massage ~key digest)]).
+*)
+val massage : key:priv -> Cstruct.t -> Cstruct.t

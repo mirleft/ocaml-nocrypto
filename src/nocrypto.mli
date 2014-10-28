@@ -90,12 +90,14 @@ module Dsa : sig
 
   val generate : ?g:Rng.g -> keysize -> priv
 
-  val sign   : ?mask:mask -> ?k:Z.t -> ?fips:bool -> key:priv -> Cstruct.t -> Cstruct.t * Cstruct.t
-  val verify : ?fips:bool -> key:pub -> Cstruct.t * Cstruct.t -> Cstruct.t -> bool
+  val sign   : ?mask:mask -> ?k:Z.t -> key:priv -> Cstruct.t -> Cstruct.t * Cstruct.t
+  val verify : key:pub -> Cstruct.t * Cstruct.t -> Cstruct.t -> bool
 
   module K_gen (H : Hash.T) : sig
     val generate : key:priv -> Cstruct.t -> Z.t
   end
+
+  val massage : key:priv -> Cstruct.t -> Cstruct.t
 end
 
 
