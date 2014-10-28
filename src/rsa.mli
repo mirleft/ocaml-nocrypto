@@ -65,7 +65,7 @@ module PKCS1 : sig
   val sign   : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
   val verify : key:pub -> Cstruct.t -> Cstruct.t option
 
-  val encrypt : key:pub -> Cstruct.t -> Cstruct.t
+  val encrypt : ?g:Rng.g -> key:pub -> Cstruct.t -> Cstruct.t
   val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
 
 end

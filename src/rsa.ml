@@ -191,10 +191,10 @@ module PKCS1 = struct
       | _                  -> None
     else None
 
-  let encrypt ~key msg =
+  let encrypt ?g ~key msg =
     (* XXX XXX this is temp. *)
     let msglen = cdiv (pub_bits key) 8 in
-    match pad_02 msglen msg with
+    match pad_02 ?g msglen msg with
     | None      -> invalid_arg "RSA.PKCS1.encrypt: key too small"
     | Some msg' -> encrypt ~key msg'
 
