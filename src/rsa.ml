@@ -144,10 +144,10 @@ module PKCS1 = struct
       | _ -> None
     with Invalid_argument _ -> None
 
-  let sign ~key msg =
+  let sign ?mask ~key msg =
     (* XXX XXX temp *)
     let size = cdiv (priv_bits key) 8 in
-    Option.map ~f:(decrypt ~key) @@ pad_01 size msg
+    Option.map ~f:(decrypt ?mask ~key) @@ pad_01 size msg
 
   let verify ~key data =
     unpad_01 (encrypt ~key data)
