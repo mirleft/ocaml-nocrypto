@@ -162,9 +162,7 @@ module Cs = struct
     | 0 -> ()
     | bits when bits mod 8 = 0 ->
         let off = bits / 8 in
-        for i = 0 to cs.len - 1 - off do
-          set_uint8 cs i @@ get_uint8 cs (i + off)
-        done ;
+        blit cs off cs 0 (cs.len - off) ;
         fill ~off:(cs.len - off) cs 0x00
     | bits when bits < 8 ->
         let foo = 8 - bits in
@@ -182,9 +180,7 @@ module Cs = struct
     | 0 -> ()
     | bits when bits mod 8 = 0 ->
         let off = bits / 8 in
-        for i = cs.len - 1 downto off do
-          set_uint8 cs i @@ get_uint8 cs (i - off)
-        done ;
+        blit cs 0 cs off (cs.len - off) ;
         fill ~len:off cs 0x00
     | bits when bits < 8 ->
         let foo = 8 - bits in
