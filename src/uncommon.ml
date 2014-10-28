@@ -131,20 +131,17 @@ module Cs = struct
     let cs = create n in ( fill cs x ; cs )
 
   let rpad cs size x =
-    let l   = len cs
-    and cs' = create size in
+    let l = len cs and cs' = create size in
     if size < l then invalid_arg "Nocrypto.Uncommon.Cs.rpad: size < len";
     blit cs 0 cs' 0 l ;
-    for i = l to size - 1 do set_uint8 cs' i x done ;
+    fill (sub cs' l (size - l)) x ;
     cs'
 
   let lpad cs size x =
-    let l   = len cs
-    and cs' = create size in
-    let i0  = size - l in
+    let l = len cs and cs' = create size in
     if size < l then invalid_arg "Nocrypto.Uncommon.Cs.lpad: size < len";
-    blit cs 0 cs' i0 l ;
-    for i = 0 to i0 - 1 do set_uint8 cs' i x done ;
+    blit cs 0 cs' (size - l) l ;
+    fill (sub cs' 0 (size - l)) x ;
     cs'
 
   let of_bytes, of_int32s, of_int64s =
