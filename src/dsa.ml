@@ -117,10 +117,8 @@ let verify ~(key : pub) (r, s) digest =
   and (r, s) = Numeric.Z.(of_cstruct_be r, of_cstruct_be s) in
   verify_z ~key (r, s) z
 
-let massage ~(key : pub) digest =
-  let bits = Numeric.Z.bits key.q in
-  if bits >= Cstruct.len digest * 8 then
-    digest
-  else
-    let cs = Numeric.Z.(to_cstruct_be Z.(of_cstruct_be digest mod key.q)) in
+let massage ~key:({ q; _ }: pub) digest =
+  let bits = Numeric.Z.bits q in
+  if bits >= Cstruct.len digest * 8 then digest else
+    let cs = Numeric.Z.(to_cstruct_be Z.(of_cstruct_be digest mod q)) in
     Cs.(cs lsl ((8 - bits mod 8) mod 8))
