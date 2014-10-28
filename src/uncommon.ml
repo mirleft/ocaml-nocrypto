@@ -123,14 +123,8 @@ module Cs = struct
     let cs = clone ~n cs2 in
     ( xor_into cs1 cs n ; cs )
 
-  let fill ?off ?len cs x =
-    let cs = match off with
-      | None     -> cs
-      | Some off -> shift cs off in
-    let cs = match len with
-      | None     -> cs
-      | Some len -> sub cs 0 len in
-    let open Native in
+  let fill cs x =
+    let open Native in (* XXX This should probably go into Cstruct. *)
     ignore @@ Bindings.Libc.memset Conv.(cs_ptr cs) x Conv.(cs_len_size_t cs)
 
   let create_with n x =
@@ -166,7 +160,7 @@ module Cs = struct
     | bits when bits mod 8 = 0 ->
         let off = bits / 8 in
         blit cs off cs 0 (cs.len - off) ;
-        fill ~off:(cs.len - off) cs 0x00
+        fill (shift cs (cs.len - off)) 0x00
     | bits when bits < 8 ->
         let foo = 8 - bits in
         for i = 0 to cs.len - 2 do
@@ -184,7 +178,7 @@ module Cs = struct
     | bits when bits mod 8 = 0 ->
         let off = bits / 8 in
         blit cs 0 cs off (cs.len - off) ;
-        fill ~len:off cs 0x00
+        fill (sub cs 0 off) 0x00
     | bits when bits < 8 ->
         let foo = 8 - bits in
         for i = cs.len - 1 downto 1 do

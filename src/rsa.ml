@@ -125,7 +125,7 @@ module PKCS1 = struct
     | pad ->
         let cs = create size in
         BE.set_uint16 cs 0 0x0001 ;
-        Cs.fill ~off:2 ~len:(pad - 3) cs 0xff ;
+        Cs.fill (sub cs 2 (pad - 3)) 0xff ;
         set_uint8 cs (pad - 1) 0x00 ;
         blit msg 0 cs pad n ;
         Some cs
