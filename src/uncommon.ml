@@ -124,11 +124,11 @@ module Cs = struct
     ( xor_into cs1 cs n ; cs )
 
   let fill ?(off = 0) ?len cs x =
-    let stop = match len with
-      | None      -> Cstruct.len cs - 1
-      | Some stop -> off + stop in
+    let fin = match len with
+      | None   -> Cstruct.len cs - 1
+      | Some l -> off + l - 1 in
     (* XXX larger steps? *)
-    for i = off to stop do set_uint8 cs i x done
+    for i = off to fin do set_uint8 cs i x done
 
   let create_with n x =
     let cs = create n in ( fill cs x ; cs )
