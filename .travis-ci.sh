@@ -2,8 +2,8 @@
 OPAM_PACKAGES="sexplib cstruct ctypes zarith oUnit"
 
 case "$OCAML_VERSION" in
-    4.01.0) ppa=avsm/ocaml41+opam11 ;;
-    4.02.0) ppa=avsm/ocaml42+opam11 ;;
+    4.01.0) ppa=avsm/ocaml41+opam12 ;;
+    4.02.0) ppa=avsm/ocaml42+opam12 ;;
     *) echo Unknown $OCAML_VERSION; exit 1 ;;
 esac
 
