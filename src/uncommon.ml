@@ -123,12 +123,15 @@ module Cs = struct
     let cs = clone ~n cs2 in
     ( xor_into cs1 cs n ; cs )
 
-  let fill ?(off = 0) ?len cs x =
-    let fin = match len with
-      | None   -> Cstruct.len cs - 1
-      | Some l -> off + l - 1 in
-    (* XXX larger steps? *)
-    for i = off to fin do set_uint8 cs i x done
+  let fill ?off ?len cs x =
+    let cs = match off with
+      | None     -> cs
+      | Some off -> shift cs off in
+    let cs = match len with
+      | None     -> cs
+      | Some len -> sub cs 0 len in
+    let open Native in
+    ignore @@ Bindings.Libc.memset Conv.(cs_ptr cs) x Conv.(cs_len_size_t cs)
 
   let create_with n x =
     let cs = create n in ( fill cs x ; cs )
