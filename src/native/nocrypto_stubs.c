@@ -1,14 +1,13 @@
 #include "nocrypto_stubs.h"
 
-size_t nocrypto_stub_sizeof_md5_ctx () {
-  return MD5_CTX_SIZE;
-}
-size_t nocrypto_stub_sizeof_sha1_ctx () {
-  return SHA1_CTX_SIZE;
-}
-size_t nocrypto_stub_sizeof_sha256_ctx () {
-  return SHA256_CTX_SIZE;
-}
-size_t nocrypto_stub_sizeof_sha512_ctx () {
-  return SHA512_CTX_SIZE;
-}
+#define CTX_SIZE_GETTER(HASH, CNAME)            \
+  size_t nocrypto_sizeof_ ## HASH ## _ctx () {  \
+    return CNAME ## _CTX_SIZE;                  \
+  }
+
+CTX_SIZE_GETTER(md5, MD5);
+CTX_SIZE_GETTER(sha1, SHA1);
+CTX_SIZE_GETTER(sha224, SHA224);
+CTX_SIZE_GETTER(sha256, SHA256);
+CTX_SIZE_GETTER(sha384, SHA384);
+CTX_SIZE_GETTER(sha512, SHA512);
