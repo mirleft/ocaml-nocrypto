@@ -26,7 +26,7 @@
 #include "bitfn.h"
 #include "sha512.h"
 
-void sha384_init(struct sha512_ctx *ctx)
+void nc_sha384_init(struct sha512_ctx *ctx)
 {
 	memset(ctx, 0, sizeof(*ctx));
 
@@ -40,7 +40,7 @@ void sha384_init(struct sha512_ctx *ctx)
 	ctx->h[7] = 0x47b5481dbefa4fa4ULL;
 }
 
-void sha512_init(struct sha512_ctx *ctx)
+void nc_sha512_init(struct sha512_ctx *ctx)
 {
 	memset(ctx, 0, sizeof(*ctx));
 
@@ -127,12 +127,12 @@ static void sha512_do_chunk(struct sha512_ctx *ctx, uint64_t *buf)
 	ctx->h[4] += e; ctx->h[5] += f; ctx->h[6] += g; ctx->h[7] += h;
 }
 
-void sha384_update(struct sha384_ctx *ctx, uint8_t *data, uint32_t len)
+void nc_sha384_update(struct sha384_ctx *ctx, uint8_t *data, uint32_t len)
 {
-	return sha512_update(ctx, data, len);
+	return nc_sha512_update(ctx, data, len);
 }
 
-void sha512_update(struct sha512_ctx *ctx, uint8_t *data, uint32_t len)
+void nc_sha512_update(struct sha512_ctx *ctx, uint8_t *data, uint32_t len)
 {
 	unsigned int index, to_fill;
 
@@ -162,15 +162,15 @@ void sha512_update(struct sha512_ctx *ctx, uint8_t *data, uint32_t len)
 		memcpy(ctx->buf + index, data, len);
 }
 
-void sha384_finalize(struct sha384_ctx *ctx, uint8_t *out)
+void nc_sha384_finalize(struct sha384_ctx *ctx, uint8_t *out)
 {
 	uint8_t intermediate[SHA512_DIGEST_SIZE];
 
-	sha512_finalize(ctx, intermediate);
+	nc_sha512_finalize(ctx, intermediate);
 	memcpy(out, intermediate, SHA384_DIGEST_SIZE);
 }
 
-void sha512_finalize(struct sha512_ctx *ctx, uint8_t *out)
+void nc_sha512_finalize(struct sha512_ctx *ctx, uint8_t *out)
 {
 	static uint8_t padding[128] = { 0x80, };
 	uint32_t i, index, padlen;
@@ -184,10 +184,10 @@ void sha512_finalize(struct sha512_ctx *ctx, uint8_t *out)
 	/* pad out to 56 */
 	index = (unsigned int) (ctx->sz[0] & 0x7f);
 	padlen = (index < 112) ? (112 - index) : ((128 + 112) - index);
-	sha512_update(ctx, padding, padlen);
+	nc_sha512_update(ctx, padding, padlen);
 
 	/* append length */
-	sha512_update(ctx, (uint8_t *) bits, sizeof(bits));
+	nc_sha512_update(ctx, (uint8_t *) bits, sizeof(bits));
 
 	/* store to digest */
 	for (i = 0; i < 8; i++)
@@ -196,7 +196,7 @@ void sha512_finalize(struct sha512_ctx *ctx, uint8_t *out)
 
 #include <stdio.h>
 
-void sha512_init_t(struct sha512_ctx *ctx, int t)
+void nc_sha512_init_t(struct sha512_ctx *ctx, int t)
 {
 	memset(ctx, 0, sizeof(*ctx));
 	if (t >= 512)
@@ -228,13 +228,13 @@ void sha512_init_t(struct sha512_ctx *ctx, int t)
 		uint8_t out[64];
 		int i;
 
-		sha512_init(ctx);
+		nc_sha512_init(ctx);
 		for (i = 0; i < 8; i++)
 			ctx->h[i] ^= 0xa5a5a5a5a5a5a5a5ULL;
 
 		i = sprintf(buf, "SHA-512/%d", t);
-		sha512_update(ctx, buf, i);
-		sha512_finalize(ctx, out);
+		nc_sha512_update(ctx, buf, i);
+		nc_sha512_finalize(ctx, out);
 
 		/* re-init the context, otherwise len is changed */
 		memset(ctx, 0, sizeof(*ctx));

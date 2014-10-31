@@ -19,7 +19,7 @@ struct
   end) = struct
 
     let ssize = H.ssize
-    let named suff = H.name ^ "_" ^ suff
+    let named suff = "nc_" ^ H.name ^ "_" ^ suff
 
     let init =
       F.foreign (named "init") @@ ptr void @-> returning void

@@ -36,8 +36,8 @@ struct sha1_ctx
 #define SHA1_DIGEST_SIZE	20
 #define SHA1_CTX_SIZE 		(sizeof(struct sha1_ctx))
 
-void sha1_init(struct sha1_ctx *ctx);
-void sha1_update(struct sha1_ctx *ctx, uint8_t *data, uint32_t len);
-void sha1_finalize(struct sha1_ctx *ctx, uint8_t *out);
+void nc_sha1_init(struct sha1_ctx *ctx);
+void nc_sha1_update(struct sha1_ctx *ctx, uint8_t *data, uint32_t len);
+void nc_sha1_finalize(struct sha1_ctx *ctx, uint8_t *out);
 
 #endif

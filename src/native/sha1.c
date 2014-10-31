@@ -26,7 +26,7 @@
 #include "sha1.h"
 #include "bitfn.h"
 
-void sha1_init(struct sha1_ctx *ctx)
+void nc_sha1_init(struct sha1_ctx *ctx)
 {
 	memset(ctx, 0, sizeof(*ctx));
 
@@ -155,7 +155,7 @@ static inline void sha1_do_chunk(struct sha1_ctx *ctx, uint32_t *buf)
 	ctx->h[4] += e;
 }
 
-void sha1_update(struct sha1_ctx *ctx, uint8_t *data, uint32_t len)
+void nc_sha1_update(struct sha1_ctx *ctx, uint8_t *data, uint32_t len)
 {
 	uint32_t index, to_fill;
 
@@ -182,7 +182,7 @@ void sha1_update(struct sha1_ctx *ctx, uint8_t *data, uint32_t len)
 		memcpy(ctx->buf + index, data, len);
 }
 
-void sha1_finalize(struct sha1_ctx *ctx, uint8_t *out)
+void nc_sha1_finalize(struct sha1_ctx *ctx, uint8_t *out)
 {
 	static uint8_t padding[64] = { 0x80, };
 	uint64_t bits;
@@ -195,10 +195,10 @@ void sha1_finalize(struct sha1_ctx *ctx, uint8_t *out)
 	/* pad out to 56 */
 	index = (uint32_t) (ctx->sz & 0x3f);
 	padlen = (index < 56) ? (56 - index) : ((64 + 56) - index);
-	sha1_update(ctx, padding, padlen);
+	nc_sha1_update(ctx, padding, padlen);
 
 	/* append length */
-	sha1_update(ctx, (uint8_t *) &bits, sizeof(bits));
+	nc_sha1_update(ctx, (uint8_t *) &bits, sizeof(bits));
 
 	/* output hash */
 	p[0] = cpu_to_be32(ctx->h[0]);

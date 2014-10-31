@@ -36,8 +36,8 @@ struct md5_ctx
 #define MD5_DIGEST_SIZE		16
 #define MD5_CTX_SIZE		sizeof(struct md5_ctx)
 
-void md5_init(struct md5_ctx *ctx);
-void md5_update(struct md5_ctx *ctx, uint8_t *data, uint32_t len);
-void md5_finalize(struct md5_ctx *ctx, uint8_t *out);
+void nc_md5_init(struct md5_ctx *ctx);
+void nc_md5_update(struct md5_ctx *ctx, uint8_t *data, uint32_t len);
+void nc_md5_finalize(struct md5_ctx *ctx, uint8_t *out);
 
 #endif
