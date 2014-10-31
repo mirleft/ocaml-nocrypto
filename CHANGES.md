@@ -1,3 +1,7 @@
+(trunk):
+* replaced hashing sources with the ones from hs-cryptohash
+  (https://github.com/vincenthz/hs-cryptohash) by Vincent Hanquez
+
 0.2.0 (2014-10-30):
 * DSA (initial version contributed by Hannes Mehnert <hannes@mehnert.org>)
 * CCM mode for AES (contributed by Hannes Mehnert <hannes@mehnert.org>)
