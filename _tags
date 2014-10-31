@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: d587bb58757d2721a572fe3c227c5e53)
+# DO NOT EDIT (digest: 5ec4af4064e5571b9f5e03701720f7c4)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -36,16 +36,20 @@ true: annot, bin_annot
 "src/gcm.cmx": for-pack(Nocrypto)
 "src/ccm.cmx": for-pack(Nocrypto)
 <src/*.ml{,i,y}>: oasis_library_nocrypto_ccopt
-"src/native/sha2.c": oasis_library_nocrypto_ccopt
 "src/native/md5.c": oasis_library_nocrypto_ccopt
+"src/native/sha1.c": oasis_library_nocrypto_ccopt
+"src/native/sha256.c": oasis_library_nocrypto_ccopt
+"src/native/sha512.c": oasis_library_nocrypto_ccopt
 "src/native/rijndael.c": oasis_library_nocrypto_ccopt
 "src/native/d3des.c": oasis_library_nocrypto_ccopt
 "src/native/nocrypto_stubs.c": oasis_library_nocrypto_ccopt
 "src/native/nocrypto_generated_stubs.c": oasis_library_nocrypto_ccopt
 <src/nocrypto.{cma,cmxa}>: oasis_library_nocrypto_byte
 <src/*.ml{,i,y}>: oasis_library_nocrypto_byte
-"src/native/sha2.c": oasis_library_nocrypto_byte
 "src/native/md5.c": oasis_library_nocrypto_byte
+"src/native/sha1.c": oasis_library_nocrypto_byte
+"src/native/sha256.c": oasis_library_nocrypto_byte
+"src/native/sha512.c": oasis_library_nocrypto_byte
 "src/native/rijndael.c": oasis_library_nocrypto_byte
 "src/native/d3des.c": oasis_library_nocrypto_byte
 "src/native/nocrypto_stubs.c": oasis_library_nocrypto_byte
@@ -56,16 +60,26 @@ true: annot, bin_annot
 <src/*.ml{,i,y}>: pkg_ctypes.stubs
 <src/*.ml{,i,y}>: pkg_sexplib.syntax
 <src/*.ml{,i,y}>: pkg_zarith
-"src/native/sha2.c": pkg_cstruct
-"src/native/sha2.c": pkg_ctypes
-"src/native/sha2.c": pkg_ctypes.stubs
-"src/native/sha2.c": pkg_sexplib.syntax
-"src/native/sha2.c": pkg_zarith
 "src/native/md5.c": pkg_cstruct
 "src/native/md5.c": pkg_ctypes
 "src/native/md5.c": pkg_ctypes.stubs
 "src/native/md5.c": pkg_sexplib.syntax
 "src/native/md5.c": pkg_zarith
+"src/native/sha1.c": pkg_cstruct
+"src/native/sha1.c": pkg_ctypes
+"src/native/sha1.c": pkg_ctypes.stubs
+"src/native/sha1.c": pkg_sexplib.syntax
+"src/native/sha1.c": pkg_zarith
+"src/native/sha256.c": pkg_cstruct
+"src/native/sha256.c": pkg_ctypes
+"src/native/sha256.c": pkg_ctypes.stubs
+"src/native/sha256.c": pkg_sexplib.syntax
+"src/native/sha256.c": pkg_zarith
+"src/native/sha512.c": pkg_cstruct
+"src/native/sha512.c": pkg_ctypes
+"src/native/sha512.c": pkg_ctypes.stubs
+"src/native/sha512.c": pkg_sexplib.syntax
+"src/native/sha512.c": pkg_zarith
 "src/native/rijndael.c": pkg_cstruct
 "src/native/rijndael.c": pkg_ctypes
 "src/native/rijndael.c": pkg_ctypes.stubs
