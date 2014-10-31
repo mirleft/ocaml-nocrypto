@@ -10,8 +10,8 @@ module type Base_hash = sig
   val digest_size : int
   val ssize       : unit -> Unsigned.size_t
   val init   : unit ptr -> unit
-  val update : unit ptr -> char ptr -> PosixTypes.size_t -> unit
-  val final  : char ptr -> unit ptr -> unit
+  val update : unit ptr -> char ptr -> Unsigned.UInt32.t -> unit
+  val final  : unit ptr -> char ptr -> unit
 end
 
 module Wrap_native (H : Base_hash) = struct
@@ -29,11 +29,11 @@ module Wrap_native (H : Base_hash) = struct
     ( H.init t; t )
 
   let feed t cs =
-    H.update t Conv.(cs_ptr cs) Conv.(cs_len_size_t cs)
+    H.update t Conv.(cs_ptr cs) Conv.(cs_len32 cs)
 
   let get t =
     let res = Cstruct.create H.digest_size in
-    ( H.final Conv.(cs_ptr res) t; res )
+    ( H.final t Conv.(cs_ptr res); res )
 
   let digestv css =
     let t = init () in ( List.iter (feed t) css ; get t )

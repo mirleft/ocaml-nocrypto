@@ -16,6 +16,9 @@ module Conv = struct
   let cs_len_size_t cs =
     Unsigned.Size_t.of_int cs.Cstruct.len
 
+  let cs_len32 cs =
+    Unsigned.UInt32.of_int cs.Cstruct.len
+
   let allocate_voidp ~count =
     Ctypes.(to_voidp @@ allocate_n uint8_t ~count)
 
