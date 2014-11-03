@@ -1,4 +1,4 @@
-(trunk):
+0.2.1 (2014-11-03):
 * replaced hashing sources with the ones from hs-cryptohash
   (https://github.com/vincenthz/hs-cryptohash) by Vincent Hanquez
 
