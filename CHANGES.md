@@ -1,6 +1,7 @@
-0.2.1 (2014-11-03):
+0.2.2 (2014-11-04):
 * replaced hashing sources with the ones from hs-cryptohash
   (https://github.com/vincenthz/hs-cryptohash) by Vincent Hanquez
+* renamed various symbols likely to conflict with other crypto libraries
 
 0.2.0 (2014-10-30):
 * DSA (initial version contributed by Hannes Mehnert <hannes@mehnert.org>)
