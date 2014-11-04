@@ -40,16 +40,16 @@ struct
 
   module AES = struct
 
-    let setup_enc = F.foreign "rijndaelSetupEncrypt" @@
+    let setup_enc = F.foreign "nc_rijndaelSetupEncrypt" @@
       ptr ulong @-> ptr char @-> int @-> returning int
 
-    and setup_dec = F.foreign "rijndaelSetupDecrypt" @@
+    and setup_dec = F.foreign "nc_rijndaelSetupDecrypt" @@
       ptr ulong @-> ptr char @-> int @-> returning int
 
-    and enc = F.foreign "rijndaelEncrypt" @@
+    and enc = F.foreign "nc_rijndaelEncrypt" @@
       ptr ulong @-> int @-> ptr char @-> ptr char @-> returning void
 
-    and dec = F.foreign "rijndaelDecrypt" @@
+    and dec = F.foreign "nc_rijndaelDecrypt" @@
       ptr ulong @-> int @-> ptr char @-> ptr char @-> returning void
 
     let rklength keybytes = keybytes + 28

@@ -714,7 +714,7 @@ static const u32 rcon[] =
  *
  * @return the number of rounds for the given cipher key size.
  */
-int rijndaelSetupEncrypt(u32 *rk, const u8 *key, int keybits)
+int nc_rijndaelSetupEncrypt(u32 *rk, const u8 *key, int keybits)
 {
   int i = 0;
   u32 temp;
@@ -803,13 +803,13 @@ int rijndaelSetupEncrypt(u32 *rk, const u8 *key, int keybits)
  *
  * @return the number of rounds for the given cipher key size.
  */
-int rijndaelSetupDecrypt(u32 *rk, const u8 *key, int keybits)
+int nc_rijndaelSetupDecrypt(u32 *rk, const u8 *key, int keybits)
 {
   int nrounds, i, j;
   u32 temp;
 
   /* expand the cipher key: */
-  nrounds = rijndaelSetupEncrypt(rk, key, keybits);
+  nrounds = nc_rijndaelSetupEncrypt(rk, key, keybits);
   /* invert the order of the round keys: */
   for (i = 0, j = 4*nrounds; i < j; i += 4, j -= 4)
   {
@@ -846,7 +846,7 @@ int rijndaelSetupDecrypt(u32 *rk, const u8 *key, int keybits)
   return nrounds;
 }
 
-void rijndaelEncrypt(const u32 *rk, int nrounds, const u8 plaintext[16],
+void nc_rijndaelEncrypt(const u32 *rk, int nrounds, const u8 plaintext[16],
   u8 ciphertext[16])
 {
   u32 s0, s1, s2, s3, t0, t1, t2, t3;
@@ -1028,7 +1028,7 @@ void rijndaelEncrypt(const u32 *rk, int nrounds, const u8 plaintext[16],
   PUTU32(ciphertext + 12, s3);
 }
 
-void rijndaelDecrypt(const u32 *rk, int nrounds, const u8 ciphertext[16],
+void nc_rijndaelDecrypt(const u32 *rk, int nrounds, const u8 ciphertext[16],
   u8 plaintext[16])
 {
   u32 s0, s1, s2, s3, t0, t1, t2, t3;
