@@ -88,14 +88,23 @@ module K_gen_sha256 = K_gen (Hash.SHA256)
 
 let rec sign_z ?(mask = `Yes) ?k:k0 ~key:({ p; q; gg; x; _ } as key) z =
   let k  = match k0 with Some k -> k | None -> K_gen_sha256.z_gen ~key z in
-  let k' = Z.invert k q
-  and r  = match expand_mask mask with
-    | `No    -> Z.(powm gg k p mod q)
-    | `Yes g ->
+  let r  = Z.(powm gg k p mod q) in
+  let s =
+    let k', z, x =
+      match expand_mask mask with
+      | `No    ->
+        let k' = Z.invert k q in
+        (k', z, x)
+      | `Yes g ->
         let m  = Rng.Z.gen_r ?g Z.one q in
-        let m' = Z.invert m q in
-        Z.(powm (powm gg m p) (m' * k mod q) p mod q) in
-  let s = Z.(k' * (z + x * r) mod q) in
+        let x' = Z.(x * m mod q)
+        and z' = Z.(z * m)
+        and k' = Z.invert Z.(k * m) q
+        in
+        (k', z', x')
+    in
+    Z.(k' * (z + x * r) mod q)
+  in
   if r = Z.zero || s = Z.zero then sign_z ~mask ?k:k0 ~key z else (r, s)
 
 let verify_z ~key:({ p; q; gg; y }: pub ) (r, s) z =
