@@ -16,7 +16,7 @@ opam init git://github.com/ocaml/opam-repository >/dev/null 2>&1
 
 opam pin -n add nocrypto .
 opam install --deps-only nocrypto
-opam install oUnit
+opam install oUnit lwt
 
 eval `opam config env`
 ocaml setup.ml -configure --enable-tests
