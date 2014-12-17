@@ -119,16 +119,14 @@ module PKCS1 = struct
   (* inspiration from RFC3447 EMSA-PKCS1-v1_5 and rsa_sign.c from OpenSSL *)
   (* also ocaml-ssh kex.ml *)
   let pad_01 size msg =
-    let n = len msg in
-    match size - n with
-    | pad when pad <= 3 -> None
-    | pad ->
-        let cs = create size in
-        BE.set_uint16 cs 0 0x0001 ;
-        Cs.fill (sub cs 2 (pad - 3)) 0xff ;
-        set_uint8 cs (pad - 1) 0x00 ;
-        blit msg 0 cs pad n ;
-        Some cs
+    let n   = len msg in
+    let pad = size - n
+    and cs  = create size in
+    BE.set_uint16 cs 0 0x0001 ;
+    Cs.fill (sub cs 2 (pad - 3)) 0xff ;
+    set_uint8 cs (pad - 1) 0x00 ;
+    blit msg 0 cs pad n ;
+    cs
 
   (* No time-masking: public-key operation. *)
   let unpad_01 msg =
@@ -144,10 +142,13 @@ module PKCS1 = struct
       | _ -> None
     with Invalid_argument _ -> None
 
+  let min_pad = 4
+
   let sign ?mask ~key msg =
-    (* XXX XXX temp *)
     let size = cdiv (priv_bits key) 8 in
-    Option.map ~f:(decrypt ?mask ~key) @@ pad_01 size msg
+    if size - len msg < min_pad then
+      invalid_arg "RSA.PKCS1.sign: key too small"
+    else decrypt ?mask ~key (pad_01 size msg)
 
   let verify ~key data =
     try
@@ -157,25 +158,23 @@ module PKCS1 = struct
 
   (* 0x00 0x02 <random_not_zero> 0x00 data *)
   let pad_02 ?g size msg =
-    let n = len msg in
-    match size - n with
-    | pad when pad <= 3 -> None
-    | pad ->
-        let cs      = create size in
-        let block   = Rng.(block_size * cdiv pad block_size) in
-        let rec copybyte nonce = function
-          | i when i = pad - 1   -> ()
-          | i when Cs.null nonce -> copybyte Rng.(generate ?g block) i
-          | i ->
-              match (get_uint8 nonce 0, shift nonce 1) with
-              | (0x00, nonce') -> copybyte nonce' i
-              | (x   , nonce') -> set_uint8 cs i x ; copybyte nonce' (succ i)
-        in
-        BE.set_uint16 cs 0 0x0002 ;
-        copybyte Cs.empty 2 ;
-        set_uint8 cs (pad - 1) 0x00 ;
-        blit msg 0 cs pad n ;
-        Some cs
+    let n   = len msg in
+    let pad = size - n
+    and cs  = create size in
+    let block   = Rng.(block_size * cdiv pad block_size) in
+    let rec copybyte nonce = function
+      | i when i = pad - 1   -> ()
+      | i when Cs.null nonce -> copybyte Rng.(generate ?g block) i
+      | i ->
+          match (get_uint8 nonce 0, shift nonce 1) with
+          | (0x00, nonce') -> copybyte nonce' i
+          | (x   , nonce') -> set_uint8 cs i x ; copybyte nonce' (succ i)
+    in
+    BE.set_uint16 cs 0 0x0002 ;
+    copybyte Cs.empty 2 ;
+    set_uint8 cs (pad - 1) 0x00 ;
+    blit msg 0 cs pad n ;
+    cs
 
   let unpad_02 msg =
     let n = len msg in
@@ -195,14 +194,12 @@ module PKCS1 = struct
     else None
 
   let encrypt ?g ~key msg =
-    (* XXX XXX this is temp. *)
-    let msglen = cdiv (pub_bits key) 8 in
-    match pad_02 ?g msglen msg with
-    | None      -> invalid_arg "RSA.PKCS1.encrypt: key too small"
-    | Some msg' -> encrypt ~key msg'
+    let size = cdiv (pub_bits key) 8 in
+    if size - len msg < min_pad then
+      invalid_arg "RSA.PKCS1.encrypt: key too small"
+    else encrypt ~key (pad_02 ?g size msg)
 
   let decrypt ?mask ~key msg =
-    (* XXX XXX temp *)
     let msglen = cdiv (priv_bits key) 8 in
     if Cstruct.len msg = msglen then
       unpad_02 (decrypt ?mask ~key msg)
