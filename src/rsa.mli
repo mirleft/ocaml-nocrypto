@@ -57,9 +57,9 @@ val pub_of_priv : priv -> pub
   @raise Invalid_argument if [message] is too large for the [key]. *)
 val encrypt : key:pub  -> Cstruct.t -> Cstruct.t
 
-(** [decrypt mask key cyphertext] is the decrypted [cyphertext], left-padded
+(** [decrypt mask key ciphertext] is the decrypted [ciphertext], left-padded
   with 0x00 up to [key] size.
-  @raise Invalid_argument if [cyphertext] is too large for the [key]. *)
+  @raise Invalid_argument if [ciphertext] is too large for the [key]. *)
 val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
 
 (** [generate g e bits] is a new {!priv}. [e] is given or [2^16+1]. [size] is

@@ -69,7 +69,7 @@ module Rsa : sig
   val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
 
   module PKCS1 : sig
-    val sign   : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
+    val sign   : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
     val verify : key:pub -> Cstruct.t -> Cstruct.t option
     val encrypt : ?g:Rng.g -> key:pub -> Cstruct.t -> Cstruct.t
     val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
