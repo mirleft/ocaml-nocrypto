@@ -82,14 +82,11 @@ let (encrypt_z, decrypt_z) =
     | `Yes        -> decrypt_blinded_unsafe    ~key msg
     | `Yes_with g -> decrypt_blinded_unsafe ~g ~key msg )
 
-(* XXX (outer) padding *)
-let encrypt ~key cs =
-  let size = cdiv (pub_bits key) 8 in (* .... *)
-  Numeric.Z.(to_cstruct_be ~size @@ encrypt_z ~key @@ of_cstruct_be cs)
+let reformat out f =
+  Numeric.Z.(to_cstruct_be ~size:(cdiv out 8) &. f &. of_cstruct_be)
 
-and decrypt ?(mask = `Yes) ~key cs =
-  let size = cdiv (priv_bits key) 8 in (* .... *)
-  Numeric.Z.(to_cstruct_be ~size @@ decrypt_z ~mask ~key @@ of_cstruct_be cs)
+let encrypt ~key              = reformat (pub_bits key)  (encrypt_z ~key)
+and decrypt ?(mask=`Yes) ~key = reformat (priv_bits key) (decrypt_z ~mask ~key)
 
 
 let generate ?g ?(e = Z.(~$0x10001)) bits =
