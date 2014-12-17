@@ -1,5 +1,12 @@
+(** RSA public-key cryptography.
 
-(** RSA public-key cryptography. *)
+ Keys are taken to be trusted material, and their properties are not checked.
+
+ Messages are checked not to exceed the key size, and this is signalled via
+ exceptions.
+
+ Private-key operations are optionally protected through RSA blinding.
+*)
 
 (** A public key *)
 type pub  = {
@@ -46,26 +53,45 @@ val priv' : e:Cstruct.t -> p:Cstruct.t -> q:Cstruct.t -> priv
 (** Extract the public component from a private key. *)
 val pub_of_priv : priv -> pub
 
-(** [encrypt key message] is the encrypted message.
+(** [encrypt key message] is the encrypted [message].
   @raise Invalid_argument if [message] is too large for the [key]. *)
-val encrypt   : key:pub  -> Cstruct.t -> Cstruct.t
+val encrypt : key:pub  -> Cstruct.t -> Cstruct.t
 
-(** [decrypt mask key message] is the decrypted message.
-  @raise Invalid_argument if [message] is too larger for the [key]. *)
-val decrypt   : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
+(** [decrypt mask key cyphertext] is the decrypted [cyphertext], left-padded
+  with 0x00 up to [key] size.
+  @raise Invalid_argument if [cyphertext] is too large for the [key]. *)
+val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
 
 (** [generate g e bits] is a new {!priv}. [e] is given or [2^16+1]. [size] is
     in bits. *)
 val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
 
 
-(** Module providing operations with {b PKCS1} padding. *)
+(** Module providing operations with {b PKCS1} padding.
+
+ The operations that take cleartext to ciphertext, {!sign} and {!encrypt},
+ assume that the key has enough bits to encode the message and the padding, and
+ raise exceptions otherwise. The operations that recover cleartext from
+ ciphertext, {!verify} and !{decrypt}, return size and padding mismatches as
+ [None].
+ *)
 module PKCS1 : sig
 
-  val sign   : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
+  (** [sign mask key message] gives a PKCS1-padded signature of the [message].
+   @raise Invalid_argument if the key is too small. *)
+  val sign : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
+
+  (** [verify key signature] is either the message that was PKCS1-padded and
+   transformed with [key]'s private counterpart, or [None] if the recovered
+   padding is incorrect. *)
   val verify : key:pub -> Cstruct.t -> Cstruct.t option
 
+  (** [encrypt g key message] gives a PKCS1-padded and encrypted [message].
+   @raise Invalid_argument if the key is too small. *)
   val encrypt : ?g:Rng.g -> key:pub -> Cstruct.t -> Cstruct.t
+
+  (** [decrypt mask key ciphertext] is decrypted [ciphertext] stripped of PKCS1
+   padding, or [None] if the padding is incorrect. *)
   val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
 
 end
