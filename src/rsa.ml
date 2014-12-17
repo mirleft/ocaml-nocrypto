@@ -53,7 +53,7 @@ let decrypt_unsafe ~key: ({ p; q; dp; dq; q'; _} : priv) c =
   let m1 = Z.(powm c dp p)
   and m2 = Z.(powm c dq q) in
   let h  = Z.(erem (q' * (m1 - m2)) p) in
-  Z.(m2 + h * q)
+  Z.(h * q + m2)
 
 let decrypt_blinded_unsafe ?g ~key: ({ e; n; _} as key : priv) c =
 
@@ -150,7 +150,10 @@ module PKCS1 = struct
     Option.map ~f:(decrypt ?mask ~key) @@ pad_01 size msg
 
   let verify ~key data =
-    unpad_01 (encrypt ~key data)
+    try
+      unpad_01 (encrypt ~key data)
+    with Invalid_argument _ -> None
+    (* XXX switch to custom exn *)
 
   (* 0x00 0x02 <random_not_zero> 0x00 data *)
   let pad_02 ?g size msg =
