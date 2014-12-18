@@ -55,12 +55,7 @@ module Rsa : sig
   val pub_bits  : pub -> int
   val priv_bits : priv -> int
 
-  val pub  : e:Cstruct.t -> n:Cstruct.t -> pub
-  val priv : e:Cstruct.t -> d:Cstruct.t -> n:Cstruct.t ->
-             p:Cstruct.t -> q:Cstruct.t ->
-             dp:Cstruct.t -> dq:Cstruct.t -> q':Cstruct.t -> priv
-
-  val priv' : e:Cstruct.t -> p:Cstruct.t -> q:Cstruct.t -> priv
+  val priv_of_primes : e:Z.t -> p:Z.t -> q:Z.t -> priv
   val pub_of_priv : priv -> pub
 
   val encrypt   : key:pub  -> Cstruct.t -> Cstruct.t
@@ -84,8 +79,6 @@ module Dsa : sig
   type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `Exactly of int * int ]
   type mask    = [ `No | `Yes | `Yes_with of Rng.g ]
 
-  val pub  : p:Cstruct.t -> q:Cstruct.t -> gg:Cstruct.t -> y:Cstruct.t -> pub
-  val priv : p:Cstruct.t -> q:Cstruct.t -> gg:Cstruct.t -> x:Cstruct.t -> y:Cstruct.t -> priv
   val pub_of_priv : priv -> pub
 
   val generate : ?g:Rng.g -> keysize -> priv
@@ -110,8 +103,6 @@ module Dh : sig
   type secret = { x : Z.t } with sexp
 
   val apparent_bit_size : group -> int
-  val group : p:Cstruct.t -> gg:Cstruct.t -> ?q:Cstruct.t -> unit -> group
-  val to_cstruct : group -> Cstruct.t * Cstruct.t
   val secret_of_cstruct : group -> s:Cstruct.t -> secret * Cstruct.t
   val gen_secret : ?g:Rng.g -> group -> secret * Cstruct.t
   val shared : group -> secret -> Cstruct.t -> Cstruct.t

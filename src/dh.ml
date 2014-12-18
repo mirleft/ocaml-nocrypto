@@ -16,16 +16,6 @@ let apparent_bit_size { p; _ } = Numeric.Z.bits p
 let to_cstruct_sized { p; _ } z =
   Numeric.Z.(to_cstruct_be ~size:(cdiv (bits p) 8) z)
 
-let group ~p ~gg ?q () =
-  let (p, gg, q) =
-    Numeric.Z.
-      (of_cstruct_be p, of_cstruct_be gg, Option.map ~f:of_cstruct_be q)
-  in
-  { p; gg; q }
-
-let to_cstruct { p ; gg ; _ } =
-  Numeric.Z.(to_cstruct_be p, to_cstruct_be gg)
-
 (*
  * Current thinking:
  * g^y < 0 || g^y >= p : obviously not computed mod p
@@ -72,24 +62,26 @@ let rec gen_group ?g ~bits =
 
 module Group = struct
 
-  let hex = Cs.of_hex
-  let two = Numeric.Z.to_cstruct_be Z.two
-
   (* Oakley groups from RFC2409 *)
+
+  let group ~p ~gg =
+    { p = Numeric.Z.of_cstruct_be (Cs.of_hex p) ; gg ; q = None }
+
+  let two = Z.(~$2)
 
   let oakley_1 =
     (* 2^768 - 2 ^704 - 1 + 2^64 * { [2^638 pi] + 149686 } *)
-    let p = hex
+    let p =
       "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
        29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
        EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
        E485B576 625E7EC6 F44C42E9 A63A3620 FFFFFFFF FFFFFFFF"
     in
-    group ~p ~gg:two ()
+    group ~p ~gg:two
 
   let oakley_2 =
     (* 2^1024 - 2^960 - 1 + 2^64 * { [2^894 pi] + 129093 }. *)
-    let p = hex
+    let p =
       "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
        29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
        EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
@@ -97,13 +89,13 @@ module Group = struct
        EE386BFB 5A899FA5 AE9F2411 7C4B1FE6 49286651 ECE65381
        FFFFFFFF FFFFFFFF"
     in
-    group ~p ~gg:two ()
+    group ~p ~gg:two
 
   (* Additional groups from RFC3526 *)
 
   let oakley_5 =
     (* 2^1536 - 2^1472 - 1 + 2^64 * { [2^1406 pi] + 741804 } *)
-    let p = hex
+    let p =
       "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
        29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
        EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
@@ -113,11 +105,11 @@ module Group = struct
        83655D23 DCA3AD96 1C62F356 208552BB 9ED52907 7096966D
        670C354E 4ABC9804 F1746C08 CA237327 FFFFFFFF FFFFFFFF"
     in
-    group ~p ~gg:two ()
+    group ~p ~gg:two
 
   let oakley_14 =
     (* 2^2048 - 2^1984 - 1 + 2^64 * { [2^1918 pi] + 124476 } *)
-    let p = hex
+    let p =
       "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
        29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
        EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
@@ -130,11 +122,11 @@ module Group = struct
        DE2BCBF6 95581718 3995497C EA956AE5 15D22618 98FA0510
        15728E5A 8AACAA68 FFFFFFFF FFFFFFFF"
     in
-    group ~p ~gg:two ()
+    group ~p ~gg:two
 
   let oakley_15 =
     (* 2^3072 - 2^3008 - 1 + 2^64 * { [2^2942 pi] + 1690314 } *)
-    let p = hex
+    let p =
       "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
        29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
        EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
@@ -152,11 +144,11 @@ module Group = struct
        BBE11757 7A615D6C 770988C0 BAD946E2 08E24FA0 74E5AB31
        43DB5BFC E0FD108E 4B82D120 A93AD2CA FFFFFFFF FFFFFFFF"
     in
-    group ~p ~gg:two ()
+    group ~p ~gg:two
 
   let oakley_16 =
     (* 2^4096 - 2^4032 - 1 + 2^64 * { [2^3966 pi] + 240904 } *)
-    let p = hex
+    let p =
       "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
        29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
        EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
@@ -180,11 +172,11 @@ module Group = struct
        93B4EA98 8D8FDDC1 86FFB7DC 90A6C08F 4DF435C9 34063199
        FFFFFFFF FFFFFFFF"
     in
-    group ~p ~gg:two ()
+    group ~p ~gg:two
 
   let oakley_17 =
     (* 2^6144 - 2^6080 - 1 + 2^64 * { [2^6014 pi] + 929484 } *)
-    let p = hex
+    let p =
       "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1 29024E08
        8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD EF9519B3 CD3A431B
        302B0A6D F25F1437 4FE1356D 6D51C245 E485B576 625E7EC6 F44C42E9
@@ -214,11 +206,11 @@ module Group = struct
        387FE8D7 6E3C0468 043E8F66 3F4860EE 12BF2D5B 0B7474D6 E694F91E
        6DCC4024 FFFFFFFF FFFFFFFF"
     in
-    group ~p ~gg:two ()
+    group ~p ~gg:two
 
   let oakley_18 =
     (* 2^8192 - 2^8128 - 1 + 2^64 * { [2^8062 pi] + 4743158 } *)
-    let p = hex
+    let p =
       "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
        29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
        EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
@@ -263,33 +255,36 @@ module Group = struct
        9558E447 5677E9AA 9E3050E2 765694DF C81F56E8 80B96E71
        60C980DD 98EDD3DF FFFFFFFF FFFFFFFF"
     in
-    group ~p ~gg:two ()
+    group ~p ~gg:two
 
   (* From RFC5114 *)
+  let group ~p ~gg ~q =
+    let f = Numeric.Z.of_cstruct_be ?bits:None &. Cs.of_hex in
+    { p = f p ; gg = f gg ; q = Some (f q) }
 
   (* 1024-bit, 160-bit subgroup *)
   let rfc_5114_1 =
-    let p = hex
+    let p =
       "B10B8F96 A080E01D DE92DE5E AE5D54EC 52C99FBC FB06A3C6
        9A6A9DCA 52D23B61 6073E286 75A23D18 9838EF1E 2EE652C0
        13ECB4AE A9061123 24975C3C D49B83BF ACCBDD7D 90C4BD70
        98488E9C 219A7372 4EFFD6FA E5644738 FAA31A4F F55BCCC0
        A151AF5F 0DC8B4BD 45BF37DF 365C1A65 E68CFDA7 6D4DA708
        DF1FB2BC 2E4A4371"
-    and gg = hex
+    and gg =
       "A4D1CBD5 C3FD3412 6765A442 EFB99905 F8104DD2 58AC507F
        D6406CFF 14266D31 266FEA1E 5C41564B 777E690F 5504F213
        160217B4 B01B886A 5E91547F 9E2749F4 D7FBD7D3 B9A92EE1
        909D0D22 63F80A76 A6A24C08 7A091F53 1DBF0A01 69B6A28A
        D662A4D1 8E73AFA3 2D779D59 18D08BC8 858F4DCE F97C2A24
        855E6EEB 22B3B2E5"
-    and q = hex "F518AA87 81A8DF27 8ABA4E7D 64B7CB9D 49462353"
+    and q = "F518AA87 81A8DF27 8ABA4E7D 64B7CB9D 49462353"
     in
-    group ~p ~gg ~q ()
+    group ~p ~gg ~q
 
   (* 2048-bit, 224-bit subgroup *)
   let rfc_5114_2 =
-    let p = hex
+    let p =
       "AD107E1E 9123A9D0 D660FAA7 9559C51F A20D64E5 683B9FD1
        B54B1597 B61D0A75 E6FA141D F95A56DB AF9A3C40 7BA1DF15
        EB3D688A 309C180E 1DE6B85A 1274A0A6 6D3F8152 AD6AC212
@@ -301,7 +296,7 @@ module Group = struct
        BE60E69C C928B2B9 C52172E4 13042E9B 23F10B0E 16E79763
        C9B53DCF 4BA80A29 E3FB73C1 6B8E75B9 7EF363E2 FFA31F71
        CF9DE538 4E71B81C 0AC4DFFE 0C10E64F"
-    and gg = hex
+    and gg =
       "AC4032EF 4F2D9AE3 9DF30B5C 8FFDAC50 6CDEBE7B 89998CAF
        74866A08 CFE4FFE3 A6824A4E 10B9A6F0 DD921F01 A70C4AFA
        AB739D77 00C29F52 C57DB17C 620A8652 BE5E9001 A8D66AD7
@@ -313,15 +308,15 @@ module Group = struct
        B539CCE3 409D13CD 566AFBB4 8D6C0191 81E1BCFE 94B30269
        EDFE72FE 9B6AA4BD 7B5A0F1C 71CFFF4C 19C418E1 F6EC0179
        81BC087F 2A7065B3 84B890D3 191F2BFA"
-    and q = hex
+    and q =
       "801C0D34 C58D93FE 99717710 1F80535A 4738CEBC BF389A99
        B36371EB"
     in
-    group ~p ~gg ~q ()
+    group ~p ~gg ~q
 
   (* 2048-bit, 256-bit subgroup *)
   let rfc_5114_3 =
-    let p = hex
+    let p =
       "87A8E61D B4B6663C FFBBD19C 65195999 8CEEF608 660DD0F2
        5D2CEED4 435E3B00 E00DF8F1 D61957D4 FAF7DF45 61B2AA30
        16C3D911 34096FAA 3BF4296D 830E9A7C 209E0C64 97517ABD
@@ -333,7 +328,7 @@ module Group = struct
        C0B857F6 89962856 DED4010A BD0BE621 C3A3960A 54E710C3
        75F26375 D7014103 A4B54330 C198AF12 6116D227 6E11715F
        693877FA D7EF09CA DB094AE9 1E1A1597"
-    and gg = hex
+    and gg =
       "3FB32C9B 73134D0B 2E775066 60EDBD48 4CA7B18F 21EF2054
        07F4793A 1A0BA125 10DBC150 77BE463F FF4FED4A AC0BB555
        BE3A6C1B 0C6B47B1 BC3773BF 7E8C6F62 901228F8 C28CBB18
@@ -345,10 +340,10 @@ module Group = struct
        B3353BBB 64E0EC37 7FD02837 0DF92B52 C7891428 CDC67EB6
        184B523D 1DB246C3 2F630784 90F00EF8 D647D148 D4795451
        5E2327CF EF98C582 664B4C0F 6CC41659"
-    and q = hex
+    and q =
       "8CF83642 A709A097 B4479976 40129DA2 99B1A47D 1EB3750B
        A308B0FE 64F5FBD3"
     in
-    group ~p ~gg ~q ()
+    group ~p ~gg ~q
 
 end

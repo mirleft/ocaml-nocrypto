@@ -17,14 +17,6 @@ type secret = { x : Z.t } with sexp
 (** Bit size of the modulus (not the subgroup order, which might not be known). *)
 val apparent_bit_size : group -> int
 
-(** [group p gg q ()] is a new {!group}.
-    The parameters are not validated in any way, not even as a
-    sanity check. Be sure to trust your group! *)
-val group : p:Cstruct.t -> gg:Cstruct.t -> ?q:Cstruct.t -> unit -> group
-
-(** [to_cstruct group] expands [(p, gg)] to {!Cstruct.t} *)
-val to_cstruct : group -> Cstruct.t * Cstruct.t
-
 (** [secret_of_cstruct group s] generates {! secret } and the public key, using
     [s] as secret.
     @raise Invalid_public_key if the secret is degenerate. *)

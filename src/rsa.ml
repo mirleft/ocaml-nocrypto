@@ -10,24 +10,6 @@ type priv = {
 
 type mask = [ `No | `Yes | `Yes_with of Rng.g ]
 
-let pub ~e ~n =
-  Numeric.Z.({
-    e = of_cstruct_be e ;
-    n = of_cstruct_be n ;
-  })
-
-let priv ~e ~d ~n ~p ~q ~dp ~dq ~q' =
-  Numeric.Z.({
-    e  = of_cstruct_be e  ;
-    d  = of_cstruct_be d  ;
-    n  = of_cstruct_be n  ;
-    p  = of_cstruct_be p  ;
-    q  = of_cstruct_be q  ;
-    dp = of_cstruct_be dp ;
-    dq = of_cstruct_be dq ;
-    q' = of_cstruct_be q' ;
-  })
-
 let priv_of_primes ~e ~p ~q =
   let n  = Z.(p * q)
   and d  = Z.(invert e (pred p * pred q)) in
@@ -35,11 +17,6 @@ let priv_of_primes ~e ~p ~q =
   and dq = Z.(d mod (pred q))
   and q' = Z.(invert q p) in
   { e; d; n; p; q; dp; dq; q' }
-
-let priv' ~e ~p ~q =
-  let (e, p, q) =
-    Numeric.Z.(of_cstruct_be e, of_cstruct_be p, of_cstruct_be q) in
-  priv_of_primes ~e ~p ~q
 
 let pub_of_priv ({ e; n; _ } : priv) = { e ; n }
 
@@ -83,7 +60,7 @@ let (encrypt_z, decrypt_z) =
     | `Yes_with g -> decrypt_blinded_unsafe ~g ~key msg )
 
 let reformat out f =
-  Numeric.Z.(to_cstruct_be ~size:(cdiv out 8) &. f &. of_cstruct_be)
+  Numeric.Z.(to_cstruct_be ~size:(cdiv out 8) &. f &. of_cstruct_be ?bits:None)
 
 let encrypt ~key              = reformat (pub_bits key)  (encrypt_z ~key)
 and decrypt ?(mask=`Yes) ~key = reformat (priv_bits key) (decrypt_z ~mask ~key)

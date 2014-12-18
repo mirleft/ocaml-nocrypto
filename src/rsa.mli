@@ -39,16 +39,9 @@ val pub_bits : pub -> int
 (** Bit-size of a private key. *)
 val priv_bits : priv -> int
 
-(** Construct a {!pub}. {!Cstruct.t} are taken to be big-endian. *)
-val pub : e:Cstruct.t -> n:Cstruct.t -> pub
-
-(** Construct a {!priv}. {!Cstruct.t} are taken to be big-endian. *)
-val priv : e:Cstruct.t -> d:Cstruct.t -> n:Cstruct.t ->
-           p:Cstruct.t -> q:Cstruct.t ->
-           dp:Cstruct.t -> dq:Cstruct.t -> q':Cstruct.t -> priv
-
-(** Compute a {!priv} from a minimal description. *)
-val priv' : e:Cstruct.t -> p:Cstruct.t -> q:Cstruct.t -> priv
+(** [priv_of_primes e p q] creates {!priv} from a minimal description: the
+ public exponent and the two primes. *)
+val priv_of_primes : e:Z.t -> p:Z.t -> q:Z.t -> priv
 
 (** Extract the public component from a private key. *)
 val pub_of_priv : priv -> pub

@@ -26,12 +26,6 @@ type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `Exactly of int * int ]
 (** Masking request. *)
 type mask = [ `No | `Yes | `Yes_with of Rng.g ]
 
-(** Construct a {!pub}. {!Cstruct.t} are taken to be big-endian. *)
-val pub  : p:Cstruct.t -> q:Cstruct.t -> gg:Cstruct.t -> y:Cstruct.t -> pub
-
-(** Construct a {!priv}. {!Cstruct.t} are taken to be big-endian. *)
-val priv : p:Cstruct.t -> q:Cstruct.t -> gg:Cstruct.t -> x:Cstruct.t -> y:Cstruct.t -> priv
-
 (** Extract the public component from a private key. *)
 val pub_of_priv : priv -> pub
 

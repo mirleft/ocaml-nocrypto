@@ -4,23 +4,6 @@ open Uncommon
 type pub  = { p : Z.t ; q : Z.t ; gg : Z.t ; y : Z.t } with sexp
 type priv = { p : Z.t ; q : Z.t ; gg : Z.t ; x : Z.t ; y : Z.t } with sexp
 
-let pub ~p ~q ~gg ~y =
-  Numeric.Z.({
-    p  = of_cstruct_be p  ;
-    q  = of_cstruct_be q  ;
-    gg = of_cstruct_be gg ;
-    y  = of_cstruct_be y  ;
-  })
-
-let priv ~p ~q ~gg ~x ~y =
-  Numeric.Z.({
-    p  = of_cstruct_be p  ;
-    q  = of_cstruct_be q  ;
-    gg = of_cstruct_be gg ;
-    x  = of_cstruct_be x  ;
-    y  = of_cstruct_be y  ;
-  })
-
 let pub_of_priv { p; q; gg; y; _ } = { p; q; gg; y }
 
 type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `Exactly of int * int ]
