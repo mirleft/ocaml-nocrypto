@@ -8,6 +8,10 @@
  Private-key operations are optionally protected through RSA blinding.
 *)
 
+(** Raised if the numeric magnitude of a message is inappropriate for a given
+ key. *)
+exception Invalid_message_size
+
 (** A public key *)
 type pub  = {
   e : Z.t ; (** Public exponent *)
@@ -47,16 +51,17 @@ val priv_of_primes : e:Z.t -> p:Z.t -> q:Z.t -> priv
 val pub_of_priv : priv -> pub
 
 (** [encrypt key message] is the encrypted [message].
-  @raise Invalid_argument if [message] is too large for the [key]. *)
+  @raise {!Invalid_message_size} if [message] is too large or 0. *)
 val encrypt : key:pub  -> Cstruct.t -> Cstruct.t
 
 (** [decrypt mask key ciphertext] is the decrypted [ciphertext], left-padded
   with 0x00 up to [key] size.
-  @raise Invalid_argument if [ciphertext] is too large for the [key]. *)
+  @raise {!Invalid_message_size} if [ciphertext] is too large or 0. *)
 val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
 
 (** [generate g e bits] is a new {!priv}. [e] is given or [2^16+1]. [size] is
-    in bits. *)
+    in bits.
+    @raise Invalid_argument if [e] is bad or [size] is too small. *)
 val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
 
 
@@ -71,20 +76,21 @@ val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
 module PKCS1 : sig
 
   (** [sign mask key message] gives a PKCS1-padded signature of the [message].
-   @raise Invalid_argument if the key is too small. *)
+   @raise {!Invalid_message_size} if [message] is too large or 0. *)
   val sign : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
 
   (** [verify key signature] is either the message that was PKCS1-padded and
-   transformed with [key]'s private counterpart, or [None] if the recovered
-   padding is incorrect. *)
+   transformed with [key]'s private counterpart, or [None] if the padding is
+   incorrect or the underlying {!encrypt} would raise. *)
   val verify : key:pub -> Cstruct.t -> Cstruct.t option
 
   (** [encrypt g key message] gives a PKCS1-padded and encrypted [message].
-   @raise Invalid_argument if the key is too small. *)
+   @raise {!Invalid_message_size} if [message] is too large or 0. *)
   val encrypt : ?g:Rng.g -> key:pub -> Cstruct.t -> Cstruct.t
 
   (** [decrypt mask key ciphertext] is decrypted [ciphertext] stripped of PKCS1
-   padding, or [None] if the padding is incorrect. *)
+   padding, or [None] if the padding is incorrect or the underlying {!decrypt}
+   would raise. *)
   val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
 
 end

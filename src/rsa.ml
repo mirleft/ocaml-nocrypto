@@ -1,6 +1,8 @@
 open Sexplib.Conv
 open Uncommon
 
+exception Invalid_message_size
+
 type pub  = { e : Z.t ; n : Z.t } with sexp
 
 type priv = {
@@ -46,9 +48,7 @@ let decrypt_blinded_unsafe ?g ~key: ({ e; n; _} as key : priv) c =
 
 let (encrypt_z, decrypt_z) =
   let check_params n msg =
-    if msg >= n then invalid_arg "RSA: key too small" ;
-    if msg < Z.one then invalid_arg "RSA: non-positive message"
-  in
+    if msg < Z.one || n <= msg then raise Invalid_message_size in
   (fun ~(key : pub) msg ->
     check_params key.n msg ;
     encrypt_unsafe ~key msg),
@@ -67,12 +67,12 @@ and decrypt ?(mask=`Yes) ~key = reformat (priv_bits key) (decrypt_z ~mask ~key)
 
 
 let generate ?g ?(e = Z.(~$0x10001)) bits =
-  let () =
-    if bits < 10 then
-      invalid_arg "Rsa.generate: requested key size < 10 bits";
-    if Numeric.(Z.bits e >= bits || not (pseudoprime e)) || e < Z.three then
-      invalid_arg "Rsa.generate: e invalid or too small"
-  in
+
+  if bits < 10 then
+    invalid_arg "Rsa.generate: requested key size < 10 bits";
+  if Numeric.(Z.bits e >= bits || not (pseudoprime e)) || e < Z.three then
+    invalid_arg "Rsa.generate: e invalid or too small" ;
+
   let msb = 2
   and (pb, qb) = (bits / 2, bits - bits / 2) in
   let (p, q) =
