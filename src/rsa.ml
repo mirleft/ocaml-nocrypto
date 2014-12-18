@@ -116,20 +116,6 @@ module PKCS1 = struct
       | _ -> None
     with Invalid_argument _ -> None
 
-  let min_pad = 4
-
-  let sign ?mask ~key msg =
-    let size = cdiv (priv_bits key) 8 in
-    if size - len msg < min_pad then
-      invalid_arg "RSA.PKCS1.sign: key too small"
-    else decrypt ?mask ~key (pad_01 size msg)
-
-  let verify ~key data =
-    try
-      unpad_01 (encrypt ~key data)
-    with Invalid_argument _ -> None
-    (* XXX switch to custom exn *)
-
   (* 0x00 0x02 <random_not_zero> 0x00 data *)
   let pad_02 ?g size msg =
     let n   = len msg in
@@ -167,16 +153,30 @@ module PKCS1 = struct
       | _                  -> None
     else None
 
+
+  let min_pad = 4
+
+  let pad_op pad transform keybits msg =
+    let size = cdiv keybits 8 in
+    if size - len msg < min_pad then raise Invalid_message_size ;
+    transform (pad size msg)
+
+  let unpad_op unpad transform keybits msg =
+    if len msg = cdiv keybits 8 then
+      try unpad (transform msg) with Invalid_message_size -> None
+    else None
+
+
+  let sign ?mask ~key msg =
+    pad_op pad_01 (decrypt ?mask ~key) (priv_bits key) msg
+
+  let verify ~key msg =
+    unpad_op unpad_01 (encrypt ~key) (pub_bits key) msg
+
   let encrypt ?g ~key msg =
-    let size = cdiv (pub_bits key) 8 in
-    if size - len msg < min_pad then
-      invalid_arg "RSA.PKCS1.encrypt: key too small"
-    else encrypt ~key (pad_02 ?g size msg)
+    pad_op (pad_02 ?g) (encrypt ~key) (pub_bits key) msg
 
   let decrypt ?mask ~key msg =
-    let msglen = cdiv (priv_bits key) 8 in
-    if Cstruct.len msg = msglen then
-      unpad_02 (decrypt ?mask ~key msg)
-    else None
+    unpad_op unpad_02 (decrypt ?mask ~key) (priv_bits key) msg
 
 end
