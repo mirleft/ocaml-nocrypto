@@ -114,23 +114,33 @@ let rsa_selftest ~bits n =
       ~msg:Printf.(sprintf "failed decryption with:\n%s" key_s)
       msg dec
 
-let rsa_pkcs_selftest ~bits n =
+let show_key_size key =
+  Printf.sprintf "(%d bits)" (Rsa.priv_bits key)
+
+let pkcs_message_for_bits bits =
+  let padding = 12 in
+  let size    = cdiv bits 8 - padding in
+  assert (size >= 0) ; Rng.generate size
+
+let rsa_pkcs1_sign_selftest ~bits n =
   "selftest" >:: times ~n @@ fun _ ->
-    let msg =
-      let size = match cdiv bits 8 with
-        | s when s < 5 -> assert false
-        | 5|6   as s   -> s - 4
-        | 7|8|9 as s   -> s - 5
-        | s            -> s - 7 in
-      let cs = Rng.generate size in
-      Cstruct.(set_uint8 cs 0 @@ max 1 (get_uint8 cs 1));
-      cs in
-    
-    let (key, _) = gen_rsa ~bits in
-    let enc = Rsa.(PKCS1.encrypt ~key:(pub_of_priv key) msg) in
+    let (key, _) = gen_rsa ~bits
+    and msg      = pkcs_message_for_bits bits in
+    let sgn      = Rsa.PKCS1.sign ~key msg in
+    match Rsa.(PKCS1.verify ~key:(pub_of_priv key) sgn) with
+    | None     -> assert_failure ("unpad failure " ^ show_key_size key)
+    | Some dec -> assert_cs_equal msg dec
+                    ~msg:("recovery failure " ^ show_key_size key)
+
+let rsa_pkcs1_encrypt_selftest ~bits n =
+  "selftest" >:: times ~n @@ fun _ ->
+    let (key, _) = gen_rsa ~bits
+    and msg      = pkcs_message_for_bits bits in
+    let enc      = Rsa.(PKCS1.encrypt ~key:(pub_of_priv key) msg) in
     match Rsa.PKCS1.decrypt ~key enc with
-    | None     -> assert_failure "decryption failed"
-    | Some dec -> assert_cs_equal ~msg:"msg not recovered" msg dec
+    | None     -> assert_failure ("unpad failure " ^ show_key_size key)
+    | Some dec -> assert_cs_equal msg dec
+                    ~msg:("recovery failure " ^ show_key_size key)
 
 
 let dh_selftest ~bits n =
@@ -590,10 +600,14 @@ let suite =
       rsa_selftest ~bits:1024 10   ;
     ] ;
 
-    "RSA-PKCS1" >::: [
-      rsa_pkcs_selftest ~bits:43  100 ;
-      rsa_pkcs_selftest ~bits:67  100 ;
-      rsa_pkcs_selftest ~bits:512 10 ;
+    "RSA-PKCS1-ENC" >::: [
+      rsa_pkcs1_encrypt_selftest ~bits:111 100 ;
+      rsa_pkcs1_encrypt_selftest ~bits:512 10 ;
+    ] ;
+
+    "RSA-PKCS1-SIGN" >::: [
+      rsa_pkcs1_sign_selftest ~bits:111 100 ;
+      rsa_pkcs1_sign_selftest ~bits:512 10 ;
     ] ;
 
     "DHE" >::: [
