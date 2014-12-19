@@ -88,95 +88,73 @@ let generate ?g ?(e = Z.(~$0x10001)) bits =
 
 module PKCS1 = struct
 
+  let min_pad = 3
+
   open Cstruct
 
-  (* inspiration from RFC3447 EMSA-PKCS1-v1_5 and rsa_sign.c from OpenSSL *)
-  (* also ocaml-ssh kex.ml *)
-  let pad_01 size msg =
+  let pad ~mark ~padding size msg =
     let n   = len msg in
     let pad = size - n
     and cs  = create size in
-    BE.set_uint16 cs 0 0x0001 ;
-    Cs.fill (sub cs 2 (pad - 3)) 0xff ;
+    BE.set_uint16 cs 0 mark ;
+    padding (sub cs 2 (pad - 3)) ;
     set_uint8 cs (pad - 1) 0x00 ;
     blit msg 0 cs pad n ;
     cs
 
-  (* No time-masking: public-key operation. *)
-  let unpad_01 msg =
-    try
-      match BE.get_uint16 msg 0 with
-      | 0x0001 ->
-          let rec ff i =
-            match get_uint8 msg i with
-            | 0xff -> ff (succ i)
-            | 0x00 -> Some (shift msg (i + 1))
-            | _    -> None in
-          ff 2
-      | _ -> None
-    with Invalid_argument _ -> None
+  let unpad ~mark ~is_pad cs =
+    let n = len cs in
+    let rec go ok i =
+      if i = n then None else
+        match (i, get_uint8 cs i) with
+        | (0, b   ) -> go (b = 0x00 && ok) (succ i)
+        | (1, b   ) -> go (b = mark && ok) (succ i)
+        | (i, 0x00) when i >= min_pad -> Some (ok, i + 1)
+        | (i, b   ) -> go (is_pad b && ok) (succ i) in
+    match go true 0 with
+    | Some (true, off) -> Some (sub cs off (n - off))
+    | _                -> None
 
-  (* 0x00 0x02 <random_not_zero> 0x00 data *)
-  let pad_02 ?g size msg =
-    let n   = len msg in
-    let pad = size - n
-    and cs  = create size in
-    let block   = Rng.(block_size * cdiv pad block_size) in
-    let rec copybyte nonce = function
-      | i when i = pad - 1   -> ()
-      | i when Cs.null nonce -> copybyte Rng.(generate ?g block) i
-      | i ->
-          match (get_uint8 nonce 0, shift nonce 1) with
-          | (0x00, nonce') -> copybyte nonce' i
-          | (x   , nonce') -> set_uint8 cs i x ; copybyte nonce' (succ i)
-    in
-    BE.set_uint16 cs 0 0x0002 ;
-    copybyte Cs.empty 2 ;
-    set_uint8 cs (pad - 1) 0x00 ;
-    blit msg 0 cs pad n ;
-    cs
+  let pad_01 =
+    pad ~mark:0x01 ~padding:(fun cs -> Cs.fill cs 0xff)
 
-  let unpad_02 msg =
-    let n = len msg in
-    let rec scan ok padding = function
-      | i when i = n -> (ok, padding)
-      | i ->
-          match (i, get_uint8 msg i, padding) with
-          | (0, b, _   ) -> scan (ok && b = 0) padding (succ i)
-          | (1, b, _   ) -> scan (ok && b = 2) padding (succ i)
-          | (_, 0, None) -> scan ok (Some (succ i)) (succ i)
-          | _            -> scan ok padding (succ i) 
-    in
-    if n > 3 then
-      match scan true None 0 with
-      | (true, Some start) -> Some (shift msg start)
-      | _                  -> None
-    else None
+  let pad_02 ?g =
+    pad ~mark:0x02 ~padding:(fun cs ->
+      let n     = len cs in
+      let block = Rng.(block_size * cdiv n block_size) in
+      let rec go nonce i j =
+        if i = n then () else
+        if j = block then go Rng.(generate ?g block) i 0 else
+          match get_uint8 nonce j with
+          | 0x00 -> go nonce i (succ j)
+          | x    -> set_uint8 cs i x ; go nonce (succ i) (succ j) in
+      go Rng.(generate ?g block) 0 0
+    )
 
+  let unpad_01 = unpad ~mark:0x01 ~is_pad:(fun b -> b = 0xff)
 
-  let min_pad = 4
+  let unpad_02 = unpad ~mark:0x02 ~is_pad:(fun b -> b <> 0x00)
 
-  let pad_op pad transform keybits msg =
+  let padded pad transform keybits msg =
     let size = cdiv keybits 8 in
     if size - len msg < min_pad then raise Invalid_message_size ;
     transform (pad size msg)
 
-  let unpad_op unpad transform keybits msg =
+  let unpadded unpad transform keybits msg =
     if len msg = cdiv keybits 8 then
       try unpad (transform msg) with Invalid_message_size -> None
     else None
 
-
   let sign ?mask ~key msg =
-    pad_op pad_01 (decrypt ?mask ~key) (priv_bits key) msg
+    padded pad_01 (decrypt ?mask ~key) (priv_bits key) msg
 
   let verify ~key msg =
-    unpad_op unpad_01 (encrypt ~key) (pub_bits key) msg
+    unpadded unpad_01 (encrypt ~key) (pub_bits key) msg
 
   let encrypt ?g ~key msg =
-    pad_op (pad_02 ?g) (encrypt ~key) (pub_bits key) msg
+    padded (pad_02 ?g) (encrypt ~key) (pub_bits key) msg
 
   let decrypt ?mask ~key msg =
-    unpad_op unpad_02 (decrypt ?mask ~key) (priv_bits key) msg
+    unpadded unpad_02 (decrypt ?mask ~key) (priv_bits key) msg
 
 end
