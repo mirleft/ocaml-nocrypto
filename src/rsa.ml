@@ -109,11 +109,10 @@ module PKCS1 = struct
         match (i, get_uint8 cs i) with
         | (0, b   ) -> go (b = 0x00 && ok) (succ i)
         | (1, b   ) -> go (b = mark && ok) (succ i)
-        | (i, 0x00) when i >= min_pad -> Some (ok, i + 1)
+        | (i, 0x00) when i >= min_pad && ok
+                    -> ignore (go false (succ i)); Some (succ i)
         | (i, b   ) -> go (is_pad b && ok) (succ i) in
-    match go true 0 with
-    | Some (true, off) -> Some (sub cs off (n - off))
-    | _                -> None
+    go true 0 |> Option.map ~f:(fun off -> sub cs off (n - off))
 
   let pad_01 =
     pad ~mark:0x01 ~padding:(fun cs -> Cs.fill cs 0xff)
