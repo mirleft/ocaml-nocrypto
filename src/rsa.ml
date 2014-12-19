@@ -88,7 +88,7 @@ let generate ?g ?(e = Z.(~$0x10001)) bits =
 
 module PKCS1 = struct
 
-  let min_pad = 3
+  let min_pad = 8 + 3
 
   open Cstruct
 
