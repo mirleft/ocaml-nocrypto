@@ -47,6 +47,8 @@ end
 
 module Rsa : sig
 
+  exception Invalid_message
+
   type pub  = { e : Z.t ; n : Z.t ; } with sexp
   type priv = { e  : Z.t ; d  : Z.t ; n  : Z.t ; p  : Z.t ; q  : Z.t ; dp : Z.t ; dq : Z.t ; q' : Z.t ; } with sexp
 

@@ -8,9 +8,10 @@
  Private-key operations are optionally protected through RSA blinding.
 *)
 
-(** Raised if the numeric magnitude of a message is inappropriate for a given
- key. *)
-exception Invalid_message_size
+(** Raised if the numeric magnitude of a message, with potential padding, is
+ inappropriate for a given key, i.e. the message, when interpreted as big-endian
+ encoding of a natural number, meets or exceeds the key's [n], or is 0. *)
+exception Invalid_message
 
 (** A public key *)
 type pub  = {
@@ -51,12 +52,12 @@ val priv_of_primes : e:Z.t -> p:Z.t -> q:Z.t -> priv
 val pub_of_priv : priv -> pub
 
 (** [encrypt key message] is the encrypted [message].
-  @raise {!Invalid_message_size} if [message] is too large or 0. *)
+  @raise {!Invalid_message} *)
 val encrypt : key:pub  -> Cstruct.t -> Cstruct.t
 
 (** [decrypt mask key ciphertext] is the decrypted [ciphertext], left-padded
   with 0x00 up to [key] size.
-  @raise {!Invalid_message_size} if [ciphertext] is too large or 0. *)
+  @raise {!Invalid_message} *)
 val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
 
 (** [generate g e bits] is a new {!priv}. [e] is given or [2^16+1]. [size] is
@@ -75,8 +76,9 @@ val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
  *)
 module PKCS1 : sig
 
-  (** [sign mask key message] gives a PKCS1-padded signature of the [message].
-   @raise {!Invalid_message_size} if [message] is too large or 0. *)
+  (** [sign mask key message] is the PKCS1-padded (type 1) signature of the
+   [message].
+   @raise {!Invalid_message} *)
   val sign : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
 
   (** [verify key signature] is either the message that was PKCS1-padded and
@@ -84,8 +86,9 @@ module PKCS1 : sig
    incorrect or the underlying {!encrypt} would raise. *)
   val verify : key:pub -> Cstruct.t -> Cstruct.t option
 
-  (** [encrypt g key message] gives a PKCS1-padded and encrypted [message].
-   @raise {!Invalid_message_size} if [message] is too large or 0. *)
+  (** [encrypt g key message] is a PKCS1-padded (type 2) and encrypted
+   [message].
+   @raise {!Invalid_message} *)
   val encrypt : ?g:Rng.g -> key:pub -> Cstruct.t -> Cstruct.t
 
   (** [decrypt mask key ciphertext] is decrypted [ciphertext] stripped of PKCS1

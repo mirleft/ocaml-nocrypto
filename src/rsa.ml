@@ -1,7 +1,7 @@
 open Sexplib.Conv
 open Uncommon
 
-exception Invalid_message_size
+exception Invalid_message
 
 type pub  = { e : Z.t ; n : Z.t } with sexp
 
@@ -48,7 +48,7 @@ let decrypt_blinded_unsafe ?g ~key: ({ e; n; _} as key : priv) c =
 
 let (encrypt_z, decrypt_z) =
   let check_params n msg =
-    if msg < Z.one || n <= msg then raise Invalid_message_size in
+    if msg < Z.one || n <= msg then raise Invalid_message in
   (fun ~(key : pub) msg ->
     check_params key.n msg ;
     encrypt_unsafe ~key msg),
@@ -137,12 +137,12 @@ module PKCS1 = struct
 
   let padded pad transform keybits msg =
     let size = cdiv keybits 8 in
-    if size - len msg < min_pad then raise Invalid_message_size ;
+    if size - len msg < min_pad then raise Invalid_message ;
     transform (pad size msg)
 
   let unpadded unpad transform keybits msg =
     if len msg = cdiv keybits 8 then
-      try unpad (transform msg) with Invalid_message_size -> None
+      try unpad (transform msg) with Invalid_message -> None
     else None
 
   let sign ?mask ~key msg =
