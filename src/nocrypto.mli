@@ -1,7 +1,7 @@
 
 module Module_types : module type of Module_types
 
-module Base64   : module type of Base64
+(* module Base64   : module type of Base64 *)
 module Numeric  : module type of Numeric
 module Uncommon : module type of Uncommon
 
@@ -21,6 +21,11 @@ module Hmac_drgb : module type of Hmac_drgb
 (* module Rsa : module type of Rsa *)
 (* module Dh  : module type of Dh *)
 
+module Base64 : sig
+  val encode : Cstruct.t -> Cstruct.t
+  val decode : Cstruct.t -> Cstruct.t
+  val is_base64_char : char -> bool
+end
 
 module Rng : sig
 
