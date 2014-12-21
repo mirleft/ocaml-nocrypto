@@ -137,7 +137,7 @@ let rsa_feedback bits =
   Cstruct.(set_uint8 m 0 (max 1 (get_uint8 m 0)));
   hexdump m ;
 
-  let e = if Z.(pow two bits < def_e) then Z.of_int 3 else def_e in
+  let e = if Z.(pow ~$2 bits < def_e) then Z.of_int 3 else def_e in
   let key =
     Printf.printf "+ generating...\n%!";
     generate ~e bits in
