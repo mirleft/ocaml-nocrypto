@@ -91,12 +91,3 @@ module type Hash = sig
       algorithm. *)
 end
 
-module type Stream_cipher = sig
-  type key
-  type result = { message : Cstruct.t ; key : key }
-  val of_secret : Cstruct.t -> key
-  val encrypt : key:key -> Cstruct.t -> result
-  val decrypt : key:key -> Cstruct.t -> result
-end
-
-

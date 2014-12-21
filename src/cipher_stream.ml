@@ -1,5 +1,11 @@
 
-module type T = sig include Module_types.Stream_cipher end
+module type T = sig
+  type key
+  type result = { message : Cstruct.t ; key : key }
+  val of_secret : Cstruct.t -> key
+  val encrypt : key:key -> Cstruct.t -> result
+  val decrypt : key:key -> Cstruct.t -> result
+end
 
 module ARC4 = struct
 
