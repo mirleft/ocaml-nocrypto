@@ -1,7 +1,48 @@
-open Module_types
 open Uncommon
 
-module Numeric_of (Rng : Random.Rng) = struct
+module T = struct
+
+  module type Rng = sig
+    type g
+    val block_size : int
+    val generate : ?g:g -> int -> Cstruct.t
+  end
+
+  module type N = sig
+    type t
+    type g
+
+    val gen : ?g:g -> t -> t
+    val gen_r : ?g:g -> t -> t -> t
+    val gen_bits : ?g:g -> int -> t
+  end
+
+  module type Rng_numeric = sig
+
+    type g
+
+    val prime : ?g:g -> ?msb:int -> bits:int -> Z.t
+    val safe_prime : ?g:g -> bits:int -> Z.t * Z.t
+
+    module Int   : N with type g = g and type t = int
+    module Int32 : N with type g = g and type t = int32
+    module Int64 : N with type g = g and type t = int64
+    module Z     : N with type g = g and type t = Z.t
+
+    module Fc : sig
+      type 'a t = (module N with type g = g and type t = 'a)
+      val int   : int   t
+      val int32 : int32 t
+      val int64 : int64 t
+      val z     : Z.t   t
+    end
+
+    val strict : bool -> unit
+  end
+end
+
+
+module Numeric_of (Rng : T.Rng) = struct
 
   type g = Rng.g
 
@@ -58,7 +99,7 @@ module Numeric_of (Rng : Random.Rng) = struct
   module ZN    = N_gen (Numeric.Z    )
 
   module Fc = struct
-    type 'a t = (module Random.N with type g = g and type t = 'a)
+    type 'a t = (module T.N with type g = g and type t = 'a)
     let int   : int   t = (module Int)
     let int32 : int32 t = (module Int32)
     let int64 : int64 t = (module Int64)
@@ -119,4 +160,4 @@ include ( Numeric_of (
     let block_size = block_size
     let generate   = generate
   end
-) : Random.Numeric with type g := g )
+) : T.Rng_numeric with type g := g )

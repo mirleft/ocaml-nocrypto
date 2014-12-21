@@ -1,10 +1,12 @@
 (** A lighweight crypto library. *)
 
+
 module Base64 : sig
   val encode : Cstruct.t -> Cstruct.t
   val decode : Cstruct.t -> Cstruct.t
   val is_base64_char : char -> bool
 end
+
 
 module Uncommon : sig
 (** A treasure-trove of random utilities.
@@ -39,6 +41,7 @@ module Uncommon : sig
     val mem : 'a -> 'a array -> bool
   end
 end
+
 
 module Numeric : sig
   (** Numeric utilities. *)
@@ -99,6 +102,7 @@ module Numeric : sig
 
 end
 
+
 module Hash : sig
 
   module type T = sig
@@ -138,6 +142,7 @@ module Hash : sig
   val module_of   : [< hash ] -> (module T)
 
 end
+
 
 module Cipher_block : sig
 
@@ -240,6 +245,7 @@ module Cipher_block : sig
   end
 end
 
+
 module Cipher_stream : sig
 
   module type T = sig
@@ -252,6 +258,7 @@ module Cipher_stream : sig
 
   module ARC4 : T
 end
+
 
 module Fortuna : sig
   (** Implementation of {{: https://www.schneier.com/fortuna.html} Fortuna} CSPRNG.  *)
@@ -313,6 +320,7 @@ module Fortuna : sig
   end
 end
 
+
 module Hmac_drgb : sig
   module Make (H : Hash.T) : sig
     (** HMAC_DRBG: A NIST-specified RNG based on HMAC construction over the
@@ -320,26 +328,89 @@ module Hmac_drgb : sig
 
     type g
 
+    val block_size : int
     val create : unit -> g
     val reseed : ?g:g -> Cstruct.t -> unit
-
-    include Module_types.Random.Rng with type g := g
+    val generate : ?g:g -> int -> Cstruct.t
   end
 end
+
 
 module Rng : sig
 (** A global instance of {!Fortuna}. *)
 
-  open Module_types
+  module T : sig
+
+    module type Rng = sig
+      (** The core random generator signature. *)
+
+      type g
+      (** State type for this generator. *)
+      val block_size : int
+      (** Internally, this generator's {!generate} always produces [k * block_size] bytes. *)
+      val generate : ?g:g -> int -> Cstruct.t
+      (** [generate ~g n] produces [n] random bytes, using either the given or a
+          default {!g}. *)
+    end
+
+    module type N = sig
+      (** Typed random number extraction. *)
+
+      type t
+      (** The type of extracted values. *)
+      type g
+      (** Random generator. *)
+
+      val gen : ?g:g -> t -> t
+      (** [gen ~g n] picks a value in the interval [\[0, n - 1\]] uniformly at random. *)
+      val gen_r : ?g:g -> t -> t -> t
+      (** [gen_r ~g low high] picks a value from the interval [\[low, high - 1\]]
+          uniformly at random. *)
+      val gen_bits : ?g:g -> int -> t
+      (** [gen_bits ~g n] picks a value with exactly [n] significant bits,
+          uniformly at random. *)
+    end
+
+    module type Rng_numeric = sig
+      (** A full suite of numeric extractions. *)
+
+      type g
+      (** Random generator. *)
+
+      val prime : ?g:g -> ?msb:int -> bits:int -> Z.t
+      (** [prime ~g ~msb ~bits] generates a prime smaller than [2^bits], such that
+          its [msb] most significant bits are set.
+          [prime ~g ~msb:1 ~bits] (the default) yields a prime in the interval
+          [\[2^(bits - 1), 2^bits - 1\]]. *)
+      val safe_prime : ?g:g -> bits:int -> Z.t * Z.t
+      (** [safe_prime ~g ~bits] gives a prime pair [(g, p)] such that [p = 2g + 1]
+          and [p] has [bits] significant bits. *)
+
+      module Int   : N with type g = g and type t = int
+      module Int32 : N with type g = g and type t = int32
+      module Int64 : N with type g = g and type t = int64
+      module Z     : N with type g = g and type t = Z.t
+
+      module Fc : sig
+        type 'a t = (module N with type g = g and type t = 'a)
+        val int   : int   t
+        val int32 : int32 t
+        val int64 : int64 t
+        val z     : Z.t   t
+      end
+
+      val strict : bool -> unit
+    end
+  end
 
   module Numeric_of :
-    functor (Rng : Random.Rng) -> Random.Numeric with type g = Rng.g
-  (** Gives the numeric extraction suite over an {!Random.Rng}. *)
+    functor (Rng : T.Rng) -> T.Rng_numeric with type g = Rng.g
+  (** Gives the numeric extraction suite over an {!T.Rng}. *)
 
   type g = Fortuna.g
 
-  include Random.Rng     with type g := g (** Base RNG generation. *)
-  include Random.Numeric with type g := g (** Numeric RNG generation. *)
+  include T.Rng         with type g := g (** Base RNG generation. *)
+  include T.Rng_numeric with type g := g (** Numeric RNG generation. *)
 
   val reseed  : Cstruct.t      -> unit
   val reseedv : Cstruct.t list -> unit
@@ -351,6 +422,7 @@ module Rng : sig
     val add_rr : source:int -> Cstruct.t -> unit
   end
 end
+
 
 module Rsa : sig
   (** RSA public-key cryptography.
@@ -452,6 +524,7 @@ module Rsa : sig
   end
 end
 
+
 module Dsa : sig
 (** DSA digital signature algorithm. *)
 
@@ -523,6 +596,7 @@ module Dsa : sig
   *)
   val massage : key:pub -> Cstruct.t -> Cstruct.t
 end
+
 
 module Dh : sig
 (** Diffie-Hellman, MODP version. *)
@@ -596,5 +670,3 @@ module Dh : sig
 
   end
 end
-
-(* module Module_types : module type of Module_types *)
