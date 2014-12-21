@@ -60,7 +60,7 @@ module K_gen (H : Hash.T) = struct
   let z_gen ~key:{ q; x; _ } z =
     let repr = Numeric.Z.(to_cstruct_be ~size:(cdiv (bits q) 8)) in
     let g    = R_gen.create () in
-    R_gen.reseed ~g Cs.(repr x <> repr Z.(z mod q));
+    R_gen.reseed ~g Cs.(repr x <+> repr Z.(z mod q));
     R_num.Z.gen_r ~g Z.one q
 
   let generate ~key cs =

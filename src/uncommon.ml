@@ -58,7 +58,7 @@ module Cs = struct
     blit cs2 0 cs l1 l2 ;
     cs
 
-  let (<>) = append
+  let (<+>) = append
 
   let concat = function
     | []   -> create 0

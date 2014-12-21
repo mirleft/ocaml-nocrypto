@@ -22,7 +22,7 @@ module Uncommon : sig
     val empty : Cstruct.t
     val null : Cstruct.t -> bool
     val append : Cstruct.t -> Cstruct.t -> Cstruct.t
-    val (<>) : Cstruct.t -> Cstruct.t -> Cstruct.t
+    val (<+>) : Cstruct.t -> Cstruct.t -> Cstruct.t
     val concat : Cstruct.t list -> Cstruct.t
     val equal : ?mask:bool -> Cstruct.t -> Cstruct.t -> bool
     val clone : ?n:int -> Cstruct.t -> Cstruct.t
