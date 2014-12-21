@@ -1,8 +1,21 @@
 open Uncommon
 
-module type T = sig include Module_types.Hash end
+module type T = sig
 
-module type Base_hash = sig
+  type t
+
+  val digest_size : int
+
+  val init : unit -> t
+  val feed : t    -> Cstruct.t -> unit
+  val get  : t    -> Cstruct.t
+
+  val digest  : Cstruct.t      -> Cstruct.t
+  val digestv : Cstruct.t list -> Cstruct.t
+  val hmac    : key:Cstruct.t -> Cstruct.t -> Cstruct.t
+end
+
+module type Native_hash = sig
 
   open Ctypes
 
@@ -14,7 +27,7 @@ module type Base_hash = sig
   val final  : unit ptr -> char ptr -> unit
 end
 
-module Wrap_native (H : Base_hash) = struct
+module Wrap_native (H : Native_hash) = struct
 
   open Native
 
@@ -43,7 +56,7 @@ module Wrap_native (H : Base_hash) = struct
 
 end
 
-module Hash_of (H : Base_hash) = struct
+module Hash_of (H : Native_hash) = struct
 
   open Cs
 

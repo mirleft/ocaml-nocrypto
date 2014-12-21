@@ -101,7 +101,25 @@ end
 
 module Hash : sig
 
-  module type T = sig include Module_types.Hash end
+  module type T = sig
+    (** A hashing algorithm. *)
+
+    type t (** A changing hashing context. *)
+
+    val digest_size : int (** Size of hashing results, in bytes. *)
+
+    val init : unit -> t (** Create a new hashing context. *)
+    val feed : t    -> Cstruct.t -> unit (** Update the context *)
+    val get  : t    -> Cstruct.t (** Extract the digest; [t] becomes invalid. *)
+
+    val digest  : Cstruct.t      -> Cstruct.t (** Digest in one go. *)
+    val digestv : Cstruct.t list -> Cstruct.t (** Digest in one go. *)
+
+    val hmac : key:Cstruct.t -> Cstruct.t -> Cstruct.t
+    (** [hmac ~key bytes] is authentication code for [bytes] under the secret
+        [key], generated using the standard HMAC construction over this hash
+        algorithm. *)
+  end
 
   module MD5     : T
   module SHA1    : T
@@ -109,7 +127,6 @@ module Hash : sig
   module SHA256  : T
   module SHA384  : T
   module SHA512  : T
-  module SHAd256 : sig include Module_types.Basic_hash end
 
   (* A set of simpler short-hands for common operations over varying hashes. *)
 

@@ -65,29 +65,3 @@ module Random = struct
 
 end
 
-module type Basic_hash = sig
-  (** A hashing algorithm. *)
-
-  type t (** A changing hashing context. *)
-
-  val digest_size : int (** Size of hashing results, in bytes. *)
-
-  val init : unit -> t (** Create a new hashing context. *)
-  val feed : t    -> Cstruct.t -> unit (** Update the context *)
-  val get  : t    -> Cstruct.t (** Extract the digest; [t] becomes invalid. *)
-
-  val digest  : Cstruct.t      -> Cstruct.t (** Digest in one go. *)
-  val digestv : Cstruct.t list -> Cstruct.t (** Digest in one go. *)
-end
-
-module type Hash = sig
-  (** A hashing algorithm equipped with HMAC. *)
-
-  include Basic_hash
-
-  val hmac : key:Cstruct.t -> Cstruct.t -> Cstruct.t
-  (** [hmac ~key bytes] is authentication code for [bytes] under the secret
-      [key], generated using the standard HMAC construction over this hash
-      algorithm. *)
-end
-
