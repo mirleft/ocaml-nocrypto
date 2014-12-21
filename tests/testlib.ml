@@ -48,7 +48,7 @@ let random_n_selftest (type a) ~typ (m : a Rng.Fc.t) n (bounds : (a * a) list) =
         if x < lo || x >= hi then assert_failure "range error"
   )
 
-let ecb_selftest ( m : (module Cipher_block.T_ECB) ) n =
+let ecb_selftest ( m : (module Cipher_block.T.ECB) ) n =
   let module C = ( val m ) in
   "selftest" >:: times ~n @@ fun _ ->
     let data  = Rng.generate (C.block_size * 8)
@@ -58,7 +58,7 @@ let ecb_selftest ( m : (module Cipher_block.T_ECB) ) n =
                |> decrypt ~key |> decrypt ~key ) in
     assert_cs_equal ~msg:"ecb mismatch" data data'
 
-let cbc_selftest ( m : (module Cipher_block.T_CBC) ) n  =
+let cbc_selftest ( m : (module Cipher_block.T.CBC) ) n  =
   let module C = ( val m ) in
   let (!) f x = (f x).C.message in
   "selftest" >:: times ~n @@ fun _ ->

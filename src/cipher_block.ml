@@ -1,11 +1,94 @@
-
 open Uncommon
-open Module_types.Block
 
+module T = struct
+
+  module type Counter = sig val increment : Cstruct.t -> unit end
+
+  module type Raw = sig
+
+    type ekey
+    type dkey
+
+    val e_of_secret : Cstruct.t -> ekey
+    val d_of_secret : Cstruct.t -> dkey
+
+    val key_sizes  : int array
+    val block_size : int
+    val encrypt_block : key:ekey -> Cstruct.t -> Cstruct.t -> unit
+    val decrypt_block : key:dkey -> Cstruct.t -> Cstruct.t -> unit
+  end
+
+  module type Base = sig
+    type key
+    val of_secret : Cstruct.t -> key
+
+    val key_sizes  : int array
+    val block_size : int
+    val encrypt : key:key -> Cstruct.t -> Cstruct.t
+    val decrypt : key:key -> Cstruct.t -> Cstruct.t
+  end
+
+  module type ECB = sig
+
+    type key
+    val of_secret : Cstruct.t -> key
+
+    val key_sizes  : int array
+    val block_size : int
+    val encrypt : key:key -> Cstruct.t -> Cstruct.t
+    val decrypt : key:key -> Cstruct.t -> Cstruct.t
+  end
+
+  module type CBC = sig
+
+    type key
+    type result = { message : Cstruct.t ; iv : Cstruct.t }
+    val of_secret : Cstruct.t -> key
+
+    val key_sizes  : int array
+    val block_size : int
+    val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
+    val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
+  end
+
+  module type CTR = sig
+
+    type key
+    val of_secret : Cstruct.t -> key
+
+    val key_sizes  : int array
+    val block_size : int
+    val stream  : key:key -> ctr:Cstruct.t -> int -> Cstruct.t
+    val encrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
+    val decrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
+  end
+
+  module type GCM = sig
+    type key
+    type result = { message : Cstruct.t ; tag : Cstruct.t }
+    val of_secret : Cstruct.t -> key
+
+    val key_sizes  : int array
+    val block_size : int
+    val encrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result
+    val decrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result
+  end
+
+  module type CCM = sig
+    type key
+    val of_secret : maclen:int -> Cstruct.t -> key
+
+    val key_sizes  : int array
+    val mac_sizes  : int array
+    val block_size : int
+    val encrypt : key:key -> nonce:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> Cstruct.t
+    val decrypt : key:key -> nonce:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> Cstruct.t option
+  end
+end
 
 module Modes = struct
 
-  module Base_of ( C : Cipher_raw ) : Cipher_base = struct
+  module Base_of (C : T.Raw) : T.Base = struct
 
     type key = C.ekey * C.dkey
 
@@ -22,7 +105,7 @@ module Modes = struct
       ( C.decrypt_block ~key cipher plain ; plain )
   end
 
-  module ECB_of ( C : Cipher_raw ) : ECB = struct
+  module ECB_of (C : T.Raw) : T.ECB = struct
 
     open Cstruct
 
@@ -47,7 +130,7 @@ module Modes = struct
 
   end
 
-  module CBC_of ( C : Cipher_raw ) : CBC = struct
+  module CBC_of (C : T.Raw) : T.CBC = struct
 
     open Cstruct
 
@@ -87,7 +170,7 @@ module Modes = struct
 
   end
 
-  module CTR_of ( C : Cipher_raw ) ( CNT : Counter ) : CTR = struct
+  module CTR_of (C : T.Raw) (CNT : T.Counter) : T.CTR = struct
 
     open Cstruct
 
@@ -119,7 +202,7 @@ module Modes = struct
 
   end
 
-  module GCM_of ( C : Cipher_base ) : GCM = struct
+  module GCM_of (C : T.Base) : T.GCM = struct
 
     assert (C.block_size = 16)
 
@@ -142,7 +225,7 @@ module Modes = struct
 
   end
 
-  module CCM_of ( C : Cipher_raw ) : CCM = struct
+  module CCM_of (C : T.Raw) : T.CCM = struct
 
     assert (C.block_size = 16)
 
@@ -201,7 +284,7 @@ open Native
 
 module AES = struct
 
-  module Raw : Cipher_raw = struct
+  module Raw : T.Raw = struct
 
     open Bindings
 
@@ -284,12 +367,3 @@ module DES = struct
   module CTR = Modes.CTR_of (Raw)
 
 end
-
-module type Counter = sig include Counter end
-
-module type T_RAW = sig include Cipher_raw end
-module type T_ECB = sig include ECB end
-module type T_CBC = sig include CBC end
-module type T_GCM = sig include GCM end
-module type T_CCM = sig include CCM end
-module type T_CTR = functor (C : Counter) -> sig include CTR end

@@ -1,3 +1,4 @@
+(** A lighweight crypto library. *)
 
 module Base64 : sig
   val encode : Cstruct.t -> Cstruct.t
@@ -123,38 +124,103 @@ end
 
 module Cipher_block : sig
 
-  open Module_types
+  module T : sig
+    (** Types of exported modules. *)
 
-  module type Counter = sig include Block.Counter end
+    module type Counter = sig val increment : Cstruct.t -> unit end
 
-  module type T_RAW = sig include Block.Cipher_raw end
-  module type T_ECB = sig include Block.ECB end
-  module type T_CBC = sig include Block.CBC end
-  module type T_GCM = sig include Block.GCM end
-  module type T_CCM = sig include Block.CCM end
-  module type T_CTR = functor (C : Counter) -> sig include Block.CTR end
+    module type Raw = sig
+
+      type ekey
+      type dkey
+
+      val e_of_secret : Cstruct.t -> ekey
+      val d_of_secret : Cstruct.t -> dkey
+
+      val key_sizes  : int array
+      val block_size : int
+      val encrypt_block : key:ekey -> Cstruct.t -> Cstruct.t -> unit
+      val decrypt_block : key:dkey -> Cstruct.t -> Cstruct.t -> unit
+    end
+
+    module type ECB = sig
+
+      type key
+      val of_secret : Cstruct.t -> key
+
+      val key_sizes  : int array
+      val block_size : int
+      val encrypt : key:key -> Cstruct.t -> Cstruct.t
+      val decrypt : key:key -> Cstruct.t -> Cstruct.t
+    end
+
+    module type CBC = sig
+
+      type key
+      type result = { message : Cstruct.t ; iv : Cstruct.t }
+      val of_secret : Cstruct.t -> key
+
+      val key_sizes  : int array
+      val block_size : int
+      val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
+      val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
+    end
+
+    module type CTR = sig
+
+      type key
+      val of_secret : Cstruct.t -> key
+
+      val key_sizes  : int array
+      val block_size : int
+      val stream  : key:key -> ctr:Cstruct.t -> int -> Cstruct.t
+      val encrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
+      val decrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
+    end
+
+    module type GCM = sig
+      type key
+      type result = { message : Cstruct.t ; tag : Cstruct.t }
+      val of_secret : Cstruct.t -> key
+
+      val key_sizes  : int array
+      val block_size : int
+      val encrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result
+      val decrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result
+    end
+
+    module type CCM = sig
+      type key
+      val of_secret : maclen:int -> Cstruct.t -> key
+
+      val key_sizes  : int array
+      val mac_sizes  : int array
+      val block_size : int
+      val encrypt : key:key -> nonce:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> Cstruct.t
+      val decrypt : key:key -> nonce:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> Cstruct.t option
+    end
+  end
 
   module Counters : sig
-    module Inc_LE : Counter
-    module Inc_BE : Counter
+    module Inc_LE : T.Counter
+    module Inc_BE : T.Counter
   end
 
   module AES : sig
-    module Raw : T_RAW
-    module ECB : T_ECB
-    module CBC : T_CBC
-    module CTR : T_CTR
-    module GCM : T_GCM
-    module CCM : T_CCM
+    module Raw : T.Raw
+    module ECB : T.ECB
+    module CBC : T.CBC
+    module CTR : functor (C : T.Counter) -> T.CTR
+    module GCM : T.GCM
+    module CCM : T.CCM
   end
 
   module DES : sig
-    module Raw : T_RAW
-    module ECB : T_ECB
-    module CBC : T_CBC
-    module CTR : T_CTR
+    module Raw : T.Raw
+    module ECB : T.ECB
+    module CBC : T.CBC
+    module CTR : functor (C : T.Counter) -> T.CTR
   end
-
 end
 
 module Cipher_stream : sig
