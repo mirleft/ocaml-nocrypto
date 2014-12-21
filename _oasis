@@ -38,7 +38,6 @@ Library "nocrypto"
   InternalModules: Nocrypto_generated,
                    Bindings,
                    Native,
-                   Module_types,
                    Gcm,
                    Ccm
   CSources:        native/bitfn.h,
@@ -112,5 +111,5 @@ Document api
   Type: ocamlbuild (0.3)
   BuildTools+: ocamldoc
   XOcamlbuildPath: doc
-  XOcamlbuildModules: src/Nocrypto, src/Module_types, src/Fortuna, src/Rng, src/Rsa, src/Dh
+  XOcamlbuildModules: src/Nocrypto
   Install: false
