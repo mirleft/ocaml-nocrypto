@@ -1,7 +1,10 @@
-(trunk)
+0.3.0 (2014-12-21):
 * removed ad-hoc key marshalling functions as key material typically comes
   non-trivially encoded anyways
-* more consistent errors api in rsa
+* changed how module interfaces for the packed module are handled:
+  `module type of` constructs are gone
+* more consistent errors in rsa
+* small api breakage here and there
 
 0.2.2 (2014-11-04):
 * replaced hashing sources with the ones from hs-cryptohash
