@@ -74,7 +74,7 @@ Executable "nocrypto_bindgen"
 
 Library "testlib"
   Path:         tests/
-  Modules:      Notest, Hmac_tests, Dsa_tests, Testlib
+  Modules:      Notest, Hmac_tests, Dsa_tests, Regression, Testlib
   Install:      false
   Build$:       flag(tests)
   BuildDepends: nocrypto, oUnit, cstruct.unix
