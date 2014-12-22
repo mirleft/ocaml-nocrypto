@@ -89,14 +89,6 @@ module Numeric : sig
   module Int64 : T with type t = int64
   module Z     : T with type t = Z.t
 
-  module Fc : sig
-    type 'a t = (module T with type t = 'a)
-    val int   : int   t
-    val int32 : int32 t
-    val int64 : int64 t
-    val z     : Z.t   t
-  end
-
   (* Misc elementary number theory functions. *)
   val pseudoprime : Z.t -> bool
 
@@ -390,14 +382,6 @@ module Rng : sig
       module Int32 : N with type g = g and type t = int32
       module Int64 : N with type g = g and type t = int64
       module Z     : N with type g = g and type t = Z.t
-
-      module Fc : sig
-        type 'a t = (module N with type g = g and type t = 'a)
-        val int   : int   t
-        val int32 : int32 t
-        val int64 : int64 t
-        val z     : Z.t   t
-      end
 
       val strict : bool -> unit
     end

@@ -5,6 +5,27 @@ open Notest
 open Nocrypto
 open Nocrypto.Uncommon
 
+
+module Fc = struct
+
+  module Rng = struct
+    type 'a t = (module Rng.T.N with type g = Rng.g and type t = 'a)
+    let int   : int   t = (module Rng.Int)
+    let int32 : int32 t = (module Rng.Int32)
+    let int64 : int64 t = (module Rng.Int64)
+    let z     : Z.t   t = (module Rng.Z)
+  end
+
+  module Numeric = struct
+    type 'a t = (module Numeric.T with type t = 'a)
+    let int   : int   t = (module Numeric.Int)
+    let int32 : int32 t = (module Numeric.Int32)
+    let int64 : int64 t = (module Numeric.Int64)
+    let z     : Z.t   t = (module Numeric.Z)
+  end
+end
+
+
 let f1_eq ?msg f (a, b) _ =
   let (a, b) = Cs.(of_hex a, of_hex b) in
   assert_cs_equal ?msg (f a) b
@@ -22,7 +43,7 @@ let cases_of f =
 (* randomized selfies *)
 
 let n_encode_decode_selftest
-    (type a) ~typ ~bound (rmod, nmod : a Rng.Fc.t * a Numeric.Fc.t) n =
+    (type a) ~typ ~bound (rmod, nmod : a Fc.Rng.t * a Fc.Numeric.t) n =
   let module N = (val nmod) in
   let module R = (val rmod) in
   typ ^ "selftest" >:: times ~n @@ fun _ ->
@@ -32,14 +53,14 @@ let n_encode_decode_selftest
     assert_equal r s;
     assert_equal r t
 
-let n_decode_reencode_selftest (type a) ~typ ~bytes (nmod : a Numeric.Fc.t) n =
+let n_decode_reencode_selftest (type a) ~typ ~bytes (nmod : a Fc.Numeric.t) n =
   let module N = (val nmod) in
   typ ^ " selftest" >:: times ~n @@ fun _ ->
     let cs  = Rng.generate bytes in
     let cs' = N.(to_cstruct_be ~size:bytes @@ of_cstruct_be cs) in
     assert_cs_equal cs cs'
 
-let random_n_selftest (type a) ~typ (m : a Rng.Fc.t) n (bounds : (a * a) list) =
+let random_n_selftest (type a) ~typ (m : a Fc.Rng.t) n (bounds : (a * a) list) =
   let module N = (val m) in
   typ ^ " selftest" >::: (
     bounds |> List.map @@ fun (lo, hi) ->
@@ -560,33 +581,33 @@ let suite =
 
     "Numeric extraction 1" >::: [
       n_encode_decode_selftest
-        ~typ:"int"   ~bound:max_int (Rng.Fc.int, Numeric.Fc.int) 2000 ;
+        ~typ:"int"   ~bound:max_int (Fc.Rng.int, Fc.Numeric.int) 2000 ;
       n_encode_decode_selftest
-        ~typ:"int32" ~bound:Int32.max_int (Rng.Fc.int32, Numeric.Fc.int32) 2000 ;
+        ~typ:"int32" ~bound:Int32.max_int (Fc.Rng.int32, Fc.Numeric.int32) 2000 ;
       n_encode_decode_selftest
-        ~typ:"int64" ~bound:Int64.max_int (Rng.Fc.int64, Numeric.Fc.int64) 2000 ;
+        ~typ:"int64" ~bound:Int64.max_int (Fc.Rng.int64, Fc.Numeric.int64) 2000 ;
       n_encode_decode_selftest
-        ~typ:"z"     ~bound:Z.(of_int64 Int64.max_int) (Rng.Fc.z, Numeric.Fc.z) 2000 ;
+        ~typ:"z"     ~bound:Z.(of_int64 Int64.max_int) (Fc.Rng.z, Fc.Numeric.z) 2000 ;
     ] ;
 
     "Numeric extraction 2" >::: [
-      n_decode_reencode_selftest ~typ:"int"   ~bytes:int_safe_bytes Numeric.Fc.int 2000 ;
-      n_decode_reencode_selftest ~typ:"int32" ~bytes:4  Numeric.Fc.int32 2000 ;
-      n_decode_reencode_selftest ~typ:"int64" ~bytes:8  Numeric.Fc.int64 2000 ;
-      n_decode_reencode_selftest ~typ:"z"     ~bytes:37 Numeric.Fc.z     2000 ;
+      n_decode_reencode_selftest ~typ:"int"   ~bytes:int_safe_bytes Fc.Numeric.int 2000 ;
+      n_decode_reencode_selftest ~typ:"int32" ~bytes:4  Fc.Numeric.int32 2000 ;
+      n_decode_reencode_selftest ~typ:"int64" ~bytes:8  Fc.Numeric.int64 2000 ;
+      n_decode_reencode_selftest ~typ:"z"     ~bytes:37 Fc.Numeric.z     2000 ;
     ];
 
     "RNG extraction" >::: [
-      random_n_selftest "int" Rng.Fc.int 1000 [
+      random_n_selftest "int" Fc.Rng.int 1000 [
         (1, 2); (0, 129); (7, 136); (0, 536870913);
       ] ;
-      random_n_selftest "int32" Rng.Fc.int32 1000 [
+      random_n_selftest "int32" Fc.Rng.int32 1000 [
         (7l, 136l); (0l, 536870913l);
       ] ;
-      random_n_selftest "int64" Rng.Fc.int64 1000 [
+      random_n_selftest "int64" Fc.Rng.int64 1000 [
         (7L, 136L); (0L, 536870913L); (0L, 2305843009213693953L);
       ] ;
-      random_n_selftest "Z" Rng.Fc.z 1000 [
+      random_n_selftest "Z" Fc.Rng.z 1000 [
         Z.(of_int 7, of_int 135);
         Z.(of_int 0, of_int 536870913);
         Z.(of_int 0, of_int64 2305843009213693953L)

@@ -29,14 +29,6 @@ module T = struct
     module Int64 : N with type g = g and type t = int64
     module Z     : N with type g = g and type t = Z.t
 
-    module Fc : sig
-      type 'a t = (module N with type g = g and type t = 'a)
-      val int   : int   t
-      val int32 : int32 t
-      val int64 : int64 t
-      val z     : Z.t   t
-    end
-
     val strict : bool -> unit
   end
 end
@@ -98,13 +90,6 @@ module Numeric_of (Rng : T.Rng) = struct
   module Int64 = N_gen (Numeric.Int64)
   module ZN    = N_gen (Numeric.Z    )
 
-  module Fc = struct
-    type 'a t = (module T.N with type g = g and type t = 'a)
-    let int   : int   t = (module Int)
-    let int32 : int32 t = (module Int32)
-    let int64 : int64 t = (module Int64)
-    let z     : Z.t   t = (module ZN)
-  end
 
   (* Invalid combinations of ~bits and ~msb will loop forever, but there is no
    * way to quickly determine upfront whether there are any primes in the
