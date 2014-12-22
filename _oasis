@@ -10,7 +10,8 @@ Plugins:      META (0.4), DevFiles (0.4)
 BuildTools:   ocamlbuild
 Description:
   A simple cryptographic library.
-
+Categories: http://org:mirage
+OCamlVersion: >= 4.01.0
 
 Flag "pedantic"
   Description: Make the C compiler go hardcore
@@ -56,7 +57,8 @@ Library "nocrypto"
                    native/nocrypto_stubs.h,
                    native/nocrypto_stubs.c,
                    native/nocrypto_generated_stubs.c
-  BuildDepends:    cstruct, zarith, ctypes, ctypes.stubs, sexplib.syntax
+  BuildDepends:    cstruct (>= 1.2.0), zarith, ctypes (>= 0.3.3),
+                   ctypes.stubs, sexplib.syntax
   XMETARequires:   cstruct, zarith, ctypes.stubs, sexplib
   CCOpt:           -O3 -I$pkg_ctypes/..
   BuildTools:      nocrypto_bindgen
@@ -113,3 +115,8 @@ Document api
   XOcamlbuildPath: doc
   XOcamlbuildModules: src/Nocrypto
   Install: false
+
+SourceRepository trunk
+  Type:       git
+  Location:   https://github.com/mirleft/ocaml-nocrypto.git
+  Browser:    https://github.com/mirleft/ocaml-nocrypto
