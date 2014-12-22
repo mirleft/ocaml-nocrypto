@@ -1,5 +1,4 @@
-(** A lighweight crypto library. *)
-
+(** {b Nocrypto}: for when you're sick of crypto. *)
 
 module Base64 : sig
   val encode : Cstruct.t -> Cstruct.t
@@ -8,26 +7,29 @@ module Base64 : sig
 end
 
 
-module Uncommon : sig
 (** A treasure-trove of random utilities.
- This is largely an internal API and prone to breakage. *)
+    This is largely an internal API and prone to breakage. *)
+module Uncommon : sig
 
   val cdiv : int -> int -> int
+
   val (&.) : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c
   val id   : 'a -> 'a
 
+  (** Addons to {!Cstruct}. *)
   module Cs : sig
-  (** Addons to Cstruct. *)
 
     val empty : Cstruct.t
-    val null : Cstruct.t -> bool
-    val append : Cstruct.t -> Cstruct.t -> Cstruct.t
+    val null  : Cstruct.t -> bool
+
     val (<+>) : Cstruct.t -> Cstruct.t -> Cstruct.t
     val concat : Cstruct.t list -> Cstruct.t
+
     val equal : ?mask:bool -> Cstruct.t -> Cstruct.t -> bool
-    val clone : ?n:int -> Cstruct.t -> Cstruct.t
+
     val xor_into : Cstruct.t -> Cstruct.t -> int -> unit
-    val xor : Cstruct.t -> Cstruct.t -> Cstruct.t
+    val xor      : Cstruct.t -> Cstruct.t -> Cstruct.t
+
     val fill : Cstruct.t -> int -> unit
     val create_with : int -> int -> Cstruct.t
 
@@ -37,20 +39,21 @@ module Uncommon : sig
     val (lsr) : Cstruct.t -> int -> Cstruct.t
   end
 
+  (** Addons to {!Array}. *)
   module Arr : sig
     val mem : 'a -> 'a array -> bool
   end
 end
 
 
+(** Numeric utilities. *)
 module Numeric : sig
-  (** Numeric utilities. *)
 
+  (** Augmented numeric type.
+      Includes basic common numeric ops, range of conversions to and from
+      variously-sized int types, and a few basic function for representing such
+      numbers as {!Cstruct.t}. *)
   module type T = sig
-    (** An augmented numeric type, consisting of basic common numeric ops,
-        a range of converstions to and from variously-sized int types, and
-        a few basic function for representing such numbers as {!Cstruct.t}.
-    *)
 
     type t
 
@@ -89,18 +92,21 @@ module Numeric : sig
   module Int64 : T with type t = int64
   module Z     : T with type t = Z.t
 
-  (* Misc elementary number theory functions. *)
+  (** Misc elementary number theory functions: *)
+
   val pseudoprime : Z.t -> bool
+  (** Miller-Rabin with sane rounds parameter. *)
 
 end
 
 
+(** Hashes. *)
 module Hash : sig
 
+  (** Hash algorithm. *)
   module type T = sig
-    (** A hashing algorithm. *)
 
-    type t (** A changing hashing context. *)
+    type t (** Mutable hashing context. *)
 
     val digest_size : int (** Size of hashing results, in bytes. *)
 
@@ -124,7 +130,7 @@ module Hash : sig
   module SHA384  : T
   module SHA512  : T
 
-  (* A set of simpler short-hands for common operations over varying hashes. *)
+  (** Simpler short-hands for common operations over varying hashes: *)
 
   type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] with sexp
 
@@ -136,13 +142,16 @@ module Hash : sig
 end
 
 
+(** Block ciphers.  *)
 module Cipher_block : sig
 
+  (** Module types for various instantiations of block ciphers. *)
   module T : sig
-    (** Types of exported modules. *)
 
+    (** Counter type for CTR. *)
     module type Counter = sig val increment : Cstruct.t -> unit end
 
+    (** Raw block cipher in all its glory. *)
     module type Raw = sig
 
       type ekey
@@ -157,6 +166,9 @@ module Cipher_block : sig
       val decrypt_block : key:dkey -> Cstruct.t -> Cstruct.t -> unit
     end
 
+    (** Modes of operation: *)
+
+    (** {e Electronic Codebook} "mode". *)
     module type ECB = sig
 
       type key
@@ -168,6 +180,7 @@ module Cipher_block : sig
       val decrypt : key:key -> Cstruct.t -> Cstruct.t
     end
 
+    (** {e Cipher-block chaining} mode. *)
     module type CBC = sig
 
       type key
@@ -180,6 +193,7 @@ module Cipher_block : sig
       val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
     end
 
+    (** {e Counter} mode. *)
     module type CTR = sig
 
       type key
@@ -192,6 +206,7 @@ module Cipher_block : sig
       val decrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
     end
 
+    (** {e Galois/Counter Mode}. *)
     module type GCM = sig
       type key
       type result = { message : Cstruct.t ; tag : Cstruct.t }
@@ -203,6 +218,7 @@ module Cipher_block : sig
       val decrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result
     end
 
+    (** {e Counter with CBC-MAC} mode. *)
     module type CCM = sig
       type key
       val of_secret : maclen:int -> Cstruct.t -> key
@@ -215,11 +231,15 @@ module Cipher_block : sig
     end
   end
 
+  (** {!T.Counter}s for easy {!T.CTR} instantiation. *)
   module Counters : sig
     module Inc_LE : T.Counter
+    (** Increment-by-one, little endian. Works on [8*n]-long vectors. *)
     module Inc_BE : T.Counter
+    (** Increment-by-one, big endian. Works on [8*n]-long vectors. *)
   end
 
+  (** {b AES}, plus a few modes of operation. *)
   module AES : sig
     module Raw : T.Raw
     module ECB : T.ECB
@@ -229,6 +249,7 @@ module Cipher_block : sig
     module CCM : T.CCM
   end
 
+  (** {b DES}, plus a few modes of operation. *)
   module DES : sig
     module Raw : T.Raw
     module ECB : T.ECB
@@ -238,8 +259,10 @@ module Cipher_block : sig
 end
 
 
+(** Streaming ciphers. *)
 module Cipher_stream : sig
 
+  (** General stream cipher type. *)
   module type T = sig
     type key
     type result = { message : Cstruct.t ; key : key }
@@ -248,12 +271,13 @@ module Cipher_stream : sig
     val decrypt : key:key -> Cstruct.t -> result
   end
 
+  (** {e Alleged Rivest Cipher 4}. *)
   module ARC4 : T
 end
 
 
+(** Implementation of {{: https://www.schneier.com/fortuna.html} Fortuna} CSPRNG. *)
 module Fortuna : sig
-  (** Implementation of {{: https://www.schneier.com/fortuna.html} Fortuna} CSPRNG.  *)
 
   type g
   (** Generator state. Changes when operated upon. *)
@@ -279,18 +303,16 @@ module Fortuna : sig
   val generate : g:g -> int -> Cstruct.t
   (** [generate ~g n] extracts [n] bytes of random stream from [g]. *)
 
+  (** Accumulator pools, collecting entropy and periodically reseeding the
+    attached {!g}.
+
+    Reseeding is performed on the first {!generate} following a non-empty
+    sequence of calls to {!add}.
+
+    Each accumulator instance contains 32 entropy pools, which are taken into
+    account with exponentially decreasing frequency and are meant to be fed
+    round-robin.  *)
   module Accumulator : sig
-    (**
-      Accumulator pools, collecting entropy and periodically reseeding the
-      attached {!g}.
-
-      Reseeding is performed on the first {!generate} following a non-empty
-      sequence of calls to {!add}.
-
-      Each accumulator instance contains 32 entropy pools, which are taken into
-      account with exponentially decreasing frequency and are meant to be fed
-      round-robin.
-    *)
 
     type t
     (** An accumulator. *)
@@ -303,8 +325,7 @@ module Fortuna : sig
       This operation is fast and is expected to be frequently called with small
       amounts of environmentally sourced entropy, such as timings or user input.
       [source] should indicate a stable source of input but has no meaning beyond
-      that. [pool]s should be rotated roughly round-robin.
-    *)
+      that. [pool]s should be rotated roughly round-robin.  *)
     val add_rr : acc:t -> (source:int -> Cstruct.t -> unit)
     (** [add_rr ~acc] is [fun], where each successive call to [fun ~source bytes]
     performs [add] with the next pool in [acc], in a round-robin fashion. *)
@@ -313,13 +334,12 @@ module Fortuna : sig
 end
 
 
+(** HMAC_DRBG: A NIST-specified RNG based on HMAC construction over the
+    provided hash. *)
 module Hmac_drgb : sig
+
   module Make (H : Hash.T) : sig
-    (** HMAC_DRBG: A NIST-specified RNG based on HMAC construction over the
-        provided hash. *)
-
     type g
-
     val block_size : int
     val create : unit -> g
     val reseed : ?g:g -> Cstruct.t -> unit
@@ -328,13 +348,14 @@ module Hmac_drgb : sig
 end
 
 
+(** The global RNG. Instantiates {!Fortuna}. *)
 module Rng : sig
-(** A global instance of {!Fortuna}. *)
 
+  (** Module types. *)
   module T : sig
 
+    (** The core random generator signature. *)
     module type Rng = sig
-      (** The core random generator signature. *)
 
       type g
       (** State type for this generator. *)
@@ -345,8 +366,8 @@ module Rng : sig
           default {!g}. *)
     end
 
+    (** Typed random number extraction: {!Rng} for a type [t]. *)
     module type N = sig
-      (** Typed random number extraction. *)
 
       type t
       (** The type of extracted values. *)
@@ -363,8 +384,8 @@ module Rng : sig
           uniformly at random. *)
     end
 
+    (** RNG with full suite of typed numeric extractions. *)
     module type Rng_numeric = sig
-      (** A full suite of numeric extractions. *)
 
       type g
       (** Random generator. *)
@@ -374,6 +395,7 @@ module Rng : sig
           its [msb] most significant bits are set.
           [prime ~g ~msb:1 ~bits] (the default) yields a prime in the interval
           [\[2^(bits - 1), 2^bits - 1\]]. *)
+
       val safe_prime : ?g:g -> bits:int -> Z.t * Z.t
       (** [safe_prime ~g ~bits] gives a prime pair [(g, p)] such that [p = 2g + 1]
           and [p] has [bits] significant bits. *)
@@ -387,9 +409,10 @@ module Rng : sig
     end
   end
 
+  (** Produces the numeric extraction suite over a {!T.Rng}. *)
   module Numeric_of :
     functor (Rng : T.Rng) -> T.Rng_numeric with type g = Rng.g
-  (** Gives the numeric extraction suite over an {!T.Rng}. *)
+
 
   type g = Fortuna.g
 
@@ -408,111 +431,109 @@ module Rng : sig
 end
 
 
+(** {b RSA} public-key cryptography.
+
+Keys are taken to be trusted material, and their properties are not checked.
+
+Messages are checked not to exceed the key size, and this is signalled via
+exceptions.
+
+Private-key operations are optionally protected through RSA blinding.  *)
 module Rsa : sig
-  (** RSA public-key cryptography.
 
-  Keys are taken to be trusted material, and their properties are not checked.
-
-  Messages are checked not to exceed the key size, and this is signalled via
-  exceptions.
-
-  Private-key operations are optionally protected through RSA blinding.
-  *)
-
-  (** Raised if the numeric magnitude of a message, with potential padding, is
-  inappropriate for a given key, i.e. the message, when interpreted as big-endian
-  encoding of a natural number, meets or exceeds the key's [n], or is 0. *)
   exception Invalid_message
+  (** Raised if the numeric magnitude of a message, with potential padding, is
+      inappropriate for a given key, i.e. the message, when interpreted as
+      big-endian encoding of a natural number, meets or exceeds the key's [n],
+      or is 0. *)
 
-  (** A public key *)
   type pub  = {
     e : Z.t ; (** Public exponent *)
     n : Z.t ; (** Modulus *)
   } with sexp
+  (** Public key *)
 
-  (** A private key (two-prime version) *)
   type priv = {
     e  : Z.t ; (** Public exponent *)
     d  : Z.t ; (** Private exponent *)
     n  : Z.t ; (** Modulus *)
-    p  : Z.t ; (** [p], one of two primes *)
-    q  : Z.t ; (** [q], one of two primes *)
+    p  : Z.t ; (** Prime factor [p] *)
+    q  : Z.t ; (** Prime factor [q] *)
     dp : Z.t ; (** [d mod (p-1)] *)
     dq : Z.t ; (** [d mod (q-1)] *)
     q' : Z.t ; (** [q^(-1) mod p] *)
   } with sexp
+  (** Private key (two-factor version) *)
 
-  (** Masking (blinding) request. *)
   type mask = [
     | `No                (** Don't perform blinding. *)
     | `Yes               (** Use default {!Rng.g} for blinding. *)
     | `Yes_with of Rng.g (** Use the provided {!Rng.g} for blinding. *)
   ]
+  (** Masking (blinding) request. *)
 
-  (** Bit-size of a public key. *)
   val pub_bits : pub -> int
+  (** Bit-size of a public key. *)
 
-  (** Bit-size of a private key. *)
   val priv_bits : priv -> int
+  (** Bit-size of a private key. *)
 
-  (** [priv_of_primes e p q] creates {!priv} from a minimal description: the
-  public exponent and the two primes. *)
   val priv_of_primes : e:Z.t -> p:Z.t -> q:Z.t -> priv
+  (** [priv_of_primes e p q] creates {!priv} from a minimal description: the
+      public exponent and the two primes. *)
 
-  (** Extract the public component from a private key. *)
   val pub_of_priv : priv -> pub
+  (** Extract the public component from a private key. *)
 
-  (** [encrypt key message] is the encrypted [message].
-    @raise Invalid_message (see {!Invalid_message}) *)
   val encrypt : key:pub  -> Cstruct.t -> Cstruct.t
+  (** [encrypt key message] is the encrypted [message].
+      @raise Invalid_message (see {!Invalid_message}) *)
 
-  (** [decrypt mask key ciphertext] is the decrypted [ciphertext], left-padded
-    with [0x00] up to [key] size.
-    @raise Invalid_message (see above {!Invalid_message}) *)
   val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
+  (** [decrypt mask key ciphertext] is the decrypted [ciphertext], left-padded
+      with [0x00] up to [key] size.
+      @raise Invalid_message (see {!Invalid_message}) *)
 
-  (** [generate g e bits] is a new {!priv}. [e] defaults to [2^16+1].
-  @raise Invalid_argument if [e] is bad or [bits] is too small. *)
   val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
+  (** [generate g e bits] is a new {!priv}. [e] defaults to [2^16+1].
+      @raise Invalid_argument if [e] is bad or [bits] is too small. *)
 
 
   (** Module providing operations with {b PKCS1} padding.
 
-  The operations that take cleartext to ciphertext, {!sign} and {!encrypt},
-  assume that the key has enough bits to encode the message and the padding, and
-  raise exceptions otherwise. The operations that recover cleartext from
-  ciphertext, {!verify} and {!decrypt}, return size and padding mismatches as
-  [None].
-  *)
+      The operations that take cleartext to ciphertext, {!sign} and {!encrypt},
+      assume that the key has enough bits to encode the message and the padding,
+      and raise exceptions otherwise. The operations that recover cleartext
+      from ciphertext, {!verify} and {!decrypt}, return size and padding
+      mismatches as [None]. *)
   module PKCS1 : sig
 
-    (** [sign mask key message] is the PKCS1-padded (type 1) signature of the
-    [message].
-    @raise Invalid_message (see above {!Invalid_message}) *)
     val sign : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
+    (** [sign mask key message] is the PKCS1-padded (type 1) signature of the
+        [message].
+        @raise Invalid_message (see {!Invalid_message}) *)
 
-    (** [verify key signature] is either the message that was PKCS1-padded and
-    transformed with [key]'s private counterpart, or [None] if the padding is
-    incorrect or the underlying {!Rsa.encrypt} would raise. *)
     val verify : key:pub -> Cstruct.t -> Cstruct.t option
+    (** [verify key signature] is either the message that was PKCS1-padded and
+        transformed with [key]'s private counterpart, or [None] if the padding
+        is incorrect or the underlying {!Rsa.encrypt} would raise. *)
 
-    (** [encrypt g key message] is a PKCS1-padded (type 2) and encrypted
-    [message].
-    @raise Invalid_message (see above {!Invalid_message}) *)
     val encrypt : ?g:Rng.g -> key:pub -> Cstruct.t -> Cstruct.t
+    (** [encrypt g key message] is a PKCS1-padded (type 2) and encrypted
+        [message].
+        @raise Invalid_message (see {!Invalid_message}) *)
 
-    (** [decrypt mask key ciphertext] is decrypted [ciphertext] stripped of PKCS1
-    padding, or [None] if the padding is incorrect or the underlying
-    {!Rsa.decrypt} would raise. *)
     val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
+    (** [decrypt mask key ciphertext] is decrypted [ciphertext] stripped of
+        PKCS1 padding, or [None] if the padding is incorrect or the underlying
+        {!Rsa.decrypt} would raise. *)
   end
 end
 
 
+(** {b DSA} digital signature algorithm. *)
 module Dsa : sig
-(** DSA digital signature algorithm. *)
 
-  (** Private key. [p], [q] and [gg] comprise {i domain parameters}. *)
   type priv = {
     p  : Z.t ; (** Modulus *)
     q  : Z.t ; (** Subgroup order *)
@@ -520,53 +541,55 @@ module Dsa : sig
     x  : Z.t ; (** Private key proper *)
     y  : Z.t ; (** Public component *)
   } with sexp
+  (** Private key. [p], [q] and [gg] comprise {i domain parameters}. *)
 
-  (** Public key, a subset of {!priv}. *)
   type pub  = {
     p  : Z.t ;
     q  : Z.t ;
     gg : Z.t ;
     y  : Z.t ;
   } with sexp
+  (** Public key, a subset of {!priv}. *)
 
+  type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `Exactly of int * int ]
   (** Key size request. Three {e Fips} variants refer to FIPS-standardized
       L-values ([p] size) and imply the corresponding N ([q] size); The last
       variants specifies L and N directly. *)
-  type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `Exactly of int * int ]
 
-  (** Masking request. *)
   type mask = [ `No | `Yes | `Yes_with of Rng.g ]
+  (** Masking request. *)
 
-  (** Extract the public component from a private key. *)
   val pub_of_priv : priv -> pub
+  (** Extract the public component from a private key. *)
 
+  val generate : ?g:Rng.g -> keysize -> priv
   (** [generate g size] is a fresh {!priv} key. The domain parameters are derived
       using a modified FIPS.186-4 probabilistic process, but the derivation can
       not be validated. *)
-  val generate : ?g:Rng.g -> keysize -> priv
 
+  val sign : ?mask:mask -> ?k:Z.t -> key:priv -> Cstruct.t -> Cstruct.t * Cstruct.t
   (** [sign mask k fips key digest] is the signature, a pair of {!Cstruct.t}s
       representing [r] and [s] in big-endian.
 
       [digest] is the full digest of the actual message.
 
       [k], the random component, can either be provided, or is deterministically
-      derived as per RFC6979, using SHA256.
-  *)
-  val sign : ?mask:mask -> ?k:Z.t -> key:priv -> Cstruct.t -> Cstruct.t * Cstruct.t
+      derived as per RFC6979, using SHA256.  *)
 
+  val verify : key:pub -> Cstruct.t * Cstruct.t -> Cstruct.t -> bool
   (** [verify fips key (r, s) digest] verifies that the pair [(r, s)] is the signature
       of [digest], the message digest, under the private counterpart to [key]. *)
-  val verify : key:pub -> Cstruct.t * Cstruct.t -> Cstruct.t -> bool
 
+  module K_gen (H : Hash.T) : sig
   (** [K_gen] can be instantiated over a hashing module to obtain an RFC6979
       compliant [k]-generator over that hash. *)
-  module K_gen (H : Hash.T) : sig
+
+    val generate : key:priv -> Cstruct.t -> Z.t
     (** [generate key digest] deterministically takes the given private key and
         message digest to a [k] suitable for seeding the signing process. *)
-    val generate : key:priv -> Cstruct.t -> Z.t
   end
 
+  val massage : key:pub -> Cstruct.t -> Cstruct.t
   (** [massage key digest] is the numeric value of [digest] taken modulo [q] and
       represented in the leftmost [bits(q)] bits of the result.
 
@@ -576,81 +599,72 @@ module Dsa : sig
       a given implementation (esp. if {!sign} produces signatures with the [s]
       component different from the other implementation's), it might help to
       pre-process [digest] using this function
-      (e.g. [sign ~key (massage ~key:(pub_of_priv key) digest)]).
-  *)
-  val massage : key:pub -> Cstruct.t -> Cstruct.t
+      (e.g. [sign ~key (massage ~key:(pub_of_priv key) digest)]).  *)
 end
 
 
-module Dh : sig
 (** Diffie-Hellman, MODP version. *)
+module Dh : sig
 
+  exception Invalid_public_key
   (** Raised if the public key is degenerate. Implies either badly malfunctioning
       DH on the other side, or an attack attempt. *)
-  exception Invalid_public_key
 
-  (** A DH group. *)
   type group = {
     p  : Z.t ;        (** modulus *)
     gg : Z.t ;        (** generator *)
     q  : Z.t option ; (** subgroup order; potentially unknown *)
   } with sexp
+  (** A DH group. *)
 
-  (** A private secret. *)
   type secret = { x : Z.t } with sexp
+  (** A private secret. *)
 
-  (** Bit size of the modulus (not the subgroup order, which might not be known). *)
   val apparent_bit_size : group -> int
+  (** Bit size of the modulus (not the subgroup order, which might not be known). *)
 
+  val secret_of_cstruct : group -> s:Cstruct.t -> secret * Cstruct.t
   (** [secret_of_cstruct group s] generates {! secret } and the public key, using
       [s] as secret.
       @raise Invalid_public_key if the secret is degenerate. *)
-  val secret_of_cstruct : group -> s:Cstruct.t -> secret * Cstruct.t
 
-  (** Generate a random {!secret} and the corresponding public message. *)
   val gen_secret : ?g:Rng.g -> group -> secret * Cstruct.t
+  (** Generate a random {!secret} and the corresponding public message. *)
 
+  val shared : group -> secret -> Cstruct.t -> Cstruct.t
   (** [shared group secret message] is the shared key, given a group, a previously
       generated {!secret} and the other party's public message.
       @raise Invalid_public_key if the public message is degenerate.  *)
-  val shared : group -> secret -> Cstruct.t -> Cstruct.t
 
+  val gen_group : ?g:Rng.g -> bits:int -> group
   (** [gen_group bits] generates a random {!group} with modulus size [bits].
       Uses a safe prime [p = 2q + 1] (with prime [q]) as modulus, and [2] or [q] as
       the generator.
       Subgroup order is strictly [q].
       Runtime is on the order of minute for 1024 bits.
-      @raise Invalid_argument if [bits] is ridiculously small.
-      *)
-  val gen_group : ?g:Rng.g -> bits:int -> group
+      @raise Invalid_argument if [bits] is ridiculously small.  *)
 
-  (** A small catalog of standardized groups. *)
+  (** A small catalog of standardized {!group}s. *)
   module Group : sig
 
-    val oakley_1   : group
-    (** From RFC 2409. *)
-    val oakley_2   : group
-    (** From RFC 2409. *)
+    (** From RFC 2409: *)
 
-    val oakley_5   : group
-    (** From RFC 3526. *)
-    val oakley_14  : group
-    (** From RFC 3526. *)
-    val oakley_15  : group
-    (** From RFC 3526. *)
-    val oakley_16  : group
-    (** From RFC 3526. *)
-    val oakley_17  : group
-    (** From RFC 3526. *)
-    val oakley_18  : group
-    (** From RFC 3526. *)
+    val oakley_1 : group
+    val oakley_2 : group
+
+    (** From RFC 3526: *)
+
+    val oakley_5  : group
+    val oakley_14 : group
+    val oakley_15 : group
+    val oakley_16 : group
+    val oakley_17 : group
+    val oakley_18 : group
+
+    (** From RFC 5114: *)
 
     val rfc_5114_1 : group
-    (** From RFC 5114. *)
     val rfc_5114_2 : group
-    (** From RFC 5114. *)
     val rfc_5114_3 : group
-    (** From RFC 5114. *)
-
   end
 end
