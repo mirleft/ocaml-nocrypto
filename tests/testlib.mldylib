@@ -1,7 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: c1ba5caf15122b846f81fd50cbb66c94)
+# DO NOT EDIT (digest: 30596985da0cc15b8b0dd4573284c3ac)
 Notest
 Hmac_tests
 Dsa_tests
+Regression
 Testlib
 # OASIS_STOP
