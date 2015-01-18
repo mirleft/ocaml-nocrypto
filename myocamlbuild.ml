@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 0aaffdaaf5cabd1232dd692a709ccdb0) *)
+(* DO NOT EDIT (digest: 66d82df68c0da883e13c72ac875088a1) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -608,9 +608,25 @@ open Ocamlbuild_plugin;;
 let package_default =
   {
      MyOCamlbuildBase.lib_ocaml =
-       [("nocrypto", ["src"], []); ("testlib", ["tests"], [])];
+       [
+          ("nocrypto_xen", ["xen"], []);
+          ("nocrypto", ["src"], []);
+          ("testlib", ["tests"], [])
+       ];
      lib_c =
        [
+          ("nocrypto_xen",
+            "xen/",
+            [
+               "xen/native/bitfn.h";
+               "xen/native/md5.h";
+               "xen/native/sha1.h";
+               "xen/native/sha256.h";
+               "xen/native/sha512.h";
+               "xen/native/rijndael.h";
+               "xen/native/d3des.h";
+               "xen/native/nocrypto_stubs.h"
+            ]);
           ("nocrypto",
             "src/",
             [
@@ -626,6 +642,23 @@ let package_default =
        ];
      flags =
        [
+          (["oasis_library_nocrypto_xen_ccopt"; "compile"],
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-ccopt";
+                      A "-O3";
+                      A "-ccopt";
+                      A "-I${pkg_ctypes}/..";
+                      A "-ccopt";
+                      A "-DNDEBUG";
+                      A "-ccopt";
+                      A "${XEN_CFLAGS}"
+                   ]);
+               (OASISExpr.EFlag "pedantic",
+                 S [A "-ccopt"; A "-Wall"; A "-ccopt"; A "-Wpedantic"])
+            ]);
           (["oasis_library_nocrypto_ccopt"; "compile"],
             [
                (OASISExpr.EBool true,
@@ -651,7 +684,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 655 "myocamlbuild.ml"
+# 688 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 open Ocamlbuild_plugin;;
@@ -666,6 +699,10 @@ dispatch @@ MyOCamlbuildBase.dispatch_combine [
         copy_rule "cstubs: copy bindings descriptions"
           "src_gen/bindings.ml"
           "src/bindings.ml" ;
+
+        copy_rule "xen_cstubs: copy generated source to xen directory"
+          "src/native/%"
+          "xen/native/%"
     | _ -> ()
   end;
   dispatch_default

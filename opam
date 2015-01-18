@@ -9,7 +9,7 @@ maintainer:   "David Kaloper <david@numm.org>"
 license:      "BSD2"
 
 build: [
-  ["ocaml" "setup.ml" "-configure" "--prefix" prefix ]
+  ["ocaml" "setup.ml" "-configure" "--prefix" prefix "--%{mirage-xen:enable}%-xen"]
   ["ocaml" "setup.ml" "-build"]
 ]
 install: ["ocaml" "setup.ml" "-install"]
@@ -23,5 +23,10 @@ depends: [
   "sexplib"
   "ctypes" {>= "0.3.3"}
 ]
+
+depopts: [
+  "mirage-xen"
+]
+
 tags: [ "org:mirage"]
 available: [ ocaml-version >= "4.01.0" ]
