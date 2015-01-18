@@ -66,7 +66,7 @@ Library "nocrypto"
                    ctypes.stubs, sexplib.syntax, type_conv
   XMETARequires:   cstruct, zarith, ctypes.stubs, sexplib
   XMETAExtraLines: xen_linkopts = "-lnocrypto_xen_stubs"
-  CCOpt:           -O3 -I$pkg_ctypes/..
+  CCOpt:           -O3 -I$pkg_ctypes -I$pkg_ctypes/..
   BuildTools:      nocrypto_bindgen
   ByteOpt:         -w A-4-33-40-41-42-43-34-44
   if flag(pedantic)
@@ -93,7 +93,7 @@ Library "nocrypto_xen"
                    native/nocrypto_stubs.h,
                    native/nocrypto_stubs.c,
                    native/nocrypto_generated_stubs.c
-  CCOpt:           -O3 -I$pkg_ctypes/.. -DNDEBUG $XEN_CFLAGS
+  CCOpt:           -O3 -I$pkg_ctypes -I$pkg_ctypes/.. -DNDEBUG $XEN_CFLAGS
   BuildTools:      nocrypto_bindgen
   if flag(pedantic)
     CCOpt: -Wall -Wpedantic

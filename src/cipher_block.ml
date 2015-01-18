@@ -350,7 +350,7 @@ module DES = struct
     let e_of_secret cs = of_secret ~direction:D3DES.en0 cs
     and d_of_secret cs = of_secret ~direction:D3DES.de1 cs
 
-    let encrypt_block ~key src dst =
+    let encrypt_block ~(key:ekey) src dst =
       if src.Cstruct.len < 8 || dst.Cstruct.len < 8 then
         bail "message or ciphertext is shorter than 8 bytes" ;
       D3DES.use3key key;
