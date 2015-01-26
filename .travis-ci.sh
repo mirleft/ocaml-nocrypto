@@ -22,3 +22,13 @@ eval `opam config env`
 ocaml setup.ml -configure --enable-tests
 ocaml setup.ml -build
 ocaml setup.ml -test
+
+# check Xen support builds too
+set -eu
+if opam install mirage-xen; then
+  ./configure --enable-xen
+  make
+  ls -l _build/xen/dllnocrypto_xen_stubs.so
+else
+  echo "Mirage not installable, so not testing Xen build."
+fi

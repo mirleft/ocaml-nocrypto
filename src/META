@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: f653bf1777d595d0e391cfcb8388e782)
+# DO NOT EDIT (digest: e3357993344d2d62ba1489c53bf7eee5)
 version = "0.3.0"
 description = "Simple crypto for the modern age"
 requires = "cstruct zarith ctypes.stubs sexplib"
@@ -7,6 +7,16 @@ archive(byte) = "nocrypto.cma"
 archive(byte, plugin) = "nocrypto.cma"
 archive(native) = "nocrypto.cmxa"
 archive(native, plugin) = "nocrypto.cmxs"
+xen_linkopts = "-lnocrypto_xen_stubs"
 exists_if = "nocrypto.cma"
+package "xen" (
+ version = "0.3.0"
+ description = "Simple crypto for the modern age"
+ archive(byte) = "nocrypto_xen.cma"
+ archive(byte, plugin) = "nocrypto_xen.cma"
+ archive(native) = "nocrypto_xen.cmxa"
+ archive(native, plugin) = "nocrypto_xen.cmxs"
+ exists_if = "nocrypto_xen.cma"
+)
 # OASIS_STOP
 
