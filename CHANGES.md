@@ -1,3 +1,6 @@
+0.3.1 (2015-02-01):
+* support for Mirage/Xen (contributed by Thomas Leonard <talex5@gmail.com>)
+
 0.3.0 (2014-12-21):
 * removed ad-hoc key marshalling functions as key material typically comes
   non-trivially encoded anyways
