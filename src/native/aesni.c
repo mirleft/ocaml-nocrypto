@@ -255,3 +255,7 @@ void aesni_dec8 (const unsigned char src[128], unsigned char dst[128], const uns
   _mm_storeu_si128 (out + 6, r6);
   _mm_storeu_si128 (out + 7, r7);
 }
+
+int aes_rk_size (int rounds) {
+  return (rounds + 1) * 16;
+}
