@@ -119,3 +119,139 @@ void aes_invert_key (const unsigned char *rk0, unsigned char *kr0, int rounds) {
 
   kr[rounds] = rk[0];
 }
+
+void aesni_enc (const unsigned char src[16], unsigned char dst[16], const unsigned char *rk0, unsigned int rounds) {
+
+  __m128i r   = _mm_loadu_si128 ((__m128i*) src),
+          *rk = (__m128i*) rk0;
+
+  r = _mm_xor_si128 (r, rk[0]);
+
+  for (int i = 1; i < rounds; i++)
+    r = _mm_aesenc_si128 (r, rk[i]);
+
+  r = _mm_aesenclast_si128 (r, rk[rounds]);
+  _mm_storeu_si128 ((__m128i*) dst, r);
+}
+
+void aesni_dec (const unsigned char src[16], unsigned char dst[16], const unsigned char *rk0, unsigned int rounds) {
+
+  __m128i r   = _mm_loadu_si128 ((__m128i*) src),
+          *rk = (__m128i*) rk0;
+
+  r = _mm_xor_si128 (r, rk[0]);
+
+  for (int i = 1; i < rounds; i++)
+    r = _mm_aesdec_si128 (r, rk[i]);
+
+  r = _mm_aesdeclast_si128 (r, rk[rounds]);
+  _mm_storeu_si128 ((__m128i*) dst, r);
+}
+
+void aesni_enc8 (const unsigned char src[128], unsigned char dst[128], const unsigned char *rk0, unsigned int rounds) {
+
+  __m128i *in  = (__m128i*) src,
+          *out = (__m128i*) dst,
+          *rk  = (__m128i*) rk0;
+
+  __m128i r0 = _mm_loadu_si128 (in    ),
+          r1 = _mm_loadu_si128 (in + 1),
+          r2 = _mm_loadu_si128 (in + 2),
+          r3 = _mm_loadu_si128 (in + 3),
+          r4 = _mm_loadu_si128 (in + 4),
+          r5 = _mm_loadu_si128 (in + 5),
+          r6 = _mm_loadu_si128 (in + 6),
+          r7 = _mm_loadu_si128 (in + 7);
+
+  r0 = _mm_xor_si128 (r0, rk[0]);
+  r1 = _mm_xor_si128 (r1, rk[0]);
+  r2 = _mm_xor_si128 (r2, rk[0]);
+  r3 = _mm_xor_si128 (r3, rk[0]);
+  r4 = _mm_xor_si128 (r4, rk[0]);
+  r5 = _mm_xor_si128 (r5, rk[0]);
+  r6 = _mm_xor_si128 (r6, rk[0]);
+  r7 = _mm_xor_si128 (r7, rk[0]);
+
+  for (int i = 1; i < rounds; i++) {
+    r0 = _mm_aesenc_si128 (r0, rk[i]);
+    r1 = _mm_aesenc_si128 (r1, rk[i]);
+    r2 = _mm_aesenc_si128 (r2, rk[i]);
+    r3 = _mm_aesenc_si128 (r3, rk[i]);
+    r4 = _mm_aesenc_si128 (r4, rk[i]);
+    r5 = _mm_aesenc_si128 (r5, rk[i]);
+    r6 = _mm_aesenc_si128 (r6, rk[i]);
+    r7 = _mm_aesenc_si128 (r7, rk[i]);
+  }
+
+  r0 = _mm_aesenclast_si128 (r0, rk[rounds]);
+  r1 = _mm_aesenclast_si128 (r1, rk[rounds]);
+  r2 = _mm_aesenclast_si128 (r2, rk[rounds]);
+  r3 = _mm_aesenclast_si128 (r3, rk[rounds]);
+  r4 = _mm_aesenclast_si128 (r4, rk[rounds]);
+  r5 = _mm_aesenclast_si128 (r5, rk[rounds]);
+  r6 = _mm_aesenclast_si128 (r6, rk[rounds]);
+  r7 = _mm_aesenclast_si128 (r7, rk[rounds]);
+
+  _mm_storeu_si128 (out    , r0);
+  _mm_storeu_si128 (out + 1, r1);
+  _mm_storeu_si128 (out + 2, r2);
+  _mm_storeu_si128 (out + 3, r3);
+  _mm_storeu_si128 (out + 4, r4);
+  _mm_storeu_si128 (out + 5, r5);
+  _mm_storeu_si128 (out + 6, r6);
+  _mm_storeu_si128 (out + 7, r7);
+}
+
+void aesni_dec8 (const unsigned char src[128], unsigned char dst[128], const unsigned char *rk0, unsigned int rounds) {
+
+  __m128i *in  = (__m128i*) src,
+          *out = (__m128i*) dst,
+          *rk  = (__m128i*) rk0;
+
+  __m128i r0 = _mm_loadu_si128 (in    ),
+          r1 = _mm_loadu_si128 (in + 1),
+          r2 = _mm_loadu_si128 (in + 2),
+          r3 = _mm_loadu_si128 (in + 3),
+          r4 = _mm_loadu_si128 (in + 4),
+          r5 = _mm_loadu_si128 (in + 5),
+          r6 = _mm_loadu_si128 (in + 6),
+          r7 = _mm_loadu_si128 (in + 7);
+
+  r0 = _mm_xor_si128 (r0, rk[0]);
+  r1 = _mm_xor_si128 (r1, rk[0]);
+  r2 = _mm_xor_si128 (r2, rk[0]);
+  r3 = _mm_xor_si128 (r3, rk[0]);
+  r4 = _mm_xor_si128 (r4, rk[0]);
+  r5 = _mm_xor_si128 (r5, rk[0]);
+  r6 = _mm_xor_si128 (r6, rk[0]);
+  r7 = _mm_xor_si128 (r7, rk[0]);
+
+  for (int i = 1; i < rounds; i++) {
+    r0 = _mm_aesdec_si128 (r0, rk[i]);
+    r1 = _mm_aesdec_si128 (r1, rk[i]);
+    r2 = _mm_aesdec_si128 (r2, rk[i]);
+    r3 = _mm_aesdec_si128 (r3, rk[i]);
+    r4 = _mm_aesdec_si128 (r4, rk[i]);
+    r5 = _mm_aesdec_si128 (r5, rk[i]);
+    r6 = _mm_aesdec_si128 (r6, rk[i]);
+    r7 = _mm_aesdec_si128 (r7, rk[i]);
+  }
+
+  r0 = _mm_aesdeclast_si128 (r0, rk[rounds]);
+  r1 = _mm_aesdeclast_si128 (r1, rk[rounds]);
+  r2 = _mm_aesdeclast_si128 (r2, rk[rounds]);
+  r3 = _mm_aesdeclast_si128 (r3, rk[rounds]);
+  r4 = _mm_aesdeclast_si128 (r4, rk[rounds]);
+  r5 = _mm_aesdeclast_si128 (r5, rk[rounds]);
+  r6 = _mm_aesdeclast_si128 (r6, rk[rounds]);
+  r7 = _mm_aesdeclast_si128 (r7, rk[rounds]);
+
+  _mm_storeu_si128 (out    , r0);
+  _mm_storeu_si128 (out + 1, r1);
+  _mm_storeu_si128 (out + 2, r2);
+  _mm_storeu_si128 (out + 3, r3);
+  _mm_storeu_si128 (out + 4, r4);
+  _mm_storeu_si128 (out + 5, r5);
+  _mm_storeu_si128 (out + 6, r6);
+  _mm_storeu_si128 (out + 7, r7);
+}
