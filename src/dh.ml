@@ -13,9 +13,6 @@ type secret = { x : Z.t } with sexp
 
 let apparent_bit_size { p; _ } = Numeric.Z.bits p
 
-let to_cstruct_sized { p; _ } z =
-  Numeric.Z.(to_cstruct_be ~size:(cdiv (bits p) 8) z)
-
 (*
  * Current thinking:
  * g^y < 0 || g^y >= p : obviously not computed mod p
@@ -30,7 +27,7 @@ let public_of_secret ({ p; gg; _ } as group) x =
   match Z.(powm gg x p) with
   | ggx when bad_public_key group ggx
         -> raise Invalid_public_key
-  | ggx -> ({ x }, to_cstruct_sized group ggx)
+  | ggx -> ({ x }, Numeric.Z.to_cstruct_be ggx)
 
 let secret_of_cstruct group ~s =
   public_of_secret group (Numeric.Z.of_cstruct_be s)
@@ -46,7 +43,7 @@ let shared ({ p; _ } as group) { x } cs =
   match Numeric.Z.of_cstruct_be cs with
   | ggy when bad_public_key group ggy
         -> raise Invalid_public_key
-  | ggy -> to_cstruct_sized group (Z.powm ggy x p)
+  | ggy -> Numeric.Z.to_cstruct_be (Z.powm ggy x p)
 
 (* Generate a group using a safe prime p = 2q + 1 (with q prime) as modulus,
  * 2 or q as the generator and subgroup order of strictly q. *)
