@@ -9,6 +9,10 @@
 #define _S_1111 0x55
 #define _S_0000 0x00
 
+int _nc_aesni_rk_size (u_int rounds) {
+  return (rounds + 1) * 16;
+}
+
 static inline __m128i __mix (__m128i r1, __m128i r2) {
   __m128i r = r1;
   r = _mm_xor_si128 (r, _mm_slli_si128 (r1, 0x4));
@@ -273,6 +277,37 @@ static inline void _nc_aesni_dec8 (const u_char src[128], u_char dst[128], const
   _mm_storeu_si128 (out + 7, r7);
 }
 
-int _nc_aesni_rk_size (u_int rounds) {
-  return (rounds + 1) * 16;
+#define __b(ptr, n) (ptr + n * 16)
+
+#define __blocked_loop(f1, f8, src, dst, rk, rounds, blocks) \
+  while (blocks) {                                           \
+    switch (blocks) {                                        \
+      case 7:                                                \
+        f1 (__b (src, 6), __b (dst, 6), rk, rounds);         \
+      case 6:                                                \
+        f1 (__b (src, 5), __b (dst, 5), rk, rounds);         \
+      case 5:                                                \
+        f1 (__b (src, 4), __b (dst, 4), rk, rounds);         \
+      case 4:                                                \
+        f1 (__b (src, 3), __b (dst, 3), rk, rounds);         \
+      case 3:                                                \
+        f1 (__b (src, 2), __b (dst, 2), rk, rounds);         \
+      case 2:                                                \
+        f1 (__b (src, 1), __b (dst, 1), rk, rounds);         \
+      case 1:                                                \
+        f1 (__b (src, 0), __b (dst, 0), rk, rounds);         \
+      case 0:                                                \
+        return;                                              \
+      default:                                               \
+        f8 (src, dst, rk, rounds);                           \
+        src += 128; dst += 128; blocks -= 8;                 \
+    }                                                        \
+  }                                                          \
+
+static inline void _nc_aesni_enc_blocks (const u_char *src, u_char *dst, const u_char *rk, u_int rounds, u_int blocks) {
+  __blocked_loop (_nc_aesni_enc, _nc_aesni_enc8, src, dst, rk, rounds, blocks);
+}
+
+static inline void _nc_aesni_dec_blocks (const u_char *src, u_char *dst, const u_char *rk, u_int rounds, u_int blocks) {
+  __blocked_loop (_nc_aesni_dec, _nc_aesni_dec8, src, dst, rk, rounds, blocks);
 }
