@@ -1,5 +1,7 @@
+#include "misc.h"
 #include "aesni.h"
 #include <wmmintrin.h>
+
 
 /* xmm: [D, C, B, A] */
 #define _S_3333 0xff
@@ -23,7 +25,7 @@ static inline void __pack (__m128i *o1, __m128i *o2, __m128i r1, __m128i r2, __m
   *o2 = (__m128i) _mm_shuffle_pd ((__m128d) r2, (__m128d) r3, 1);
 }
 
-void _nc_aesni_derive_key (const u_char *key, u_char *rk0, u_int rounds) {
+static inline void _nc_aesni_derive_key (const u_char *key, u_char *rk0, u_int rounds) {
 
   __m128i *rk = (__m128i*) rk0;
   __m128i temp1, temp2;
@@ -108,7 +110,7 @@ void _nc_aesni_derive_key (const u_char *key, u_char *rk0, u_int rounds) {
   }
 }
 
-void _nc_aesni_invert_key (const u_char *rk0, u_char *kr0, u_int rounds) {
+static inline void _nc_aesni_invert_key (const u_char *rk0, u_char *kr0, u_int rounds) {
 
   __m128i *rk = (__m128i*) rk0,
           *kr = (__m128i*) kr0;
@@ -121,35 +123,41 @@ void _nc_aesni_invert_key (const u_char *rk0, u_char *kr0, u_int rounds) {
   kr[rounds] = rk[0];
 }
 
-void _nc_aesni_enc (const u_char src[16], u_char dst[16], const u_char *rk0, u_int rounds) {
+static inline void _nc_aesni_enc (const u_char src[16], u_char dst[16], const u_char *rk0, u_int rounds) {
+
+  int i;
 
   __m128i r   = _mm_loadu_si128 ((__m128i*) src),
           *rk = (__m128i*) rk0;
 
   r = _mm_xor_si128 (r, rk[0]);
 
-  for (int i = 1; i < rounds; i++)
+  for (i = 1; i < rounds; i++)
     r = _mm_aesenc_si128 (r, rk[i]);
 
   r = _mm_aesenclast_si128 (r, rk[rounds]);
   _mm_storeu_si128 ((__m128i*) dst, r);
 }
 
-void _nc_aesni_dec (const u_char src[16], u_char dst[16], const u_char *rk0, u_int rounds) {
+static inline void _nc_aesni_dec (const u_char src[16], u_char dst[16], const u_char *rk0, u_int rounds) {
+
+  int i;
 
   __m128i r   = _mm_loadu_si128 ((__m128i*) src),
           *rk = (__m128i*) rk0;
 
   r = _mm_xor_si128 (r, rk[0]);
 
-  for (int i = 1; i < rounds; i++)
+  for (i = 1; i < rounds; i++)
     r = _mm_aesdec_si128 (r, rk[i]);
 
   r = _mm_aesdeclast_si128 (r, rk[rounds]);
   _mm_storeu_si128 ((__m128i*) dst, r);
 }
 
-void _nc_aesni_enc8 (const u_char src[128], u_char dst[128], const u_char *rk0, u_int rounds) {
+static inline void _nc_aesni_enc8 (const u_char src[128], u_char dst[128], const u_char *rk0, u_int rounds) {
+
+  int i;
 
   __m128i *in  = (__m128i*) src,
           *out = (__m128i*) dst,
@@ -173,7 +181,7 @@ void _nc_aesni_enc8 (const u_char src[128], u_char dst[128], const u_char *rk0, 
   r6 = _mm_xor_si128 (r6, rk[0]);
   r7 = _mm_xor_si128 (r7, rk[0]);
 
-  for (int i = 1; i < rounds; i++) {
+  for (i = 1; i < rounds; i++) {
     r0 = _mm_aesenc_si128 (r0, rk[i]);
     r1 = _mm_aesenc_si128 (r1, rk[i]);
     r2 = _mm_aesenc_si128 (r2, rk[i]);
@@ -203,7 +211,9 @@ void _nc_aesni_enc8 (const u_char src[128], u_char dst[128], const u_char *rk0, 
   _mm_storeu_si128 (out + 7, r7);
 }
 
-void _nc_aesni_dec8 (const u_char src[128], u_char dst[128], const u_char *rk0, u_int rounds) {
+static inline void _nc_aesni_dec8 (const u_char src[128], u_char dst[128], const u_char *rk0, u_int rounds) {
+
+  int i;
 
   __m128i *in  = (__m128i*) src,
           *out = (__m128i*) dst,
@@ -227,7 +237,7 @@ void _nc_aesni_dec8 (const u_char src[128], u_char dst[128], const u_char *rk0, 
   r6 = _mm_xor_si128 (r6, rk[0]);
   r7 = _mm_xor_si128 (r7, rk[0]);
 
-  for (int i = 1; i < rounds; i++) {
+  for (i = 1; i < rounds; i++) {
     r0 = _mm_aesdec_si128 (r0, rk[i]);
     r1 = _mm_aesdec_si128 (r1, rk[i]);
     r2 = _mm_aesdec_si128 (r2, rk[i]);
