@@ -1,5 +1,21 @@
 
-type bigstring = (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+open Bigarray
+
+type buffer = (char, int8_unsigned_elt, c_layout) Array1.t
+
+let buffer = Array1.create char c_layout
+
+module AES = struct
+  external derive : buffer -> int -> buffer -> int -> unit = "caml_nc_aesni_derive_key" "noalloc"
+  external invert : buffer -> buffer -> int -> unit = "caml_nc_aesni_invert_key" "noalloc"
+  external enc    : buffer -> int -> int -> buffer -> int -> buffer -> int -> unit = "caml_nc_aesni_enc" "caml_nc_aesni_enc" "noalloc"
+  external dec    : buffer -> int -> int -> buffer -> int -> buffer -> int -> unit = "caml_nc_aesni_dec" "caml_nc_aesni_dec" "noalloc"
+  external rk_s   : int -> int = "caml_nc_aesni_rk_size" "noalloc"
+end
+
+(* XXX TODO
+ * Unsolved: bounds-checked XORs are slowing things down considerably... *)
+external xor_into : buffer -> int -> buffer -> int -> int -> unit = "caml_nc_xor_into" "caml_nc_xor_into" "noalloc"
 
 module Conv = struct
 
