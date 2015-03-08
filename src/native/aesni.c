@@ -311,3 +311,46 @@ static inline void _nc_aesni_enc_blocks (const u_char *src, u_char *dst, const u
 static inline void _nc_aesni_dec_blocks (const u_char *src, u_char *dst, const u_char *rk, u_int rounds, u_int blocks) {
   __blocked_loop (_nc_aesni_dec, _nc_aesni_dec8, src, dst, rk, rounds, blocks);
 }
+
+
+
+CAMLprim value
+caml_nc_aesni_rk_size (value rounds) {
+  return Val_int (_nc_aesni_rk_size (Long_val (rounds)));
+}
+
+CAMLprim value
+caml_nc_aesni_derive_key (value key, value off1, value rk, value rounds) {
+  _nc_aesni_derive_key (_ba_uchar_off (key, off1),
+                        _ba_uchar (rk),
+                        Long_val (rounds));
+  return Val_unit;
+}
+
+CAMLprim value
+caml_nc_aesni_invert_key (value rk, value kr, value rounds) {
+  _nc_aesni_invert_key (_ba_uchar (rk),
+                        _ba_uchar (kr),
+                        Long_val (rounds));
+  return Val_unit;
+}
+
+CAMLprim value
+caml_nc_aesni_enc (value src, value off1, value dst, value off2, value rk, value rounds, value blocks) {
+  _nc_aesni_enc_blocks ( _ba_uchar_off (src, off1),
+                         _ba_uchar_off (dst, off2),
+                         _ba_uchar (rk),
+                         Long_val (rounds),
+                         Long_val (blocks) );
+  return Val_unit;
+}
+
+CAMLprim value
+caml_nc_aesni_dec (value src, value off1, value dst, value off2, value rk, value rounds, value blocks) {
+  _nc_aesni_dec_blocks (_ba_uchar_off (src, off1),
+                         _ba_uchar_off (dst, off2),
+                         _ba_uchar (rk),
+                         Long_val (rounds),
+                         Long_val (blocks) );
+  return Val_unit;
+}
