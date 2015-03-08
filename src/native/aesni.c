@@ -112,12 +112,18 @@ static inline void _nc_aesni_derive_key (const u_char *key, u_char *rk0, u_int r
 
 static inline void _nc_aesni_invert_key (const u_char *rk0, u_char *kr0, u_int rounds) {
 
-  __m128i *rk = (__m128i*) rk0,
-          *kr = (__m128i*) kr0;
+  int i;
+
+  __m128i *rk1 = (__m128i*) rk0,
+          *kr  = (__m128i*) kr0,
+          rk[15];
+
+  for (i = 0; i <= rounds; i++)
+    rk[i] = rk1[i];
 
   kr[0] = rk[rounds];
 
-  for (int i = 1; i < rounds; i++)
+  for (i = 1; i < rounds; i++)
     kr[i] = _mm_aesimc_si128 (rk[rounds - i]);
 
   kr[rounds] = rk[0];
