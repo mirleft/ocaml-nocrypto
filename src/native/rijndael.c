@@ -7,6 +7,7 @@
 #define FULL_UNROLL
 
 #include "rijndael.h"
+#include "misc.h"
 
 typedef unsigned long u32;
 typedef unsigned char u8;
@@ -1212,4 +1213,76 @@ void nc_rijndaelDecrypt(const u32 *rk, int nrounds, const u8 ciphertext[16],
 }
 
 
+#if !defined (__AES__)
+/* XXX
+ * Remove other bindings and hide the entire file under this.
+ */
 
+#define keybits_of_r(x) ((x - 6) * 32)
+
+#define __blocked_loop(f, rk, rounds, blocks, src, dst) \
+  while (blocks --) {                                   \
+    f (rk, rounds, src, dst);                           \
+    src += 16 ; dst += 16 ;                             \
+  }
+
+static inline void _nc_aes_enc_blocks (const u_long *rk, u_int rounds, u_int blocks, const u_char *src, u_char *dst) {
+  __blocked_loop (nc_rijndaelEncrypt, rk, rounds, blocks, src, dst);
+}
+
+static inline void _nc_aes_dec_blocks (const u_long *rk, u_int rounds, u_int blocks, const u_char *src, u_char *dst) {
+  __blocked_loop (nc_rijndaelDecrypt, rk, rounds, blocks, src, dst);
+}
+
+CAMLprim value
+caml_nc_aes_rk_size (value rounds) {
+  return Val_int (RKLENGTH (keybits_of_r (Int_val (rounds))) * sizeof(u_long));
+}
+
+CAMLprim value
+caml_nc_aes_derive_e_key (value key, value off1, value rk, value rounds) {
+  nc_rijndaelSetupEncrypt (_ba_ulong (rk),
+                           _ba_uchar_off (key, off1),
+                           keybits_of_r (Int_val (rounds)));
+  return Val_unit;
+}
+
+CAMLprim value
+caml_nc_aes_derive_d_key (value key, value off1, value kr, value rounds, value rk) {
+  nc_rijndaelSetupDecrypt (_ba_ulong (kr),
+                           _ba_uchar_off (key, off1),
+                           keybits_of_r (Int_val (rounds)));
+  return Val_unit;
+}
+
+CAMLprim value
+caml_nc_aes_enc (value rk, value rounds, value blocks, value src, value off1, value dst, value off2) {
+  _nc_aes_enc_blocks (_ba_ulong (rk),
+                      Int_val (rounds),
+                      Int_val (blocks),
+                      _ba_uchar_off (src, off1),
+                      _ba_uchar_off (dst, off2));
+  return Val_unit;
+}
+
+CAMLprim value
+caml_nc_aes_dec (value rk, value rounds, value blocks, value src, value off1, value dst, value off2) {
+  _nc_aes_dec_blocks (_ba_ulong (rk),
+                      Int_val (rounds),
+                      Int_val (blocks),
+                      _ba_uchar_off (src, off1),
+                      _ba_uchar_off (dst, off2));
+  return Val_unit;
+}
+
+CAMLprim value
+caml_nc_aes_enc_bc (value *argv, int argc) {
+  return caml_nc_aes_enc (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
+}
+
+CAMLprim value
+caml_nc_aes_dec_bc (value *argv, int argc) {
+  return caml_nc_aes_dec (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
+}
+
+#endif /* __AES__ */
