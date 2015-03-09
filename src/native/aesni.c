@@ -1,5 +1,4 @@
 #include "misc.h"
-#include "aesni.h"
 #include <wmmintrin.h>
 
 
@@ -352,4 +351,14 @@ caml_nc_aesni_dec (value rk, value rounds, value blocks, value src, value off1, 
                          _ba_uchar_off (src, off1),
                          _ba_uchar_off (dst, off2) );
   return Val_unit;
+}
+
+CAMLprim value
+caml_nc_aesni_enc_bc (value *argv, int argc) {
+  return caml_nc_aesni_enc (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
+}
+
+CAMLprim value
+caml_nc_aesni_dec_bc (value *argv, int argc) {
+  return caml_nc_aesni_dec (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
 }

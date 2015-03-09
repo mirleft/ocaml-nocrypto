@@ -8,8 +8,8 @@ let buffer = Array1.create char c_layout
 module AES = struct
   external derive : buffer -> int -> buffer -> int -> unit = "caml_nc_aesni_derive_key" "noalloc"
   external invert : buffer -> buffer -> int -> unit = "caml_nc_aesni_invert_key" "noalloc"
-  external enc    : buffer -> int -> int -> buffer -> int -> buffer -> int -> unit = "caml_nc_aesni_enc" "caml_nc_aesni_enc" "noalloc"
-  external dec    : buffer -> int -> int -> buffer -> int -> buffer -> int -> unit = "caml_nc_aesni_dec" "caml_nc_aesni_dec" "noalloc"
+  external enc    : buffer -> int -> int -> buffer -> int -> buffer -> int -> unit = "caml_nc_aesni_enc_bc" "caml_nc_aesni_enc" "noalloc"
+  external dec    : buffer -> int -> int -> buffer -> int -> buffer -> int -> unit = "caml_nc_aesni_dec_bc" "caml_nc_aesni_dec" "noalloc"
   external rk_s   : int -> int = "caml_nc_aesni_rk_size" "noalloc"
 end
 
