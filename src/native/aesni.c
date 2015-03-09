@@ -1,3 +1,5 @@
+#if defined (__AES__)
+
 #include "misc.h"
 #include <wmmintrin.h>
 
@@ -28,7 +30,7 @@ static inline void __pack (__m128i *o1, __m128i *o2, __m128i r1, __m128i r2, __m
   *o2 = (__m128i) _mm_shuffle_pd ((__m128d) r2, (__m128d) r3, 1);
 }
 
-static inline void _nc_aesni_derive_key (const u_char *key, u_char *rk0, u_int rounds) {
+static inline void _nc_aesni_derive_e_key (const u_char *key, u_char *rk0, u_int rounds) {
 
   __m128i *rk = (__m128i*) rk0;
   __m128i temp1, temp2;
@@ -113,7 +115,7 @@ static inline void _nc_aesni_derive_key (const u_char *key, u_char *rk0, u_int r
   }
 }
 
-static inline void _nc_aesni_invert_key (const u_char *rk0, u_char *kr0, u_int rounds) {
+static inline void _nc_aesni_invert_e_key (const u_char *rk0, u_char *kr0, u_int rounds) {
 
   int i;
 
@@ -131,6 +133,15 @@ static inline void _nc_aesni_invert_key (const u_char *rk0, u_char *kr0, u_int r
 
   kr[rounds] = rk[0];
 }
+
+static void _nc_aesni_derive_d_key (const u_char *key, u_char *kr, u_int rounds, u_char *rk) {
+  if (!rk) {
+    _nc_aesni_derive_e_key (key, kr, rounds);
+    rk = kr;
+  }
+  _nc_aesni_invert_e_key (rk, kr, rounds);
+}
+
 
 static inline void _nc_aesni_enc (const u_char *rk0, u_int rounds, const u_char src[16], u_char dst[16]) {
 
@@ -313,28 +324,29 @@ static inline void _nc_aesni_dec_blocks (const u_char *rk, u_int rounds, u_int b
 
 
 CAMLprim value
-caml_nc_aesni_rk_size (value rounds) {
+caml_nc_aes_rk_size (value rounds) {
   return Val_int (_nc_aesni_rk_size (Long_val (rounds)));
 }
 
 CAMLprim value
-caml_nc_aesni_derive_key (value key, value off1, value rk, value rounds) {
-  _nc_aesni_derive_key (_ba_uchar_off (key, off1),
-                        _ba_uchar (rk),
-                        Long_val (rounds));
+caml_nc_aes_derive_e_key (value key, value off1, value rk, value rounds) {
+  _nc_aesni_derive_e_key (_ba_uchar_off (key, off1),
+                          _ba_uchar (rk),
+                          Long_val (rounds));
   return Val_unit;
 }
 
 CAMLprim value
-caml_nc_aesni_invert_key (value rk, value kr, value rounds) {
-  _nc_aesni_invert_key (_ba_uchar (rk),
-                        _ba_uchar (kr),
-                        Long_val (rounds));
+caml_nc_aes_derive_d_key (value key, value off1, value kr, value rounds, value rk) {
+  _nc_aesni_derive_d_key (_ba_uchar_off (key, off1),
+                          _ba_uchar (kr),
+                          Long_val (rounds),
+                          Is_block (rk) ? _ba_uchar (Field (rk, 0)) : 0);
   return Val_unit;
 }
 
 CAMLprim value
-caml_nc_aesni_enc (value rk, value rounds, value blocks, value src, value off1, value dst, value off2) {
+caml_nc_aes_enc (value rk, value rounds, value blocks, value src, value off1, value dst, value off2) {
   _nc_aesni_enc_blocks ( _ba_uchar (rk),
                          Long_val (rounds),
                          Long_val (blocks),
@@ -344,7 +356,7 @@ caml_nc_aesni_enc (value rk, value rounds, value blocks, value src, value off1, 
 }
 
 CAMLprim value
-caml_nc_aesni_dec (value rk, value rounds, value blocks, value src, value off1, value dst, value off2) {
+caml_nc_aes_dec (value rk, value rounds, value blocks, value src, value off1, value dst, value off2) {
   _nc_aesni_dec_blocks ( _ba_uchar (rk),
                          Long_val (rounds),
                          Long_val (blocks),
@@ -354,11 +366,13 @@ caml_nc_aesni_dec (value rk, value rounds, value blocks, value src, value off1, 
 }
 
 CAMLprim value
-caml_nc_aesni_enc_bc (value *argv, int argc) {
-  return caml_nc_aesni_enc (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
+caml_nc_aes_enc_bc (value *argv, int argc) {
+  return caml_nc_aes_enc (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
 }
 
 CAMLprim value
-caml_nc_aesni_dec_bc (value *argv, int argc) {
-  return caml_nc_aesni_dec (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
+caml_nc_aes_dec_bc (value *argv, int argc) {
+  return caml_nc_aes_dec (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
 }
+
+#endif /* __AES__ */
