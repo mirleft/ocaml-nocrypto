@@ -13,6 +13,14 @@ module AES = struct
   external rk_s   : int -> int = "caml_nc_aes_rk_size" "noalloc"
 end
 
+module DES = struct
+  external des3key : buffer -> int -> int -> unit                   = "caml_nc_des_des3key"  "noalloc"
+  external cp3key  : buffer -> unit                                 = "caml_nc_des_cp3key"   "noalloc"
+  external use3key : buffer -> unit                                 = "caml_nc_des_use3key"  "noalloc"
+  external ddes    : int -> buffer -> int -> buffer -> int -> unit  = "caml_nc_des_ddes"     "noalloc"
+  external k_s     : unit -> int                                    = "caml_nc_des_key_size" "noalloc"
+end
+
 (* XXX TODO
  * Unsolved: bounds-checked XORs are slowing things down considerably... *)
 external xor_into : buffer -> int -> buffer -> int -> int -> unit = "caml_nc_xor_into" "caml_nc_xor_into" "noalloc"
