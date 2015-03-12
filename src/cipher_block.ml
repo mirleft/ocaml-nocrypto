@@ -299,6 +299,7 @@ module Counters = struct
   end
 end
 
+open Bigarray
 open Native
 
 module AES = struct
@@ -344,6 +345,46 @@ module AES = struct
   module CCM = Modes.CCM_of (Raw)
 end
 
+module AES2 = struct
+
+  module Core : T.Core = struct
+
+    let key   = [| 16; 24; 32 |]
+    let block = 16
+
+    type ekey = buffer * int
+    type dkey = buffer * int
+
+    let of_secret_with init { Cstruct.buffer ; off ; len } =
+      let rounds =
+        match len with
+        | 16|24|32 -> len / 4 + 6
+        | _        -> Raise.invalid1 "AES: invalid key size (%d)" len in
+      let rk = Native.(buffer @@ AES.rk_s rounds) in
+      init buffer off rk rounds ;
+      (rk, rounds)
+
+    let derive_d ?e buf off rk rs = Native.AES.derive_d buf off rk rs e
+
+    let e_of_secret = of_secret_with Native.AES.derive_e
+    let d_of_secret = of_secret_with (derive_d ?e:None)
+
+    let of_secret secret =
+      let (e, _) as ekey = e_of_secret secret in
+      (ekey, of_secret_with (derive_d ~e) secret)
+
+    (* XXX arg order ocaml<->c slows down *)
+    (* XXX bounds checks *)
+
+    let encrypt ~key:(e, rounds) ~blocks src off1 dst off2 =
+      Native.AES.enc e rounds blocks src off1 dst off2
+
+    let decrypt ~key:(d, rounds) ~blocks src off1 dst off2 =
+      Native.AES.dec d rounds blocks src off1 dst off2
+
+  end
+
+end
 
 module DES = struct
 
