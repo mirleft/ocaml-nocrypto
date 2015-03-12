@@ -273,6 +273,52 @@ end
 
 module Modes2 = struct
 
+  module Raw_of (Core : T.Core) : T.Raw = struct
+
+    type ekey = Core.ekey
+    type dkey = Core.dkey
+
+    let e_of_secret = Core.e_of_secret
+    let d_of_secret = Core.d_of_secret
+
+    let key_sizes  = Core.key
+    let block_size = Core.block
+
+    open Cstruct
+
+    let encrypt_block ~key:key src dst =
+      if src.len < block_size || dst.len < block_size then invalid_arg "xxx" ;
+      Core.encrypt ~key ~blocks:1 src.buffer src.off dst.buffer dst.off
+
+    let decrypt_block ~key:key src dst =
+      if src.len < block_size || dst.len < block_size then invalid_arg "xxx" ;
+      Core.decrypt ~key ~blocks:1 src.buffer src.off dst.buffer dst.off
+  end
+
+  module Base_of (Core : T.Core) : T.Base = struct
+
+    type key = Core.ekey * Core.dkey
+
+    let of_secret = Core.of_secret
+
+    let key_sizes  = Core.key
+    let block_size = Core.block
+
+    open Cstruct
+
+    let encrypt ~key:(key, _) src =
+      if src.len < block_size then invalid_arg "xxx" ;
+      let dst = create block_size in
+      Core.encrypt ~key ~blocks:1 src.buffer src.off dst.buffer dst.off ;
+      dst
+
+    let decrypt ~key:(_, key) src =
+      if src.len < block_size then invalid_arg "xxx" ;
+      let dst = create block_size in
+      Core.decrypt ~key ~blocks:1 src.buffer src.off dst.buffer dst.off ;
+      dst
+  end
+
   module ECB_of (Core : T.Core) : T.ECB = struct
 
     open Cstruct
