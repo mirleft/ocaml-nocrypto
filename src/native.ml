@@ -6,11 +6,11 @@ type buffer = (char, int8_unsigned_elt, c_layout) Array1.t
 let buffer = Array1.create char c_layout
 
 module AES = struct
-  external derive_e : buffer -> int -> buffer -> int -> unit = "caml_nc_aes_derive_e_key" "noalloc"
-  external derive_d : buffer -> int -> buffer -> int -> buffer option -> unit = "caml_nc_aes_derive_d_key" "noalloc"
-  external enc    : buffer -> int -> int -> buffer -> int -> buffer -> int -> unit = "caml_nc_aes_enc_bc" "caml_nc_aes_enc" "noalloc"
-  external dec    : buffer -> int -> int -> buffer -> int -> buffer -> int -> unit = "caml_nc_aes_dec_bc" "caml_nc_aes_dec" "noalloc"
-  external rk_s   : int -> int = "caml_nc_aes_rk_size" "noalloc"
+  external derive_e : buffer -> int -> buffer -> int -> unit                          = "caml_nc_aes_derive_e_key"             "noalloc"
+  external derive_d : buffer -> int -> buffer -> int -> buffer option -> unit         = "caml_nc_aes_derive_d_key"             "noalloc"
+  external enc      : buffer -> int -> int -> buffer -> int -> buffer -> int -> unit  = "caml_nc_aes_enc_bc" "caml_nc_aes_enc" "noalloc"
+  external dec      : buffer -> int -> int -> buffer -> int -> buffer -> int -> unit  = "caml_nc_aes_dec_bc" "caml_nc_aes_dec" "noalloc"
+  external rk_s     : int -> int                                                      = "caml_nc_aes_rk_size"                  "noalloc"
 end
 
 module DES = struct
