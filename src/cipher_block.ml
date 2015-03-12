@@ -297,6 +297,50 @@ module Modes2 = struct
 
   end
 
+  module CBC_of (Core : T.Core) : T.CBC = struct
+
+    open Cstruct
+
+    type result = { message : Cstruct.t ; iv : Cstruct.t }
+    type key    = Core.ekey * Core.dkey
+
+    let (key_sizes, block_size) = Core.(key, block)
+    let block = block_size
+
+    let of_secret = Core.of_secret
+
+    let bounds_check ~iv cs =
+      if len iv <> block then
+        Raise.invalid1 "CBC: iv is not %d bytes" block ;
+      if len cs mod block <> 0 then
+        Raise.invalid1 "CBC: argument is not N * %d bytes" block
+
+    let encrypt ~key:(key, _) ~iv plain =
+      let () = bounds_check ~iv plain in
+      let rec loop iv i_iv dst i_buf = function
+        | 0 -> of_bigarray ~off:i_iv ~len:block iv
+        | b ->
+            Native.xor_into iv i_iv dst i_buf block ;
+            Core.encrypt ~key ~blocks:1 dst i_buf dst i_buf ;
+            loop dst i_buf dst (i_buf + block) (pred b)
+      in
+      let msg = Cs.clone plain in
+      let iv = loop iv.buffer iv.off msg.buffer msg.off (len plain / block) in
+      { message = msg ; iv }
+
+    let decrypt ~key:(_, key) ~iv src =
+      let ()  = bounds_check ~iv src
+      and msg = create (len src) in
+      match len src / block with
+      | 0 -> { message = msg ; iv }
+      | b ->
+          Core.decrypt ~key ~blocks:b src.buffer src.off msg.buffer msg.off ;
+          Native.xor_into iv.buffer iv.off msg.buffer msg.off block ;
+          Native.xor_into src.buffer src.off msg.buffer (msg.off + block) ((b - 1) * block) ;
+          { message = msg ; iv = sub src (len src - block) block }
+
+  end
+
 end
 
 module Counters = struct
@@ -413,6 +457,7 @@ module AES2 = struct
   end
 
   module ECB = Modes2.ECB_of (Core)
+  module CBC = Modes2.CBC_of (Core)
 
 end
 
