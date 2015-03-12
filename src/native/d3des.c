@@ -16,6 +16,7 @@
  */
  
 #include "d3des.h"
+#include "misc.h"
  
 static void scrunch(unsigned char *, unsigned long *);
 static void unscrun(unsigned long *, unsigned char *);
@@ -684,3 +685,42 @@ unsigned char *kptr;		/* unsigned char[24] */
  *
  * d3des V5.09 rwo 9208.04 20:31 Graven Imagery
  **********************************************************************/
+
+
+/* OCaml front-end */
+
+static inline void _nc_ddes (unsigned int blocks, unsigned char *src, unsigned char *dst) {
+  while (blocks --) {
+    Ddes (src, dst);
+    src -= 8 ; dst -= 8;
+  }
+}
+
+CAMLprim value
+caml_nc_des_key_size () {
+  return Val_int (sizeof (unsigned long) * 96);
+}
+
+CAMLprim value
+caml_nc_des_des3key (value key, value off, value direction) {
+  des3key (_ba_uchar_off (key, off), Int_val (direction));
+  return Val_unit;
+}
+
+CAMLprim value
+caml_nc_des_cp3key (value dst) {
+  cp3key (_ba_ulong (dst));
+  return Val_unit;
+}
+
+CAMLprim value
+caml_nc_des_use3key (value src) {
+  use3key (_ba_ulong (src));
+  return Val_unit;
+}
+
+CAMLprim value
+caml_nc_des_ddes (value blocks, value src, value off1, value dst, value off2) {
+  _nc_ddes (Int_val (blocks), _ba_uchar_off (src, off1), _ba_uchar_off (dst, off2));
+  return Val_unit;
+}
