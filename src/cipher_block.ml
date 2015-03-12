@@ -4,6 +4,7 @@ module T = struct
 
   module type Counter = sig val increment : Cstruct.t -> unit end
 
+  (* XXX old block-level sig, remove *)
   module type Raw = sig
 
     type ekey
@@ -18,6 +19,7 @@ module T = struct
     val decrypt_block : key:dkey -> Cstruct.t -> Cstruct.t -> unit
   end
 
+  (* XXX old block-level + duplex sig, remove *)
   module type Base = sig
     type key
     val of_secret : Cstruct.t -> key
@@ -26,6 +28,23 @@ module T = struct
     val block_size : int
     val encrypt : key:key -> Cstruct.t -> Cstruct.t
     val decrypt : key:key -> Cstruct.t -> Cstruct.t
+  end
+
+  module type Core = sig
+
+    type ekey
+    type dkey
+
+    val of_secret   : Cstruct.t -> ekey * dkey
+    val e_of_secret : Cstruct.t -> ekey
+    val d_of_secret : Cstruct.t -> dkey
+
+    val key   : int array
+    val block : int
+
+    (* XXX currently unsafe point *)
+    val encrypt  : key:ekey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
+    val decrypt  : key:dkey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
   end
 
   module type ECB = sig
