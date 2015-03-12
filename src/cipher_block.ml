@@ -271,6 +271,34 @@ module Modes = struct
 
 end
 
+module Modes2 = struct
+
+  module ECB_of (Core : T.Core) : T.ECB = struct
+
+    open Cstruct
+
+    type key = Core.ekey * Core.dkey
+
+    let (key_sizes, block_size) = Core.(key, block)
+
+    let of_secret = Core.of_secret
+
+    let (encrypt, decrypt) =
+      let ecb xform key src =
+        let n = len src in
+        if n mod block_size <> 0 then
+          Raise.invalid1 "ECB: argument not N * %d bytes" block_size ;
+        let dst = create @@ len src in
+        xform ~key ~blocks:(n / block_size) src.buffer src.off dst.buffer dst.off ;
+        dst
+      in
+      (fun ~key:(key, _) src -> ecb Core.encrypt key src),
+      (fun ~key:(_, key) src -> ecb Core.decrypt key src)
+
+  end
+
+end
+
 module Counters = struct
 
   open Cstruct
@@ -383,6 +411,8 @@ module AES2 = struct
       Native.AES.dec d rounds blocks src off1 dst off2
 
   end
+
+  module ECB = Modes2.ECB_of (Core)
 
 end
 
