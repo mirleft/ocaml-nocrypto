@@ -548,3 +548,36 @@ module DES = struct
   module CTR = Modes.CTR_of (Raw)
 
 end
+
+module DES2 = struct
+
+  module Core : T.Core = struct
+
+    let key   = [| 24 |]
+    let block = 8
+
+    type ekey = buffer
+    type dkey = buffer
+
+    let k_s = Native.DES.k_s ()
+
+    let gen_of_secret ~direction { Cstruct.buffer ; off ; len } =
+      if len <> 24 then
+        Raise.invalid1 "DES: invalid key size (%d)" len ;
+      let key = Native.buffer k_s in
+      Native.DES.des3key buffer off direction ;
+      Native.DES.cp3key key ;
+      key
+
+    let e_of_secret = gen_of_secret ~direction:0
+    let d_of_secret = gen_of_secret ~direction:1
+
+    let of_secret secret = (e_of_secret secret, d_of_secret secret)
+
+    let encrypt ~key ~blocks src off1 dst off2 =
+      Native.DES.use3key key ;
+      Native.DES.ddes blocks src off1 dst off2
+
+    let decrypt = encrypt
+  end
+end
