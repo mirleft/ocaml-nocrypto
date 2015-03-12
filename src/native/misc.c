@@ -1,4 +1,8 @@
-#include <emmintrin.h>
+
+#if defined (__i386__) || defined (__x86_64__)
+#include <x86intrin.h>
+#endif
+
 #include "misc.h"
 
 #define u_long_s sizeof (unsigned long)

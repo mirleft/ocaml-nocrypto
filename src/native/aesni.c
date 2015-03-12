@@ -1,10 +1,11 @@
+#if defined (__i386__) || defined (__x86_64__)
 #if defined (__AES__)
 
+#include <x86intrin.h>
+
 #include "misc.h"
-#include <wmmintrin.h>
 
-
-/* xmm: [D, C, B, A] */
+/* xmm: [3, 2, 1, 0] */
 #define _S_3333 0xff
 #define _S_2222 0xaa
 #define _S_1111 0x55
@@ -376,3 +377,4 @@ caml_nc_aes_dec_bc (value *argv, int argc) {
 }
 
 #endif /* __AES__ */
+#endif /* __i386__ || __x86_64__ */
