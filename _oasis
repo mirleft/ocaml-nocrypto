@@ -15,8 +15,12 @@ Categories: http://org:mirage
 OCamlVersion: >= 4.01.0
 
 Flag xen
-  Description:        Build Xen support
-  Default:            false
+  Description: Build Xen support
+  Default:     false
+
+Flag modernity
+  Description: CPU accelerated code paths
+  Default:     true
 
 Flag "pedantic"
   Description: Make the C compiler go hardcore
@@ -55,10 +59,13 @@ Library "nocrypto"
                    native/sha256.h,
                    native/sha512.c,
                    native/sha512.h,
-                   native/rijndael.c,
-                   native/rijndael.h,
-                   native/d3des.c,
-                   native/d3des.h,
+                   native/nocrypto.h,
+                   native/misc.c,
+                   native/aes/generic.c,
+                   native/aes/generic.h,
+                   native/aes/aesni.c,
+                   native/des/generic.c,
+                   native/des/generic.h,
                    native/nocrypto_stubs.h,
                    native/nocrypto_stubs.c,
                    native/nocrypto_generated_stubs.c
@@ -69,8 +76,10 @@ Library "nocrypto"
   CCOpt:           -O3 -I$pkg_ctypes -I$pkg_ctypes/..
   BuildTools:      nocrypto_bindgen
   ByteOpt:         -w A-4-33-40-41-42-43-34-44
+  if flag(modernity) && ( architecture(i386) || architecture(amd64) )
+    CCOpt+: -msse2 -maes
   if flag(pedantic)
-    CCOpt: -Wall -Wpedantic
+    CCOpt+: -Wall -Wpedantic
 
 Library "nocrypto_xen"
   Path:            xen/
@@ -86,17 +95,22 @@ Library "nocrypto_xen"
                    native/sha256.h,
                    native/sha512.c,
                    native/sha512.h,
-                   native/rijndael.c,
-                   native/rijndael.h,
-                   native/d3des.c,
-                   native/d3des.h,
+                   native/nocrypto.h,
+                   native/misc.c,
+                   native/aes/generic.c,
+                   native/aes/generic.h,
+                   native/aes/aesni.c,
+                   native/des/generic.c,
+                   native/des/generic.h,
                    native/nocrypto_stubs.h,
                    native/nocrypto_stubs.c,
                    native/nocrypto_generated_stubs.c
   CCOpt:           -O3 -I$pkg_ctypes -I$pkg_ctypes/.. -DNDEBUG $XEN_CFLAGS
   BuildTools:      nocrypto_bindgen
+  if flag(modernity) && ( architecture(i386) || architecture(amd64) )
+    CCOpt+: -msse2 -maes
   if flag(pedantic)
-    CCOpt: -Wall -Wpedantic
+    CCOpt+: -Wall -Wpedantic
 
 Executable "nocrypto_bindgen"
   MainIs:         nocrypto_bindgen.ml

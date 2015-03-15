@@ -1,11 +1,13 @@
 # OASIS_START
-# DO NOT EDIT (digest: 59f62d5374345c2d2f90764793a3e5d0)
+# DO NOT EDIT (digest: 30d5c6a5a6010c03191b4c70653c496c)
 native/md5.o
 native/sha1.o
 native/sha256.o
 native/sha512.o
-native/rijndael.o
-native/d3des.o
+native/misc.o
+native/aes/generic.o
+native/aes/aesni.o
+native/des/generic.o
 native/nocrypto_stubs.o
 native/nocrypto_generated_stubs.o
 # OASIS_STOP
