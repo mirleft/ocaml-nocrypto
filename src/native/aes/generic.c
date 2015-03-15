@@ -8,9 +8,11 @@
 
 #if defined (NC_AES_GENERIC)
 
-#define FULL_UNROLL
+#define KEYLENGTH(keybits) ((keybits)/8)
+#define RKLENGTH(keybits)  ((keybits)/8+28)
+#define NROUNDS(keybits)   ((keybits)/32+6)
 
-#include "generic.h"
+#define FULL_UNROLL
 
 typedef unsigned long u32;
 typedef unsigned char u8;
@@ -718,7 +720,7 @@ static const u32 rcon[] =
  *
  * @return the number of rounds for the given cipher key size.
  */
-int nc_rijndaelSetupEncrypt(u32 *rk, const u8 *key, int keybits)
+static int nc_rijndaelSetupEncrypt(u32 *rk, const u8 *key, int keybits)
 {
   int i = 0;
   u32 temp;
@@ -807,7 +809,7 @@ int nc_rijndaelSetupEncrypt(u32 *rk, const u8 *key, int keybits)
  *
  * @return the number of rounds for the given cipher key size.
  */
-int nc_rijndaelSetupDecrypt(u32 *rk, const u8 *key, int keybits)
+static int nc_rijndaelSetupDecrypt(u32 *rk, const u8 *key, int keybits)
 {
   int nrounds, i, j;
   u32 temp;
@@ -850,7 +852,7 @@ int nc_rijndaelSetupDecrypt(u32 *rk, const u8 *key, int keybits)
   return nrounds;
 }
 
-void nc_rijndaelEncrypt(const u32 *rk, int nrounds, const u8 plaintext[16],
+static void nc_rijndaelEncrypt(const u32 *rk, int nrounds, const u8 plaintext[16],
   u8 ciphertext[16])
 {
   u32 s0, s1, s2, s3, t0, t1, t2, t3;
@@ -1032,7 +1034,7 @@ void nc_rijndaelEncrypt(const u32 *rk, int nrounds, const u8 plaintext[16],
   PUTU32(ciphertext + 12, s3);
 }
 
-void nc_rijndaelDecrypt(const u32 *rk, int nrounds, const u8 ciphertext[16],
+static void nc_rijndaelDecrypt(const u32 *rk, int nrounds, const u8 ciphertext[16],
   u8 plaintext[16])
 {
   u32 s0, s1, s2, s3, t0, t1, t2, t3;
