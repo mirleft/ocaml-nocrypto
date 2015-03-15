@@ -12,6 +12,17 @@ let id x = x
 let rec until p f =
   let r = f () in if p r then r else until p f
 
+module Raise = struct
+
+  open Printf
+
+  let tag = (^) "Nocrypto: "
+
+  let invalid  fmt     = invalid_arg @@ tag fmt
+  let invalid1 fmt a   = invalid_arg @@ tag (sprintf fmt a)
+  let invalid2 fmt a b = invalid_arg @@ tag (sprintf fmt a b)
+end
+
 module Option = struct
 
   let v_map ~default ~f = function
