@@ -152,18 +152,20 @@ module Cipher_block : sig
     module type Counter = sig val increment : Cstruct.t -> unit end
 
     (** Raw block cipher in all its glory. *)
-    module type Raw = sig
+    module type Core = sig
 
       type ekey
       type dkey
 
+      val of_secret   : Cstruct.t -> ekey * dkey
       val e_of_secret : Cstruct.t -> ekey
       val d_of_secret : Cstruct.t -> dkey
 
-      val key_sizes  : int array
-      val block_size : int
-      val encrypt_block : key:ekey -> Cstruct.t -> Cstruct.t -> unit
-      val decrypt_block : key:dkey -> Cstruct.t -> Cstruct.t -> unit
+      val key   : int array
+      val block : int
+
+      val encrypt  : key:ekey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
+      val decrypt  : key:dkey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
     end
 
     (** Modes of operation: *)
@@ -241,7 +243,6 @@ module Cipher_block : sig
 
   (** {b AES}, plus a few modes of operation. *)
   module AES : sig
-    module Raw : T.Raw
     module ECB : T.ECB
     module CBC : T.CBC
     module CTR : functor (C : T.Counter) -> T.CTR
@@ -251,7 +252,6 @@ module Cipher_block : sig
 
   (** {b DES}, plus a few modes of operation. *)
   module DES : sig
-    module Raw : T.Raw
     module ECB : T.ECB
     module CBC : T.CBC
     module CTR : functor (C : T.Counter) -> T.CTR
