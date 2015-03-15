@@ -15,8 +15,9 @@
  * (GEnie : OUTER; CIS : [71755,204]) Graven Imagery, 1992.
  */
  
+#include "nocrypto.h"
+
 #include "d3des.h"
-#include "misc.h"
  
 static void scrunch(unsigned char *, unsigned long *);
 static void unscrun(unsigned long *, unsigned char *);
@@ -692,12 +693,12 @@ unsigned char *kptr;		/* unsigned char[24] */
 static inline void _nc_ddes (unsigned int blocks, unsigned char *src, unsigned char *dst) {
   while (blocks --) {
     Ddes (src, dst);
-    src -= 8 ; dst -= 8;
+    src += 8 ; dst += 8;
   }
 }
 
 CAMLprim value
-caml_nc_des_key_size () {
+caml_nc_des_key_size (value unit) {
   return Val_int (sizeof (unsigned long) * 96);
 }
 

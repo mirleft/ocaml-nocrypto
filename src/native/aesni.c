@@ -1,9 +1,6 @@
-#if defined (__i386__) || defined (__x86_64__)
-#if defined (__AES__)
+#include "nocrypto.h"
 
-#include <x86intrin.h>
-
-#include "misc.h"
+#if defined (NC_AES_NI)
 
 /* xmm: [3, 2, 1, 0] */
 #define _S_3333 0xff
@@ -376,5 +373,4 @@ caml_nc_aes_dec_bc (value *argv, int argc) {
   return caml_nc_aes_dec (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
 }
 
-#endif /* __AES__ */
-#endif /* __i386__ || __x86_64__ */
+#endif /* NC_AES_NI */

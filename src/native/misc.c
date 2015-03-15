@@ -1,9 +1,4 @@
-
-#if defined (__i386__) || defined (__x86_64__)
-#include <x86intrin.h>
-#endif
-
-#include "misc.h"
+#include "nocrypto.h"
 
 #define u_long_s sizeof (unsigned long)
 

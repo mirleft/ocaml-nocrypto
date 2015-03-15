@@ -4,10 +4,13 @@
 // http://www.efgh.com/software/rijndael.htm
 //
 
+#include "nocrypto.h"
+
+#if defined (NC_AES_GENERIC)
+
 #define FULL_UNROLL
 
 #include "rijndael.h"
-#include "misc.h"
 
 typedef unsigned long u32;
 typedef unsigned char u8;
@@ -1213,10 +1216,7 @@ void nc_rijndaelDecrypt(const u32 *rk, int nrounds, const u8 ciphertext[16],
 }
 
 
-#if !defined (__AES__)
-/* XXX
- * Remove other bindings and hide the entire file under this.
- */
+/* OCaml front-end */
 
 #define keybits_of_r(x) ((x - 6) * 32)
 
@@ -1285,4 +1285,4 @@ caml_nc_aes_dec_bc (value *argv, int argc) {
   return caml_nc_aes_dec (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
 }
 
-#endif /* __AES__ */
+#endif /* NC_AES_GENERIC */
