@@ -243,11 +243,12 @@ module Cipher_block : sig
 
   (** {b AES}, plus a few modes of operation. *)
   module AES : sig
-    module ECB : T.ECB
-    module CBC : T.CBC
-    module CTR : functor (C : T.Counter) -> T.CTR
-    module GCM : T.GCM
-    module CCM : T.CCM
+    module Core : T.Core
+    module ECB  : T.ECB
+    module CBC  : T.CBC
+    module CTR  : functor (C : T.Counter) -> T.CTR
+    module GCM  : T.GCM
+    module CCM  : T.CCM
   end
 
   (** {b DES}, plus a few modes of operation. *)
