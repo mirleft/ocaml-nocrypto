@@ -243,6 +243,7 @@ module Cipher_block : sig
 
   (** {b AES}, plus a few modes of operation. *)
   module AES : sig
+    val mode : [ `Generic | `AES_NI ]
     module Core : T.Core
     module ECB  : T.ECB
     module CBC  : T.CBC

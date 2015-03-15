@@ -11,6 +11,7 @@ module AES = struct
   external enc      : buffer -> int -> int -> buffer -> int -> buffer -> int -> unit  = "caml_nc_aes_enc_bc" "caml_nc_aes_enc" "noalloc"
   external dec      : buffer -> int -> int -> buffer -> int -> buffer -> int -> unit  = "caml_nc_aes_dec_bc" "caml_nc_aes_dec" "noalloc"
   external rk_s     : int -> int                                                      = "caml_nc_aes_rk_size"                  "noalloc"
+  external mode     : unit -> int                                                     = "caml_nc_aes_mode"                     "noalloc"
 end
 
 module DES = struct

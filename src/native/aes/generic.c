@@ -4,13 +4,13 @@
 // http://www.efgh.com/software/rijndael.htm
 //
 
-#include "nocrypto.h"
+#include "../nocrypto.h"
 
 #if defined (NC_AES_GENERIC)
 
 #define FULL_UNROLL
 
-#include "rijndael.h"
+#include "generic.h"
 
 typedef unsigned long u32;
 typedef unsigned char u8;
@@ -1284,5 +1284,7 @@ CAMLprim value
 caml_nc_aes_dec_bc (value *argv, int argc) {
   return caml_nc_aes_dec (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
 }
+
+CAMLprim value caml_nc_aes_mode (value unit) { return Val_int (0); }
 
 #endif /* NC_AES_GENERIC */

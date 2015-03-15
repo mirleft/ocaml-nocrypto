@@ -339,6 +339,10 @@ open Bigarray
 
 module AES = struct
 
+  let mode =
+    match Native.AES.mode () with
+    | 0 -> `Generic | 1 -> `AES_NI | _ -> assert false
+
   module Core : T.Core = struct
 
     let key   = [| 16; 24; 32 |]

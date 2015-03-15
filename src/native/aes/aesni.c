@@ -1,4 +1,4 @@
-#include "nocrypto.h"
+#include "../nocrypto.h"
 
 #if defined (NC_AES_NI)
 
@@ -372,5 +372,7 @@ CAMLprim value
 caml_nc_aes_dec_bc (value *argv, int argc) {
   return caml_nc_aes_dec (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
 }
+
+CAMLprim value caml_nc_aes_mode (value unit) { return Val_int (1); }
 
 #endif /* NC_AES_NI */

@@ -15,9 +15,9 @@
  * (GEnie : OUTER; CIS : [71755,204]) Graven Imagery, 1992.
  */
  
-#include "nocrypto.h"
+#include "../nocrypto.h"
 
-#include "d3des.h"
+#include "generic.h"
  
 static void scrunch(unsigned char *, unsigned long *);
 static void unscrun(unsigned long *, unsigned char *);
