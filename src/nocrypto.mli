@@ -252,9 +252,10 @@ module Cipher_block : sig
 
   (** {b DES}, plus a few modes of operation. *)
   module DES : sig
-    module ECB : T.ECB
-    module CBC : T.CBC
-    module CTR : functor (C : T.Counter) -> T.CTR
+    module Core : T.Core
+    module ECB  : T.ECB
+    module CBC  : T.CBC
+    module CTR  : functor (C : T.Counter) -> T.CTR
   end
 end
 
