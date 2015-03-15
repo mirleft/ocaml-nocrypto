@@ -107,88 +107,6 @@ end
 
 module Modes = struct
 
-  module Base_of (C : T.Raw) : T.Base = struct
-
-    type key = C.ekey * C.dkey
-
-    let of_secret cs = C.(e_of_secret cs, d_of_secret cs)
-
-    let (key_sizes, block_size) = C.(key_sizes, block_size)
-
-    let encrypt ~key: (key, _) plain =
-      let cipher = Cstruct.create block_size in
-      ( C.encrypt_block ~key plain cipher ; cipher )
-
-    let decrypt ~key: (_, key) cipher =
-      let plain = Cstruct.create block_size in
-      ( C.decrypt_block ~key cipher plain ; plain )
-  end
-
-  module ECB_of (C : T.Raw) : T.ECB = struct
-
-    open Cstruct
-
-    type key = C.ekey * C.dkey
-
-    let (key_sizes, block_size) = C.(key_sizes, block_size)
-
-    let of_secret sec = C.(e_of_secret sec, d_of_secret sec)
-
-    let encrypt, decrypt =
-      let ecb f key source =
-        let rec loop src = function
-          | dst when Cs.null dst -> ()
-          | dst ->
-              f ~key src dst ;
-              loop (shift src block_size)
-                   (shift dst block_size) in
-        let dst = create @@ len source in
-        ( loop source dst ; dst ) in
-      (fun ~key:(key, _) -> ecb C.encrypt_block key),
-      (fun ~key:(_, key) -> ecb C.decrypt_block key)
-
-  end
-
-  module CBC_of (C : T.Raw) : T.CBC = struct
-
-    open Cstruct
-
-    type result = { message : Cstruct.t ; iv : Cstruct.t }
-    type key    = C.ekey * C.dkey
-
-    let (key_sizes, block_size) = C.(key_sizes, block_size)
-
-    let of_secret sec = C.(e_of_secret sec, d_of_secret sec)
-
-    let encrypt ~key:(key, _) ~iv plain =
-      let rec loop iv = function
-        | plain when Cs.null plain -> iv
-        | plain ->
-            Cs.xor_into iv plain block_size ;
-            C.encrypt_block ~key plain plain ;
-            loop (sub plain 0 block_size)
-                 (shift plain block_size)
-      in
-      let dst = Cs.clone plain in
-      let iv' = loop iv dst in
-      { message = dst ; iv = iv' }
-
-    let decrypt ~key:(_, key) ~iv cipher =
-      let rec loop iv src = function
-        | dst when Cs.null dst -> iv
-        | dst ->
-            C.decrypt_block ~key src dst ;
-            Cs.xor_into iv dst block_size ;
-            loop (sub src 0 block_size)
-                 (shift src block_size)
-                 (shift dst block_size)
-      in
-      let dst = create @@ len cipher in
-      let iv' = loop iv cipher dst in
-      { message = dst ; iv = iv' }
-
-  end
-
   module CTR_of (C : T.Raw) (CNT : T.Counter) : T.CTR = struct
 
     open Cstruct
@@ -418,7 +336,6 @@ module Counters = struct
 end
 
 open Bigarray
-open Native
 
 module AES = struct
 
@@ -427,8 +344,8 @@ module AES = struct
     let key   = [| 16; 24; 32 |]
     let block = 16
 
-    type ekey = buffer * int
-    type dkey = buffer * int
+    type ekey = Native.buffer * int
+    type dkey = Native.buffer * int
 
     let of_secret_with init { Cstruct.buffer ; off ; len } =
       let rounds =
@@ -474,8 +391,8 @@ module DES = struct
     let key   = [| 24 |]
     let block = 8
 
-    type ekey = buffer
-    type dkey = buffer
+    type ekey = Native.buffer
+    type dkey = Native.buffer
 
     let k_s = Native.DES.k_s ()
 
