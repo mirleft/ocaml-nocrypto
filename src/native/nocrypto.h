@@ -11,6 +11,10 @@
 #define NC_AES_GENERIC
 #endif
 
+typedef unsigned char u_char;
+typedef unsigned long u_long;
+typedef unsigned int u_int;
+
 #include <caml/mlvalues.h>
 #include <caml/bigarray.h>
 
