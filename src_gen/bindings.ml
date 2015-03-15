@@ -38,33 +38,4 @@ struct
   module SHA384 = Gen_hash (struct let name = "sha384" end)
   module SHA512 = Gen_hash (struct let name = "sha512" end)
 
-  module AES = struct
-
-    let setup_enc = F.foreign "nc_rijndaelSetupEncrypt" @@
-      ptr ulong @-> ptr char @-> int @-> returning int
-
-    and setup_dec = F.foreign "nc_rijndaelSetupDecrypt" @@
-      ptr ulong @-> ptr char @-> int @-> returning int
-
-    and enc = F.foreign "nc_rijndaelEncrypt" @@
-      ptr ulong @-> int @-> ptr char @-> ptr char @-> returning void
-
-    and dec = F.foreign "nc_rijndaelDecrypt" @@
-      ptr ulong @-> int @-> ptr char @-> ptr char @-> returning void
-
-    let rklength keybytes = keybytes + 28
-    and nrounds  keybytes = keybytes / 4 + 6
-  end
-
-  module D3DES = struct
-
-    let en0 = 0
-    and de1 = 1
-
-    let des3key = F.foreign "des3key" @@ ptr char @-> short @-> returning void
-    and cp3key  = F.foreign "cp3key"  @@ ptr ulong @-> returning void
-    and use3key = F.foreign "use3key" @@ ptr ulong @-> returning void
-    and ddes    = F.foreign "Ddes"    @@ ptr char @-> ptr char @-> returning void
-  end
-
 end
