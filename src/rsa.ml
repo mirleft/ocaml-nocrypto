@@ -115,7 +115,7 @@ module PKCS1 = struct
     go true 0 |> Option.map ~f:(fun off -> sub cs off (n - off))
 
   let pad_01 =
-    pad ~mark:0x01 ~padding:(fun cs -> Cs.fill cs 0xff)
+    pad ~mark:0x01 ~padding:(fun cs -> Cs.memset cs 0xff)
 
   let pad_02 ?g =
     pad ~mark:0x02 ~padding:(fun cs ->

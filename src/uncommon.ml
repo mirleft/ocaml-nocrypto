@@ -134,25 +134,30 @@ module Cs = struct
     let cs = clone ~n cs2 in
     ( xor_into cs1 cs n ; cs )
 
-  let fill cs x =
-    let open Native in (* XXX This should probably go into Cstruct. *)
-    ignore @@ Bindings.Libc.memset Conv.(cs_ptr cs) x Conv.(cs_len_size_t cs)
+  (* XXX
+   * Kill me once
+   * https://github.com/mirage/ocaml-cstruct/commit/c32083359615b0fade99ff57914409d98a1528cc
+   * is released.
+   *)
+  external _memset : Native.buffer -> int -> int -> int -> unit = "caml_fill_bigstring"
+  let memset cs x = _memset cs.buffer cs.off cs.len x
+  (* XXX *)
 
   let create_with n x =
-    let cs = create n in ( fill cs x ; cs )
+    let cs = create n in ( memset cs x ; cs )
 
   let rpad cs size x =
     let l = len cs and cs' = create size in
     if size < l then invalid_arg "Nocrypto.Uncommon.Cs.rpad: size < len";
     blit cs 0 cs' 0 l ;
-    fill (sub cs' l (size - l)) x ;
+    memset (sub cs' l (size - l)) x ;
     cs'
 
   let lpad cs size x =
     let l = len cs and cs' = create size in
     if size < l then invalid_arg "Nocrypto.Uncommon.Cs.lpad: size < len";
     blit cs 0 cs' (size - l) l ;
-    fill (sub cs' 0 (size - l)) x ;
+    memset (sub cs' 0 (size - l)) x ;
     cs'
 
   let of_bytes, of_int32s, of_int64s =
@@ -168,7 +173,7 @@ module Cs = struct
     | bits when bits mod 8 = 0 ->
         let off = bits / 8 in
         blit cs off cs 0 (cs.len - off) ;
-        fill (shift cs (cs.len - off)) 0x00
+        memset (shift cs (cs.len - off)) 0x00
     | bits when bits < 8 ->
         let foo = 8 - bits in
         for i = 0 to cs.len - 2 do
@@ -186,7 +191,7 @@ module Cs = struct
     | bits when bits mod 8 = 0 ->
         let off = bits / 8 in
         blit cs 0 cs off (cs.len - off) ;
-        fill (sub cs 0 off) 0x00
+        memset (sub cs 0 off) 0x00
     | bits when bits < 8 ->
         let foo = 8 - bits in
         for i = cs.len - 1 downto 1 do

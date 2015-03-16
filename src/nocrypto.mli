@@ -30,7 +30,7 @@ module Uncommon : sig
     val xor_into : Cstruct.t -> Cstruct.t -> int -> unit
     val xor      : Cstruct.t -> Cstruct.t -> Cstruct.t
 
-    val fill : Cstruct.t -> int -> unit
+    val memset : Cstruct.t -> int -> unit
     val create_with : int -> int -> Cstruct.t
 
     val of_hex : string -> Cstruct.t
