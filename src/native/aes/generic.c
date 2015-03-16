@@ -1,8 +1,8 @@
-//
-// public domain
-// Philip J. Erdelsky
-// http://www.efgh.com/software/rijndael.htm
-//
+/*
+ * public domain
+ * Philip J. Erdelsky
+ * http://www.efgh.com/software/rijndael.htm
+ */
 
 #include "../nocrypto.h"
 

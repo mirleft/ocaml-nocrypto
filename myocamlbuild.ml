@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 86406957f5cacbace916edcfc65a438d) *)
+(* DO NOT EDIT (digest: 5c60919e900ad143b4008cb0705fd8d4) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -642,10 +642,13 @@ let package_default =
        [
           (["oasis_library_nocrypto_ccopt"; "compile"],
             [
-               (OASISExpr.EBool true, S [A "-ccopt"; A "-O3"]);
+               (OASISExpr.EBool true,
+                 S [A "-ccopt"; A "--std=c99"; A "-ccopt"; A "-O3"]);
                (OASISExpr.EFlag "pedantic",
                  S
                    [
+                      A "-ccopt";
+                      A "--std=c99";
                       A "-ccopt";
                       A "-O3";
                       A "-ccopt";
@@ -660,6 +663,8 @@ let package_default =
                         OASISExpr.ETest ("architecture", "amd64"))),
                  S
                    [
+                      A "-ccopt";
+                      A "--std=c99";
                       A "-ccopt";
                       A "-O3";
                       A "-ccopt";
@@ -676,6 +681,8 @@ let package_default =
                     OASISExpr.EFlag "pedantic"),
                  S
                    [
+                      A "-ccopt";
+                      A "--std=c99";
                       A "-ccopt";
                       A "-O3";
                       A "-ccopt";
@@ -703,6 +710,8 @@ let package_default =
                  S
                    [
                       A "-ccopt";
+                      A "--std=c99";
+                      A "-ccopt";
                       A "-O3";
                       A "-ccopt";
                       A "-DNDEBUG";
@@ -712,6 +721,8 @@ let package_default =
                (OASISExpr.EFlag "pedantic",
                  S
                    [
+                      A "-ccopt";
+                      A "--std=c99";
                       A "-ccopt";
                       A "-O3";
                       A "-ccopt";
@@ -730,6 +741,8 @@ let package_default =
                         OASISExpr.ETest ("architecture", "amd64"))),
                  S
                    [
+                      A "-ccopt";
+                      A "--std=c99";
                       A "-ccopt";
                       A "-O3";
                       A "-ccopt";
@@ -750,6 +763,8 @@ let package_default =
                     OASISExpr.EFlag "pedantic"),
                  S
                    [
+                      A "-ccopt";
+                      A "--std=c99";
                       A "-ccopt";
                       A "-O3";
                       A "-ccopt";
@@ -775,7 +790,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 779 "myocamlbuild.ml"
+# 794 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 open Ocamlbuild_plugin;;
