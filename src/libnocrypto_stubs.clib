@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 8e2c94afaf3375653435b7203ff0a07e)
+# DO NOT EDIT (digest: a6c43149514f0252e69ccf2148cd3923)
 native/misc.o
 native/hash/stubs.o
 native/hash/md5.o
@@ -9,6 +9,5 @@ native/hash/sha512.o
 native/aes/generic.o
 native/aes/aesni.o
 native/des/generic.o
-native/nocrypto_stubs.o
 native/nocrypto_generated_stubs.o
 # OASIS_STOP

@@ -9,7 +9,6 @@ let _ =
   with_formatter
     ~path:"src/native/nocrypto_generated_stubs.c"
     (fun fmt ->
-      Format.fprintf fmt "#include \"nocrypto_stubs.h\"\n\n";
       Cstubs.write_c fmt ~prefix:"nocrypto" (module Bindings.Make));
 
   with_formatter

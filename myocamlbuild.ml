@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 1359343254f4eed7a6a5639e502dab53) *)
+(* DO NOT EDIT (digest: 57a5a9b34ed638d6a0faaa8d6e6ce303) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -624,8 +624,7 @@ let package_default =
                "xen/native/hash/sha1.h";
                "xen/native/hash/sha256.h";
                "xen/native/hash/sha512.h";
-               "xen/native/des/generic.h";
-               "xen/native/nocrypto_stubs.h"
+               "xen/native/des/generic.h"
             ]);
           ("nocrypto",
             "src/",
@@ -636,8 +635,7 @@ let package_default =
                "src/native/hash/sha1.h";
                "src/native/hash/sha256.h";
                "src/native/hash/sha512.h";
-               "src/native/des/generic.h";
-               "src/native/nocrypto_stubs.h"
+               "src/native/des/generic.h"
             ])
        ];
      flags =
@@ -814,7 +812,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 818 "myocamlbuild.ml"
+# 816 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 open Ocamlbuild_plugin;;

@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: f9315e22c828c5bf343014ecb4abbc07)
+# DO NOT EDIT (digest: 0a1ae74697aeb4076ea0f279b66d87b1)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -29,7 +29,6 @@ true: annot, bin_annot
 "xen/native/aes/generic.c": oasis_library_nocrypto_xen_ccopt
 "xen/native/aes/aesni.c": oasis_library_nocrypto_xen_ccopt
 "xen/native/des/generic.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/nocrypto_stubs.c": oasis_library_nocrypto_xen_ccopt
 "xen/native/nocrypto_generated_stubs.c": oasis_library_nocrypto_xen_ccopt
 <xen/nocrypto_xen.{cma,cmxa}>: use_libnocrypto_xen_stubs
 <xen/*.ml{,i,y}>: package(ctypes.stubs)
@@ -42,7 +41,6 @@ true: annot, bin_annot
 "xen/native/aes/generic.c": package(ctypes.stubs)
 "xen/native/aes/aesni.c": package(ctypes.stubs)
 "xen/native/des/generic.c": package(ctypes.stubs)
-"xen/native/nocrypto_stubs.c": package(ctypes.stubs)
 "xen/native/nocrypto_generated_stubs.c": package(ctypes.stubs)
 # Library nocrypto
 "src/nocrypto.cmxs": use_nocrypto
@@ -71,7 +69,6 @@ true: annot, bin_annot
 "src/native/aes/generic.c": oasis_library_nocrypto_ccopt
 "src/native/aes/aesni.c": oasis_library_nocrypto_ccopt
 "src/native/des/generic.c": oasis_library_nocrypto_ccopt
-"src/native/nocrypto_stubs.c": oasis_library_nocrypto_ccopt
 "src/native/nocrypto_generated_stubs.c": oasis_library_nocrypto_ccopt
 <src/nocrypto.{cma,cmxa}>: oasis_library_nocrypto_byte
 <src/*.ml{,i,y}>: oasis_library_nocrypto_byte
@@ -84,7 +81,6 @@ true: annot, bin_annot
 "src/native/aes/generic.c": oasis_library_nocrypto_byte
 "src/native/aes/aesni.c": oasis_library_nocrypto_byte
 "src/native/des/generic.c": oasis_library_nocrypto_byte
-"src/native/nocrypto_stubs.c": oasis_library_nocrypto_byte
 "src/native/nocrypto_generated_stubs.c": oasis_library_nocrypto_byte
 <src/nocrypto.{cma,cmxa}>: use_libnocrypto_stubs
 <src/*.ml{,i,y}>: package(cstruct)
@@ -147,12 +143,6 @@ true: annot, bin_annot
 "src/native/des/generic.c": package(sexplib.syntax)
 "src/native/des/generic.c": package(type_conv)
 "src/native/des/generic.c": package(zarith)
-"src/native/nocrypto_stubs.c": package(cstruct)
-"src/native/nocrypto_stubs.c": package(ctypes)
-"src/native/nocrypto_stubs.c": package(ctypes.stubs)
-"src/native/nocrypto_stubs.c": package(sexplib.syntax)
-"src/native/nocrypto_stubs.c": package(type_conv)
-"src/native/nocrypto_stubs.c": package(zarith)
 "src/native/nocrypto_generated_stubs.c": package(cstruct)
 "src/native/nocrypto_generated_stubs.c": package(ctypes)
 "src/native/nocrypto_generated_stubs.c": package(ctypes.stubs)
