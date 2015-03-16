@@ -11,14 +11,18 @@ static inline void xor_into (u_char *src, u_char *dst, u_int n) {
         _mm_xor_si128 (
           _mm_loadu_si128 ((__m128i*) src),
           _mm_loadu_si128 ((__m128i*) dst)));
-    src += 16 ; dst += 16 ; n -= 16 ;
+    src += 16;
+    dst += 16;
+    n   -= 16;
   }
 #endif
   while (n >= u_long_s) {
     *((u_long *) dst) = *((u_long *) src) ^ *((u_long *) dst);
-    src += u_long_s ; dst += u_long_s ; n -= u_long_s ;
+    src += u_long_s;
+    dst += u_long_s;
+    n   -= u_long_s;
   }
-  while (n > 0) {
+  while (n-- > 0) {
     *dst = *(src ++) ^ *dst;
     dst++;
   }

@@ -113,21 +113,9 @@ module Cs = struct
     ( blit cs 0 cs' 0 n ; cs' )
 
   let xor_into src dst n =
-    let open LE in
-    let rec loop i = function
-      | n when n >= 8 ->
-          set_uint64 dst i (Int64.logxor (get_uint64 src i) (get_uint64 dst i));
-          loop (i + 8) (n - 8)
-      | n when n >= 4 ->
-          set_uint32 dst i (Int32.logxor (get_uint32 src i) (get_uint32 dst i));
-          loop (i + 4) (n - 4)
-      | n when n >= 2 ->
-          set_uint16 dst i (get_uint16 src i lxor get_uint16 dst i);
-          loop (i + 2) (n - 2)
-      | 1 -> set_uint8 dst i (get_uint8 src i lxor get_uint8 dst i)
-      | _ -> ()
-    in
-    loop 0 n
+    if n > min (len src) (len dst) then
+      Raise.invalid1 "Uncommon.Cs.xor_into: buffers to small (need %d)" n
+    else Native.xor_into src.buffer src.off dst.buffer dst.off n
 
   let xor cs1 cs2 =
     let n  = min (len cs1) (len cs2) in
