@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: fb549dfbe67961ef374c069beae11f80) *)
+(* DO NOT EDIT (digest: 1359343254f4eed7a6a5639e502dab53) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -618,24 +618,24 @@ let package_default =
           ("nocrypto_xen",
             "xen/",
             [
-               "xen/native/bitfn.h";
-               "xen/native/md5.h";
-               "xen/native/sha1.h";
-               "xen/native/sha256.h";
-               "xen/native/sha512.h";
                "xen/native/nocrypto.h";
+               "xen/native/hash/bitfn.h";
+               "xen/native/hash/md5.h";
+               "xen/native/hash/sha1.h";
+               "xen/native/hash/sha256.h";
+               "xen/native/hash/sha512.h";
                "xen/native/des/generic.h";
                "xen/native/nocrypto_stubs.h"
             ]);
           ("nocrypto",
             "src/",
             [
-               "src/native/bitfn.h";
-               "src/native/md5.h";
-               "src/native/sha1.h";
-               "src/native/sha256.h";
-               "src/native/sha512.h";
                "src/native/nocrypto.h";
+               "src/native/hash/bitfn.h";
+               "src/native/hash/md5.h";
+               "src/native/hash/sha1.h";
+               "src/native/hash/sha256.h";
+               "src/native/hash/sha512.h";
                "src/native/des/generic.h";
                "src/native/nocrypto_stubs.h"
             ])
