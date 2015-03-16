@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 0a1ae74697aeb4076ea0f279b66d87b1)
+# DO NOT EDIT (digest: c34b1c472630afe0542a47e1f99d97ba)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -14,34 +14,6 @@ true: annot, bin_annot
 ".git": not_hygienic
 "_darcs": -traverse
 "_darcs": not_hygienic
-# Executable nocrypto_bindgen
-"src_gen/nocrypto_bindgen.byte": package(ctypes.stubs)
-<src_gen/*.ml{,i,y}>: package(ctypes.stubs)
-# Library nocrypto_xen
-"xen/nocrypto_xen.cmxs": use_nocrypto_xen
-<xen/*.ml{,i,y}>: oasis_library_nocrypto_xen_ccopt
-"xen/native/misc.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/hash/stubs.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/hash/md5.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/hash/sha1.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/hash/sha256.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/hash/sha512.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/aes/generic.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/aes/aesni.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/des/generic.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/nocrypto_generated_stubs.c": oasis_library_nocrypto_xen_ccopt
-<xen/nocrypto_xen.{cma,cmxa}>: use_libnocrypto_xen_stubs
-<xen/*.ml{,i,y}>: package(ctypes.stubs)
-"xen/native/misc.c": package(ctypes.stubs)
-"xen/native/hash/stubs.c": package(ctypes.stubs)
-"xen/native/hash/md5.c": package(ctypes.stubs)
-"xen/native/hash/sha1.c": package(ctypes.stubs)
-"xen/native/hash/sha256.c": package(ctypes.stubs)
-"xen/native/hash/sha512.c": package(ctypes.stubs)
-"xen/native/aes/generic.c": package(ctypes.stubs)
-"xen/native/aes/aesni.c": package(ctypes.stubs)
-"xen/native/des/generic.c": package(ctypes.stubs)
-"xen/native/nocrypto_generated_stubs.c": package(ctypes.stubs)
 # Library nocrypto
 "src/nocrypto.cmxs": use_nocrypto
 "src/uncommon.cmx": for-pack(Nocrypto)
@@ -69,7 +41,6 @@ true: annot, bin_annot
 "src/native/aes/generic.c": oasis_library_nocrypto_ccopt
 "src/native/aes/aesni.c": oasis_library_nocrypto_ccopt
 "src/native/des/generic.c": oasis_library_nocrypto_ccopt
-"src/native/nocrypto_generated_stubs.c": oasis_library_nocrypto_ccopt
 <src/nocrypto.{cma,cmxa}>: oasis_library_nocrypto_byte
 <src/*.ml{,i,y}>: oasis_library_nocrypto_byte
 "src/native/misc.c": oasis_library_nocrypto_byte
@@ -81,81 +52,65 @@ true: annot, bin_annot
 "src/native/aes/generic.c": oasis_library_nocrypto_byte
 "src/native/aes/aesni.c": oasis_library_nocrypto_byte
 "src/native/des/generic.c": oasis_library_nocrypto_byte
-"src/native/nocrypto_generated_stubs.c": oasis_library_nocrypto_byte
 <src/nocrypto.{cma,cmxa}>: use_libnocrypto_stubs
 <src/*.ml{,i,y}>: package(cstruct)
-<src/*.ml{,i,y}>: package(ctypes)
-<src/*.ml{,i,y}>: package(ctypes.stubs)
 <src/*.ml{,i,y}>: package(sexplib.syntax)
 <src/*.ml{,i,y}>: package(type_conv)
 <src/*.ml{,i,y}>: package(zarith)
 "src/native/misc.c": package(cstruct)
-"src/native/misc.c": package(ctypes)
-"src/native/misc.c": package(ctypes.stubs)
 "src/native/misc.c": package(sexplib.syntax)
 "src/native/misc.c": package(type_conv)
 "src/native/misc.c": package(zarith)
 "src/native/hash/stubs.c": package(cstruct)
-"src/native/hash/stubs.c": package(ctypes)
-"src/native/hash/stubs.c": package(ctypes.stubs)
 "src/native/hash/stubs.c": package(sexplib.syntax)
 "src/native/hash/stubs.c": package(type_conv)
 "src/native/hash/stubs.c": package(zarith)
 "src/native/hash/md5.c": package(cstruct)
-"src/native/hash/md5.c": package(ctypes)
-"src/native/hash/md5.c": package(ctypes.stubs)
 "src/native/hash/md5.c": package(sexplib.syntax)
 "src/native/hash/md5.c": package(type_conv)
 "src/native/hash/md5.c": package(zarith)
 "src/native/hash/sha1.c": package(cstruct)
-"src/native/hash/sha1.c": package(ctypes)
-"src/native/hash/sha1.c": package(ctypes.stubs)
 "src/native/hash/sha1.c": package(sexplib.syntax)
 "src/native/hash/sha1.c": package(type_conv)
 "src/native/hash/sha1.c": package(zarith)
 "src/native/hash/sha256.c": package(cstruct)
-"src/native/hash/sha256.c": package(ctypes)
-"src/native/hash/sha256.c": package(ctypes.stubs)
 "src/native/hash/sha256.c": package(sexplib.syntax)
 "src/native/hash/sha256.c": package(type_conv)
 "src/native/hash/sha256.c": package(zarith)
 "src/native/hash/sha512.c": package(cstruct)
-"src/native/hash/sha512.c": package(ctypes)
-"src/native/hash/sha512.c": package(ctypes.stubs)
 "src/native/hash/sha512.c": package(sexplib.syntax)
 "src/native/hash/sha512.c": package(type_conv)
 "src/native/hash/sha512.c": package(zarith)
 "src/native/aes/generic.c": package(cstruct)
-"src/native/aes/generic.c": package(ctypes)
-"src/native/aes/generic.c": package(ctypes.stubs)
 "src/native/aes/generic.c": package(sexplib.syntax)
 "src/native/aes/generic.c": package(type_conv)
 "src/native/aes/generic.c": package(zarith)
 "src/native/aes/aesni.c": package(cstruct)
-"src/native/aes/aesni.c": package(ctypes)
-"src/native/aes/aesni.c": package(ctypes.stubs)
 "src/native/aes/aesni.c": package(sexplib.syntax)
 "src/native/aes/aesni.c": package(type_conv)
 "src/native/aes/aesni.c": package(zarith)
 "src/native/des/generic.c": package(cstruct)
-"src/native/des/generic.c": package(ctypes)
-"src/native/des/generic.c": package(ctypes.stubs)
 "src/native/des/generic.c": package(sexplib.syntax)
 "src/native/des/generic.c": package(type_conv)
 "src/native/des/generic.c": package(zarith)
-"src/native/nocrypto_generated_stubs.c": package(cstruct)
-"src/native/nocrypto_generated_stubs.c": package(ctypes)
-"src/native/nocrypto_generated_stubs.c": package(ctypes.stubs)
-"src/native/nocrypto_generated_stubs.c": package(sexplib.syntax)
-"src/native/nocrypto_generated_stubs.c": package(type_conv)
-"src/native/nocrypto_generated_stubs.c": package(zarith)
+# Library nocrypto_xen
+"xen/nocrypto_xen.cmxs": use_nocrypto_xen
+<xen/*.ml{,i,y}>: oasis_library_nocrypto_xen_ccopt
+"xen/native/misc.c": oasis_library_nocrypto_xen_ccopt
+"xen/native/hash/stubs.c": oasis_library_nocrypto_xen_ccopt
+"xen/native/hash/md5.c": oasis_library_nocrypto_xen_ccopt
+"xen/native/hash/sha1.c": oasis_library_nocrypto_xen_ccopt
+"xen/native/hash/sha256.c": oasis_library_nocrypto_xen_ccopt
+"xen/native/hash/sha512.c": oasis_library_nocrypto_xen_ccopt
+"xen/native/aes/generic.c": oasis_library_nocrypto_xen_ccopt
+"xen/native/aes/aesni.c": oasis_library_nocrypto_xen_ccopt
+"xen/native/des/generic.c": oasis_library_nocrypto_xen_ccopt
+<xen/nocrypto_xen.{cma,cmxa}>: use_libnocrypto_xen_stubs
 # Library testlib
 "tests/testlib.cmxs": use_testlib
 # Executable test_runner
 <tests/testrunner.{native,byte}>: package(cstruct)
 <tests/testrunner.{native,byte}>: package(cstruct.unix)
-<tests/testrunner.{native,byte}>: package(ctypes)
-<tests/testrunner.{native,byte}>: package(ctypes.stubs)
 <tests/testrunner.{native,byte}>: package(oUnit)
 <tests/testrunner.{native,byte}>: package(sexplib.syntax)
 <tests/testrunner.{native,byte}>: package(type_conv)
@@ -166,8 +121,6 @@ true: annot, bin_annot
 <tests/*.ml{,i,y}>: use_testlib
 # Executable bench
 "tests/runnable.native": package(cstruct)
-"tests/runnable.native": package(ctypes)
-"tests/runnable.native": package(ctypes.stubs)
 "tests/runnable.native": package(lwt)
 "tests/runnable.native": package(lwt.syntax)
 "tests/runnable.native": package(lwt.unix)
@@ -181,16 +134,12 @@ true: annot, bin_annot
 # Executable hashbench
 "tests/hashbench.native": package(cstruct)
 "tests/hashbench.native": package(cstruct.unix)
-"tests/hashbench.native": package(ctypes)
-"tests/hashbench.native": package(ctypes.stubs)
 "tests/hashbench.native": package(sexplib.syntax)
 "tests/hashbench.native": package(type_conv)
 "tests/hashbench.native": package(zarith)
 "tests/hashbench.native": use_nocrypto
 <tests/*.ml{,i,y}>: package(cstruct)
 <tests/*.ml{,i,y}>: package(cstruct.unix)
-<tests/*.ml{,i,y}>: package(ctypes)
-<tests/*.ml{,i,y}>: package(ctypes.stubs)
 <tests/*.ml{,i,y}>: package(sexplib.syntax)
 <tests/*.ml{,i,y}>: package(type_conv)
 <tests/*.ml{,i,y}>: package(zarith)

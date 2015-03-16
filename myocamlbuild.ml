@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 57a5a9b34ed638d6a0faaa8d6e6ce303) *)
+(* DO NOT EDIT (digest: 86406957f5cacbace916edcfc65a438d) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -609,23 +609,12 @@ let package_default =
   {
      MyOCamlbuildBase.lib_ocaml =
        [
-          ("nocrypto_xen", ["xen"], []);
           ("nocrypto", ["src"], []);
+          ("nocrypto_xen", ["xen"], []);
           ("testlib", ["tests"], [])
        ];
      lib_c =
        [
-          ("nocrypto_xen",
-            "xen/",
-            [
-               "xen/native/nocrypto.h";
-               "xen/native/hash/bitfn.h";
-               "xen/native/hash/md5.h";
-               "xen/native/hash/sha1.h";
-               "xen/native/hash/sha256.h";
-               "xen/native/hash/sha512.h";
-               "xen/native/des/generic.h"
-            ]);
           ("nocrypto",
             "src/",
             [
@@ -636,116 +625,29 @@ let package_default =
                "src/native/hash/sha256.h";
                "src/native/hash/sha512.h";
                "src/native/des/generic.h"
+            ]);
+          ("nocrypto_xen",
+            "xen/",
+            [
+               "xen/native/nocrypto.h";
+               "xen/native/hash/bitfn.h";
+               "xen/native/hash/md5.h";
+               "xen/native/hash/sha1.h";
+               "xen/native/hash/sha256.h";
+               "xen/native/hash/sha512.h";
+               "xen/native/des/generic.h"
             ])
        ];
      flags =
        [
-          (["oasis_library_nocrypto_xen_ccopt"; "compile"],
-            [
-               (OASISExpr.EBool true,
-                 S
-                   [
-                      A "-ccopt";
-                      A "-O3";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}/..";
-                      A "-ccopt";
-                      A "-DNDEBUG";
-                      A "-ccopt";
-                      A "${XEN_CFLAGS}"
-                   ]);
-               (OASISExpr.EFlag "pedantic",
-                 S
-                   [
-                      A "-ccopt";
-                      A "-O3";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}/..";
-                      A "-ccopt";
-                      A "-DNDEBUG";
-                      A "-ccopt";
-                      A "${XEN_CFLAGS}";
-                      A "-ccopt";
-                      A "-Wall";
-                      A "-ccopt";
-                      A "-Wpedantic"
-                   ]);
-               (OASISExpr.EAnd
-                  (OASISExpr.EFlag "modernity",
-                    OASISExpr.EOr
-                      (OASISExpr.ETest ("architecture", "i386"),
-                        OASISExpr.ETest ("architecture", "amd64"))),
-                 S
-                   [
-                      A "-ccopt";
-                      A "-O3";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}/..";
-                      A "-ccopt";
-                      A "-DNDEBUG";
-                      A "-ccopt";
-                      A "${XEN_CFLAGS}";
-                      A "-ccopt";
-                      A "-msse2";
-                      A "-ccopt";
-                      A "-maes"
-                   ]);
-               (OASISExpr.EAnd
-                  (OASISExpr.EAnd
-                     (OASISExpr.EFlag "modernity",
-                       OASISExpr.EOr
-                         (OASISExpr.ETest ("architecture", "i386"),
-                           OASISExpr.ETest ("architecture", "amd64"))),
-                    OASISExpr.EFlag "pedantic"),
-                 S
-                   [
-                      A "-ccopt";
-                      A "-O3";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}/..";
-                      A "-ccopt";
-                      A "-DNDEBUG";
-                      A "-ccopt";
-                      A "${XEN_CFLAGS}";
-                      A "-ccopt";
-                      A "-msse2";
-                      A "-ccopt";
-                      A "-maes";
-                      A "-ccopt";
-                      A "-Wall";
-                      A "-ccopt";
-                      A "-Wpedantic"
-                   ])
-            ]);
           (["oasis_library_nocrypto_ccopt"; "compile"],
             [
-               (OASISExpr.EBool true,
-                 S
-                   [
-                      A "-ccopt";
-                      A "-O3";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}/.."
-                   ]);
+               (OASISExpr.EBool true, S [A "-ccopt"; A "-O3"]);
                (OASISExpr.EFlag "pedantic",
                  S
                    [
                       A "-ccopt";
                       A "-O3";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}/..";
                       A "-ccopt";
                       A "-Wall";
                       A "-ccopt";
@@ -760,10 +662,6 @@ let package_default =
                    [
                       A "-ccopt";
                       A "-O3";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}/..";
                       A "-ccopt";
                       A "-msse2";
                       A "-ccopt";
@@ -780,10 +678,6 @@ let package_default =
                    [
                       A "-ccopt";
                       A "-O3";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}/..";
                       A "-ccopt";
                       A "-msse2";
                       A "-ccopt";
@@ -802,6 +696,75 @@ let package_default =
             ]);
           (["oasis_library_nocrypto_byte"; "ocaml"; "compile"; "byte"],
             [(OASISExpr.EBool true, S [A "-w"; A "A-4-33-40-41-42-43-34-44"])
+            ]);
+          (["oasis_library_nocrypto_xen_ccopt"; "compile"],
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-ccopt";
+                      A "-O3";
+                      A "-ccopt";
+                      A "-DNDEBUG";
+                      A "-ccopt";
+                      A "${XEN_CFLAGS}"
+                   ]);
+               (OASISExpr.EFlag "pedantic",
+                 S
+                   [
+                      A "-ccopt";
+                      A "-O3";
+                      A "-ccopt";
+                      A "-DNDEBUG";
+                      A "-ccopt";
+                      A "${XEN_CFLAGS}";
+                      A "-ccopt";
+                      A "-Wall";
+                      A "-ccopt";
+                      A "-Wpedantic"
+                   ]);
+               (OASISExpr.EAnd
+                  (OASISExpr.EFlag "modernity",
+                    OASISExpr.EOr
+                      (OASISExpr.ETest ("architecture", "i386"),
+                        OASISExpr.ETest ("architecture", "amd64"))),
+                 S
+                   [
+                      A "-ccopt";
+                      A "-O3";
+                      A "-ccopt";
+                      A "-DNDEBUG";
+                      A "-ccopt";
+                      A "${XEN_CFLAGS}";
+                      A "-ccopt";
+                      A "-msse2";
+                      A "-ccopt";
+                      A "-maes"
+                   ]);
+               (OASISExpr.EAnd
+                  (OASISExpr.EAnd
+                     (OASISExpr.EFlag "modernity",
+                       OASISExpr.EOr
+                         (OASISExpr.ETest ("architecture", "i386"),
+                           OASISExpr.ETest ("architecture", "amd64"))),
+                    OASISExpr.EFlag "pedantic"),
+                 S
+                   [
+                      A "-ccopt";
+                      A "-O3";
+                      A "-ccopt";
+                      A "-DNDEBUG";
+                      A "-ccopt";
+                      A "${XEN_CFLAGS}";
+                      A "-ccopt";
+                      A "-msse2";
+                      A "-ccopt";
+                      A "-maes";
+                      A "-ccopt";
+                      A "-Wall";
+                      A "-ccopt";
+                      A "-Wpedantic"
+                   ])
             ])
        ];
      includes = [("tests", ["src"])]
@@ -812,7 +775,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 816 "myocamlbuild.ml"
+# 779 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 open Ocamlbuild_plugin;;
@@ -820,14 +783,6 @@ open Ocamlbuild_plugin;;
 dispatch @@ MyOCamlbuildBase.dispatch_combine [
   begin function
     | After_rules ->
-        rule "cstubs: generation"
-          ~prods:["src/native/%_generated_stubs.c"; "src/%_generated.ml"]
-          ~deps: ["src_gen/%_bindgen.byte"]
-          (fun env build -> Cmd (A(env "src_gen/%_bindgen.byte")));
-        copy_rule "cstubs: copy bindings descriptions"
-          "src_gen/bindings.ml"
-          "src/bindings.ml" ;
-
         copy_rule "xen_cstubs: copy generated source to xen directory"
           "src/native/%"
           "xen/native/%"

@@ -45,9 +45,7 @@ Library "nocrypto"
                    Rsa,
                    Dsa,
                    Dh
-  InternalModules: Nocrypto_generated,
-                   Bindings,
-                   Native,
+  InternalModules: Native,
                    Gcm,
                    Ccm
   CSources:        native/nocrypto.h,
@@ -65,14 +63,11 @@ Library "nocrypto"
                    native/aes/generic.c,
                    native/aes/aesni.c,
                    native/des/generic.c,
-                   native/des/generic.h,
-                   native/nocrypto_generated_stubs.c
-  BuildDepends:    cstruct (>= 1.2.0), zarith, ctypes,
-                   ctypes.stubs, sexplib.syntax, type_conv
-  XMETARequires:   cstruct, zarith, ctypes.stubs, sexplib
+                   native/des/generic.h
+  BuildDepends:    cstruct (>= 1.2.0), zarith, sexplib.syntax, type_conv
+  XMETARequires:   cstruct, zarith, sexplib
   XMETAExtraLines: xen_linkopts = "-lnocrypto_xen_stubs"
-  CCOpt:           -O3 -I$pkg_ctypes -I$pkg_ctypes/..
-  BuildTools:      nocrypto_bindgen
+  CCOpt:           -O3
   ByteOpt:         -w A-4-33-40-41-42-43-34-44
   if flag(modernity) && ( architecture(i386) || architecture(amd64) )
     CCOpt+: -msse2 -maes
@@ -99,20 +94,12 @@ Library "nocrypto_xen"
                    native/aes/generic.c,
                    native/aes/aesni.c,
                    native/des/generic.c,
-                   native/des/generic.h,
-                   native/nocrypto_generated_stubs.c
-  CCOpt:           -O3 -I$pkg_ctypes -I$pkg_ctypes/.. -DNDEBUG $XEN_CFLAGS
-  BuildTools:      nocrypto_bindgen
+                   native/des/generic.h
+  CCOpt:           -O3 -DNDEBUG $XEN_CFLAGS
   if flag(modernity) && ( architecture(i386) || architecture(amd64) )
     CCOpt+: -msse2 -maes
   if flag(pedantic)
     CCOpt+: -Wall -Wpedantic
-
-Executable "nocrypto_bindgen"
-  MainIs:         nocrypto_bindgen.ml
-  Install:        false
-  Path:           src_gen
-  BuildDepends:   ctypes.stubs
 
 Library "testlib"
   Path:         tests/

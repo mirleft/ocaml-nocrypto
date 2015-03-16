@@ -69,28 +69,3 @@ end
 (* XXX TODO
  * Unsolved: bounds-checked XORs are slowing things down considerably... *)
 external xor_into : buffer -> int -> buffer -> int -> int -> unit = "caml_nc_xor_into" "caml_nc_xor_into" "noalloc"
-
-module Conv = struct
-
-  open Ctypes
-
-  let bigstring_create =
-    Bigarray.(Array1.create char c_layout)
-
-  let bs_ptr bs = bigarray_start array1 bs
-
-  let cs_ptr cs =
-    bigarray_start array1 cs.Cstruct.buffer +@ cs.Cstruct.off
-
-  let cs_len_size_t cs =
-    Unsigned.Size_t.of_int cs.Cstruct.len
-
-  let cs_len32 cs =
-    Unsigned.UInt32.of_int cs.Cstruct.len
-
-  let allocate_voidp ~count =
-    Ctypes.(to_voidp @@ allocate_n uint8_t ~count)
-
-end
-
-module Bindings = Bindings.Make (Nocrypto_generated)
