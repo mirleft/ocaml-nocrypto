@@ -129,7 +129,7 @@ static void sha512_do_chunk(struct sha512_ctx *ctx, uint64_t *buf)
 
 void nc_sha384_update(struct sha384_ctx *ctx, uint8_t *data, uint32_t len)
 {
-	return nc_sha512_update(ctx, data, len);
+	nc_sha512_update(ctx, data, len);
 }
 
 void nc_sha512_update(struct sha512_ctx *ctx, uint8_t *data, uint32_t len)
@@ -224,7 +224,7 @@ void nc_sha512_init_t(struct sha512_ctx *ctx, int t)
 		ctx->h[7] = 0x0eb72ddc81c52ca2ULL;
 		break;
 	default: {
-		char buf[8+4];
+		uint8_t buf[8+4];
 		uint8_t out[64];
 		int i;
 
@@ -232,7 +232,7 @@ void nc_sha512_init_t(struct sha512_ctx *ctx, int t)
 		for (i = 0; i < 8; i++)
 			ctx->h[i] ^= 0xa5a5a5a5a5a5a5a5ULL;
 
-		i = sprintf(buf, "SHA-512/%d", t);
+		i = sprintf((char *)buf, "SHA-512/%d", t);
 		nc_sha512_update(ctx, buf, i);
 		nc_sha512_finalize(ctx, out);
 

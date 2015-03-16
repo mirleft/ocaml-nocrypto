@@ -60,9 +60,7 @@ static unsigned char pc2[48] = {
 	40, 51, 30, 36, 46, 54,	29, 39, 50, 44, 32, 47,
 	43, 48, 38, 55, 33, 52,	45, 41, 49, 35, 28, 31 };
  
-void deskey(key, edf)	/* Thanks to James Gillogly & Phil Karn! */
-unsigned char *key;
-short edf;
+void deskey(unsigned char *key, short edf) /* Thanks to James Gillogly & Phil Karn! */
 {
 	int i, j, l, m, n;
 	unsigned char pc1m[56], pcr[56];
@@ -404,9 +402,7 @@ unsigned long *block, *keys;
  
 #ifdef D2_DES
  
-void des2key(hexkey, mode)		/* stomps on Kn3 too */
-unsigned char *hexkey;			/* unsigned char[16] */
-short mode;
+void des2key(unsigned char hexkey[16], short mode) /* stomps on Kn3 too */
 {
 	short revmod;
  
@@ -538,9 +534,7 @@ unsigned long *from;	/* unsigned long[64] */
  
 #else	/* D3_DES too */
  
-void des3key(hexkey, mode)
-unsigned char *hexkey;			/* unsigned char[24] */
-short mode;
+void des3key(unsigned char hexkey[24], short mode)
 {
 	unsigned char *first, *third;
 	short revmod;

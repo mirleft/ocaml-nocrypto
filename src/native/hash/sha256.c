@@ -112,7 +112,7 @@ static void sha256_do_chunk(struct sha256_ctx *ctx, uint32_t buf[])
 
 void nc_sha224_update(struct sha224_ctx *ctx, uint8_t *data, uint32_t len)
 {
-	return nc_sha256_update(ctx, data, len);
+	nc_sha256_update(ctx, data, len);
 }
 
 void nc_sha256_update(struct sha256_ctx *ctx, uint8_t *data, uint32_t len)

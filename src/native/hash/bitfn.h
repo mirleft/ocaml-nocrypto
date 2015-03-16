@@ -32,7 +32,7 @@
 #  define ARCH_HAS_SWAP32
 static inline uint32_t bitfn_swap32(uint32_t a)
 {
-	asm ("bswap %0" : "=r" (a) : "0" (a));
+	__asm__ ("bswap %0" : "=r" (a) : "0" (a));
 	return a;
 }
 /**********************************************************/
@@ -41,11 +41,11 @@ static inline uint32_t bitfn_swap32(uint32_t a)
 static inline uint32_t bitfn_swap32(uint32_t a)
 {
 	uint32_t tmp = a;
-	asm volatile ("eor %1, %0, %0, ror #16\n"
-	              "bic %1, %1, #0xff0000\n"
-	              "mov %0, %0, ror #8\n"
-	              "eor %0, %0, %1, lsr #8\n"
-	             : "=r" (a), "=r" (tmp) : "0" (a), "1" (tmp));
+	__asm__ volatile ("eor %1, %0, %0, ror #16\n"
+	                  "bic %1, %1, #0xff0000\n"
+	                  "mov %0, %0, ror #8\n"
+	                  "eor %0, %0, %1, lsr #8\n"
+	                  : "=r" (a), "=r" (tmp) : "0" (a), "1" (tmp));
 	return a;
 }
 /**********************************************************/
@@ -54,13 +54,13 @@ static inline uint32_t bitfn_swap32(uint32_t a)
 #  define ARCH_HAS_SWAP64
 static inline uint32_t bitfn_swap32(uint32_t a)
 {
-	asm ("bswap %0" : "=r" (a) : "0" (a));
+	__asm__ ("bswap %0" : "=r" (a) : "0" (a));
 	return a;
 }
 
 static inline uint64_t bitfn_swap64(uint64_t a)
 {
-	asm ("bswap %0" : "=r" (a) : "0" (a));
+	__asm__ ("bswap %0" : "=r" (a) : "0" (a));
 	return a;
 }
 
