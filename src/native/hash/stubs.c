@@ -1,0 +1,38 @@
+#include "../nocrypto.h"
+
+#include "md5.h"
+#include "sha1.h"
+#include "sha256.h"
+#include "sha512.h"
+
+#define __define_hash(stem, upper)                                           \
+  CAMLprim value                                                             \
+  caml_nc_ ## stem ## _init (value ctx) {                                    \
+    nc_ ## stem ## _init ((struct stem ## _ctx *) Caml_ba_data_val (ctx));   \
+    return Val_unit;                                                         \
+  }                                                                          \
+  CAMLprim value                                                             \
+  caml_nc_ ## stem ## _update (value ctx, value src, value off, value len) { \
+    nc_ ## stem ## _update (                                                 \
+      (struct stem ## _ctx *) Caml_ba_data_val (ctx),                        \
+      _ba_uint8_off (src, off), Int_val (len));                              \
+    return Val_unit;                                                         \
+  }                                                                          \
+  CAMLprim value                                                             \
+  caml_nc_ ## stem ## _finalize (value ctx, value dst, value off) {          \
+    nc_ ## stem ## _finalize (                                               \
+      (struct stem ## _ctx *) Caml_ba_data_val (ctx),                        \
+      _ba_uint8_off (dst, off));                                             \
+    return Val_unit;                                                         \
+  }                                                                          \
+  CAMLprim value                                                             \
+  caml_nc_ ## stem ## _ctx_size (value unit) {                               \
+    return Val_int (upper ## _CTX_SIZE);                                     \
+  }
+
+__define_hash (md5, MD5);
+__define_hash (sha1, SHA1);
+__define_hash (sha224, SHA224);
+__define_hash (sha256, SHA256);
+__define_hash (sha384, SHA384);
+__define_hash (sha512, SHA512);

@@ -22,5 +22,7 @@ typedef unsigned int u_int;
 #define _ba_uchar_off(ba, off) ((u_char*) Caml_ba_data_val (ba) + Long_val (off))
 #define _ba_ulong(ba)          ((u_long*) Caml_ba_data_val (ba))
 #define _ba_ulong_off(ba, off) ((u_long*) Caml_ba_data_val (ba) + Long_val (off))
+#define _ba_uint8(ba)          ((uint8_t*) Caml_ba_data_val (ba))
+#define _ba_uint8_off(ba, off) ((uint8_t*) Caml_ba_data_val (ba) + Long_val (off))
 
 #endif /* H__NOCRYPTO */
