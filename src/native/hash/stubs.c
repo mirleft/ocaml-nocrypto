@@ -5,28 +5,32 @@
 #include "sha256.h"
 #include "sha512.h"
 
-#define __define_hash(stem, upper)                                           \
+#define __define_hash(name, upper)                                           \
+                                                                             \
   CAMLprim value                                                             \
-  caml_nc_ ## stem ## _init (value ctx) {                                    \
-    nc_ ## stem ## _init ((struct stem ## _ctx *) Caml_ba_data_val (ctx));   \
+  caml_nc_ ## name ## _init (value ctx) {                                    \
+    nc_ ## name ## _init ((struct name ## _ctx *) Caml_ba_data_val (ctx));   \
     return Val_unit;                                                         \
   }                                                                          \
+                                                                             \
   CAMLprim value                                                             \
-  caml_nc_ ## stem ## _update (value ctx, value src, value off, value len) { \
-    nc_ ## stem ## _update (                                                 \
-      (struct stem ## _ctx *) Caml_ba_data_val (ctx),                        \
+  caml_nc_ ## name ## _update (value ctx, value src, value off, value len) { \
+    nc_ ## name ## _update (                                                 \
+      (struct name ## _ctx *) Caml_ba_data_val (ctx),                        \
       _ba_uint8_off (src, off), Int_val (len));                              \
     return Val_unit;                                                         \
   }                                                                          \
+                                                                             \
   CAMLprim value                                                             \
-  caml_nc_ ## stem ## _finalize (value ctx, value dst, value off) {          \
-    nc_ ## stem ## _finalize (                                               \
-      (struct stem ## _ctx *) Caml_ba_data_val (ctx),                        \
+  caml_nc_ ## name ## _finalize (value ctx, value dst, value off) {          \
+    nc_ ## name ## _finalize (                                               \
+      (struct name ## _ctx *) Caml_ba_data_val (ctx),                        \
       _ba_uint8_off (dst, off));                                             \
     return Val_unit;                                                         \
   }                                                                          \
+                                                                             \
   CAMLprim value                                                             \
-  caml_nc_ ## stem ## _ctx_size (value unit) {                               \
+  caml_nc_ ## name ## _ctx_size (value unit) {                               \
     return Val_int (upper ## _CTX_SIZE);                                     \
   }
 
