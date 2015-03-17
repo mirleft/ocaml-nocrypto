@@ -30,7 +30,7 @@ static inline void xor_into (u_char *src, u_char *dst, u_int n) {
 
 CAMLprim value
 caml_nc_xor_into (value b1, value off1, value b2, value off2, value n) {
-  xor_into (_ba_uchar_off (b1, off1), _ba_uchar_off (b2, off2), Long_val(n));
+  xor_into (_ba_uchar_off (b1, off1), _ba_uchar_off (b2, off2), Int_val (n));
   return Val_unit;
 }
 
@@ -41,10 +41,8 @@ caml_nc_xor_into (value b1, value off1, value b2, value off2, value n) {
  * is released.
  */
 CAMLprim value
-caml_fill_bigstring(value val_buf, value val_ofs, value val_len, value val_byte)
+caml_fill_bigstring(value buf, value off, value len, value byte)
 {
-  memset((char*)Caml_ba_data_val(val_buf) + Long_val(val_ofs),
-      Int_val(val_byte),
-      Long_val(val_len));
+  memset( _ba_uchar_off (buf, off), Int_val (byte), Long_val (len));
   return Val_unit;
 }

@@ -313,14 +313,14 @@ static inline void _nc_aesni_dec_blocks (const u_char *rk, u_int rounds, u_int b
 
 CAMLprim value
 caml_nc_aes_rk_size (value rounds) {
-  return Val_int (_nc_aesni_rk_size (Long_val (rounds)));
+  return Val_int (_nc_aesni_rk_size (Int_val (rounds)));
 }
 
 CAMLprim value
 caml_nc_aes_derive_e_key (value key, value off1, value rk, value rounds) {
   _nc_aesni_derive_e_key (_ba_uchar_off (key, off1),
                           _ba_uchar (rk),
-                          Long_val (rounds));
+                          Int_val (rounds));
   return Val_unit;
 }
 
@@ -328,7 +328,7 @@ CAMLprim value
 caml_nc_aes_derive_d_key (value key, value off1, value kr, value rounds, value rk) {
   _nc_aesni_derive_d_key (_ba_uchar_off (key, off1),
                           _ba_uchar (kr),
-                          Long_val (rounds),
+                          Int_val (rounds),
                           Is_block (rk) ? _ba_uchar (Field (rk, 0)) : 0);
   return Val_unit;
 }
@@ -336,8 +336,8 @@ caml_nc_aes_derive_d_key (value key, value off1, value kr, value rounds, value r
 CAMLprim value
 caml_nc_aes_enc (value rk, value rounds, value blocks, value src, value off1, value dst, value off2) {
   _nc_aesni_enc_blocks ( _ba_uchar (rk),
-                         Long_val (rounds),
-                         Long_val (blocks),
+                         Int_val (rounds),
+                         Int_val (blocks),
                          _ba_uchar_off (src, off1),
                          _ba_uchar_off (dst, off2) );
   return Val_unit;
@@ -346,8 +346,8 @@ caml_nc_aes_enc (value rk, value rounds, value blocks, value src, value off1, va
 CAMLprim value
 caml_nc_aes_dec (value rk, value rounds, value blocks, value src, value off1, value dst, value off2) {
   _nc_aesni_dec_blocks ( _ba_uchar (rk),
-                         Long_val (rounds),
-                         Long_val (blocks),
+                         Int_val (rounds),
+                         Int_val (blocks),
                          _ba_uchar_off (src, off1),
                          _ba_uchar_off (dst, off2) );
   return Val_unit;
