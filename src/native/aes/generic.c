@@ -1222,18 +1222,18 @@ static void nc_rijndaelDecrypt(const u32 *rk, int nrounds, const u8 ciphertext[1
 
 #define keybits_of_r(x) ((x - 6) * 32)
 
-#define __blocked_loop(f, rk, rounds, blocks, src, dst) \
+#define __blocked_loop(f, src, dst, rk, rounds, blocks) \
   while (blocks --) {                                   \
     f (rk, rounds, src, dst);                           \
     src += 16 ; dst += 16 ;                             \
   }
 
-static inline void _nc_aes_enc_blocks (const u_long *rk, u_int rounds, u_int blocks, const u_char *src, u_char *dst) {
-  __blocked_loop (nc_rijndaelEncrypt, rk, rounds, blocks, src, dst);
+static inline void _nc_aes_enc_blocks (const u_char *src, u_char *dst, const u_long *rk, u_int rounds, u_int blocks) {
+  __blocked_loop (nc_rijndaelEncrypt, src, dst, rk, rounds, blocks);
 }
 
-static inline void _nc_aes_dec_blocks (const u_long *rk, u_int rounds, u_int blocks, const u_char *src, u_char *dst) {
-  __blocked_loop (nc_rijndaelDecrypt, rk, rounds, blocks, src, dst);
+static inline void _nc_aes_dec_blocks (const u_char *src, u_char *dst, const u_long *rk, u_int rounds, u_int blocks) {
+  __blocked_loop (nc_rijndaelDecrypt, src, dst, rk, rounds, blocks);
 }
 
 CAMLprim value
@@ -1258,22 +1258,22 @@ caml_nc_aes_derive_d_key (value key, value off1, value kr, value rounds, value r
 }
 
 CAMLprim value
-caml_nc_aes_enc (value rk, value rounds, value blocks, value src, value off1, value dst, value off2) {
-  _nc_aes_enc_blocks (_ba_ulong (rk),
-                      Int_val (rounds),
-                      Int_val (blocks),
-                      _ba_uchar_off (src, off1),
-                      _ba_uchar_off (dst, off2));
+caml_nc_aes_enc (value src, value off1, value dst, value off2, value rk, value rounds, value blocks) {
+  _nc_aes_enc_blocks ( _ba_uchar_off (src, off1),
+                       _ba_uchar_off (dst, off2),
+                       _ba_ulong (rk),
+                       Int_val (rounds),
+                       Int_val (blocks) );
   return Val_unit;
 }
 
 CAMLprim value
-caml_nc_aes_dec (value rk, value rounds, value blocks, value src, value off1, value dst, value off2) {
-  _nc_aes_dec_blocks (_ba_ulong (rk),
-                      Int_val (rounds),
-                      Int_val (blocks),
-                      _ba_uchar_off (src, off1),
-                      _ba_uchar_off (dst, off2));
+caml_nc_aes_dec (value src, value off1, value dst, value off2, value rk, value rounds, value blocks) {
+  _nc_aes_dec_blocks ( _ba_uchar_off (src, off1),
+                       _ba_uchar_off (dst, off2),
+                       _ba_ulong (rk),
+                       Int_val (rounds),
+                       Int_val (blocks) );
   return Val_unit;
 }
 

@@ -139,7 +139,7 @@ static void _nc_aesni_derive_d_key (const u_char *key, u_char *kr, u_int rounds,
 }
 
 
-static inline void _nc_aesni_enc (const u_char *rk0, u_int rounds, const u_char src[16], u_char dst[16]) {
+static inline void _nc_aesni_enc (const u_char src[16], u_char dst[16], const u_char *rk0, u_int rounds) {
 
   __m128i r   = _mm_loadu_si128 ((__m128i*) src),
           *rk = (__m128i*) rk0;
@@ -153,7 +153,7 @@ static inline void _nc_aesni_enc (const u_char *rk0, u_int rounds, const u_char 
   _mm_storeu_si128 ((__m128i*) dst, r);
 }
 
-static inline void _nc_aesni_dec (const u_char *rk0, u_int rounds, const u_char src[16], u_char dst[16]) {
+static inline void _nc_aesni_dec (const u_char src[16], u_char dst[16], const u_char *rk0, u_int rounds) {
 
   __m128i r   = _mm_loadu_si128 ((__m128i*) src),
           *rk = (__m128i*) rk0;
@@ -167,7 +167,7 @@ static inline void _nc_aesni_dec (const u_char *rk0, u_int rounds, const u_char 
   _mm_storeu_si128 ((__m128i*) dst, r);
 }
 
-static inline void _nc_aesni_enc8 (const u_char *rk0, u_int rounds, const u_char src[128], u_char dst[128]) {
+static inline void _nc_aesni_enc8 (const u_char src[128], u_char dst[128], const u_char *rk0, u_int rounds) {
 
   __m128i *in  = (__m128i*) src,
           *out = (__m128i*) dst,
@@ -221,7 +221,7 @@ static inline void _nc_aesni_enc8 (const u_char *rk0, u_int rounds, const u_char
   _mm_storeu_si128 (out + 7, r7);
 }
 
-static inline void _nc_aesni_dec8 (const u_char *rk0, u_int rounds, const u_char src[128], u_char dst[128]) {
+static inline void _nc_aesni_dec8 (const u_char src[128], u_char dst[128], const u_char *rk0, u_int rounds) {
 
   __m128i *in  = (__m128i*) src,
           *out = (__m128i*) dst,
@@ -277,37 +277,37 @@ static inline void _nc_aesni_dec8 (const u_char *rk0, u_int rounds, const u_char
 
 #define __b(ptr, n) (ptr + n * 16)
 
-#define __blocked_loop(f1, f8, rk, rounds, blocks, src, dst) \
+#define __blocked_loop(f1, f8, src, dst, rk, rounds, blocks) \
   while (blocks) {                                           \
     switch (blocks) {                                        \
       case 7:                                                \
-        f1 (rk, rounds, __b (src, 6), __b (dst, 6));         \
+        f1 (__b (src, 6), __b (dst, 6), rk, rounds);         \
       case 6:                                                \
-        f1 (rk, rounds, __b (src, 5), __b (dst, 5));         \
+        f1 (__b (src, 5), __b (dst, 5), rk, rounds);         \
       case 5:                                                \
-        f1 (rk, rounds, __b (src, 4), __b (dst, 4));         \
+        f1 (__b (src, 4), __b (dst, 4), rk, rounds);         \
       case 4:                                                \
-        f1 (rk, rounds, __b (src, 3), __b (dst, 3));         \
+        f1 (__b (src, 3), __b (dst, 3), rk, rounds);         \
       case 3:                                                \
-        f1 (rk, rounds, __b (src, 2), __b (dst, 2));         \
+        f1 (__b (src, 2), __b (dst, 2), rk, rounds);         \
       case 2:                                                \
-        f1 (rk, rounds, __b (src, 1), __b (dst, 1));         \
+        f1 (__b (src, 1), __b (dst, 1), rk, rounds);         \
       case 1:                                                \
-        f1 (rk, rounds, __b (src, 0), __b (dst, 0));         \
+        f1 (__b (src, 0), __b (dst, 0), rk, rounds);         \
       case 0:                                                \
         return;                                              \
       default:                                               \
-        f8 (rk, rounds, src, dst);                           \
+        f8 (src, dst, rk, rounds);                           \
         src += 128; dst += 128; blocks -= 8;                 \
     }                                                        \
   }                                                          \
 
-static inline void _nc_aesni_enc_blocks (const u_char *rk, u_int rounds, u_int blocks, const u_char *src, u_char *dst) {
-  __blocked_loop (_nc_aesni_enc, _nc_aesni_enc8, rk, rounds, blocks, src, dst);
+static inline void _nc_aesni_enc_blocks (const u_char *src, u_char *dst, const u_char *rk, u_int rounds, u_int blocks) {
+  __blocked_loop (_nc_aesni_enc, _nc_aesni_enc8, src, dst, rk, rounds, blocks);
 }
 
-static inline void _nc_aesni_dec_blocks (const u_char *rk, u_int rounds, u_int blocks, const u_char *src, u_char *dst) {
-  __blocked_loop (_nc_aesni_dec, _nc_aesni_dec8, rk, rounds, blocks, src, dst);
+static inline void _nc_aesni_dec_blocks (const u_char *src, u_char *dst, const u_char *rk, u_int rounds, u_int blocks) {
+  __blocked_loop (_nc_aesni_dec, _nc_aesni_dec8, src, dst, rk, rounds, blocks);
 }
 
 
@@ -334,22 +334,22 @@ caml_nc_aes_derive_d_key (value key, value off1, value kr, value rounds, value r
 }
 
 CAMLprim value
-caml_nc_aes_enc (value rk, value rounds, value blocks, value src, value off1, value dst, value off2) {
-  _nc_aesni_enc_blocks ( _ba_uchar (rk),
+caml_nc_aes_enc (value src, value off1, value dst, value off2, value rk, value rounds, value blocks) {
+  _nc_aesni_enc_blocks ( _ba_uchar_off (src, off1),
+                         _ba_uchar_off (dst, off2),
+                         _ba_uchar (rk),
                          Int_val (rounds),
-                         Int_val (blocks),
-                         _ba_uchar_off (src, off1),
-                         _ba_uchar_off (dst, off2) );
+                         Int_val (blocks) );
   return Val_unit;
 }
 
 CAMLprim value
-caml_nc_aes_dec (value rk, value rounds, value blocks, value src, value off1, value dst, value off2) {
-  _nc_aesni_dec_blocks ( _ba_uchar (rk),
+caml_nc_aes_dec (value src, value off1, value dst, value off2, value rk, value rounds, value blocks) {
+  _nc_aesni_dec_blocks ( _ba_uchar_off (src, off1),
+                         _ba_uchar_off (dst, off2),
+                         _ba_uchar (rk),
                          Int_val (rounds),
-                         Int_val (blocks),
-                         _ba_uchar_off (src, off1),
-                         _ba_uchar_off (dst, off2) );
+                         Int_val (blocks) );
   return Val_unit;
 }
 

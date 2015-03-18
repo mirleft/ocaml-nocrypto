@@ -15,20 +15,20 @@ type ctx    = buffer
 
 
 module AES = struct
-  external derive_e : secret -> off -> key -> int -> unit                          = "caml_nc_aes_derive_e_key"             "noalloc"
-  external derive_d : secret -> off -> key -> int -> key option -> unit            = "caml_nc_aes_derive_d_key"             "noalloc"
-  external enc      : key -> int -> int -> buffer -> off -> buffer -> off -> unit  = "caml_nc_aes_enc_bc" "caml_nc_aes_enc" "noalloc"
-  external dec      : key -> int -> int -> buffer -> off -> buffer -> off -> unit  = "caml_nc_aes_dec_bc" "caml_nc_aes_dec" "noalloc"
-  external rk_s     : int -> int                                                   = "caml_nc_aes_rk_size"                  "noalloc"
-  external mode     : unit -> int                                                  = "caml_nc_aes_mode"                     "noalloc"
+  external enc      : buffer -> off -> buffer -> off -> key -> int -> int -> unit = "caml_nc_aes_enc_bc" "caml_nc_aes_enc" "noalloc"
+  external dec      : buffer -> off -> buffer -> off -> key -> int -> int -> unit = "caml_nc_aes_dec_bc" "caml_nc_aes_dec" "noalloc"
+  external derive_e : secret -> off -> key -> int               -> unit = "caml_nc_aes_derive_e_key" "noalloc"
+  external derive_d : secret -> off -> key -> int -> key option -> unit = "caml_nc_aes_derive_d_key" "noalloc"
+  external rk_s     : int -> int  = "caml_nc_aes_rk_size" "noalloc"
+  external mode     : unit -> int = "caml_nc_aes_mode"    "noalloc"
 end
 
 module DES = struct
-  external des3key : secret -> off -> int -> unit                   = "caml_nc_des_des3key"  "noalloc"
-  external cp3key  : key -> unit                                    = "caml_nc_des_cp3key"   "noalloc"
-  external use3key : key -> unit                                    = "caml_nc_des_use3key"  "noalloc"
-  external ddes    : int -> buffer -> off -> buffer -> off -> unit  = "caml_nc_des_ddes"     "noalloc"
-  external k_s     : unit -> int                                    = "caml_nc_des_key_size" "noalloc"
+  external ddes    : buffer -> off -> buffer -> off -> int -> unit  = "caml_nc_des_ddes"     "noalloc"
+  external des3key : secret -> off -> int -> unit = "caml_nc_des_des3key" "noalloc"
+  external cp3key  : key -> unit = "caml_nc_des_cp3key"   "noalloc"
+  external use3key : key -> unit = "caml_nc_des_use3key"  "noalloc"
+  external k_s     : unit -> int = "caml_nc_des_key_size" "noalloc"
 end
 
 

@@ -684,7 +684,7 @@ unsigned char *kptr;		/* unsigned char[24] */
 
 /* OCaml front-end */
 
-static inline void _nc_ddes (unsigned int blocks, unsigned char *src, unsigned char *dst) {
+static inline void _nc_ddes (unsigned char *src, unsigned char *dst, unsigned int blocks) {
   while (blocks --) {
     Ddes (src, dst);
     src += 8 ; dst += 8;
@@ -715,7 +715,7 @@ caml_nc_des_use3key (value src) {
 }
 
 CAMLprim value
-caml_nc_des_ddes (value blocks, value src, value off1, value dst, value off2) {
-  _nc_ddes (Int_val (blocks), _ba_uchar_off (src, off1), _ba_uchar_off (dst, off2));
+caml_nc_des_ddes (value src, value off1, value dst, value off2, value blocks) {
+  _nc_ddes (_ba_uchar_off (src, off1), _ba_uchar_off (dst, off2), Int_val (blocks));
   return Val_unit;
 }

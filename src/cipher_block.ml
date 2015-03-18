@@ -373,10 +373,10 @@ module AES = struct
     (* XXX bounds checks *)
 
     let encrypt ~key:(e, rounds) ~blocks src off1 dst off2 =
-      Native.AES.enc e rounds blocks src off1 dst off2
+      Native.AES.enc src off1 dst off2 e rounds blocks
 
     let decrypt ~key:(d, rounds) ~blocks src off1 dst off2 =
-      Native.AES.dec d rounds blocks src off1 dst off2
+      Native.AES.dec src off1 dst off2 d rounds blocks
 
   end
 
@@ -415,7 +415,7 @@ module DES = struct
 
     let encrypt ~key ~blocks src off1 dst off2 =
       Native.DES.use3key key ;
-      Native.DES.ddes blocks src off1 dst off2
+      Native.DES.ddes src off1 dst off2 blocks
 
     let decrypt = encrypt
   end
