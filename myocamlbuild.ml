@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 5c60919e900ad143b4008cb0705fd8d4) *)
+(* DO NOT EDIT (digest: 633370b2f0027c573d361ef513e73f5f) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -643,18 +643,18 @@ let package_default =
           (["oasis_library_nocrypto_ccopt"; "compile"],
             [
                (OASISExpr.EBool true,
-                 S [A "-ccopt"; A "--std=c99"; A "-ccopt"; A "-O3"]);
-               (OASISExpr.EFlag "pedantic",
                  S
                    [
                       A "-ccopt";
                       A "--std=c99";
                       A "-ccopt";
-                      A "-O3";
-                      A "-ccopt";
                       A "-Wall";
                       A "-ccopt";
-                      A "-Wpedantic"
+                      A "-Werror";
+                      A "-ccopt";
+                      A "-Wpedantic";
+                      A "-ccopt";
+                      A "-O3"
                    ]);
                (OASISExpr.EAnd
                   (OASISExpr.EFlag "modernity",
@@ -666,33 +666,17 @@ let package_default =
                       A "-ccopt";
                       A "--std=c99";
                       A "-ccopt";
+                      A "-Wall";
+                      A "-ccopt";
+                      A "-Werror";
+                      A "-ccopt";
+                      A "-Wpedantic";
+                      A "-ccopt";
                       A "-O3";
                       A "-ccopt";
                       A "-msse2";
                       A "-ccopt";
                       A "-maes"
-                   ]);
-               (OASISExpr.EAnd
-                  (OASISExpr.EAnd
-                     (OASISExpr.EFlag "modernity",
-                       OASISExpr.EOr
-                         (OASISExpr.ETest ("architecture", "i386"),
-                           OASISExpr.ETest ("architecture", "amd64"))),
-                    OASISExpr.EFlag "pedantic"),
-                 S
-                   [
-                      A "-ccopt";
-                      A "--std=c99";
-                      A "-ccopt";
-                      A "-O3";
-                      A "-ccopt";
-                      A "-msse2";
-                      A "-ccopt";
-                      A "-maes";
-                      A "-ccopt";
-                      A "-Wall";
-                      A "-ccopt";
-                      A "-Wpedantic"
                    ])
             ]);
           (["oasis_library_nocrypto_byte"; "ocaml"; "link"; "byte"],
@@ -712,27 +696,17 @@ let package_default =
                       A "-ccopt";
                       A "--std=c99";
                       A "-ccopt";
+                      A "-Wall";
+                      A "-ccopt";
+                      A "-Werror";
+                      A "-ccopt";
+                      A "-Wpedantic";
+                      A "-ccopt";
                       A "-O3";
                       A "-ccopt";
                       A "-DNDEBUG";
                       A "-ccopt";
                       A "${XEN_CFLAGS}"
-                   ]);
-               (OASISExpr.EFlag "pedantic",
-                 S
-                   [
-                      A "-ccopt";
-                      A "--std=c99";
-                      A "-ccopt";
-                      A "-O3";
-                      A "-ccopt";
-                      A "-DNDEBUG";
-                      A "-ccopt";
-                      A "${XEN_CFLAGS}";
-                      A "-ccopt";
-                      A "-Wall";
-                      A "-ccopt";
-                      A "-Wpedantic"
                    ]);
                (OASISExpr.EAnd
                   (OASISExpr.EFlag "modernity",
@@ -744,6 +718,12 @@ let package_default =
                       A "-ccopt";
                       A "--std=c99";
                       A "-ccopt";
+                      A "-Wall";
+                      A "-ccopt";
+                      A "-Werror";
+                      A "-ccopt";
+                      A "-Wpedantic";
+                      A "-ccopt";
                       A "-O3";
                       A "-ccopt";
                       A "-DNDEBUG";
@@ -753,32 +733,6 @@ let package_default =
                       A "-msse2";
                       A "-ccopt";
                       A "-maes"
-                   ]);
-               (OASISExpr.EAnd
-                  (OASISExpr.EAnd
-                     (OASISExpr.EFlag "modernity",
-                       OASISExpr.EOr
-                         (OASISExpr.ETest ("architecture", "i386"),
-                           OASISExpr.ETest ("architecture", "amd64"))),
-                    OASISExpr.EFlag "pedantic"),
-                 S
-                   [
-                      A "-ccopt";
-                      A "--std=c99";
-                      A "-ccopt";
-                      A "-O3";
-                      A "-ccopt";
-                      A "-DNDEBUG";
-                      A "-ccopt";
-                      A "${XEN_CFLAGS}";
-                      A "-ccopt";
-                      A "-msse2";
-                      A "-ccopt";
-                      A "-maes";
-                      A "-ccopt";
-                      A "-Wall";
-                      A "-ccopt";
-                      A "-Wpedantic"
                    ])
             ])
        ];
@@ -790,7 +744,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 794 "myocamlbuild.ml"
+# 748 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 open Ocamlbuild_plugin;;

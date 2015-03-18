@@ -14,17 +14,13 @@ Description:
 Categories: http://org:mirage
 OCamlVersion: >= 4.01.0
 
-Flag xen
+Flag "xen"
   Description: Build Xen support
   Default:     false
 
-Flag modernity
-  Description: CPU accelerated code paths
+Flag "modernity"
+  Description: Use CPU extensions
   Default:     true
-
-Flag "pedantic"
-  Description: Make the C compiler go hardcore
-  Default:     false
 
 Flag "benchmarks"
   Description: Build the benchmark programs
@@ -67,12 +63,10 @@ Library "nocrypto"
   BuildDepends:    cstruct (>= 1.2.0), zarith, sexplib.syntax, type_conv
   XMETARequires:   cstruct, zarith, sexplib
   XMETAExtraLines: xen_linkopts = "-lnocrypto_xen_stubs"
-  CCOpt:           --std=c99 -O3
   ByteOpt:         -w A-4-33-40-41-42-43-34-44
+  CCOpt:           --std=c99 -Wall -Werror -Wpedantic -O3
   if flag(modernity) && ( architecture(i386) || architecture(amd64) )
     CCOpt+: -msse2 -maes
-  if flag(pedantic)
-    CCOpt+: -Wall -Wpedantic
 
 Library "nocrypto_xen"
   Path:            xen/
@@ -95,11 +89,9 @@ Library "nocrypto_xen"
                    native/aes/aesni.c,
                    native/des/generic.c,
                    native/des/generic.h
-  CCOpt:           --std=c99 -O3 -DNDEBUG $XEN_CFLAGS
+  CCOpt:           --std=c99 -Wall -Werror -Wpedantic -O3 -DNDEBUG $XEN_CFLAGS
   if flag(modernity) && ( architecture(i386) || architecture(amd64) )
     CCOpt+: -msse2 -maes
-  if flag(pedantic)
-    CCOpt+: -Wall -Wpedantic
 
 Library "testlib"
   Path:         tests/
