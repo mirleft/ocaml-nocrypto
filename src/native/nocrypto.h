@@ -1,6 +1,10 @@
 #if !defined (H__NOCRYPTO)
 #define H__NOCRYPTO
 
+#include <stdint.h>
+#include <caml/mlvalues.h>
+#include <caml/bigarray.h>
+
 #if ( defined (__i386__) || defined (__x86_64__) )
 #include <x86intrin.h>
 #endif
@@ -14,9 +18,6 @@
 typedef unsigned char u_char;
 typedef unsigned long u_long;
 typedef unsigned int u_int;
-
-#include <caml/mlvalues.h>
-#include <caml/bigarray.h>
 
 #define _ba_uchar_off(ba, off) (( u_char*) Caml_ba_data_val (ba) + Long_val (off))
 #define _ba_ulong_off(ba, off) (( u_long*) Caml_ba_data_val (ba) + Long_val (off))

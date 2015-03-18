@@ -19,7 +19,7 @@ module AES = struct
   external dec      : buffer -> off -> buffer -> off -> key -> int -> int -> unit = "caml_nc_aes_dec_bc" "caml_nc_aes_dec" "noalloc"
   external derive_e : secret -> off -> key -> int               -> unit = "caml_nc_aes_derive_e_key" "noalloc"
   external derive_d : secret -> off -> key -> int -> key option -> unit = "caml_nc_aes_derive_d_key" "noalloc"
-  external rk_s     : int -> int  = "caml_nc_aes_rk_size" "noalloc"
+  external rk_s     : int  -> int = "caml_nc_aes_rk_size" "noalloc"
   external mode     : unit -> int = "caml_nc_aes_mode"    "noalloc"
 end
 
@@ -77,4 +77,7 @@ end
 
 (* XXX TODO
  * Unsolved: bounds-checked XORs are slowing things down considerably... *)
-external xor_into : buffer -> int -> buffer -> int -> int -> unit = "caml_nc_xor_into" "caml_nc_xor_into" "noalloc"
+external xor_into : buffer -> off -> buffer -> off -> len -> unit = "caml_nc_xor_into" "noalloc"
+
+external count8be  : buffer -> off -> buffer -> off -> int -> unit = "caml_nc_count_8_be" "noalloc"
+external count16be : buffer -> off -> buffer -> off -> int -> unit = "caml_nc_count_16_be" "noalloc"
