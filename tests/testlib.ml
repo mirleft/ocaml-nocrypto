@@ -92,6 +92,17 @@ let cbc_selftest ( m : (module Cipher_block.T.CBC) ) n  =
     in
     assert_cs_equal ~msg:"cbc mismatch" data data'
 
+let ctr_selftest (m : (module Cipher_block.T.CTR)) n =
+  let module C = (val m) in
+  "selftest" >:: times ~n @@ fun _ ->
+    let data = Rng.(generate @@ C.block_size * 8 + Int.gen C.block_size)
+    and ctr  = Rng.generate C.block_size
+    and key  = C.of_secret @@ Rng.generate (sample C.key_sizes) in
+    let data' =
+      C.( data |> encrypt ~key ~ctr |> encrypt ~key ~ctr
+               |> decrypt ~key ~ctr |> decrypt ~key ~ctr ) in
+    assert_cs_equal ~msg:"ctr mismatch" data data'
+
 let xor_selftest n =
   "selftest" >:: times ~n @@ fun _ ->
 
