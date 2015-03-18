@@ -305,6 +305,40 @@ module Modes2 = struct
 
   end
 
+  module CTR_of (Core : T.Core) : T.CTR = struct
+
+    (* FIXME: CTR can easily be ~40% faster. C *)
+
+    let count_be =
+      match Core.block with
+      | 16 -> Native.count16be
+      | 8  -> Native.count8be
+      | n  -> Raise.invalid1 "CTR_of: bad block size (%d): not {8,16}" n
+
+    open Cstruct
+
+    type key = Core.ekey
+
+    let (key_sizes, block_size) = Core.(key, block)
+    let of_secret = Core.e_of_secret
+
+    let stream ~key ~ctr n =
+      let blocks = cdiv n block_size in
+      let res    = create (blocks * block_size) in
+      count_be ctr.buffer ctr.off res.buffer res.off blocks ;
+      Core.encrypt ~key ~blocks res.buffer res.off res.buffer res.off ;
+      sub res 0 n
+
+    let encrypt ~key ~ctr src =
+      let n   = len src in
+      let dst = stream ~key ~ctr n in
+      Native.xor_into src.buffer src.off dst.buffer dst.off n ;
+      dst
+
+    let decrypt = encrypt
+
+  end
+
 end
 
 module Counters = struct
