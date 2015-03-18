@@ -18,11 +18,15 @@ typedef unsigned int u_int;
 #include <caml/mlvalues.h>
 #include <caml/bigarray.h>
 
-#define _ba_uchar(ba)          ((u_char*) Caml_ba_data_val (ba))
-#define _ba_uchar_off(ba, off) ((u_char*) Caml_ba_data_val (ba) + Long_val (off))
-#define _ba_ulong(ba)          ((u_long*) Caml_ba_data_val (ba))
-#define _ba_ulong_off(ba, off) ((u_long*) Caml_ba_data_val (ba) + Long_val (off))
-#define _ba_uint8(ba)          ((uint8_t*) Caml_ba_data_val (ba))
+#define _ba_uchar_off(ba, off) (( u_char*) Caml_ba_data_val (ba) + Long_val (off))
+#define _ba_ulong_off(ba, off) (( u_long*) Caml_ba_data_val (ba) + Long_val (off))
 #define _ba_uint8_off(ba, off) ((uint8_t*) Caml_ba_data_val (ba) + Long_val (off))
+
+#define _ba_uchar(ba) _ba_uchar_off (ba, 0)
+#define _ba_ulong(ba) _ba_ulong_off (ba, 0)
+#define _ba_uint8(ba) _ba_uint8_off (ba, 0)
+
+#define _ba_uchar_option_off(ba, off) (Is_block(ba) ? _ba_uchar_off(Field(ba, 0), off) : 0)
+#define _ba_uchar_option(ba)          _ba_uchar_option_off (ba, 0)
 
 #endif /* H__NOCRYPTO */
