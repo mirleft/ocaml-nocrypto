@@ -414,6 +414,52 @@ let sha2_cases = [
   "sha512" >::: sha512_cases ;
 ]
 
+(* NIST SP 800-38A test vectors for block cipher modes of operation *)
+
+let nist_sp_800_38a = Cs.of_hex
+  "6b c1 be e2 2e 40 9f 96 e9 3d 7e 11 73 93 17 2a
+   ae 2d 8a 57 1e 03 ac 9c 9e b7 6f ac 45 af 8e 51
+   30 c8 1c 46 a3 5c e4 11 e5 fb c1 19 1a 0a 52 ef
+   f6 9f 24 45 df 4f 9b 17 ad 2b 41 7b e6 6c 37 10"
+
+let aes_ctr_cases =
+  let open Cipher_block in
+
+  let case ~key ~ctr ~out =
+    Cs.(AES.CTR2.of_secret (of_hex key), of_hex ctr, of_hex out)
+
+  and check (key, ctr, out) _ =
+    let enc = AES.CTR2.encrypt ~key ~ctr nist_sp_800_38a in
+    let dec = AES.CTR2.decrypt ~key ~ctr enc in
+    assert_cs_equal ~msg:"cyphertext" out enc ;
+    assert_cs_equal ~msg:"plaintext" nist_sp_800_38a dec
+    in
+
+  cases_of check [
+    case ~key: "2b 7e 15 16 28 ae d2 a6 ab f7 15 88 09 cf 4f 3c"
+         ~ctr: "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff"
+         ~out: "87 4d 61 91 b6 20 e3 26 1b ef 68 64 99 0d b6 ce
+                98 06 f6 6b 79 70 fd ff 86 17 18 7b b9 ff fd ff
+                5a e4 df 3e db d5 d3 5e 5b 4f 09 02 0d b0 3e ab
+                1e 03 1d da 2f be 03 d1 79 21 70 a0 f3 00 9c ee"
+
+  ; case ~key: "8e 73 b0 f7 da 0e 64 52 c8 10 f3 2b 80 90 79 e5
+                62 f8 ea d2 52 2c 6b 7b"
+         ~ctr: "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff"
+         ~out: "1a bc 93 24 17 52 1c a2 4f 2b 04 59 fe 7e 6e 0b
+                09 03 39 ec 0a a6 fa ef d5 cc c2 c6 f4 ce 8e 94
+                1e 36 b2 6b d1 eb c6 70 d1 bd 1d 66 56 20 ab f7
+                4f 78 a7 f6 d2 98 09 58 5a 97 da ec 58 c6 b0 50"
+
+  ; case ~key: "60 3d eb 10 15 ca 71 be 2b 73 ae f0 85 7d 77 81
+                1f 35 2c 07 3b 61 08 d7 2d 98 10 a3 09 14 df f4"
+         ~ctr: "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff"
+         ~out: "60 1e c3 13 77 57 89 a5 b7 a7 f5 04 bb f3 d2 28
+                f4 43 e3 ca 4d 62 b5 9a ca 84 e9 90 ca ca f5 c5
+                2b 09 30 da a2 3d e9 4c e8 70 17 ba 2d 84 98 8d
+                df c9 c5 8d b6 7a ad a6 13 c2 dd 08 45 79 41 a6"
+  ]
+
 (* aes gcm *)
 
 let gcm_cases =
@@ -664,6 +710,9 @@ let suite =
     "AES-ECB" >::: [ ecb_selftest (module Cipher_block.AES.ECB) 100 ] ;
 
     "AES-CBC" >::: [ cbc_selftest (module Cipher_block.AES.CBC) 100 ] ;
+
+    "AES-CTR" >::: [ ctr_selftest (module Cipher_block.AES.CTR2) 100
+                   ; "NIST SP 300-38A" >::: aes_ctr_cases ] ;
 
     "AES-GCM" >::: gcm_cases ;
 
