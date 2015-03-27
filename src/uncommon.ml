@@ -94,6 +94,18 @@ module Cs = struct
     else
       (len cs1 = len cs2) && (to_bigarray cs1 = to_bigarray cs2)
 
+  let rec find_uint8 ?(mask=false) ?(off=0) ~f cs =
+    let f' x = ignore (f x) ; false in
+    let rec go i = function
+      | 0 -> None
+      | n ->
+          match f (get_uint8 cs i) with
+          | false -> go (succ i) (pred n)
+          | true  ->
+              if mask then ignore (find_uint8 ~off:(succ i) ~f:f' cs) ;
+              Some i in
+    go off (len cs - off)
+
   let clone ?n cs =
     let n  = match n with
       | None   -> len cs
@@ -221,6 +233,8 @@ module Cs = struct
   and (lsr) cs bits =
     let cs' = clone cs in
     shift_right_inplace cs' bits ; cs'
+
+  and (lxor) cs1 cs2 = xor cs1 cs2
 
 end
 
