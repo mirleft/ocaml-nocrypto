@@ -232,3 +232,20 @@ module Arr = struct
       | n  -> arr.(n) = x || scan (pred n) in
     scan (Array.length arr - 1)
 end
+
+module Range = struct
+
+  let range ~compare ~succ a b =
+    let rec go acc a =
+      if compare a b = 1 then
+        List.rev acc
+      else go (a :: acc) (succ a) in
+    go [] a
+
+  let of_int =
+    range ~compare:(fun (x : int) y -> compare x y) ~succ
+
+  let of_int32 =
+    range ~compare:(fun (x : int32) y -> compare x y) ~succ:Int32.succ
+
+end
