@@ -157,3 +157,70 @@ module PKCS1 = struct
     unpadded unpad_02 (decrypt ?mask ~key) (priv_bits key) msg
 
 end
+
+module MGF1 (H : Hash.T) = struct
+
+  open Cstruct
+  open Numeric
+
+  let repr = Numeric.Int32.to_cstruct_be ~size:4
+
+  (* Assumes len < 2^32 * H.digest_size. *)
+  let mask ~seed ~len =
+    Range.of_int32 0l (Int32.of_int @@ cdiv len H.digest_size - 1)
+    |> List.map (fun c -> H.digestv [seed; repr c])
+    |> Cs.concat
+    |> fun cs -> sub cs 0 len
+
+end
+
+module OAEP (H : Hash.T) = struct
+
+  open Cstruct
+
+  module MGF = MGF1(H)
+
+  let mgf seed len = MGF.mask ~seed ~len
+
+  let hlen  = H.digest_size
+  and hlen1 = H.digest_size + 1
+
+  let (bx00, bx01) = Cstruct.(of_string "\000", of_string "\001")
+
+  let eme_oaep_encode ?g ?(label = Cs.empty) ~k msg =
+    let seed  = Rng.generate ?g hlen
+    and pad   = Cs.create_with (k - len msg - 2 * hlen1) 0x00 in
+    let db    = Cs.concat [ H.digest label ; pad ; bx01 ; msg ] in
+    let mdb   = Cs.(db lxor mgf seed (k - hlen1)) in
+    let mseed = Cs.(seed lxor mgf mdb hlen) in
+    Cs.concat [ bx00 ; mseed ; mdb ]
+
+  let eme_oaep_decode ?(label = Cs.empty) ~k msg =
+    let y      = get_uint8 msg 0
+    and ms     = sub msg 1 hlen
+    and mdb    = sub msg hlen1 (len msg - hlen1) in
+    let db     = Cs.(mdb lxor mgf (ms lxor mgf mdb hlen) (k - hlen1)) in
+    let hmatch = Cs.equal ~mask:true (sub db 0 hlen) H.(digest label) in
+    match Cs.find_uint8 ~off:hlen ~f:((<>) 0x00) db with
+    | None   -> None
+    | Some i ->
+        let b = get_uint8 db i
+        and m = sub db (i + 1) (len db - i - 1) in
+        if y = 0x00 && b = 0x01 && hmatch then Some m else None
+
+  (* XXX check ~label len does not exceed hash input limitation? *)
+
+  let encrypt ?g ?label ~key msg =
+    let k = cdiv (pub_bits key) 8 in
+    if len msg > k - 2 * hlen1 then raise Invalid_message ;
+    encrypt ~key @@ eme_oaep_encode ?g ?label ~k msg
+
+  let decrypt ?mask ?label ~key msg =
+    let k = cdiv (priv_bits key) 8 in
+    if len msg <> k || k < 2 * hlen1 then
+      None
+    else try
+      eme_oaep_decode ?label ~k @@ decrypt ?mask ~key msg
+    with Invalid_message -> None
+
+end

@@ -528,6 +528,12 @@ module Rsa : sig
         PKCS1 padding, or [None] if the padding is incorrect or the underlying
         {!Rsa.decrypt} would raise. *)
   end
+
+  module OAEP (T : Hash.T): sig
+    val encrypt : ?g:Rng.g   -> ?label:Cstruct.t -> key:pub  -> Cstruct.t -> Cstruct.t
+    val decrypt : ?mask:mask -> ?label:Cstruct.t -> key:priv -> Cstruct.t -> Cstruct.t option
+  end
+
 end
 
 
