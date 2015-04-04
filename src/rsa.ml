@@ -208,8 +208,6 @@ module OAEP (H : Hash.T) = struct
         and m = sub db (i + 1) (len db - i - 1) in
         if y = 0x00 && b = 0x01 && hmatch then Some m else None
 
-  (* XXX check ~label len does not exceed hash input limitation? *)
-
   let encrypt ?g ?label ~key msg =
     let k = cdiv (pub_bits key) 8 in
     if len msg > k - 2 * hlen1 then raise Invalid_message ;
@@ -222,5 +220,70 @@ module OAEP (H : Hash.T) = struct
     else try
       eme_oaep_decode ?label ~k @@ decrypt ?mask ~key msg
     with Invalid_message -> None
+
+  (* XXX Review rfc3447 7.1.2 and
+   * http://archiv.infsec.ethz.ch/education/fs08/secsem/Manger01.pdf
+   * again for timing properties. *)
+
+  (* XXX expose seed for deterministic testing? *)
+
+end
+
+module PSS (H: Hash.T) = struct
+
+  open Cstruct
+
+  module MGF = MGF1(H)
+
+  let mgf_mask seed cs =
+    Cs.xor (MGF.mask ~seed ~len:(len cs)) cs
+
+  let hlen  = H.digest_size
+
+  let mask = true
+
+  let (bx00, bx01, bxbc) =
+    Cs.(of_bytes [0x00], of_bytes [0x01], of_bytes [0xbc])
+
+  let zeros n = Cs.create_with n 0x00
+
+  let b0mask embits = 0xff lsr ((8 - embits mod 8) mod 8)
+
+  let emsa_pss_encode ?g slen bits msg =
+    (* If emLen < hLen + sLen + 2, output "encoding error" and stop. *)
+    let n    = cdiv bits 8
+    and salt = Rng.generate ?g slen in
+    let h   = H.digestv [ zeros 8 ; H.digest msg ; salt ] in
+    let db  = Cs.(zeros (n - slen - hlen - 2) <+> bx01 <+> salt) in
+    let mdb = mgf_mask h db in
+    set_uint8 mdb 0 @@ get_uint8 mdb 0 land b0mask bits ;
+    Cs.(mdb <+> h <+> bxbc)
+
+  let emsa_pss_verify slen bits em msg =
+    let n    = em.len in
+    let mdbl = n - hlen - 1
+    and padl = n - hlen - slen - 2 in
+    let mdb  = sub em 0 mdbl
+    and h    = sub em mdbl hlen in
+    let db   = mgf_mask h mdb in
+    set_uint8 db 0 @@ get_uint8 db 0 land b0mask bits ;
+    let salt = sub db (len db - slen) slen in
+    let h'   = H.digestv [ zeros 8 ; H.digest msg ; salt ]
+    and pade = Cs.find_uint8 ~mask ~f:((<>) 0) db
+    in
+    let c1 = get_uint8 em (n - 1) = 0xbc
+    and c2 = lnot (b0mask bits) land get_uint8 mdb 0 = 0x00
+    and c3 = pade = Some padl
+    and c4 = get_uint8 db padl = 0x01
+    and c5 = Cs.equal ~mask h h' in
+    Printf.printf "%b %b %b %b %b\n%!" c1 c2 c3 c4 c5 ;
+    c1 && c2 && c3 && c4 && c5
+
+  let sign ?g ?(seedlen = hlen) ~key msg =
+    decrypt ~mask:`No ~key
+      (emsa_pss_encode ?g seedlen (priv_bits key - 1) msg)
+
+  let verify ?(seedlen = hlen) ~key ~signature msg =
+    emsa_pss_verify seedlen (pub_bits key - 1) (encrypt ~key signature) msg
 
 end
