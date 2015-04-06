@@ -3,6 +3,8 @@ module type T = sig
   type key
   type result = { message : Cstruct.t ; key : key }
   val of_secret : Cstruct.t -> key
+  val encrypt_into : key:key -> Cstruct.t -> Cstruct.t -> key
+  val decrypt_into : key:key -> Cstruct.t -> Cstruct.t -> key
   val encrypt : key:key -> Cstruct.t -> result
   val decrypt : key:key -> Cstruct.t -> result
 end
@@ -29,7 +31,8 @@ module ARC4 = struct
     in
     ( loop 0 0 ; (0, 0, s) )
 
-  let encrypt ~key:(i, j, s') cs =
+  let encrypt_into ~key:(i, j, s') cs res =
+    if Cstruct.len res < Cstruct.len cs then invalid_arg "ARC4: output buffer too short";
     let s   = Array.copy s'
     and len = Cstruct.len cs in
     let res = Cstruct.create len in
@@ -45,8 +48,14 @@ module ARC4 = struct
           Cstruct.(set_uint8 res n (k lxor get_uint8 cs n));
           mix i j (succ n)
     in
-    let key' = mix i j 0 in
-    { key = key' ; message = res }
+    mix i j 0
+
+  let decrypt_into = encrypt_into
+
+  let encrypt ~key cs =
+    let res = Cstruct.create (Cstruct.len cs) in
+    let key' = encrypt_into ~key cs res in
+    { key = key'; message = res }
 
   let decrypt = encrypt
 

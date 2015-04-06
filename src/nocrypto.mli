@@ -267,6 +267,8 @@ module Cipher_stream : sig
     type key
     type result = { message : Cstruct.t ; key : key }
     val of_secret : Cstruct.t -> key
+    val encrypt_into : key:key -> Cstruct.t -> Cstruct.t -> key
+    val decrypt_into : key:key -> Cstruct.t -> Cstruct.t -> key
     val encrypt : key:key -> Cstruct.t -> result
     val decrypt : key:key -> Cstruct.t -> result
   end
