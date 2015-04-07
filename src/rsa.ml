@@ -280,10 +280,13 @@ module PSS (H: Hash.T) = struct
     c1 && c2 && c3 && c4 && c5
 
   let sign ?g ?(seedlen = hlen) ~key msg =
-    decrypt ~mask:`No ~key
-      (emsa_pss_encode ?g seedlen (priv_bits key - 1) msg)
+    let em = emsa_pss_encode ?g seedlen (priv_bits key - 1) msg in
+    decrypt ~mask:`No ~key em
 
   let verify ?(seedlen = hlen) ~key ~signature msg =
-    emsa_pss_verify seedlen (pub_bits key - 1) (encrypt ~key signature) msg
+    let bits = pub_bits key - 1 in
+    let k    = bytes bits
+    and em   = encrypt ~key signature in
+    emsa_pss_verify seedlen bits (sub em (len em - k) k) msg
 
 end

@@ -31,6 +31,8 @@ let string_fold ~f ~z str =
   let st = ref z in
   ( String.iter (fun c -> st := f !st c) str  ; !st )
 
+let bytes bits = cdiv bits 8
+
 (* The Sexplib hack... *)
 module Z = struct
   include Z
