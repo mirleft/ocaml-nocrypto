@@ -180,17 +180,22 @@ module Modes = struct
 
     let of_secret = C.e_of_secret
 
+
     let stream ~key ~ctr size =
       let rec loop ctr cs = function
         | 0 -> ()
         | n ->
-            C.encrypt_block ~key ctr cs ;
-            CNT.increment ctr ;
-            loop ctr (shift cs block_size) (pred n) in
+           C.encrypt_block ~key ctr cs ;
+           CNT.increment ctr ;
+           loop ctr (shift cs block_size) (pred n) in
       let blocks = cdiv size block_size in
+      let len_ctr = len ctr in
+      let tmp_ctr = create len_ctr in
       let res    = create (blocks * block_size) in
-      loop ctr res blocks ;
+      blit ctr 0 tmp_ctr 0 len_ctr;
+      loop tmp_ctr res blocks ;
       sub res 0 size
+
 
     let encrypt ~key ~ctr msg =
       let size = len msg in
