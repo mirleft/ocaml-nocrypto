@@ -676,5 +676,14 @@ module Dh : sig
     val rfc_5114_1 : group
     val rfc_5114_2 : group
     val rfc_5114_3 : group
+
+    (** From draft-ietf-tls-negotiated-ff-dhe-08 *)
+
+    val ffdhe2048 : group
+    val ffdhe3072 : group
+    val ffdhe4096 : group
+    val ffdhe6144 : group
+    val ffdhe8192 : group
+
   end
 end
