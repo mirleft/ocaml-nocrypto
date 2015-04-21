@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 9bcf3eab9037af7096aa71b52a32e58f)
+# DO NOT EDIT (digest: d6519bf0a1c83b32ff79e04d9cdcd11c)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -17,27 +17,6 @@ true: annot, bin_annot
 # Executable nocrypto_bindgen
 "src_gen/nocrypto_bindgen.byte": package(ctypes.stubs)
 <src_gen/*.ml{,i,y}>: package(ctypes.stubs)
-# Library nocrypto_xen
-"xen/nocrypto_xen.cmxs": use_nocrypto_xen
-<xen/*.ml{,i,y}>: oasis_library_nocrypto_xen_ccopt
-"xen/native/md5.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/sha1.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/sha256.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/sha512.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/rijndael.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/d3des.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/nocrypto_stubs.c": oasis_library_nocrypto_xen_ccopt
-"xen/native/nocrypto_generated_stubs.c": oasis_library_nocrypto_xen_ccopt
-<xen/nocrypto_xen.{cma,cmxa}>: use_libnocrypto_xen_stubs
-<xen/*.ml{,i,y}>: package(ctypes.stubs)
-"xen/native/md5.c": package(ctypes.stubs)
-"xen/native/sha1.c": package(ctypes.stubs)
-"xen/native/sha256.c": package(ctypes.stubs)
-"xen/native/sha512.c": package(ctypes.stubs)
-"xen/native/rijndael.c": package(ctypes.stubs)
-"xen/native/d3des.c": package(ctypes.stubs)
-"xen/native/nocrypto_stubs.c": package(ctypes.stubs)
-"xen/native/nocrypto_generated_stubs.c": package(ctypes.stubs)
 # Library nocrypto
 "src/nocrypto.cmxs": use_nocrypto
 "src/uncommon.cmx": for-pack(Nocrypto)
@@ -129,6 +108,99 @@ true: annot, bin_annot
 "src/native/nocrypto_generated_stubs.c": package(sexplib.syntax)
 "src/native/nocrypto_generated_stubs.c": package(type_conv)
 "src/native/nocrypto_generated_stubs.c": package(zarith)
+# Library nocrypto_xen
+"xen/nocrypto_xen.cmxs": use_nocrypto_xen
+<xen/*.ml{,i,y}>: oasis_library_nocrypto_xen_ccopt
+"xen/native/md5.c": oasis_library_nocrypto_xen_ccopt
+"xen/native/sha1.c": oasis_library_nocrypto_xen_ccopt
+"xen/native/sha256.c": oasis_library_nocrypto_xen_ccopt
+"xen/native/sha512.c": oasis_library_nocrypto_xen_ccopt
+"xen/native/rijndael.c": oasis_library_nocrypto_xen_ccopt
+"xen/native/d3des.c": oasis_library_nocrypto_xen_ccopt
+"xen/native/nocrypto_stubs.c": oasis_library_nocrypto_xen_ccopt
+"xen/native/nocrypto_generated_stubs.c": oasis_library_nocrypto_xen_ccopt
+<xen/nocrypto_xen.{cma,cmxa}>: use_libnocrypto_xen_stubs
+<xen/*.ml{,i,y}>: package(cstruct)
+<xen/*.ml{,i,y}>: package(ctypes)
+<xen/*.ml{,i,y}>: package(ctypes.stubs)
+<xen/*.ml{,i,y}>: package(lwt.syntax)
+<xen/*.ml{,i,y}>: package(mirage-entropy-xen)
+<xen/*.ml{,i,y}>: package(sexplib.syntax)
+<xen/*.ml{,i,y}>: package(type_conv)
+<xen/*.ml{,i,y}>: package(zarith)
+<xen/*.ml{,i,y}>: use_nocrypto
+"xen/native/md5.c": package(cstruct)
+"xen/native/md5.c": package(ctypes)
+"xen/native/md5.c": package(ctypes.stubs)
+"xen/native/md5.c": package(lwt.syntax)
+"xen/native/md5.c": package(mirage-entropy-xen)
+"xen/native/md5.c": package(sexplib.syntax)
+"xen/native/md5.c": package(type_conv)
+"xen/native/md5.c": package(zarith)
+"xen/native/md5.c": use_nocrypto
+"xen/native/sha1.c": package(cstruct)
+"xen/native/sha1.c": package(ctypes)
+"xen/native/sha1.c": package(ctypes.stubs)
+"xen/native/sha1.c": package(lwt.syntax)
+"xen/native/sha1.c": package(mirage-entropy-xen)
+"xen/native/sha1.c": package(sexplib.syntax)
+"xen/native/sha1.c": package(type_conv)
+"xen/native/sha1.c": package(zarith)
+"xen/native/sha1.c": use_nocrypto
+"xen/native/sha256.c": package(cstruct)
+"xen/native/sha256.c": package(ctypes)
+"xen/native/sha256.c": package(ctypes.stubs)
+"xen/native/sha256.c": package(lwt.syntax)
+"xen/native/sha256.c": package(mirage-entropy-xen)
+"xen/native/sha256.c": package(sexplib.syntax)
+"xen/native/sha256.c": package(type_conv)
+"xen/native/sha256.c": package(zarith)
+"xen/native/sha256.c": use_nocrypto
+"xen/native/sha512.c": package(cstruct)
+"xen/native/sha512.c": package(ctypes)
+"xen/native/sha512.c": package(ctypes.stubs)
+"xen/native/sha512.c": package(lwt.syntax)
+"xen/native/sha512.c": package(mirage-entropy-xen)
+"xen/native/sha512.c": package(sexplib.syntax)
+"xen/native/sha512.c": package(type_conv)
+"xen/native/sha512.c": package(zarith)
+"xen/native/sha512.c": use_nocrypto
+"xen/native/rijndael.c": package(cstruct)
+"xen/native/rijndael.c": package(ctypes)
+"xen/native/rijndael.c": package(ctypes.stubs)
+"xen/native/rijndael.c": package(lwt.syntax)
+"xen/native/rijndael.c": package(mirage-entropy-xen)
+"xen/native/rijndael.c": package(sexplib.syntax)
+"xen/native/rijndael.c": package(type_conv)
+"xen/native/rijndael.c": package(zarith)
+"xen/native/rijndael.c": use_nocrypto
+"xen/native/d3des.c": package(cstruct)
+"xen/native/d3des.c": package(ctypes)
+"xen/native/d3des.c": package(ctypes.stubs)
+"xen/native/d3des.c": package(lwt.syntax)
+"xen/native/d3des.c": package(mirage-entropy-xen)
+"xen/native/d3des.c": package(sexplib.syntax)
+"xen/native/d3des.c": package(type_conv)
+"xen/native/d3des.c": package(zarith)
+"xen/native/d3des.c": use_nocrypto
+"xen/native/nocrypto_stubs.c": package(cstruct)
+"xen/native/nocrypto_stubs.c": package(ctypes)
+"xen/native/nocrypto_stubs.c": package(ctypes.stubs)
+"xen/native/nocrypto_stubs.c": package(lwt.syntax)
+"xen/native/nocrypto_stubs.c": package(mirage-entropy-xen)
+"xen/native/nocrypto_stubs.c": package(sexplib.syntax)
+"xen/native/nocrypto_stubs.c": package(type_conv)
+"xen/native/nocrypto_stubs.c": package(zarith)
+"xen/native/nocrypto_stubs.c": use_nocrypto
+"xen/native/nocrypto_generated_stubs.c": package(cstruct)
+"xen/native/nocrypto_generated_stubs.c": package(ctypes)
+"xen/native/nocrypto_generated_stubs.c": package(ctypes.stubs)
+"xen/native/nocrypto_generated_stubs.c": package(lwt.syntax)
+"xen/native/nocrypto_generated_stubs.c": package(mirage-entropy-xen)
+"xen/native/nocrypto_generated_stubs.c": package(sexplib.syntax)
+"xen/native/nocrypto_generated_stubs.c": package(type_conv)
+"xen/native/nocrypto_generated_stubs.c": package(zarith)
+"xen/native/nocrypto_generated_stubs.c": use_nocrypto
 # Library nocrypto_lwt
 "lwt/nocrypto_lwt.cmxs": use_nocrypto_lwt
 <lwt/*.ml{,i,y}>: package(cstruct)

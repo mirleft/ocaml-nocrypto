@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: a3c55ab2500fd3b165c73d7c3cf3a6e7)
+# DO NOT EDIT (digest: 287266e5225a256af24b1440e1fd46ea)
 version = "0.3.1"
 description = "Simple crypto for the modern age"
 requires = "cstruct zarith ctypes.stubs sexplib"
@@ -12,6 +12,7 @@ exists_if = "nocrypto.cma"
 package "xen" (
  version = "0.3.1"
  description = "Simple crypto for the modern age"
+ requires = "nocrypto lwt mirage-entropy-xen"
  archive(byte) = "nocrypto_xen.cma"
  archive(byte, plugin) = "nocrypto_xen.cma"
  archive(native) = "nocrypto_xen.cmxa"

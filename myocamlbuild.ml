@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 1dbd280f135278470571ebee5615ab30) *)
+(* DO NOT EDIT (digest: 094ee64c2d88804d2ba245d7e9f5b001) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -609,25 +609,13 @@ let package_default =
   {
      MyOCamlbuildBase.lib_ocaml =
        [
-          ("nocrypto_xen", ["xen"], []);
           ("nocrypto", ["src"], []);
+          ("nocrypto_xen", ["xen"], []);
           ("nocrypto_lwt", ["lwt"], []);
           ("testlib", ["tests"], [])
        ];
      lib_c =
        [
-          ("nocrypto_xen",
-            "xen/",
-            [
-               "xen/native/bitfn.h";
-               "xen/native/md5.h";
-               "xen/native/sha1.h";
-               "xen/native/sha256.h";
-               "xen/native/sha512.h";
-               "xen/native/rijndael.h";
-               "xen/native/d3des.h";
-               "xen/native/nocrypto_stubs.h"
-            ]);
           ("nocrypto",
             "src/",
             [
@@ -639,29 +627,22 @@ let package_default =
                "src/native/rijndael.h";
                "src/native/d3des.h";
                "src/native/nocrypto_stubs.h"
+            ]);
+          ("nocrypto_xen",
+            "xen/",
+            [
+               "xen/native/bitfn.h";
+               "xen/native/md5.h";
+               "xen/native/sha1.h";
+               "xen/native/sha256.h";
+               "xen/native/sha512.h";
+               "xen/native/rijndael.h";
+               "xen/native/d3des.h";
+               "xen/native/nocrypto_stubs.h"
             ])
        ];
      flags =
        [
-          (["oasis_library_nocrypto_xen_ccopt"; "compile"],
-            [
-               (OASISExpr.EBool true,
-                 S
-                   [
-                      A "-ccopt";
-                      A "-O3";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}";
-                      A "-ccopt";
-                      A "-I${pkg_ctypes}/..";
-                      A "-ccopt";
-                      A "-DNDEBUG";
-                      A "-ccopt";
-                      A "${XEN_CFLAGS}"
-                   ]);
-               (OASISExpr.EFlag "pedantic",
-                 S [A "-ccopt"; A "-Wall"; A "-ccopt"; A "-Wpedantic"])
-            ]);
           (["oasis_library_nocrypto_ccopt"; "compile"],
             [
                (OASISExpr.EBool true,
@@ -685,9 +666,28 @@ let package_default =
             ]);
           (["oasis_library_nocrypto_byte"; "ocaml"; "compile"; "byte"],
             [(OASISExpr.EBool true, S [A "-w"; A "A-4-33-40-41-42-43-34-44"])
+            ]);
+          (["oasis_library_nocrypto_xen_ccopt"; "compile"],
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-ccopt";
+                      A "-O3";
+                      A "-ccopt";
+                      A "-I${pkg_ctypes}";
+                      A "-ccopt";
+                      A "-I${pkg_ctypes}/..";
+                      A "-ccopt";
+                      A "-DNDEBUG";
+                      A "-ccopt";
+                      A "${XEN_CFLAGS}"
+                   ]);
+               (OASISExpr.EFlag "pedantic",
+                 S [A "-ccopt"; A "-Wall"; A "-ccopt"; A "-Wpedantic"])
             ])
        ];
-     includes = [("tests", ["src"]); ("lwt", ["src"])]
+     includes = [("xen", ["src"]); ("tests", ["src"]); ("lwt", ["src"])]
   }
   ;;
 
