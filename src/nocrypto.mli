@@ -419,10 +419,9 @@ module Rng : sig
   include T.Rng         with type g := g (** Base RNG generation. *)
   include T.Rng_numeric with type g := g (** Numeric RNG generation. *)
 
-  val reseed  : Cstruct.t      -> unit
-  val reseedv : Cstruct.t list -> unit
-  val seeded  : unit           -> bool
-  val set_gen : g:g            -> unit
+  val reseed    : Cstruct.t      -> unit
+  val reseedv   : Cstruct.t list -> unit
+  val seeded    : unit           -> bool
   val generator : g ref
 
   module Accumulator : sig
