@@ -126,18 +126,10 @@ let generator = ref (create ())
 let reseedv    = reseedv ~g:!generator
 and reseed     = reseed  ~g:!generator
 and seeded ()  = seeded  ~g:!generator
-and set_gen ~g = generator := g
 
 let block_size = block_size
 
 let generate ?(g = !generator) n = generate ~g n
-
-module Accumulator = struct
-  (* XXX breaks down after set_gen. Make `g` and `acc` one-to-one? *)
-  let acc    = Accumulator.create ~g:!generator
-  let add    = Accumulator.add ~acc
-  and add_rr = Accumulator.add_rr ~acc
-end
 
 include ( Numeric_of (
   struct
