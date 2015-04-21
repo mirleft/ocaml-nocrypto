@@ -423,6 +423,7 @@ module Rng : sig
   val reseedv : Cstruct.t list -> unit
   val seeded  : unit           -> bool
   val set_gen : g:g            -> unit
+  val generator : g ref
 
   module Accumulator : sig
     val add    : source:int -> pool:int -> Cstruct.t -> unit
