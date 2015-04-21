@@ -119,6 +119,14 @@ Executable "test_runner"
   Build$:         flag(tests)
   BuildDepends:   testlib
 
+Executable "test_ctr"
+  Path:           tests/
+  Install:        false
+  CompiledObject: best
+  MainIs:         test_ctr.ml
+  Build$:         flag(tests)
+  BuildDepends:   testlib
+
 Test the_things
   Command:   $test_runner
   TestTools: test_runner

@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 60a98fbf27d94dc752e826d1f1bea50e)
+# DO NOT EDIT (digest: 8f5fd26d850ac8f160ed66c781049de1)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -142,6 +142,17 @@ true: annot, bin_annot
 <tests/testrunner.{native,byte}>: package(zarith)
 <tests/testrunner.{native,byte}>: use_nocrypto
 <tests/testrunner.{native,byte}>: use_testlib
+# Executable test_ctr
+<tests/test_ctr.{native,byte}>: package(cstruct)
+<tests/test_ctr.{native,byte}>: package(cstruct.unix)
+<tests/test_ctr.{native,byte}>: package(ctypes)
+<tests/test_ctr.{native,byte}>: package(ctypes.stubs)
+<tests/test_ctr.{native,byte}>: package(oUnit)
+<tests/test_ctr.{native,byte}>: package(sexplib.syntax)
+<tests/test_ctr.{native,byte}>: package(type_conv)
+<tests/test_ctr.{native,byte}>: package(zarith)
+<tests/test_ctr.{native,byte}>: use_nocrypto
+<tests/test_ctr.{native,byte}>: use_testlib
 <tests/*.ml{,i,y}>: package(oUnit)
 <tests/*.ml{,i,y}>: use_testlib
 # Executable bench
