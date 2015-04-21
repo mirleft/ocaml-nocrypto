@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 60a98fbf27d94dc752e826d1f1bea50e)
+# DO NOT EDIT (digest: 9bcf3eab9037af7096aa71b52a32e58f)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -129,6 +129,18 @@ true: annot, bin_annot
 "src/native/nocrypto_generated_stubs.c": package(sexplib.syntax)
 "src/native/nocrypto_generated_stubs.c": package(type_conv)
 "src/native/nocrypto_generated_stubs.c": package(zarith)
+# Library nocrypto_lwt
+"lwt/nocrypto_lwt.cmxs": use_nocrypto_lwt
+<lwt/*.ml{,i,y}>: package(cstruct)
+<lwt/*.ml{,i,y}>: package(cstruct.lwt)
+<lwt/*.ml{,i,y}>: package(ctypes)
+<lwt/*.ml{,i,y}>: package(ctypes.stubs)
+<lwt/*.ml{,i,y}>: package(lwt.syntax)
+<lwt/*.ml{,i,y}>: package(lwt.unix)
+<lwt/*.ml{,i,y}>: package(sexplib.syntax)
+<lwt/*.ml{,i,y}>: package(type_conv)
+<lwt/*.ml{,i,y}>: package(zarith)
+<lwt/*.ml{,i,y}>: use_nocrypto
 # Library testlib
 "tests/testlib.cmxs": use_testlib
 # Executable test_runner
