@@ -7,5 +7,5 @@ let attach e g =
   Entropy_xen.add_handler e (add_rr ~acc)
 
 let initialize () =
-  Entropy_xen.connect () >>= fun (`Ok t) ->
+  Entropy_xen.connect () >>= fun t ->
     attach t !Nocrypto.Rng.generator
