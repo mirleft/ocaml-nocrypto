@@ -25,7 +25,7 @@ ocaml setup.ml -test
 
 # check Xen support builds too
 set -eu
-if opam install mirage-xen; then
+if opam install "mirage-xen>=2.2.0"; then
   ./configure --enable-xen
   make
   ls -l _build/xen/dllnocrypto_xen_stubs.so
