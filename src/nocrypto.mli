@@ -423,6 +423,7 @@ module Rng : sig
   val reseedv   : Cstruct.t list -> unit
   val seeded    : unit           -> bool
   val generator : g ref
+  (** [generator] is a reference to the current default generator. *)
 
 end
 
