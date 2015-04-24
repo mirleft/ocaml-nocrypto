@@ -16,6 +16,12 @@ module Uncommon : sig
   val (&.) : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c
   val id   : 'a -> 'a
 
+  module Option : sig
+    val v_map : default:'b -> f:('a -> 'b) -> 'a option -> 'b
+    val map   : f:('a -> 'b) -> 'a option -> 'b option
+    val value : default:'a -> 'a option -> 'a
+  end
+
   (** Addons to {!Cstruct}. *)
   module Cs : sig
 
