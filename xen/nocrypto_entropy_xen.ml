@@ -6,6 +6,11 @@ let attach e g =
   let acc = create ~g in
   Entropy_xen.add_handler e (add_rr ~acc)
 
+let stash = ref None
+
 let initialize () =
-  Entropy_xen.connect () >>= fun t ->
-    attach t !Nocrypto.Rng.generator
+  lwt e = match !stash with
+    | Some (e, tok) -> Entropy_xen.remove_handler e tok ; return e
+    | None          -> Entropy_xen.connect () in
+  lwt tok = attach e !Nocrypto.Rng.generator in
+  return (stash := Some (e, tok))
