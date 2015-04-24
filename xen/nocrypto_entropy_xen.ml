@@ -1,8 +1,10 @@
-
 open Lwt
 
+open Nocrypto
+open Uncommon
+
 let attach e g =
-  let open Nocrypto.Fortuna.Accumulator in
+  let open Fortuna.Accumulator in
   let acc = create ~g in
   Entropy_xen.add_handler e (add_rr ~acc)
 
@@ -12,5 +14,8 @@ let initialize () =
   lwt e = match !stash with
     | Some (e, tok) -> Entropy_xen.remove_handler e tok ; return e
     | None          -> Entropy_xen.connect () in
-  lwt tok = attach e !Nocrypto.Rng.generator in
+  lwt tok = attach e !Rng.generator in
   return (stash := Some (e, tok))
+
+let sources () =
+  Option.map ~f:(Entropy_xen.sources &. fst) !stash
