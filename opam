@@ -1,6 +1,6 @@
 opam-version: "1.2"
 name:         "nocrypto"
-version:      "0.3.1"
+version:      "0.4.0"
 homepage:     "https://github.com/mirleft/ocaml-nocrypto"
 dev-repo:     "https://github.com/mirleft/ocaml-nocrypto.git"
 bug-reports:  "https://github.com/mirleft/ocaml-nocrypto/issues"
@@ -17,7 +17,7 @@ remove:  ["ocamlfind" "remove" "nocrypto"]
 
 depends: [
   "ocamlfind"
-  "cstruct" {>= "1.2.0"}
+  "cstruct" {>= "1.4.0"}
   "zarith"
   "type_conv"
   "sexplib"
@@ -26,10 +26,12 @@ depends: [
 
 depopts: [
   "mirage-xen"
+  "mirage-entropy-xen"
 ]
 
 conflicts: [
   "mirage-xen" {<"2.2.0"}
+  "mirage-entropy-xen" {<"0.3.0"}
 ]
 
 tags: [ "org:mirage"]
