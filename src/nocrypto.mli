@@ -16,6 +16,12 @@ module Uncommon : sig
   val (&.) : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c
   val id   : 'a -> 'a
 
+  module Option : sig
+    val v_map : default:'b -> f:('a -> 'b) -> 'a option -> 'b
+    val map   : f:('a -> 'b) -> 'a option -> 'b option
+    val value : default:'a -> 'a option -> 'a
+  end
+
   (** Addons to {!Cstruct}. *)
   module Cs : sig
 
@@ -419,15 +425,12 @@ module Rng : sig
   include T.Rng         with type g := g (** Base RNG generation. *)
   include T.Rng_numeric with type g := g (** Numeric RNG generation. *)
 
-  val reseed  : Cstruct.t      -> unit
-  val reseedv : Cstruct.t list -> unit
-  val seeded  : unit           -> bool
-  val set_gen : g:g            -> unit
+  val reseed    : Cstruct.t      -> unit
+  val reseedv   : Cstruct.t list -> unit
+  val seeded    : unit           -> bool
+  val generator : g ref
+  (** [generator] is a reference to the current default generator. *)
 
-  module Accumulator : sig
-    val add    : source:int -> pool:int -> Cstruct.t -> unit
-    val add_rr : source:int -> Cstruct.t -> unit
-  end
 end
 
 

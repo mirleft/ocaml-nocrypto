@@ -15,8 +15,12 @@ Categories: http://org:mirage
 OCamlVersion: >= 4.01.0
 
 Flag xen
-  Description:        Build Xen support
-  Default:            false
+  Description: Build Xen support
+  Default:     false
+
+Flag lwt
+  Description: Build Lwt/Unix support
+  Default:     true
 
 Flag "pedantic"
   Description: Make the C compiler go hardcore
@@ -72,11 +76,21 @@ Library "nocrypto"
   if flag(pedantic)
     CCOpt: -Wall -Wpedantic
 
+Library "nocrypto_lwt"
+  Path:          lwt/
+  Findlibparent: nocrypto
+  Findlibname:   lwt
+  Build$:        flag(lwt)
+  Modules:       Nocrypto_entropy_lwt
+  BuildDepends:  nocrypto, lwt.syntax, lwt.unix, cstruct.lwt
+  XMETARequires: nocrypto, lwt.unix, cstruct.lwt
+
 Library "nocrypto_xen"
   Path:            xen/
   Findlibparent:   nocrypto
   Findlibname:     xen
   Build$:          flag(xen)
+  Modules:         Nocrypto_entropy_xen
   CSources:        native/bitfn.h,
                    native/md5.c,
                    native/md5.h,
@@ -93,6 +107,8 @@ Library "nocrypto_xen"
                    native/nocrypto_stubs.h,
                    native/nocrypto_stubs.c,
                    native/nocrypto_generated_stubs.c
+  BuildDepends:    nocrypto, lwt.syntax, mirage-entropy-xen
+  XMETARequires:   nocrypto, lwt, mirage-entropy-xen
   CCOpt:           -O3 -I$pkg_ctypes -I$pkg_ctypes/.. -DNDEBUG $XEN_CFLAGS
   BuildTools:      nocrypto_bindgen
   if flag(pedantic)
