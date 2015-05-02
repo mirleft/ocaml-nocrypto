@@ -1,3 +1,11 @@
+0.4.0 (2015-05-02):
+* module for injecting entropy into RNG on Unix/Lwt (optional)
+* module for injecting entropy into RNG on Mirage/Xen (optional; depends on
+  mirage-entropy-xen)
+* API changes in Rng
+* do not 0-pad DH public and shared representations
+* more named DH groups
+
 0.3.1 (2015-02-01):
 * support for Mirage/Xen (contributed by Thomas Leonard <talex5@gmail.com>)
 
