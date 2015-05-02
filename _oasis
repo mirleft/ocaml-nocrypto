@@ -82,8 +82,7 @@ Library "nocrypto_lwt"
   Findlibname:   lwt
   Build$:        flag(lwt)
   Modules:       Nocrypto_entropy_lwt
-  BuildDepends:  nocrypto, lwt.syntax, lwt.unix, cstruct.lwt
-  XMETARequires: nocrypto, lwt.unix, cstruct.lwt
+  BuildDepends:  nocrypto, lwt.unix, cstruct.lwt
 
 Library "nocrypto_xen"
   Path:            xen/

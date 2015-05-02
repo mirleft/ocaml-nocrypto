@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: d6519bf0a1c83b32ff79e04d9cdcd11c)
+# DO NOT EDIT (digest: 649297575c759b4d372fa009057431a0)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -207,7 +207,6 @@ true: annot, bin_annot
 <lwt/*.ml{,i,y}>: package(cstruct.lwt)
 <lwt/*.ml{,i,y}>: package(ctypes)
 <lwt/*.ml{,i,y}>: package(ctypes.stubs)
-<lwt/*.ml{,i,y}>: package(lwt.syntax)
 <lwt/*.ml{,i,y}>: package(lwt.unix)
 <lwt/*.ml{,i,y}>: package(sexplib.syntax)
 <lwt/*.ml{,i,y}>: package(type_conv)
