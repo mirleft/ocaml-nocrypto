@@ -1,6 +1,4 @@
-
 open Lwt
-
 
 let chunk  = 32
 and period = 30
@@ -25,12 +23,12 @@ let background ~period f =
     end
 
 let attach ~period ~device g =
-  lwt fd  = Lwt_unix.(openfile device [O_RDONLY] 0) in
+  Lwt_unix.(openfile device [O_RDONLY] 0) >>= fun fd ->
   let buf = Cstruct.create chunk in
   let seed () =
     Lwt_cstruct.(complete (read fd) buf) >|= fun () ->
       Nocrypto.Fortuna.reseed ~g buf in
-  lwt () = seed () in
+  seed () >>= fun () ->
   let nd =
     Lwt_sequence.add_r (background ~period seed) Lwt_main.enter_iter_hooks in
   return { fd; nd }
@@ -43,6 +41,6 @@ let stash = ref None
 
 (* Totally not concurrent. *)
 let initialize () =
-  lwt () = ( match !stash with Some t -> stop t | None -> return_unit )
-  and t  = attach ~period ~device !Nocrypto.Rng.generator in
-  return (stash := Some t)
+  (match !stash with Some t -> stop t | None -> return_unit) >>= fun () ->
+  attach ~period ~device !Nocrypto.Rng.generator >|= fun t ->
+  stash := Some t
