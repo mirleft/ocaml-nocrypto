@@ -25,7 +25,18 @@ ocaml setup.ml -test
 
 # check Xen support builds too
 set -eu
-if opam install "mirage-xen>=2.2.0"; then
+opam pin add -n mirage-entropy-xen git://github.com/mirage/mirage-entropy
+
+sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+sudo apt-get -qq update
+sudo apt-get -qq install gcc-4.8
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
+
+wget http://mirrors.kernel.org/ubuntu/pool/main/b/binutils/binutils_2.24-5ubuntu3.1_amd64.deb
+sudo dpkg -i binutils_2.24-5ubuntu3.1_amd64.deb
+
+if opam install "mirage-xen>=2.2.0" mirage-entropy-xen; then
+  make clean
   ./configure --enable-xen
   make
   ls -l _build/xen/dllnocrypto_xen_stubs.so
