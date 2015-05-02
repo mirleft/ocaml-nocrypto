@@ -532,15 +532,6 @@ module Rsa : sig
         {!Rsa.decrypt} would raise. *)
   end
 
-  module OAEP (T : Hash.T) : sig
-    val encrypt : ?g:Rng.g   -> ?label:Cstruct.t -> key:pub  -> Cstruct.t -> Cstruct.t
-    val decrypt : ?mask:mask -> ?label:Cstruct.t -> key:priv -> Cstruct.t -> Cstruct.t option
-  end
-
-  module PSS (T: Hash.T) : sig
-    val sign   : ?g:Rng.g -> ?seedlen:int -> key:priv -> Cstruct.t -> Cstruct.t
-    val verify : ?seedlen:int -> key:pub -> signature:Cstruct.t -> Cstruct.t -> bool
-  end
 end
 
 
