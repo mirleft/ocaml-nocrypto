@@ -8,7 +8,7 @@ License:      FreeBSD
 Homepage:     https://github.com/mirleft/ocaml-nocrypto
 Plugins:      META (0.4), DevFiles (0.4)
 BuildTools:   ocamlbuild
-PostConfCommand: ocaml postconf.ml
+PostConfCommand: ./postconf
 Description:
   A simple cryptographic library.
 Categories: http://org:mirage
