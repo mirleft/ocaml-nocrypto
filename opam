@@ -32,7 +32,6 @@ depopts: [
 ]
 
 conflicts: [
-  "lwt" {<"2.4.8"}
   "mirage-xen" {<"2.2.0"}
   "mirage-entropy-xen" {<"0.3.0"}
 ]
