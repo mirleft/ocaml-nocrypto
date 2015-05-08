@@ -36,11 +36,7 @@ conflicts: [
   "mirage-entropy-xen" {<"0.3.0"}
 ]
 
-build-test: [
-  ["ocaml" "setup.ml" "-configure" "--enable-tests"]
-  ["ocaml" "setup.ml" "-build"]
-  ["ocaml" "setup.ml" "-test"]
-]
+build-test: [make "test"]
 
 tags: [ "org:mirage"]
 available: [ ocaml-version >= "4.01.0" ]
