@@ -10,7 +10,8 @@ license:      "BSD2"
 build: [
   ["ocaml" "setup.ml" "-configure" "--prefix" prefix
     "--%{lwt:enable}%-lwt"
-    "--%{mirage-xen+mirage-entropy-xen:enable}%-xen" ]
+    "--%{mirage-xen+mirage-entropy-xen:enable}%-xen"
+    "--%{ounit:enable}%-tests" ]
   ["ocaml" "setup.ml" "-build"]
 ]
 install: ["ocaml" "setup.ml" "-install"]
