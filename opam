@@ -23,17 +23,23 @@ depends: [
   "type_conv"
   "sexplib"
   "ctypes" {>= "0.3.3"}
+  ("mirage-no-xen" | ("mirage-xen" & "mirage-entropy-xen"))
+  "ounit" {test}
 ]
 
 depopts: [
   "lwt"
-  "mirage-xen"
-  "mirage-entropy-xen"
 ]
 
 conflicts: [
   "mirage-xen" {<"2.2.0"}
   "mirage-entropy-xen" {<"0.3.0"}
+]
+
+build-test: [
+  ["ocaml" "setup.ml" "-configure" "--enable-tests"]
+  ["ocaml" "setup.ml" "-build"]
+  ["ocaml" "setup.ml" "-test"]
 ]
 
 tags: [ "org:mirage"]
