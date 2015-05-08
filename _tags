@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 649297575c759b4d372fa009057431a0)
+# DO NOT EDIT (digest: bcd7370511cb50ee14059b89a57b0a01)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -216,7 +216,6 @@ true: annot, bin_annot
 "tests/testlib.cmxs": use_testlib
 # Executable test_runner
 <tests/testrunner.{native,byte}>: package(cstruct)
-<tests/testrunner.{native,byte}>: package(cstruct.unix)
 <tests/testrunner.{native,byte}>: package(ctypes)
 <tests/testrunner.{native,byte}>: package(ctypes.stubs)
 <tests/testrunner.{native,byte}>: package(oUnit)
@@ -225,39 +224,46 @@ true: annot, bin_annot
 <tests/testrunner.{native,byte}>: package(zarith)
 <tests/testrunner.{native,byte}>: use_nocrypto
 <tests/testrunner.{native,byte}>: use_testlib
-<tests/*.ml{,i,y}>: package(oUnit)
-<tests/*.ml{,i,y}>: use_testlib
-# Executable bench
-"tests/runnable.native": package(cstruct)
-"tests/runnable.native": package(ctypes)
-"tests/runnable.native": package(ctypes.stubs)
-"tests/runnable.native": package(lwt)
-"tests/runnable.native": package(lwt.syntax)
-"tests/runnable.native": package(lwt.unix)
-"tests/runnable.native": package(sexplib.syntax)
-"tests/runnable.native": package(type_conv)
-"tests/runnable.native": package(zarith)
-"tests/runnable.native": use_nocrypto
-<tests/*.ml{,i,y}>: package(lwt)
-<tests/*.ml{,i,y}>: package(lwt.syntax)
-<tests/*.ml{,i,y}>: package(lwt.unix)
-# Executable hashbench
-"tests/hashbench.native": package(cstruct)
-"tests/hashbench.native": package(cstruct.unix)
-"tests/hashbench.native": package(ctypes)
-"tests/hashbench.native": package(ctypes.stubs)
-"tests/hashbench.native": package(sexplib.syntax)
-"tests/hashbench.native": package(type_conv)
-"tests/hashbench.native": package(zarith)
-"tests/hashbench.native": use_nocrypto
 <tests/*.ml{,i,y}>: package(cstruct)
-<tests/*.ml{,i,y}>: package(cstruct.unix)
 <tests/*.ml{,i,y}>: package(ctypes)
 <tests/*.ml{,i,y}>: package(ctypes.stubs)
+<tests/*.ml{,i,y}>: package(oUnit)
 <tests/*.ml{,i,y}>: package(sexplib.syntax)
 <tests/*.ml{,i,y}>: package(type_conv)
 <tests/*.ml{,i,y}>: package(zarith)
 <tests/*.ml{,i,y}>: use_nocrypto
+<tests/*.ml{,i,y}>: use_testlib
+# Executable bench
+"bench/runnable.native": package(cstruct)
+"bench/runnable.native": package(ctypes)
+"bench/runnable.native": package(ctypes.stubs)
+"bench/runnable.native": package(lwt)
+"bench/runnable.native": package(lwt.syntax)
+"bench/runnable.native": package(lwt.unix)
+"bench/runnable.native": package(sexplib.syntax)
+"bench/runnable.native": package(type_conv)
+"bench/runnable.native": package(zarith)
+"bench/runnable.native": use_nocrypto
+<bench/*.ml{,i,y}>: package(lwt)
+<bench/*.ml{,i,y}>: package(lwt.syntax)
+<bench/*.ml{,i,y}>: package(lwt.unix)
+# Executable hashbench
+"bench/hashbench.native": package(cstruct)
+"bench/hashbench.native": package(cstruct.unix)
+"bench/hashbench.native": package(ctypes)
+"bench/hashbench.native": package(ctypes.stubs)
+"bench/hashbench.native": package(sexplib.syntax)
+"bench/hashbench.native": package(type_conv)
+"bench/hashbench.native": package(zarith)
+"bench/hashbench.native": use_nocrypto
+<bench/*.ml{,i,y}>: package(cstruct)
+<bench/*.ml{,i,y}>: package(cstruct.unix)
+<bench/*.ml{,i,y}>: package(ctypes)
+<bench/*.ml{,i,y}>: package(ctypes.stubs)
+<bench/*.ml{,i,y}>: package(sexplib.syntax)
+<bench/*.ml{,i,y}>: package(type_conv)
+<bench/*.ml{,i,y}>: package(zarith)
+<bench/*.ml{,i,y}>: use_nocrypto
 # OASIS_STOP
 
 "src/nocrypto_generated.cmx": for-pack(Nocrypto)
