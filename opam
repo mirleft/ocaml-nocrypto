@@ -10,7 +10,8 @@ license:      "BSD2"
 build: [
   ["ocaml" "setup.ml" "-configure" "--prefix" prefix
     "--%{lwt:enable}%-lwt"
-    "--%{mirage-xen+mirage-entropy-xen:enable}%-xen" ]
+    "--%{mirage-xen+mirage-entropy-xen:enable}%-xen"
+    "--%{ounit:enable}%-tests" ]
   ["ocaml" "setup.ml" "-build"]
 ]
 install: ["ocaml" "setup.ml" "-install"]
@@ -23,18 +24,20 @@ depends: [
   "type_conv"
   "sexplib"
   "ctypes" {>= "0.3.3"}
+  ("mirage-no-xen" | ("mirage-xen" & "mirage-entropy-xen"))
+  "ounit" {test}
 ]
 
 depopts: [
   "lwt"
-  "mirage-xen"
-  "mirage-entropy-xen"
 ]
 
 conflicts: [
   "mirage-xen" {<"2.2.0"}
   "mirage-entropy-xen" {<"0.3.0"}
 ]
+
+build-test: [make "test"]
 
 tags: [ "org:mirage"]
 available: [ ocaml-version >= "4.01.0" ]

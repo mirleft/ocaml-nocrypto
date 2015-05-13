@@ -124,7 +124,7 @@ Library "testlib"
   Modules:      Notest, Hmac_tests, Dsa_tests, Testlib
   Install:      false
   Build$:       flag(tests)
-  BuildDepends: nocrypto, oUnit, cstruct.unix
+  BuildDepends: nocrypto, oUnit
 
 Executable "test_runner"
   Path:           tests/
@@ -140,7 +140,7 @@ Test the_things
   Run$:      flag(tests)
 
 Executable "bench"
-  Path:           tests/
+  Path:           bench/
   Install:        false
   CompiledObject: native
   MainIs:         runnable.ml
@@ -148,7 +148,7 @@ Executable "bench"
   BuildDepends:   nocrypto, cstruct, lwt, lwt.syntax, lwt.unix
 
 Executable "hashbench"
-  Path:           tests/
+  Path:           bench/
   Install:        false
   CompiledObject: native
   MainIs:         hashbench.ml
