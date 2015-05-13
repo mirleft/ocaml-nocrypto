@@ -13,8 +13,8 @@ build: [
      "--%{mirage-xen+mirage-entropy-xen:enable}%-xen" ]
   [ make ]
 ]
-install: ["ocaml" "setup.ml" "-install"]
-remove:  ["ocamlfind" "remove" "nocrypto"]
+install: [ make "install"]
+remove:  [ "ocamlfind" "remove" "nocrypto" ]
 
 depends: [
   "ocamlfind"
