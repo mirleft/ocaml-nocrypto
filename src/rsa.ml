@@ -158,6 +158,10 @@ module PKCS1 = struct
 
 end
 
+let (bx00, bx01, bxbc) =
+  let f b = Cs.of_bytes [b] in
+  (f 0x00, f 0x01, f 0xbc)
+
 module MGF1 (H : Hash.T) = struct
 
   open Cstruct
@@ -166,13 +170,17 @@ module MGF1 (H : Hash.T) = struct
   let repr = Numeric.Int32.to_cstruct_be ~size:4
 
   (* Assumes len < 2^32 * H.digest_size. *)
-  let mask ~seed ~len =
+  let mgf ~seed ~len =
     Range.of_int32 0l (Int32.of_int @@ cdiv len H.digest_size - 1)
     |> List.map (fun c -> H.digestv [seed; repr c])
     |> Cs.concat
     |> fun cs -> sub cs 0 len
 
+  let mask ~seed cs = Cs.xor (mgf ~seed ~len:(len cs)) cs
+
 end
+
+let mask = true
 
 module OAEP (H : Hash.T) = struct
 
@@ -180,27 +188,23 @@ module OAEP (H : Hash.T) = struct
 
   module MGF = MGF1(H)
 
-  let mgf seed len = MGF.mask ~seed ~len
-
   let hlen  = H.digest_size
   and hlen1 = H.digest_size + 1
-
-  let (bx00, bx01) = Cstruct.(of_string "\000", of_string "\001")
 
   let eme_oaep_encode ?g ?(label = Cs.empty) ~k msg =
     let seed  = Rng.generate ?g hlen
     and pad   = Cs.create_with (k - len msg - 2 * hlen1) 0x00 in
     let db    = Cs.concat [ H.digest label ; pad ; bx01 ; msg ] in
-    let mdb   = Cs.(db lxor mgf seed (k - hlen1)) in
-    let mseed = Cs.(seed lxor mgf mdb hlen) in
+    let mdb   = MGF.mask ~seed db in
+    let mseed = MGF.mask ~seed:mdb seed in
     Cs.concat [ bx00 ; mseed ; mdb ]
 
   let eme_oaep_decode ?(label = Cs.empty) ~k msg =
     let y      = get_uint8 msg 0
     and ms     = sub msg 1 hlen
     and mdb    = sub msg hlen1 (len msg - hlen1) in
-    let db     = Cs.(mdb lxor mgf (ms lxor mgf mdb hlen) (k - hlen1)) in
-    let hmatch = Cs.equal ~mask:true (sub db 0 hlen) H.(digest label) in
+    let db     = MGF.mask ~seed:(MGF.mask ~seed:mdb ms) mdb in
+    let hmatch = Cs.equal ~mask (sub db 0 hlen) H.(digest label) in
     match Cs.find_uint8 ~off:hlen ~f:((<>) 0x00) db with
     | None   -> None
     | Some i ->
@@ -235,15 +239,7 @@ module PSS (H: Hash.T) = struct
 
   module MGF = MGF1(H)
 
-  let mgf_mask seed cs =
-    Cs.xor (MGF.mask ~seed ~len:(len cs)) cs
-
   let hlen  = H.digest_size
-
-  let mask = true
-
-  let (bx00, bx01, bxbc) =
-    Cs.(of_bytes [0x00], of_bytes [0x01], of_bytes [0xbc])
 
   let zeros n = Cs.create_with n 0x00
 
@@ -253,11 +249,11 @@ module PSS (H: Hash.T) = struct
     (* If emLen < hLen + sLen + 2, output "encoding error" and stop. *)
     let n    = cdiv bits 8
     and salt = Rng.generate ?g slen in
-    let h   = H.digestv [ zeros 8 ; H.digest msg ; salt ] in
-    let db  = Cs.(zeros (n - slen - hlen - 2) <+> bx01 <+> salt) in
-    let mdb = mgf_mask h db in
+    let h    = H.digestv [ zeros 8 ; H.digest msg ; salt ] in
+    let db   = Cs.(zeros (n - slen - hlen - 2) <+> bx01 <+> salt) in
+    let mdb  = MGF.mask ~seed:h db in
     set_uint8 mdb 0 @@ get_uint8 mdb 0 land b0mask bits ;
-    Cs.(mdb <+> h <+> bxbc)
+    Cs.concat [mdb ; h ; bxbc]
 
   let emsa_pss_verify slen bits em msg =
     let n    = em.len in
@@ -265,7 +261,7 @@ module PSS (H: Hash.T) = struct
     and padl = n - hlen - slen - 2 in
     let mdb  = sub em 0 mdbl
     and h    = sub em mdbl hlen in
-    let db   = mgf_mask h mdb in
+    let db   = MGF.mask ~seed:h mdb in
     set_uint8 db 0 @@ get_uint8 db 0 land b0mask bits ;
     let salt = sub db (len db - slen) slen in
     let h'   = H.digestv [ zeros 8 ; H.digest msg ; salt ]
@@ -276,7 +272,6 @@ module PSS (H: Hash.T) = struct
     and c3 = pade = Some padl
     and c4 = get_uint8 db padl = 0x01
     and c5 = Cs.equal ~mask h h' in
-    Printf.printf "%b %b %b %b %b\n%!" c1 c2 c3 c4 c5 ;
     c1 && c2 && c3 && c4 && c5
 
   let sign ?g ?(seedlen = hlen) ~key msg =
