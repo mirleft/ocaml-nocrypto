@@ -201,14 +201,14 @@ module OAEP (H : Hash.T) = struct
     Cs.concat [ bx00 ; mseed ; mdb ]
 
   let eme_oaep_decode ?(label = Cs.empty) msg =
-    let ms  = sub msg 1 hlen
-    and mdb = shift msg (hlen + 1) in
-    let db  = MGF.mask ~seed:(MGF.mask ~seed:mdb ms) mdb in
-    let i   = Cs.find_uint8 ~mask ~off:hlen ~f:((<>) 0x00) db
-              |> Option.value ~default:0 in
-    let c1  = Cs.equal ~mask (sub db 0 hlen) H.(digest label)
-    and c2  = get_uint8 msg 0 = 0x00
-    and c3  = get_uint8 db  i = 0x01 in
+    let (b0, ms, mdb) = Cs.split3 msg 1 hlen in
+    let db = MGF.mask ~seed:(MGF.mask ~seed:mdb ms) mdb in
+    let i  = Cs.find_uint8 ~mask ~off:hlen ~f:((<>) 0x00) db
+             |> Option.value ~default:0
+    in
+    let c1 = Cs.equal ~mask (sub db 0 hlen) H.(digest label)
+    and c2 = get_uint8 b0 0 = 0x00
+    and c3 = get_uint8 db i = 0x01 in
     if c1 && c2 && c3 then Some (shift db (i + 1)) else None
 
   let encrypt ?g ?label ~key msg =
@@ -250,24 +250,20 @@ module PSS (H: Hash.T) = struct
     let db   = Cs.concat [ Cs.zeros (n - slen - hlen - 2) ; bx01 ; salt ] in
     let mdb  = MGF.mask ~seed:h db in
     set_uint8 mdb 0 @@ get_uint8 mdb 0 land b0mask bits ;
-    Cs.concat [mdb ; h ; bxbc]
+    Cs.concat [ mdb ; h ; bxbc ]
 
   let emsa_pss_verify slen bits em msg =
-    let n    = em.len in
-    let mdbl = n - hlen - 1
-    and padl = n - hlen - slen - 2 in
-    let mdb  = sub em 0 mdbl
-    and h    = sub em mdbl hlen in
+    let (mdb, h, bxx) = Cs.split3 em (em.len - hlen - 1) hlen in
     let db   = MGF.mask ~seed:h mdb in
-    set_uint8 db 0 @@ get_uint8 db 0 land b0mask bits ;
-    let salt = sub db (len db - slen) slen in
-    let h'   = H.digestv [ zeros 8 ; H.digest msg ; salt ]
-    and pade = Cs.find_uint8 ~mask ~f:((<>) 0) db
+    set_uint8 db 0 (get_uint8 db 0 land b0mask bits) ;
+    let salt = shift db (len db - slen) in
+    let h'   = H.digestv [ Cs.zeros 8 ; H.digest msg ; salt ]
+    and i    = Cs.find_uint8 ~mask ~f:((<>) 0) db |> Option.value ~default:0
     in
-    let c1 = get_uint8 em (n - 1) = 0xbc
-    and c2 = lnot (b0mask bits) land get_uint8 mdb 0 = 0x00
-    and c3 = pade = Some padl
-    and c4 = get_uint8 db padl = 0x01
+    let c1 = lnot (b0mask bits) land get_uint8 mdb 0 = 0x00
+    and c2 = i = em.len - hlen - slen - 2
+    and c3 = get_uint8 db  i = 0x01
+    and c4 = get_uint8 bxx 0 = 0xbc
     and c5 = Cs.equal ~mask h h' in
     c1 && c2 && c3 && c4 && c5
 
