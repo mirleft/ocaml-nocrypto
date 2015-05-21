@@ -194,7 +194,7 @@ module OAEP (H : Hash.T) = struct
 
   let eme_oaep_encode ?g ?(label = Cs.empty) ~key msg =
     let seed  = Rng.generate ?g hlen
-    and pad   = Cs.create_with (msg_limit ~key - len msg) 0x00 in
+    and pad   = Cs.zeros (msg_limit ~key - len msg) in
     let db    = Cs.concat [ H.digest label ; pad ; bx01 ; msg ] in
     let mdb   = MGF.mask ~seed db in
     let mseed = MGF.mask ~seed:mdb seed in
@@ -240,16 +240,14 @@ module PSS (H: Hash.T) = struct
 
   let hlen  = H.digest_size
 
-  let zeros n = Cs.create_with n 0x00
-
   let b0mask embits = 0xff lsr ((8 - embits mod 8) mod 8)
 
   let emsa_pss_encode ?g slen bits msg =
     (* If emLen < hLen + sLen + 2, output "encoding error" and stop. *)
     let n    = cdiv bits 8
     and salt = Rng.generate ?g slen in
-    let h    = H.digestv [ zeros 8 ; H.digest msg ; salt ] in
-    let db   = Cs.(zeros (n - slen - hlen - 2) <+> bx01 <+> salt) in
+    let h    = H.digestv [ Cs.zeros 8 ; H.digest msg ; salt ] in
+    let db   = Cs.concat [ Cs.zeros (n - slen - hlen - 2) ; bx01 ; salt ] in
     let mdb  = MGF.mask ~seed:h db in
     set_uint8 mdb 0 @@ get_uint8 mdb 0 land b0mask bits ;
     Cs.concat [mdb ; h ; bxbc]

@@ -144,6 +144,8 @@ module Cs = struct
   let create_with n x =
     let cs = create n in ( fill cs x ; cs )
 
+  let zeros n = create_with n 0x00
+
   let rpad cs size x =
     let l = len cs and cs' = create size in
     if size < l then invalid_arg "Nocrypto.Uncommon.Cs.rpad: size < len";
