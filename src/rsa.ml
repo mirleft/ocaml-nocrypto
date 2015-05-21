@@ -188,40 +188,40 @@ module OAEP (H : Hash.T) = struct
 
   module MGF = MGF1(H)
 
-  let hlen  = H.digest_size
-  and hlen1 = H.digest_size + 1
+  let hlen = H.digest_size
 
-  let eme_oaep_encode ?g ?(label = Cs.empty) ~k msg =
+  let msg_limit ~key = cdiv (pub_bits key) 8 - 2 * hlen - 2
+
+  let eme_oaep_encode ?g ?(label = Cs.empty) ~key msg =
     let seed  = Rng.generate ?g hlen
-    and pad   = Cs.create_with (k - len msg - 2 * hlen1) 0x00 in
+    and pad   = Cs.create_with (msg_limit ~key - len msg) 0x00 in
     let db    = Cs.concat [ H.digest label ; pad ; bx01 ; msg ] in
     let mdb   = MGF.mask ~seed db in
     let mseed = MGF.mask ~seed:mdb seed in
     Cs.concat [ bx00 ; mseed ; mdb ]
 
-  let eme_oaep_decode ?(label = Cs.empty) ~k msg =
-    let y      = get_uint8 msg 0
-    and ms     = sub msg 1 hlen
-    and mdb    = sub msg hlen1 (len msg - hlen1) in
-    let db     = MGF.mask ~seed:(MGF.mask ~seed:mdb ms) mdb in
-    let i      = Option.value ~default:0 @@
-                   Cs.find_uint8 ~mask ~off:hlen ~f:((<>) 0x00) db
-    and hmatch = Cs.equal ~mask (sub db 0 hlen) H.(digest label) in
-    let b      = get_uint8 db i
-    and m      = shift db (i + 1) in
-    if y = 0x00 && b = 0x01 && hmatch then Some m else None
+  let eme_oaep_decode ?(label = Cs.empty) msg =
+    let ms  = sub msg 1 hlen
+    and mdb = shift msg (hlen + 1) in
+    let db  = MGF.mask ~seed:(MGF.mask ~seed:mdb ms) mdb in
+    let i   = Cs.find_uint8 ~mask ~off:hlen ~f:((<>) 0x00) db
+              |> Option.value ~default:0 in
+    let c1  = Cs.equal ~mask (sub db 0 hlen) H.(digest label)
+    and c2  = get_uint8 msg 0 = 0x00
+    and c3  = get_uint8 db  i = 0x01 in
+    if c1 && c2 && c3 then Some (shift db (i + 1)) else None
 
   let encrypt ?g ?label ~key msg =
-    let k = cdiv (pub_bits key) 8 in
-    if len msg > k - 2 * hlen1 then raise Invalid_message ;
-    encrypt ~key @@ eme_oaep_encode ?g ?label ~k msg
+    if len msg > msg_limit ~key then
+      raise Invalid_message
+    else encrypt ~key @@ eme_oaep_encode ?g ?label ~key msg
 
   let decrypt ?mask ?label ~key msg =
     let k = cdiv (priv_bits key) 8 in
-    if len msg <> k || k < 2 * hlen1 then
+    if len msg <> k || k < 2 * hlen + 2 then
       None
     else try
-      eme_oaep_decode ?label ~k @@ decrypt ?mask ~key msg
+      eme_oaep_decode ?label @@ decrypt ?mask ~key msg
     with Invalid_message -> None
 
   (* XXX Review rfc3447 7.1.2 and
