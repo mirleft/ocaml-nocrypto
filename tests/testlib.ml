@@ -164,7 +164,7 @@ let rsa_pkcs1_encrypt_selftest ~bits n =
                     ~msg:("recovery failure " ^ show_key_size key)
 
 let rsa_oaep_encrypt_selftest ~bits n =
-  let module Oaep_sha1 = Rsa.OAEP(Hash.SHA1) in
+  let module Oaep_sha1 = Rsa.OAEP (Hash.SHA1) in
   "selftest" >:: times ~n @@ fun _ ->
     let (key, _) = gen_rsa ~bits
     and msg      = Rng.generate (cdiv bits 8 - 2 * Hash.SHA1.digest_size - 2) in
@@ -172,6 +172,15 @@ let rsa_oaep_encrypt_selftest ~bits n =
     match Oaep_sha1.decrypt ~key enc with
     | None     -> assert_failure "unpad failure"
     | Some dec -> assert_cs_equal msg dec ~msg:"recovery failure"
+
+let rsa_pss_sign_selftest ~bits n =
+  let module Pss_sha1 = Rsa.PSS (Hash.SHA1) in
+  "selftest" >:: times ~n @@ fun _ ->
+    let (key, _)  = gen_rsa ~bits
+    and msg       = Rng.generate (cdiv bits 8 - 2 * Hash.SHA1.digest_size - 2) in
+    let signature = Pss_sha1.sign ~key msg in
+    let ok        = Pss_sha1.verify ~key:(Rsa.pub_of_priv key) ~signature msg in
+    assert ok
 
 let dh_selftest ~bits n =
 
@@ -690,6 +699,12 @@ let suite =
       rsa_oaep_encrypt_selftest ~bits:511 15 ;
       rsa_oaep_encrypt_selftest ~bits:512 15 ;
       rsa_oaep_encrypt_selftest ~bits:513 15 ;
+    ] ;
+
+    "RSA-PSS(SHA1)-END" >::: [
+      rsa_pss_sign_selftest ~bits:511 15 ;
+      rsa_pss_sign_selftest ~bits:512 15 ;
+      rsa_pss_sign_selftest ~bits:513 15 ;
     ] ;
 
     "DHE" >::: [
