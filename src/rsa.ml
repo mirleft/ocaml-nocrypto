@@ -204,13 +204,12 @@ module OAEP (H : Hash.T) = struct
     and ms     = sub msg 1 hlen
     and mdb    = sub msg hlen1 (len msg - hlen1) in
     let db     = MGF.mask ~seed:(MGF.mask ~seed:mdb ms) mdb in
-    let hmatch = Cs.equal ~mask (sub db 0 hlen) H.(digest label) in
-    match Cs.find_uint8 ~off:hlen ~f:((<>) 0x00) db with
-    | None   -> None
-    | Some i ->
-        let b = get_uint8 db i
-        and m = sub db (i + 1) (len db - i - 1) in
-        if y = 0x00 && b = 0x01 && hmatch then Some m else None
+    let i      = Option.value ~default:0 @@
+                   Cs.find_uint8 ~mask ~off:hlen ~f:((<>) 0x00) db
+    and hmatch = Cs.equal ~mask (sub db 0 hlen) H.(digest label) in
+    let b      = get_uint8 db i
+    and m      = shift db (i + 1) in
+    if y = 0x00 && b = 0x01 && hmatch then Some m else None
 
   let encrypt ?g ?label ~key msg =
     let k = cdiv (pub_bits key) 8 in
