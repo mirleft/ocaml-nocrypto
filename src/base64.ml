@@ -79,6 +79,6 @@ let decode cs =
 
 
 let is_base64_char c =
-  try ( ignore @@ emap (int_of_char c) ; true )
+  try ( ignore @@ dmap (int_of_char c) ; true )
   with Not_found -> false
 
