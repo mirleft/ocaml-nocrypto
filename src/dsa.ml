@@ -31,11 +31,9 @@ let params ?g size =
   let (l, n) = expand_size size in
   let q = Rng.prime ?g ~msb:1 ~bits:n in
   let p =
-    let q_q  = Z.(q * ~$2)
-    and mask = Z.((lsl) one) (l - 1) in
+    let q_q  = Z.(q * ~$2) in
     until Numeric.pseudoprime @@ fun () ->
-      let w = Rng.Z.gen_bits ?g l in
-      let x = Z.(w lor mask) in
+      let x = Rng.Z.gen_bits ?g ~msb:1 l in
       Z.(x - (x mod q_q) + one) in
   let gg =
     let e = Z.(pred p / q) in
