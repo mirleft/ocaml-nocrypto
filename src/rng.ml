@@ -12,9 +12,9 @@ module T = struct
     type t
     type g
 
-    val gen : ?g:g -> t -> t
-    val gen_r : ?g:g -> t -> t -> t
-    val gen_bits : ?g:g -> int -> t
+    val gen      : ?g:g -> t -> t
+    val gen_r    : ?g:g -> t -> t -> t
+    val gen_bits : ?g:g -> ?msb:int -> int -> t
   end
 
   module type Rng_numeric = sig
@@ -81,8 +81,11 @@ module Numeric_of (Rng : T.Rng) = struct
     let gen_r ?g a b =
       (if !relax then gen_r_ns else gen_r_s) ?g a b
 
-    let gen_bits ?g bits =
-      N.of_cstruct_be ~bits Rng.(generate ?g (cdiv bits 8))
+    let gen_bits ?g ?(msb = 0) bits =
+      let res = Rng.generate ?g (cdiv bits 8) in
+      Cs.set_msb msb res ;
+      N.of_cstruct_be ~bits res
+
   end
 
   module Int   = N_gen (Numeric.Int  )

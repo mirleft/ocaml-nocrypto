@@ -385,9 +385,11 @@ module Rng : sig
       val gen_r : ?g:g -> t -> t -> t
       (** [gen_r ~g low high] picks a value from the interval [\[low, high - 1\]]
           uniformly at random. *)
-      val gen_bits : ?g:g -> int -> t
-      (** [gen_bits ~g n] picks a value with exactly [n] significant bits,
-          uniformly at random. *)
+      val gen_bits : ?g:g -> ?msb:int -> int -> t
+      (** [gen_bits ~g ~msb n] creates a bit-string of [n] bits, sets [msb] most
+          significant bits and converts it into a value. This yields a value in
+          the interval [\[2^(n-1) + ... + 2^(n-msb), 2^n - 1\]].
+          [msb] defaults to [0].*)
     end
 
     (** RNG with full suite of typed numeric extractions. *)
