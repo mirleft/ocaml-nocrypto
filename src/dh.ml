@@ -11,6 +11,20 @@ type group = {
 
 type secret = { x : Z.t } with sexp
 
+(*
+ * Estimates of equivalent-strength exponent sizes for the moduli sizes.
+ * 2048-8192 are taken from "Negotiated FF DHE Parameters for TLS."
+ * Sizes above and below are further guesswork.
+ *)
+let exp_equivalent = [
+  (1024, 160); (2048, 225); (3072, 275); (4096, 325); (6144, 375); (8192, 400)
+]
+and exp_equivalent_max = 425
+
+let exp_size bits =
+  try snd @@ List.find (fun (g, _) -> g >= bits) exp_equivalent
+  with Not_found -> exp_equivalent_max
+
 let apparent_bit_size { p; _ } = Numeric.Z.bits p
 
 (*
@@ -32,10 +46,17 @@ let public_of_secret ({ p; gg; _ } as group) x =
 let secret_of_cstruct group ~s =
   public_of_secret group (Numeric.Z.of_cstruct_be s)
 
-let rec gen_secret ?g ({ p; q; _ } as group) =
-  let x = Rng.Z.gen_r ?g Z.two
-            ( match q with None -> Z.pred p | Some q -> q ) in
-  try public_of_secret group x
+(* XXX
+ * - gen_bits: slight skew in `mod q` distribution
+ * - set msb?
+ * - exponentiation time
+ *)
+let rec gen_secret ?g ?bits ({ p; q; _ } as group) =
+  let pb = Numeric.Z.bits p in
+  let b1 = match bits with Some b -> b | _ -> exp_size pb in
+  let b2 = Option.v_map ~default:pb ~f:Numeric.Z.bits q in
+  let s  = Rng.Z.gen_bits ?g (min b1 b2) in
+  try public_of_secret group s
   with Invalid_public_key -> gen_secret ?g group
 
 (* No time-masking. Does it matter in case of ephemeral DH??  *)

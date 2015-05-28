@@ -632,8 +632,10 @@ module Dh : sig
       [s] as secret.
       @raise Invalid_public_key if the secret is degenerate. *)
 
-  val gen_secret : ?g:Rng.g -> group -> secret * Cstruct.t
-  (** Generate a random {!secret} and the corresponding public message. *)
+  val gen_secret : ?g:Rng.g -> ?bits:int -> group -> secret * Cstruct.t
+  (** Generate a random {!secret} and the corresponding public message.
+      [bits] is the bit-size of {!secret} and defaults to a value dependent on
+      the {!group}'s [p]. *)
 
   val shared : group -> secret -> Cstruct.t -> Cstruct.t
   (** [shared group secret message] is the shared key, given a group, a previously
