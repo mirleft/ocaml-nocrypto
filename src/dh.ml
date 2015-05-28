@@ -65,17 +65,12 @@ let shared ({ p; _ } as group) { x } cs =
         -> raise Invalid_public_key
   | ggy -> Numeric.Z.to_cstruct_be (Z.powm ggy x p)
 
-(* Generate a group using a safe prime p = 2q + 1 (with q prime) as modulus,
- * 2 or q as the generator and subgroup order of strictly q. *)
+(* Finds a safe prime with [p = 2q + 1] and [2^q = 1 mod p]. *)
 let rec gen_group ?g ~bits =
-  if bits < 3 then
-    invalid_arg "Dh.gen_group: requested group size < 3 bits";
-  let (q, p) = Rng.safe_prime ?g ~bits in
-  let candidate_gs = [ Z.two ; q ] in
-  try
-    let gg = List.find Z.(fun gg -> powm gg q p = one) candidate_gs in
-    { p; gg; q = Some q }
-  with Not_found -> gen_group ?g ~bits
+  if bits < 8 then invalid_arg "Dh.gen_group: group size < 8 bits" ;
+  let gg     = Z.two
+  and (q, p) = Rng.safe_prime ?g ~bits in
+  if Z.(powm gg q p = one) then { p; gg; q = Some q } else gen_group ?g ~bits
 
 module Group = struct
 

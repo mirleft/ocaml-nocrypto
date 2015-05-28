@@ -644,9 +644,8 @@ module Dh : sig
 
   val gen_group : ?g:Rng.g -> bits:int -> group
   (** [gen_group bits] generates a random {!group} with modulus size [bits].
-      Uses a safe prime [p = 2q + 1] (with prime [q]) as modulus, and [2] or [q] as
-      the generator.
-      Subgroup order is strictly [q].
+      Uses a safe prime [p = 2q + 1] (with [q] prime) for the modulus and [2]
+      for the generator, such that [2^q = 1 mod p].
       Runtime is on the order of minute for 1024 bits.
       @raise Invalid_argument if [bits] is ridiculously small.  *)
 
