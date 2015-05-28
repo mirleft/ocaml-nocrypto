@@ -105,12 +105,12 @@ module Numeric_of (Rng : T.Rng) = struct
 
   (* XXX Add ~msb param for p? *)
   let rec safe_prime ?g bits =
-    let gg = prime ?g ~msb:1 (bits - 1) in
-    let p  = Z.(gg * two + one) in
-    if Numeric.pseudoprime p then (gg, p) else safe_prime ?g bits
+    let q = prime ?g ~msb:1 (bits - 1) in
+    let p = Z.(q * ~$2 + ~$1) in
+    if Numeric.pseudoprime p then (q, p) else safe_prime ?g bits
 
 (*     |+ Pocklington primality test specialized for `a = 2`. +|
-    if Z.(gcd (of_int 3) p = one) then (gg, p)
+    if Z.(gcd (of_int 3) p = one) then (q, p)
     else safe_prime ?g ~bits *)
 
   module Z = ZN
