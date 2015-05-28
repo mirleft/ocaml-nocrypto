@@ -66,11 +66,11 @@ let shared ({ p; _ } as group) { x } cs =
   | ggy -> Numeric.Z.to_cstruct_be (Z.powm ggy x p)
 
 (* Finds a safe prime with [p = 2q + 1] and [2^q = 1 mod p]. *)
-let rec gen_group ?g ~bits =
+let rec gen_group ?g bits =
   if bits < 8 then invalid_arg "Dh.gen_group: group size < 8 bits" ;
   let gg     = Z.two
-  and (q, p) = Rng.safe_prime ?g ~bits in
-  if Z.(powm gg q p = one) then { p; gg; q = Some q } else gen_group ?g ~bits
+  and (q, p) = Rng.safe_prime ?g bits in
+  if Z.(powm gg q p = one) then { p; gg; q = Some q } else gen_group ?g bits
 
 module Group = struct
 

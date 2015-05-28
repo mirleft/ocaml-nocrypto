@@ -29,7 +29,7 @@ let expand_mask = function
  *)
 let params ?g size =
   let (l, n) = expand_size size in
-  let q = Rng.prime ?g ~msb:1 ~bits:n in
+  let q = Rng.prime ?g ~msb:1 n in
   let p =
     let q_q  = Z.(q * ~$2) in
     until Numeric.pseudoprime @@ fun () ->

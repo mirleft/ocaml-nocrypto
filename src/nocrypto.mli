@@ -398,14 +398,14 @@ module Rng : sig
       type g
       (** Random generator. *)
 
-      val prime : ?g:g -> ?msb:int -> bits:int -> Z.t
-      (** [prime ~g ~msb ~bits] generates a prime smaller than [2^bits], such that
+      val prime : ?g:g -> ?msb:int -> int -> Z.t
+      (** [prime ~g ~msb bits] generates a prime smaller than [2^bits], such that
           its [msb] most significant bits are set.
-          [prime ~g ~msb:1 ~bits] (the default) yields a prime in the interval
+          [prime ~g ~msb:1 bits] (the default) yields a prime in the interval
           [\[2^(bits - 1), 2^bits - 1\]]. *)
 
-      val safe_prime : ?g:g -> bits:int -> Z.t * Z.t
-      (** [safe_prime ~g ~bits] gives a prime pair [(g, p)] such that [p = 2g + 1]
+      val safe_prime : ?g:g -> int -> Z.t * Z.t
+      (** [safe_prime ~g bits] gives a prime pair [(g, p)] such that [p = 2g + 1]
           and [p] has [bits] significant bits. *)
 
       module Int   : N with type g = g and type t = int
@@ -644,7 +644,7 @@ module Dh : sig
       generated {!secret} and the other party's public message.
       @raise Invalid_public_key if the public message is degenerate.  *)
 
-  val gen_group : ?g:Rng.g -> bits:int -> group
+  val gen_group : ?g:Rng.g -> int -> group
   (** [gen_group bits] generates a random {!group} with modulus size [bits].
       Uses a safe prime [p = 2q + 1] (with [q] prime) for the modulus and [2]
       for the generator, such that [2^q = 1 mod p].

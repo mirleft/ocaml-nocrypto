@@ -77,7 +77,7 @@ let generate ?g ?(e = Z.(~$0x10001)) bits =
   and (pb, qb) = (bits / 2, bits - bits / 2) in
   let (p, q) =
     let rec attempt () =
-      let (p, q) = Rng.(prime ?g ~msb ~bits:pb, prime ?g ~msb ~bits:qb) in
+      let (p, q) = Rng.(prime ?g ~msb pb, prime ?g ~msb qb) in
       let cond = (p <> q) &&
                  Z.(gcd e (pred p) = one) &&
                  Z.(gcd e (pred q) = one) in

@@ -21,8 +21,8 @@ module T = struct
 
     type g
 
-    val prime : ?g:g -> ?msb:int -> bits:int -> Z.t
-    val safe_prime : ?g:g -> bits:int -> Z.t * Z.t
+    val prime : ?g:g -> ?msb:int -> int -> Z.t
+    val safe_prime : ?g:g -> int -> Z.t * Z.t
 
     module Int   : N with type g = g and type t = int
     module Int32 : N with type g = g and type t = int32
@@ -99,15 +99,15 @@ module Numeric_of (Rng : T.Rng) = struct
    * interval.
    * XXX Probability is distributed as inter-prime gaps. So?
    *)
-  let rec prime ?g ?(msb = 1) ~bits =
+  let rec prime ?g ?(msb = 1) bits =
     let p = Z.(nextprime @@ ZN.gen_bits ?g ~msb bits) in
-    if p < Z.(one lsl bits) then p else prime ?g ~msb ~bits
+    if p < Z.(one lsl bits) then p else prime ?g ~msb bits
 
   (* XXX Add ~msb param for p? *)
-  let rec safe_prime ?g ~bits =
-    let gg = prime ?g ~msb:1 ~bits:(bits - 1) in
+  let rec safe_prime ?g bits =
+    let gg = prime ?g ~msb:1 (bits - 1) in
     let p  = Z.(gg * two + one) in
-    if Numeric.pseudoprime p then (gg, p) else safe_prime ?g ~bits
+    if Numeric.pseudoprime p then (gg, p) else safe_prime ?g bits
 
 (*     |+ Pocklington primality test specialized for `a = 2`. +|
     if Z.(gcd (of_int 3) p = one) then (gg, p)
