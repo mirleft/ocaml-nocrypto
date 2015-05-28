@@ -17,7 +17,7 @@ type secret = { x : Z.t } with sexp
  * Sizes above and below are further guesswork.
  *)
 let exp_equivalent = [
-  (1024, 160); (2048, 225); (3072, 275); (4096, 325); (6144, 375); (8192, 400)
+  (1024, 180); (2048, 225); (3072, 275); (4096, 325); (6144, 375); (8192, 400)
 ]
 and exp_equivalent_max = 425
 
@@ -47,7 +47,6 @@ let secret_of_cstruct group ~s =
   public_of_secret group (Numeric.Z.of_cstruct_be s)
 
 (* XXX
- * - gen_bits: slight skew in `mod q` distribution
  * - set msb?
  * - exponentiation time
  *)
