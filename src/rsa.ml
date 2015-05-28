@@ -204,7 +204,7 @@ module OAEP (H : Hash.T) = struct
     let (b0, ms, mdb) = Cs.split3 msg 1 hlen in
     let db = MGF.mask ~seed:(MGF.mask ~seed:mdb ms) mdb in
     let i  = Cs.find_uint8 ~mask ~off:hlen ~f:((<>) 0x00) db
-             |> Option.value ~default:0
+             |> Option.value ~def:0
     in
     let c1 = Cs.equal ~mask (sub db 0 hlen) H.(digest label)
     and c2 = get_uint8 b0 0 = 0x00
@@ -258,7 +258,7 @@ module PSS (H: Hash.T) = struct
     set_uint8 db 0 (get_uint8 db 0 land b0mask bits) ;
     let salt = shift db (len db - slen) in
     let h'   = H.digestv [ Cs.zeros 8 ; H.digest msg ; salt ]
-    and i    = Cs.find_uint8 ~mask ~f:((<>) 0) db |> Option.value ~default:0
+    and i    = Cs.find_uint8 ~mask ~f:((<>) 0) db |> Option.value ~def:0
     in
     let c1 = lnot (b0mask bits) land get_uint8 mdb 0 = 0x00
     and c2 = i = em.len - hlen - slen - 2

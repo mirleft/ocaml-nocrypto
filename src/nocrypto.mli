@@ -17,9 +17,9 @@ module Uncommon : sig
   val id   : 'a -> 'a
 
   module Option : sig
-    val v_map : default:'b -> f:('a -> 'b) -> 'a option -> 'b
+    val v_map : def:'b -> f:('a -> 'b) -> 'a option -> 'b
     val map   : f:('a -> 'b) -> 'a option -> 'b option
-    val value : default:'a -> 'a option -> 'a
+    val value : def:'a -> 'a option -> 'a
   end
 
   (** Addons to {!Cstruct}. *)

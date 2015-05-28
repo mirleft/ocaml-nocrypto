@@ -53,9 +53,9 @@ let secret_of_cstruct group ~s =
  *)
 let rec gen_secret ?g ?bits ({ p; q; _ } as group) =
   let pb = Numeric.Z.bits p in
-  let b1 = match bits with Some b -> b | _ -> exp_size pb in
-  let b2 = Option.v_map ~default:pb ~f:Numeric.Z.bits q in
-  let s  = Rng.Z.gen_bits ?g (min b1 b2) in
+  let s  = Rng.Z.gen_bits ?g @@ min
+            (match bits with Some b -> b | _ -> exp_size pb)
+            (Option.v_map ~def:pb ~f:Numeric.Z.bits q) in
   try public_of_secret group s
   with Invalid_public_key -> gen_secret ?g group
 

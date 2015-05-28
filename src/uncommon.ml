@@ -14,13 +14,13 @@ let rec until p f =
 
 module Option = struct
 
-  let v_map ~default ~f = function
+  let v_map ~def ~f = function
     | Some x -> f x
-    | None   -> default
+    | None   -> def
 
-  let value ~default = function
+  let value ~def = function
     | Some x -> x
-    | None   -> default
+    | None   -> def
 
   let map ~f = function
     | Some x -> Some (f x)
