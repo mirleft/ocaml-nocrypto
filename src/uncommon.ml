@@ -144,6 +144,17 @@ module Cs = struct
   let create_with n x =
     let cs = create n in ( fill cs x ; cs )
 
+  let set_msb bits cs =
+    if bits > 0 then
+      let n = len cs in
+      let rec go width = function
+        | i when i = n     -> ()
+        | i when width < 8 ->
+            set_uint8 cs i (get_uint8 cs i lor (0xff lsl (8 - width)))
+        | i ->
+            set_uint8 cs i 0xff ; go (width - 8) (succ i) in
+      go bits 0
+
   let zeros n = create_with n 0x00
 
   let split2 cs l =
