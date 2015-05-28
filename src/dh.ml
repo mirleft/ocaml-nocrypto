@@ -47,12 +47,12 @@ let secret_of_cstruct group ~s =
   public_of_secret group (Numeric.Z.of_cstruct_be s)
 
 (* XXX
- * - set msb?
+ * - slightly weird distribution when bits > |q|
  * - exponentiation time
  *)
 let rec gen_secret ?g ?bits ({ p; q; _ } as group) =
   let pb = Numeric.Z.bits p in
-  let s  = Rng.Z.gen_bits ?g @@ min
+  let s  = Rng.Z.gen_bits ?g ~msb:1 @@ min
             (match bits with Some b -> b | _ -> exp_size pb)
             (Option.v_map ~def:pb ~f:Numeric.Z.bits q) in
   try public_of_secret group s
