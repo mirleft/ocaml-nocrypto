@@ -66,24 +66,20 @@ let encrypt ~key              = reformat (pub_bits key)  (encrypt_z ~key)
 and decrypt ?(mask=`Yes) ~key = reformat (priv_bits key) (decrypt_z ~mask ~key)
 
 
-let generate ?g ?(e = Z.(~$0x10001)) bits =
-
+let rec generate ?g ?(e = Z.(~$0x10001)) bits =
   if bits < 10 then
     invalid_arg "Rsa.generate: requested key size < 10 bits";
   if Numeric.(Z.bits e >= bits || not (pseudoprime e)) || e < Z.three then
     invalid_arg "Rsa.generate: e invalid or too small" ;
 
-  let msb = 2
-  and (pb, qb) = (bits / 2, bits - bits / 2) in
-  let (p, q) =
-    let rec attempt () =
-      let (p, q) = Rng.(prime ?g ~msb pb, prime ?g ~msb qb) in
-      let cond = (p <> q) &&
+  let (pb, qb) = (bits / 2, bits - bits / 2) in
+  let (p, q)   = Rng.(prime ?g ~msb:2 pb, prime ?g ~msb:2 qb) in
+  let cond     = (p <> q) &&
                  Z.(gcd e (pred p) = one) &&
                  Z.(gcd e (pred q) = one) in
-      if cond then (max p q, min p q) else attempt () in
-    attempt () in
-  priv_of_primes ~e ~p ~q
+  if cond then
+    priv_of_primes ~e ~p:(max p q) ~q:(min p q)
+  else generate ?g ~e bits
 
 
 module PKCS1 = struct
