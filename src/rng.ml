@@ -96,14 +96,12 @@ module Numeric_of (Rng : T.Rng) = struct
 
   (* Invalid combinations of ~bits and ~msb will loop forever, but there is no
    * way to quickly determine upfront whether there are any primes in the
-   * interval. *)
-  let prime ?g ?(msb = 1) ~bits =
-    let limit = Z.(one lsl bits)
-    and mask  = Z.((lsl) (pred (one lsl msb))) (bits - msb) in
-    let rec attempt () =
-      let p = Z.(nextprime @@ ZN.gen_bits ?g bits lor mask) in
-      if p < limit then p else attempt () in
-    attempt ()
+   * interval.
+   * XXX Probability is distributed as inter-prime gaps. So?
+   *)
+  let rec prime ?g ?(msb = 1) ~bits =
+    let p = Z.(nextprime @@ ZN.gen_bits ?g ~msb bits) in
+    if p < Z.(one lsl bits) then p else prime ?g ~msb ~bits
 
   (* XXX Add ~msb param for p? *)
   let rec safe_prime ?g ~bits =
