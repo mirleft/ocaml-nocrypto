@@ -505,24 +505,20 @@ module Rsa : sig
       @raise Invalid_argument if [e] is bad or [bits] is too small. *)
 
 
-  (** Module providing operations with {b PKCS1} padding.
+  (** {b PKCS v1.5}-padded operations, as defined by {b PKCS #1 v1.5}.
 
-      The operations that take cleartext to ciphertext, {!sign} and {!encrypt},
-      assume that the key has enough bits to encode the message and the padding,
-      and raise exceptions otherwise. The operations that recover cleartext
-      from ciphertext, {!verify} and {!decrypt}, return size and padding
-      mismatches as [None]. *)
+      Keys must have a minimum of [11 + len(message)] bytes. *)
   module PKCS1 : sig
 
     val sign : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
-    (** [sign mask key message] is the PKCS1-padded (type 1) signature of the
-        [message].
+    (** [sign mask key message] is the PKCS1-padded (type 1) [message] signed by
+        the [key]. Note that this operation performs only the padding and RSA
+        transformation steps of the PKCS 1.5 signature.
         @raise Insufficient_key (see {!Insufficient_key}) *)
 
     val verify : key:pub -> Cstruct.t -> Cstruct.t option
-    (** [verify key signature] is either the message that was PKCS1-padded and
-        transformed with [key]'s private counterpart, or [None] if the padding
-        is incorrect or the underlying {!Rsa.encrypt} would raise. *)
+    (** [verify key signature] is either [Some message] if the [signature] was
+        produced with the given [key] as per {!sign}, or [None] *)
 
     val encrypt : ?g:Rng.g -> key:pub -> Cstruct.t -> Cstruct.t
     (** [encrypt g key message] is a PKCS1-padded (type 2) and encrypted
@@ -530,15 +526,17 @@ module Rsa : sig
         @raise Insufficient_key (see {!Insufficient_key}) *)
 
     val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
-    (** [decrypt mask key ciphertext] is decrypted [ciphertext] stripped of
-        PKCS1 padding, or [None] if the padding is incorrect or the underlying
-        {!Rsa.decrypt} would raise. *)
+    (** [decrypt mask key ciphertext] is [Some message] if the [ciphertext] was
+        produced by the corresponding {!encrypt} operation, or [None] otherwise. *)
   end
 
-  (** {b OAEP}-padded RSA encryption.
+  (** {b OAEP}-padded encryption, as defined by {b PKCS #1 v2.1}.
 
       The same hash function is used for padding and MGF. MGF is {b MGF1} as
-      defined in {b PKCS #1 2.1}. *)
+      defined in {b PKCS #1 2.1}.
+
+      Keys must have a minimum of [2 + 2 * hlen + len(message)] bytes, where
+      [hlen] is the hash length. *)
   module OAEP (T : Hash.T) : sig
 
     val encrypt : ?g:Rng.g -> ?label:Cstruct.t -> key:pub -> Cstruct.t -> Cstruct.t
@@ -548,14 +546,17 @@ module Rsa : sig
 
     val decrypt : ?mask:mask -> ?label:Cstruct.t -> key:priv -> Cstruct.t -> Cstruct.t option
     (** [decrypt ~mask ~label ~key ciphertext] is [Some message] if the
-        [ciphertext] was produced with the corresponding {!encrypt} operation,
+        [ciphertext] was produced by the corresponding {!encrypt} operation,
         or [None] otherwise. *)
   end
 
-  (** {b PSS}-passed RSA signing.
+  (** {b PSS}-passed signing, as defined by {b PKCS #1 v2.1}.
 
       The same hash function is used for padding, MGF and computing message
-      digest. MGF is {b MGF1} as defined in {b PKCS #1 2.1}. *)
+      digest. MGF is {b MGF1} as defined in {b PKCS #1 2.1}.
+
+      Keys must have a minimum of [2 + hlen + slen] bytes, where [hlen] is the
+      hash length and [slen] is the seed length. *)
   module PSS (T: Hash.T) : sig
 
     val sign : ?g:Rng.g -> ?slen:int -> key:priv -> Cstruct.t -> Cstruct.t
