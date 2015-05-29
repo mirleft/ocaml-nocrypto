@@ -185,11 +185,11 @@ module OAEP (H : Hash.T) = struct
 
   let hlen = H.digest_size
 
-  let msg_limit ~key = cdiv (pub_bits key) 8 - 2 * hlen - 2
+  let max_msg_bytes k = k - 2 * hlen - 2
 
-  let eme_oaep_encode ?g ?(label = Cs.empty) ~key msg =
+  let eme_oaep_encode ?g ?(label = Cs.empty) k msg =
     let seed  = Rng.generate ?g hlen
-    and pad   = Cs.zeros (msg_limit ~key - len msg) in
+    and pad   = Cs.zeros (max_msg_bytes k - len msg) in
     let db    = Cs.concat [ H.digest label ; pad ; bx01 ; msg ] in
     let mdb   = MGF.mask ~seed db in
     let mseed = MGF.mask ~seed:mdb seed in
@@ -207,16 +207,15 @@ module OAEP (H : Hash.T) = struct
     if c1 && c2 && c3 then Some (shift db (i + 1)) else None
 
   let encrypt ?g ?label ~key msg =
-    if len msg > msg_limit ~key then
-      raise Invalid_message
-    else encrypt ~key @@ eme_oaep_encode ?g ?label ~key msg
+    let k = bytes (pub_bits key) in
+    if len msg > max_msg_bytes k then raise Invalid_message
+    else encrypt ~key @@ eme_oaep_encode ?g ?label k msg
 
-  let decrypt ?mask ?label ~key msg =
-    let k = cdiv (priv_bits key) 8 in
-    if len msg <> k || k < 2 * hlen + 2 then
-      None
+  let decrypt ?mask ?label ~key em =
+    let k = bytes (priv_bits key) in
+    if len em <> k || max_msg_bytes k < 0 then None
     else try
-      eme_oaep_decode ?label @@ decrypt ?mask ~key msg
+      eme_oaep_decode ?label @@ decrypt ?mask ~key em
     with Invalid_message -> None
 
   (* XXX Review rfc3447 7.1.2 and
@@ -237,39 +236,46 @@ module PSS (H: Hash.T) = struct
 
   let b0mask embits = 0xff lsr ((8 - embits mod 8) mod 8)
 
-  let emsa_pss_encode ?g slen bits msg =
-    (* If emLen < hLen + sLen + 2, output "encoding error" and stop. *)
-    let n    = cdiv bits 8
+  let emsa_pss_encode ?g slen emlen msg =
+    let n    = bytes emlen
     and salt = Rng.generate ?g slen in
     let h    = H.digestv [ Cs.zeros 8 ; H.digest msg ; salt ] in
     let db   = Cs.concat [ Cs.zeros (n - slen - hlen - 2) ; bx01 ; salt ] in
     let mdb  = MGF.mask ~seed:h db in
-    set_uint8 mdb 0 @@ get_uint8 mdb 0 land b0mask bits ;
+    set_uint8 mdb 0 @@ get_uint8 mdb 0 land b0mask emlen ;
     Cs.concat [ mdb ; h ; bxbc ]
 
-  let emsa_pss_verify slen bits em msg =
+  let emsa_pss_verify slen emlen em msg =
     let (mdb, h, bxx) = Cs.split3 em (em.len - hlen - 1) hlen in
     let db   = MGF.mask ~seed:h mdb in
-    set_uint8 db 0 (get_uint8 db 0 land b0mask bits) ;
+    set_uint8 db 0 (get_uint8 db 0 land b0mask emlen) ;
     let salt = shift db (len db - slen) in
     let h'   = H.digestv [ Cs.zeros 8 ; H.digest msg ; salt ]
     and i    = Cs.find_uint8 ~mask ~f:((<>) 0) db |> Option.value ~def:0
     in
-    let c1 = lnot (b0mask bits) land get_uint8 mdb 0 = 0x00
+    let c1 = lnot (b0mask emlen) land get_uint8 mdb 0 = 0x00
     and c2 = i = em.len - hlen - slen - 2
     and c3 = get_uint8 db  i = 0x01
     and c4 = get_uint8 bxx 0 = 0xbc
     and c5 = Cs.equal ~mask h h' in
     c1 && c2 && c3 && c4 && c5
 
-  let sign ?g ?(seedlen = hlen) ~key msg =
-    let em = emsa_pss_encode ?g seedlen (priv_bits key - 1) msg in
-    decrypt ~mask:`No ~key em
+  let min_key_bits slen = 8 * (hlen + slen + 1) + 2
 
-  let verify ?(seedlen = hlen) ~key ~signature msg =
-    let bits = pub_bits key - 1 in
-    let k    = bytes bits
-    and em   = encrypt ~key signature in
-    emsa_pss_verify seedlen bits (sub em (len em - k) k) msg
+  (* XXX RSA masking? *)
+  (* XXX refactor exns *)
+  let sign ?g ?(slen = hlen) ~key msg =
+    let b = priv_bits key in
+    if b < min_key_bits slen then raise Invalid_message
+    else decrypt ~mask:`No ~key @@ emsa_pss_encode ?g slen (b - 1) msg
+
+  let verify ?(slen = hlen) ~key ~signature msg =
+    let b = pub_bits key
+    and s = len signature in
+    s = bytes b && b >= min_key_bits slen &&
+    try
+      let em = encrypt ~key signature in
+      emsa_pss_verify slen (b - 1) (shift em (s - bytes (b - 1))) msg
+    with Invalid_message -> false
 
 end
