@@ -161,18 +161,17 @@ let (bx00, bx01, bxbc) =
 module MGF1 (H : Hash.T) = struct
 
   open Cstruct
-  open Numeric
 
   let repr = Numeric.Int32.to_cstruct_be ~size:4
 
   (* Assumes len < 2^32 * H.digest_size. *)
-  let mgf ~seed ~len =
-    Range.of_int32 0l (Int32.of_int @@ cdiv len H.digest_size - 1)
-    |> List.map (fun c -> H.digestv [seed; repr c])
-    |> Cs.concat
-    |> fun cs -> sub cs 0 len
+  let mgf ~seed len =
+    let rec go acc c = function
+      | 0 -> sub (Cs.concat (List.rev acc)) 0 len
+      | n -> go (H.digestv [ seed ; repr c ] :: acc) Int32.(succ c) (pred n) in
+    go [] 0l (cdiv len H.digest_size)
 
-  let mask ~seed cs = Cs.xor (mgf ~seed ~len:(len cs)) cs
+  let mask ~seed cs = Cs.xor (mgf ~seed (len cs)) cs
 
 end
 
