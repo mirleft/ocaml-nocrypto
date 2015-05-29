@@ -1,7 +1,7 @@
 open Sexplib.Conv
 open Uncommon
 
-exception Invalid_message
+exception Insufficient_key
 
 type pub  = { e : Z.t ; n : Z.t } with sexp
 
@@ -48,7 +48,7 @@ let decrypt_blinded_unsafe ?g ~key: ({ e; n; _} as key : priv) c =
 
 let (encrypt_z, decrypt_z) =
   let check_params n msg =
-    if msg < Z.one || n <= msg then raise Invalid_message in
+    if msg < Z.one || n <= msg then raise Insufficient_key in
   (fun ~(key : pub) msg ->
     check_params key.n msg ;
     encrypt_unsafe ~key msg),
@@ -131,13 +131,13 @@ module PKCS1 = struct
   let unpad_02 = unpad ~mark:0x02 ~is_pad:(fun b -> b <> 0x00)
 
   let padded pad transform keybits msg =
-    let size = cdiv keybits 8 in
-    if size - len msg < min_pad then raise Invalid_message ;
+    let size = bytes keybits in
+    if size - len msg < min_pad then raise Insufficient_key ;
     transform (pad size msg)
 
   let unpadded unpad transform keybits msg =
-    if len msg = cdiv keybits 8 then
-      try unpad (transform msg) with Invalid_message -> None
+    if len msg = bytes keybits then
+      try unpad (transform msg) with Insufficient_key -> None
     else None
 
   let sign ?mask ~key msg =
@@ -208,7 +208,7 @@ module OAEP (H : Hash.T) = struct
 
   let encrypt ?g ?label ~key msg =
     let k = bytes (pub_bits key) in
-    if len msg > max_msg_bytes k then raise Invalid_message
+    if len msg > max_msg_bytes k then raise Insufficient_key
     else encrypt ~key @@ eme_oaep_encode ?g ?label k msg
 
   let decrypt ?mask ?label ~key em =
@@ -216,7 +216,7 @@ module OAEP (H : Hash.T) = struct
     if len em <> k || max_msg_bytes k < 0 then None
     else try
       eme_oaep_decode ?label @@ decrypt ?mask ~key em
-    with Invalid_message -> None
+    with Insufficient_key -> None
 
   (* XXX Review rfc3447 7.1.2 and
    * http://archiv.infsec.ethz.ch/education/fs08/secsem/Manger01.pdf
@@ -263,10 +263,9 @@ module PSS (H: Hash.T) = struct
   let min_key_bits slen = 8 * (hlen + slen + 1) + 2
 
   (* XXX RSA masking? *)
-  (* XXX refactor exns *)
   let sign ?g ?(slen = hlen) ~key msg =
     let b = priv_bits key in
-    if b < min_key_bits slen then raise Invalid_message
+    if b < min_key_bits slen then raise Insufficient_key
     else decrypt ~mask:`No ~key @@ emsa_pss_encode ?g slen (b - 1) msg
 
   let verify ?(slen = hlen) ~key ~signature msg =
@@ -276,6 +275,6 @@ module PSS (H: Hash.T) = struct
     try
       let em = encrypt ~key signature in
       emsa_pss_verify slen (b - 1) (shift em (s - bytes (b - 1))) msg
-    with Invalid_message -> false
+    with Insufficient_key -> false
 
 end

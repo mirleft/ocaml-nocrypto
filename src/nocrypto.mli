@@ -446,9 +446,12 @@ exceptions.
 Private-key operations are optionally protected through RSA blinding.  *)
 module Rsa : sig
 
-  exception Invalid_message
-  (** Raised if the message is [0] or too large for the key, under the given
-      padding operation. *)
+  exception Insufficient_key
+  (** Raised if the key is too small to transform the given message, i.e. if the
+      numerical interpretation of the (potentially padded) message is not
+      smaller than the modulus.
+      It is additionally raised if the message is [0] and the mode does not
+      involve padding. *)
 
   type pub  = {
     e : Z.t ; (** Public exponent *)
@@ -490,12 +493,12 @@ module Rsa : sig
 
   val encrypt : key:pub  -> Cstruct.t -> Cstruct.t
   (** [encrypt key message] is the encrypted [message].
-      @raise Invalid_message (see {!Invalid_message}) *)
+      @raise Insufficient_key (see {!Insufficient_key}) *)
 
   val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
   (** [decrypt mask key ciphertext] is the decrypted [ciphertext], left-padded
       with [0x00] up to [key] size.
-      @raise Invalid_message (see {!Invalid_message}) *)
+      @raise Insufficient_key (see {!Insufficient_key}) *)
 
   val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
   (** [generate g e bits] is a new {!priv}. [e] defaults to [2^16+1].
@@ -514,7 +517,7 @@ module Rsa : sig
     val sign : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
     (** [sign mask key message] is the PKCS1-padded (type 1) signature of the
         [message].
-        @raise Invalid_message (see {!Invalid_message}) *)
+        @raise Insufficient_key (see {!Insufficient_key}) *)
 
     val verify : key:pub -> Cstruct.t -> Cstruct.t option
     (** [verify key signature] is either the message that was PKCS1-padded and
@@ -524,7 +527,7 @@ module Rsa : sig
     val encrypt : ?g:Rng.g -> key:pub -> Cstruct.t -> Cstruct.t
     (** [encrypt g key message] is a PKCS1-padded (type 2) and encrypted
         [message].
-        @raise Invalid_message (see {!Invalid_message}) *)
+        @raise Insufficient_key (see {!Insufficient_key}) *)
 
     val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
     (** [decrypt mask key ciphertext] is decrypted [ciphertext] stripped of
@@ -539,9 +542,9 @@ module Rsa : sig
   module OAEP (T : Hash.T) : sig
 
     val encrypt : ?g:Rng.g -> ?label:Cstruct.t -> key:pub -> Cstruct.t -> Cstruct.t
-    (** [encrypt ~g ~label ~key message] is {b OAEP}-padded and encrypt
+    (** [encrypt ~g ~label ~key message] is {b OAEP}-padded and encrypted
         [message], using the optional [label].
-        @raise Invalid_message (see {!Invalid_message}) *)
+        @raise Insufficient_key (see {!Insufficient_key}) *)
 
     val decrypt : ?mask:mask -> ?label:Cstruct.t -> key:priv -> Cstruct.t -> Cstruct.t option
     (** [decrypt ~mask ~label ~key ciphertext] is [Some message] if the
@@ -559,7 +562,7 @@ module Rsa : sig
     (** [sign ~g ~slen ~key message] the {p PSS}-padded digest of [message],
         signed with the [key]. [slen] is the optional seed length and default to
         the size of the underlying hash function.
-        @raise Invalid_message (see {!Invalid_message}) *)
+        @raise Insufficient_key (see {!Insufficient_key}) *)
 
     val verify : ?slen:int -> key:pub -> signature:Cstruct.t -> Cstruct.t -> bool
     (** [verify ~slen ~key ~signature message] checks whether [signature] is a
