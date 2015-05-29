@@ -447,10 +447,8 @@ Private-key operations are optionally protected through RSA blinding.  *)
 module Rsa : sig
 
   exception Invalid_message
-  (** Raised if the numeric magnitude of a message, with potential padding, is
-      inappropriate for a given key, i.e. the message, when interpreted as
-      big-endian encoding of a natural number, meets or exceeds the key's [n],
-      or is 0. *)
+  (** Raised if the message is [0] or too large for the key, under the given
+      padding operation. *)
 
   type pub  = {
     e : Z.t ; (** Public exponent *)
@@ -532,6 +530,40 @@ module Rsa : sig
     (** [decrypt mask key ciphertext] is decrypted [ciphertext] stripped of
         PKCS1 padding, or [None] if the padding is incorrect or the underlying
         {!Rsa.decrypt} would raise. *)
+  end
+
+  (** {b OAEP}-padded RSA encryption.
+
+      The same hash function is used for padding and MGF. MGF is {b MGF1} as
+      defined in {b PKCS #1 2.1}. *)
+  module OAEP (T : Hash.T) : sig
+
+    val encrypt : ?g:Rng.g -> ?label:Cstruct.t -> key:pub -> Cstruct.t -> Cstruct.t
+    (** [encrypt ~g ~label ~key message] is {b OAEP}-padded and encrypt
+        [message], using the optional [label].
+        @raise Invalid_message (see {!Invalid_message}) *)
+
+    val decrypt : ?mask:mask -> ?label:Cstruct.t -> key:priv -> Cstruct.t -> Cstruct.t option
+    (** [decrypt ~mask ~label ~key ciphertext] is [Some message] if the
+        [ciphertext] was produced with the corresponding {!encrypt} operation,
+        or [None] otherwise. *)
+  end
+
+  (** {b PSS}-passed RSA signing.
+
+      The same hash function is used for padding, MGF and computing message
+      digest. MGF is {b MGF1} as defined in {b PKCS #1 2.1}. *)
+  module PSS (T: Hash.T) : sig
+
+    val sign : ?g:Rng.g -> ?slen:int -> key:priv -> Cstruct.t -> Cstruct.t
+    (** [sign ~g ~slen ~key message] the {p PSS}-padded digest of [message],
+        signed with the [key]. [slen] is the optional seed length and default to
+        the size of the underlying hash function.
+        @raise Invalid_message (see {!Invalid_message}) *)
+
+    val verify : ?slen:int -> key:pub -> signature:Cstruct.t -> Cstruct.t -> bool
+    (** [verify ~slen ~key ~signature message] checks whether [signature] is a
+        valid {b PSS} signature of the [message] under the given [key]. *)
   end
 
 end
