@@ -82,53 +82,54 @@ let rec generate ?g ?(e = Z.(~$0x10001)) bits =
   else generate ?g ~e bits
 
 
+
+let mask = true
+
+let b = Cs.b
+
+let (bx00, bx01) = (b 0x00, b 0x01)
+
 module PKCS1 = struct
 
   let min_pad = 8 + 3
 
   open Cstruct
 
-  let pad ~mark ~padding size msg =
-    let n   = len msg in
-    let pad = size - n
-    and cs  = create size in
-    BE.set_uint16 cs 0 mark ;
-    padding (sub cs 2 (pad - 3)) ;
-    set_uint8 cs (pad - 1) 0x00 ;
-    blit msg 0 cs pad n ;
-    cs
+
+  (* XXX Generalize this into `Rng.samplev` or something. *)
+  let generate_with ?g ~f n =
+    let cs = create n
+    and bs = Rng.(block_size * cdiv n block_size) in
+    let rec go nonce i j =
+      if i = n then cs else
+      if j = bs then go Rng.(generate ?g bs) i 0 else
+      match get_uint8 nonce j with
+      | b when f b -> set_uint8 cs i b ; go nonce (succ i) (succ j)
+      | _          -> go nonce i (succ j) in
+    go Rng.(generate ?g bs) 0 0
+
+
+  let pad ~mark ~padding k msg =
+    let pad = padding (k - len msg - 3) in
+    Cs.concat [ bx00 ; b mark ; pad ; bx00 ; msg ]
 
   let unpad ~mark ~is_pad cs =
-    let n = len cs in
-    let rec go ok i =
-      if i = n then None else
-        match (i, get_uint8 cs i) with
-        | (0, b   ) -> go (b = 0x00 && ok) (succ i)
-        | (1, b   ) -> go (b = mark && ok) (succ i)
-        | (i, 0x00) when i >= min_pad && ok
-                    -> ignore (go false (succ i)); Some (succ i)
-        | (i, b   ) -> go (is_pad b && ok) (succ i) in
-    go true 0 |> Option.map ~f:(fun off -> sub cs off (n - off))
+    let f = not &. is_pad in
+    let i = Cs.find_uint8 ~mask ~off:2 ~f cs |> Option.value ~def:2
+    in
+    let c1 = get_uint8 cs 0 = 0x00
+    and c2 = get_uint8 cs 1 = mark
+    and c3 = get_uint8 cs i = 0x00
+    and c4 = i + 1 >= min_pad in
+    if c1 && c2 && c3 && c4 then
+      Some (sub cs (i + 1) (len cs - i - 1))
+    else None
 
-  let pad_01 =
-    pad ~mark:0x01 ~padding:(fun cs -> Cs.fill cs 0xff)
+  let pad_01    = pad ~mark:0x01 ~padding:(fun n -> Cs.create_with n 0xff)
+  let pad_02 ?g = pad ~mark:0x02 ~padding:(generate_with ?g ~f:((<>) 0x00))
 
-  let pad_02 ?g =
-    pad ~mark:0x02 ~padding:(fun cs ->
-      let n     = len cs in
-      let block = Rng.(block_size * cdiv n block_size) in
-      let rec go nonce i j =
-        if i = n then () else
-        if j = block then go Rng.(generate ?g block) i 0 else
-          match get_uint8 nonce j with
-          | 0x00 -> go nonce i (succ j)
-          | x    -> set_uint8 cs i x ; go nonce (succ i) (succ j) in
-      go Rng.(generate ?g block) 0 0
-    )
-
-  let unpad_01 = unpad ~mark:0x01 ~is_pad:(fun b -> b = 0xff)
-
-  let unpad_02 = unpad ~mark:0x02 ~is_pad:(fun b -> b <> 0x00)
+  let unpad_01 = unpad ~mark:0x01 ~is_pad:((=) 0xff)
+  let unpad_02 = unpad ~mark:0x02 ~is_pad:((<>) 0x00)
 
   let padded pad transform keybits msg =
     let size = bytes keybits in
@@ -154,10 +155,6 @@ module PKCS1 = struct
 
 end
 
-let (bx00, bx01, bxbc) =
-  let f b = Cs.of_bytes [b] in
-  (f 0x00, f 0x01, f 0xbc)
-
 module MGF1 (H : Hash.T) = struct
 
   open Cstruct
@@ -174,8 +171,6 @@ module MGF1 (H : Hash.T) = struct
   let mask ~seed cs = Cs.xor (mgf ~seed (len cs)) cs
 
 end
-
-let mask = true
 
 module OAEP (H : Hash.T) = struct
 
@@ -204,7 +199,9 @@ module OAEP (H : Hash.T) = struct
     let c1 = Cs.equal ~mask (sub db 0 hlen) H.(digest label)
     and c2 = get_uint8 b0 0 = 0x00
     and c3 = get_uint8 db i = 0x01 in
-    if c1 && c2 && c3 then Some (shift db (i + 1)) else None
+    if c1 && c2 && c3 then
+      Some (shift db (i + 1))
+    else None
 
   let encrypt ?g ?label ~key msg =
     let k = bytes (pub_bits key) in
@@ -232,7 +229,9 @@ module PSS (H: Hash.T) = struct
 
   module MGF = MGF1(H)
 
-  let hlen  = H.digest_size
+  let hlen = H.digest_size
+
+  let bxbc = b 0xbc
 
   let b0mask embits = 0xff lsr ((8 - embits mod 8) mod 8)
 
@@ -251,7 +250,7 @@ module PSS (H: Hash.T) = struct
     set_uint8 db 0 (get_uint8 db 0 land b0mask emlen) ;
     let salt = shift db (len db - slen) in
     let h'   = H.digestv [ Cs.zeros 8 ; H.digest msg ; salt ]
-    and i    = Cs.find_uint8 ~mask ~f:((<>) 0) db |> Option.value ~def:0
+    and i    = Cs.find_uint8 ~mask ~f:((<>) 0x00) db |> Option.value ~def:0
     in
     let c1 = lnot (b0mask emlen) land get_uint8 mdb 0 = 0x00
     and c2 = i = em.len - hlen - slen - 2
