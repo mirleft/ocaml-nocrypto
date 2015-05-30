@@ -186,6 +186,9 @@ module Cs = struct
     in
     (aux 1 set_uint8, aux 4 BE.set_uint32, aux 8 BE.set_uint64)
 
+  let b x =
+    let cs = Cstruct.create 1 in ( set_uint8 cs 0 x ; cs )
+
   let rec shift_left_inplace cs = function
     | 0 -> ()
     | bits when bits mod 8 = 0 ->
