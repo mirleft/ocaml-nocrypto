@@ -95,13 +95,13 @@ let cbc_selftest ( m : (module Cipher_block.T.CBC) ) n  =
 let ctr_selftest (m : (module Cipher_block.T.CTR)) n =
   let module C = (val m) in
   "selftest" >:: times ~n @@ fun _ ->
-    let data = Rng.(generate @@ C.block_size * 8 + Int.gen C.block_size)
+    let key  = C.of_secret @@ Rng.generate (sample C.key_sizes)
     and ctr  = Rng.generate C.block_size
-    and key  = C.of_secret @@ Rng.generate (sample C.key_sizes) in
-    let data' =
-      C.( data |> encrypt ~key ~ctr |> encrypt ~key ~ctr
-               |> decrypt ~key ~ctr |> decrypt ~key ~ctr ) in
-    assert_cs_equal ~msg:"ctr mismatch" data data'
+    and data = Rng.(generate @@ C.block_size * 8 + Int.gen C.block_size) in
+    let enc = C.encrypt ~key ~ctr data in
+    let dec = C.decrypt ~key ~ctr enc.C.message in
+    assert_cs_equal ~msg:"ctr result mismatch" data dec.C.message ;
+    assert_cs_equal ~msg:"ctr counter mismatch" enc.C.ctr dec.C.ctr
 
 let xor_selftest n =
   "selftest" >:: times ~n @@ fun _ ->
@@ -776,13 +776,15 @@ let suite =
 
     "3DES-CBC" >::: [ cbc_selftest (module Cipher_block.DES.CBC) 100 ] ;
 
+    "3DES-CTR" >::: [ ctr_selftest (module Cipher_block.DES.CTR) 100 ] ;
+
     "AES-ECB" >::: [ ecb_selftest (module Cipher_block.AES.ECB) 100
                    ; "SP 300-38A" >::: aes_ecb_cases ] ;
 
     "AES-CBC" >::: [ cbc_selftest (module Cipher_block.AES.CBC) 100
                    ; "SP 300-38A" >::: aes_cbc_cases ] ;
 
-    "AES-CTR" >::: [ ctr_selftest (module Cipher_block.AES.CTR2) 100
+    "AES-CTR" >::: [ ctr_selftest (module Cipher_block.AES.CTR) 100
                    ; "SP 300-38A" >::: aes_ctr_cases ] ;
 
     "AES-GCM" >::: gcm_cases ;
