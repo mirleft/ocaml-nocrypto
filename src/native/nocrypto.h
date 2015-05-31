@@ -15,6 +15,9 @@
 #define NC_AES_GENERIC
 #endif
 
+#define __unused(x) x __attribute__((unused))
+#define __unit() value __unused(unit)
+
 typedef unsigned char u_char;
 typedef unsigned long u_long;
 typedef unsigned int u_int;
@@ -31,9 +34,9 @@ typedef unsigned int u_int;
 #define _ba_uchar_option(ba)          _ba_uchar_option_off (ba, 0)
 
 #define __define_bc_6(f) \
-  CAMLprim value f ## _bc (value *v, int argc) { return f(v[0], v[1], v[2], v[3], v[4], v[5]); }
+  CAMLprim value f ## _bc (value *v, int __unused(c) ) { return f(v[0], v[1], v[2], v[3], v[4], v[5]); }
 
 #define __define_bc_7(f) \
-  CAMLprim value f ## _bc (value *v, int argc) { return f(v[0], v[1], v[2], v[3], v[4], v[5], v[6]); }
+  CAMLprim value f ## _bc (value *v, int __unused(c) ) { return f(v[0], v[1], v[2], v[3], v[4], v[5], v[6]); }
 
 #endif /* H__NOCRYPTO */

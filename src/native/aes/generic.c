@@ -1277,7 +1277,7 @@ caml_nc_aes_dec (value src, value off1, value dst, value off2, value rk, value r
   return Val_unit;
 }
 
-CAMLprim value caml_nc_aes_mode (value unit) { return Val_int (0); }
+CAMLprim value caml_nc_aes_mode (__unit ()) { return Val_int (0); }
 
 __define_bc_7 (caml_nc_aes_enc)
 __define_bc_7 (caml_nc_aes_dec)

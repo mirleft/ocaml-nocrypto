@@ -119,12 +119,12 @@ static inline void _nc_aesni_invert_e_key (const u_char *rk0, u_char *kr0, u_int
           *kr  = (__m128i*) kr0,
           rk[15];
 
-  for (int i = 0; i <= rounds; i++)
+  for (u_int i = 0; i <= rounds; i++)
     rk[i] = rk1[i];
 
   kr[0] = rk[rounds];
 
-  for (int i = 1; i < rounds; i++)
+  for (u_int i = 1; i < rounds; i++)
     kr[i] = _mm_aesimc_si128 (rk[rounds - i]);
 
   kr[rounds] = rk[0];
@@ -146,7 +146,7 @@ static inline void _nc_aesni_enc (const u_char src[16], u_char dst[16], const u_
 
   r = _mm_xor_si128 (r, rk[0]);
 
-  for (int i = 1; i < rounds; i++)
+  for (u_int i = 1; i < rounds; i++)
     r = _mm_aesenc_si128 (r, rk[i]);
 
   r = _mm_aesenclast_si128 (r, rk[rounds]);
@@ -160,7 +160,7 @@ static inline void _nc_aesni_dec (const u_char src[16], u_char dst[16], const u_
 
   r = _mm_xor_si128 (r, rk[0]);
 
-  for (int i = 1; i < rounds; i++)
+  for (u_int i = 1; i < rounds; i++)
     r = _mm_aesdec_si128 (r, rk[i]);
 
   r = _mm_aesdeclast_si128 (r, rk[rounds]);
@@ -191,7 +191,7 @@ static inline void _nc_aesni_enc8 (const u_char src[128], u_char dst[128], const
   r6 = _mm_xor_si128 (r6, rk[0]);
   r7 = _mm_xor_si128 (r7, rk[0]);
 
-  for (int i = 1; i < rounds; i++) {
+  for (u_int i = 1; i < rounds; i++) {
     r0 = _mm_aesenc_si128 (r0, rk[i]);
     r1 = _mm_aesenc_si128 (r1, rk[i]);
     r2 = _mm_aesenc_si128 (r2, rk[i]);
@@ -245,7 +245,7 @@ static inline void _nc_aesni_dec8 (const u_char src[128], u_char dst[128], const
   r6 = _mm_xor_si128 (r6, rk[0]);
   r7 = _mm_xor_si128 (r7, rk[0]);
 
-  for (int i = 1; i < rounds; i++) {
+  for (u_int i = 1; i < rounds; i++) {
     r0 = _mm_aesdec_si128 (r0, rk[i]);
     r1 = _mm_aesdec_si128 (r1, rk[i]);
     r2 = _mm_aesdec_si128 (r2, rk[i]);
@@ -353,7 +353,7 @@ caml_nc_aes_dec (value src, value off1, value dst, value off2, value rk, value r
   return Val_unit;
 }
 
-CAMLprim value caml_nc_aes_mode (value unit) { return Val_int (1); }
+CAMLprim value caml_nc_aes_mode (__unit ()) { return Val_int (1); }
 
 __define_bc_7 (caml_nc_aes_enc)
 __define_bc_7 (caml_nc_aes_dec)

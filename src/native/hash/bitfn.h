@@ -134,7 +134,7 @@ static inline void memory_zero(void *ptr, uint32_t len)
 	uint8_t *ptr8;
 	int i;
 
-	for (i = 0; i < len / 4; i++)
+	for (i = 0; (uint32_t) i < len / 4; i++)
 		*ptr32++ = 0;
 	if (len % 4) {
 		ptr8 = (uint8_t *) ptr32;

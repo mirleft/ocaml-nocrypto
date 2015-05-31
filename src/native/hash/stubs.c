@@ -30,7 +30,7 @@
   }                                                                          \
                                                                              \
   CAMLprim value                                                             \
-  caml_nc_ ## name ## _ctx_size (value unit) {                               \
+  caml_nc_ ## name ## _ctx_size (__unit ()) {                                \
     return Val_int (upper ## _CTX_SIZE);                                     \
   }
 

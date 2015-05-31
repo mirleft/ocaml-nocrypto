@@ -692,7 +692,7 @@ static inline void _nc_ddes (unsigned char *src, unsigned char *dst, unsigned in
 }
 
 CAMLprim value
-caml_nc_des_key_size (value unit) {
+caml_nc_des_key_size (__unit ()) {
   return Val_int (sizeof (unsigned long) * 96);
 }
 
