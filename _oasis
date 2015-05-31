@@ -128,6 +128,14 @@ Test the_things
   TestTools: test_runner
   Run$:      flag(tests)
 
+Executable speed
+  Path:           bench/
+  Install:        false
+  CompiledObject: native
+  MainIs:         speed.ml
+  Build$:         flag(benchmarks)
+  BuildDepends:   nocrypto, cstruct, cstruct.unix
+
 Document api
   Title: Documentation and API reference
   Type: ocamlbuild (0.3)

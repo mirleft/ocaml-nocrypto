@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 0c5294ce430ae897040b90c8d1fe918f)
+# DO NOT EDIT (digest: c968a59e23207d6bd36c0e6e39ea39b6)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -202,6 +202,19 @@ true: annot, bin_annot
 <tests/*.ml{,i,y}>: package(zarith)
 <tests/*.ml{,i,y}>: use_nocrypto
 <tests/*.ml{,i,y}>: use_testlib
+# Executable speed
+"bench/speed.native": package(cstruct)
+"bench/speed.native": package(cstruct.unix)
+"bench/speed.native": package(sexplib.syntax)
+"bench/speed.native": package(type_conv)
+"bench/speed.native": package(zarith)
+"bench/speed.native": use_nocrypto
+<bench/*.ml{,i,y}>: package(cstruct)
+<bench/*.ml{,i,y}>: package(cstruct.unix)
+<bench/*.ml{,i,y}>: package(sexplib.syntax)
+<bench/*.ml{,i,y}>: package(type_conv)
+<bench/*.ml{,i,y}>: package(zarith)
+<bench/*.ml{,i,y}>: use_nocrypto
 # OASIS_STOP
 
 "src/nocrypto_generated.cmx": for-pack(Nocrypto)
