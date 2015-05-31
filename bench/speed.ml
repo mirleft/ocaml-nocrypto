@@ -75,6 +75,14 @@ let benchmarks = [
     and ctr = Cs.create_with 16 0x00 in
     throughput name (fun cs -> AES.CTR.encrypt ~key ~ctr cs)) ;
 
+  bm "aes-192-ecb" (fun name ->
+    let key = AES.ECB.of_secret (Rng.generate 24) in
+    throughput name (fun cs -> AES.ECB.encrypt ~key cs)) ;
+
+  bm "aes-256-ecb" (fun name ->
+    let key = AES.ECB.of_secret (Rng.generate 32) in
+    throughput name (fun cs -> AES.ECB.encrypt ~key cs)) ;
+
   bm "d3des-ecb" (fun name ->
     let key = DES.ECB.of_secret (Rng.generate 24) in
     throughput name (fun cs -> DES.ECB.encrypt ~key cs)) ;
