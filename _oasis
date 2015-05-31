@@ -102,20 +102,20 @@ Library nocrypto_xen
                    native/aes/aesni.c,
                    native/des/generic.c,
                    native/des/generic.h
+  BuildDepends:    nocrypto, lwt.syntax, mirage-entropy-xen
+  XMETARequires:   nocrypto, lwt, mirage-entropy-xen
   CCOpt:           --std=c99 -Wall -Werror -Wpedantic -O3 -DNDEBUG $XEN_CFLAGS
   if flag(modernity) && ( architecture(i386) || architecture(amd64) )
     CCOpt+: -msse2 -maes
-  BuildDepends:    nocrypto, lwt.syntax, mirage-entropy-xen
-  XMETARequires:   nocrypto, lwt, mirage-entropy-xen
 
-Library "testlib"
+Library testlib
   Path:         tests/
   Modules:      Notest, Hmac_tests, Dsa_tests, Testlib
   Install:      false
   Build$:       flag(tests)
   BuildDepends: nocrypto, oUnit
 
-Executable "test_runner"
+Executable test_runner
   Path:           tests/
   Install:        false
   CompiledObject: best
@@ -127,22 +127,6 @@ Test the_things
   Command:   $test_runner
   TestTools: test_runner
   Run$:      flag(tests)
-
-Executable "bench"
-  Path:           bench/
-  Install:        false
-  CompiledObject: native
-  MainIs:         runnable.ml
-  Build$:         flag(tests) && flag(benchmarks)
-  BuildDepends:   nocrypto, cstruct, lwt, lwt.syntax, lwt.unix
-
-Executable "hashbench"
-  Path:           bench/
-  Install:        false
-  CompiledObject: native
-  MainIs:         hashbench.ml
-  Build$:         flag(tests) && flag(benchmarks)
-  BuildDepends:   nocrypto, cstruct, cstruct.unix
 
 Document api
   Title: Documentation and API reference
