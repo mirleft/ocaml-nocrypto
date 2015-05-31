@@ -73,13 +73,14 @@ module T = struct
   module type CTR = sig
 
     type key
+    type result = { message : Cstruct.t ; ctr : Cstruct.t }
     val of_secret : Cstruct.t -> key
 
     val key_sizes  : int array
     val block_size : int
-    val stream  : key:key -> ctr:Cstruct.t -> int -> Cstruct.t
-    val encrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
-    val decrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
+    val stream  : key:key -> ctr:Cstruct.t -> int -> result
+    val encrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> result
+    val decrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> result
   end
 
   module type GCM = sig
@@ -307,7 +308,7 @@ module Modes2 = struct
 
   module CTR_of (Core : T.Core) : T.CTR = struct
 
-    (* FIXME: CTR can easily be ~40% faster. C *)
+    (* FIXME: CTR can easily be ~40% faster. *)
 
     let count_be =
       match Core.block with
@@ -319,21 +320,25 @@ module Modes2 = struct
 
     type key = Core.ekey
 
+    type result = { message : Cstruct.t ; ctr : Cstruct.t }
+
     let (key_sizes, block_size) = Core.(key, block)
     let of_secret = Core.e_of_secret
 
+    let block = Core.block
+
     let stream ~key ~ctr n =
-      let blocks = cdiv n block_size in
-      let res    = create (blocks * block_size) in
-      count_be ctr.buffer ctr.off res.buffer res.off blocks ;
+      let blocks = cdiv n block in
+      let size   = blocks * block in
+      let res    = create (size + block) in
+      count_be ctr.buffer ctr.off res.buffer res.off (blocks + 1) ;
       Core.encrypt ~key ~blocks res.buffer res.off res.buffer res.off ;
-      sub res 0 n
+      { message = sub res 0 n ; ctr = sub res size block }
 
     let encrypt ~key ~ctr src =
-      let n   = len src in
-      let dst = stream ~key ~ctr n in
-      Native.xor_into src.buffer src.off dst.buffer dst.off n ;
-      dst
+      let { message ; _ } as res = stream ~key ~ctr src.len in
+      Native.xor_into src.buffer src.off message.buffer message.off src.len ;
+      res
 
     let decrypt = encrypt
 
@@ -416,10 +421,11 @@ module AES = struct
 
   module ECB = Modes2.ECB_of (Core)
   module CBC = Modes2.CBC_of (Core)
+  module CTR = Modes2.CTR_of (Core)
 
-  module CTR = Modes.CTR_of (Modes2.Raw_of(Core))
   module GCM = Modes.GCM_of (Modes2.Base_of(Core))
   module CCM = Modes.CCM_of (Modes2.Raw_of(Core))
+
 end
 
 module DES = struct
@@ -456,6 +462,6 @@ module DES = struct
 
   module ECB = Modes2.ECB_of (Core)
   module CBC = Modes2.CBC_of (Core)
-  module CTR = Modes.CTR_of (Modes2.Raw_of (Core))
+  module CTR = Modes2.CTR_of (Core)
 
 end
