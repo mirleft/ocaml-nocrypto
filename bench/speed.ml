@@ -87,7 +87,7 @@ let benchmarks = [
     let key = DES.ECB.of_secret (Rng.generate 24) in
     throughput name (fun cs -> DES.ECB.encrypt ~key cs)) ;
 
-  bm "md5"    (fun name -> throughput name  MD5.digest) ;
+  bm "md5"    (fun name -> throughput name MD5.digest) ;
   bm "sha1"   (fun name -> throughput name SHA1.digest) ;
   bm "sha256" (fun name -> throughput name SHA256.digest) ;
   bm "sha512" (fun name -> throughput name SHA512.digest) ;
@@ -99,6 +99,13 @@ let help () =
   List.iter (fun (n, _) -> Printf.printf "%s  " n) benchmarks ;
   Printf.printf "\n%!"
 
+let runv fs =
+  Printf.printf "aes mode: %s\n%!"
+    (match AES.mode with | `Generic -> "software" | `AES_NI -> "AES-NI") ;
+  Time.warmup () ;
+  List.iter (fun f -> f ()) fs
+
+
 let _ =
   match Array.to_list Sys.argv with
   | _::(_::_ as args) -> begin
@@ -106,8 +113,7 @@ let _ =
         let fs =
           args |> List.map @@ fun n ->
             snd (benchmarks |> List.find @@ fun (n1, _) -> n = n1) in
-        Time.warmup () ;
-        List.iter (fun f -> f ()) fs
+        runv fs
       with Not_found -> help ()
     end
   | _ -> help ()
