@@ -6,3 +6,7 @@
 #load "testlib.cma";;
 
 #install_printer Z.pp_print ;;
+
+open Nocrypto
+
+let _ = Rng.reseed Cstruct.(of_string "abvgd")
