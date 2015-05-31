@@ -108,38 +108,6 @@ end
 
 module Modes = struct
 
-  module CTR_of (C : T.Raw) (CNT : T.Counter) : T.CTR = struct
-
-    open Cstruct
-
-    type key = C.ekey
-
-    let (key_sizes, block_size) = C.(key_sizes, block_size)
-
-    let of_secret = C.e_of_secret
-
-    let stream ~key ~ctr size =
-      let rec loop ctr cs = function
-        | 0 -> ()
-        | n ->
-            C.encrypt_block ~key ctr cs ;
-            CNT.increment ctr ;
-            loop ctr (shift cs block_size) (pred n) in
-      let blocks = cdiv size block_size in
-      let res    = create (blocks * block_size) in
-      loop ctr res blocks ;
-      sub res 0 size
-
-    let encrypt ~key ~ctr msg =
-      let size = len msg in
-      let res  = stream ~key ~ctr size in
-      Cs.xor_into msg res size ;
-      res
-
-    let decrypt = encrypt
-
-  end
-
   module GCM_of (C : T.Base) : T.GCM = struct
 
     assert (C.block_size = 16)
