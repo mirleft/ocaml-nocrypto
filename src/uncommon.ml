@@ -7,6 +7,8 @@ let cdiv x y =
 
 let align x y = cdiv x y * y
 
+let imin (a : int) (b : int) = if a < b then a else b
+
 let (&.) f g = fun h -> f (g h)
 
 let id x = x
@@ -100,29 +102,27 @@ module Cs = struct
         | _             -> ok
       in
       let n1 = len cs1 and n2 = len cs2 in
-      loop true 0 (min n1 n2) && n1 = n2 in
+      loop true 0 (imin n1 n2) && n1 = n2 in
 
     if mask then
       eq_with_mask cs1 cs2
     else
       (len cs1 = len cs2) && (to_bigarray cs1 = to_bigarray cs2)
 
-  let clone ?n cs =
-    let n  = match n with
-      | None   -> len cs
-      | Some n -> n in
-    let cs' = create n in
-    ( blit cs 0 cs' 0 n ; cs' )
+  let clone ?(off = 0) ?len cs =
+    let len = match len with None -> cs.len - off | Some x -> x in
+    let cs' = create len in
+    ( blit cs off cs' 0 len ; cs' )
 
   let xor_into src dst n =
-    if n > min (len src) (len dst) then
+    if n > imin (len src) (len dst) then
       Raise.invalid1 "Uncommon.Cs.xor_into: buffers to small (need %d)" n
     else Native.xor_into src.buffer src.off dst.buffer dst.off n
 
   let xor cs1 cs2 =
-    let n  = min (len cs1) (len cs2) in
-    let cs = clone ~n cs2 in
-    ( xor_into cs1 cs n ; cs )
+    let len = imin (len cs1) (len cs2) in
+    let cs  = clone ~len cs2 in
+    ( xor_into cs1 cs len ; cs )
 
   (* XXX
    * Kill me once

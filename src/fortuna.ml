@@ -59,7 +59,7 @@ let generate ~g bytes =
   let rec chunk = function
     | i when i <= 0 -> []
     | n ->
-        let n' = min n 0x10000 in
+        let n' = imin n 0x10000 in
         generate_rekey ~g n' :: chunk (n - n')
   in
   Cs.concat @@ chunk bytes

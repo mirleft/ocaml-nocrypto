@@ -129,7 +129,7 @@ module Repr ( N : T_core ) = struct
     in
     loop N.zero 0 @@ match bits with
       | None   -> Cstruct.len cs * 8
-      | Some b -> min b (Cstruct.len cs * 8)
+      | Some b -> imin b (Cstruct.len cs * 8)
 
   let byte1 = N.of_int64 0xffL
   and byte2 = N.of_int64 0xffffL
