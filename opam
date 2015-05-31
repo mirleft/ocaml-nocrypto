@@ -1,6 +1,5 @@
 opam-version: "1.2"
 name:         "nocrypto"
-version:      "0.3.1"
 homepage:     "https://github.com/mirleft/ocaml-nocrypto"
 dev-repo:     "https://github.com/mirleft/ocaml-nocrypto.git"
 bug-reports:  "https://github.com/mirleft/ocaml-nocrypto/issues"
@@ -9,23 +8,37 @@ maintainer:   "David Kaloper <david@numm.org>"
 license:      "BSD2"
 
 build: [
-  ["ocaml" "setup.ml" "-configure" "--prefix" prefix "--%{mirage-xen:enable}%-xen"]
-  ["ocaml" "setup.ml" "-build"]
+  [ "./configure" "--prefix" prefix
+     "--%{lwt:enable}%-lwt"
+     "--%{mirage-xen+mirage-entropy-xen:enable}%-xen" ]
+  [ make ]
 ]
-install: ["ocaml" "setup.ml" "-install"]
-remove:  ["ocamlfind" "remove" "nocrypto"]
+install: [ make "install"]
+remove:  [ "ocamlfind" "remove" "nocrypto" ]
 
 depends: [
   "ocamlfind"
-  "cstruct" {>= "1.2.0"}
+  "cstruct" {>= "1.4.0"}
   "zarith"
   "type_conv"
   "sexplib"
   "ctypes" {>= "0.3.3"}
+  ("mirage-no-xen" | ("mirage-xen" & "mirage-entropy-xen" & "zarith-xen"))
+  "ounit" {test}
 ]
 
 depopts: [
-  "mirage-xen"
+  "lwt"
+]
+
+conflicts: [
+  "mirage-xen" {<"2.2.0"}
+  "mirage-entropy-xen" {<"0.3.0"}
+]
+
+build-test: [
+  [ "./configure" "--%{ounit:enable}%-tests" ]
+  [ make "test" ]
 ]
 
 tags: [ "org:mirage"]

@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: c34b1c472630afe0542a47e1f99d97ba)
+# DO NOT EDIT (digest: 653835cecd31d1000e56549639ce26d9)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -93,6 +93,15 @@ true: annot, bin_annot
 "src/native/des/generic.c": package(sexplib.syntax)
 "src/native/des/generic.c": package(type_conv)
 "src/native/des/generic.c": package(zarith)
+# Library nocrypto_lwt
+"lwt/nocrypto_lwt.cmxs": use_nocrypto_lwt
+<lwt/*.ml{,i,y}>: package(cstruct)
+<lwt/*.ml{,i,y}>: package(cstruct.lwt)
+<lwt/*.ml{,i,y}>: package(lwt.unix)
+<lwt/*.ml{,i,y}>: package(sexplib.syntax)
+<lwt/*.ml{,i,y}>: package(type_conv)
+<lwt/*.ml{,i,y}>: package(zarith)
+<lwt/*.ml{,i,y}>: use_nocrypto
 # Library nocrypto_xen
 "xen/nocrypto_xen.cmxs": use_nocrypto_xen
 <xen/*.ml{,i,y}>: oasis_library_nocrypto_xen_ccopt
@@ -106,45 +115,122 @@ true: annot, bin_annot
 "xen/native/aes/aesni.c": oasis_library_nocrypto_xen_ccopt
 "xen/native/des/generic.c": oasis_library_nocrypto_xen_ccopt
 <xen/nocrypto_xen.{cma,cmxa}>: use_libnocrypto_xen_stubs
+<xen/*.ml{,i,y}>: package(cstruct)
+<xen/*.ml{,i,y}>: package(lwt.syntax)
+<xen/*.ml{,i,y}>: package(mirage-entropy-xen)
+<xen/*.ml{,i,y}>: package(sexplib.syntax)
+<xen/*.ml{,i,y}>: package(type_conv)
+<xen/*.ml{,i,y}>: package(zarith)
+<xen/*.ml{,i,y}>: use_nocrypto
+"xen/native/misc.c": package(cstruct)
+"xen/native/misc.c": package(lwt.syntax)
+"xen/native/misc.c": package(mirage-entropy-xen)
+"xen/native/misc.c": package(sexplib.syntax)
+"xen/native/misc.c": package(type_conv)
+"xen/native/misc.c": package(zarith)
+"xen/native/misc.c": use_nocrypto
+"xen/native/hash/stubs.c": package(cstruct)
+"xen/native/hash/stubs.c": package(lwt.syntax)
+"xen/native/hash/stubs.c": package(mirage-entropy-xen)
+"xen/native/hash/stubs.c": package(sexplib.syntax)
+"xen/native/hash/stubs.c": package(type_conv)
+"xen/native/hash/stubs.c": package(zarith)
+"xen/native/hash/stubs.c": use_nocrypto
+"xen/native/hash/md5.c": package(cstruct)
+"xen/native/hash/md5.c": package(lwt.syntax)
+"xen/native/hash/md5.c": package(mirage-entropy-xen)
+"xen/native/hash/md5.c": package(sexplib.syntax)
+"xen/native/hash/md5.c": package(type_conv)
+"xen/native/hash/md5.c": package(zarith)
+"xen/native/hash/md5.c": use_nocrypto
+"xen/native/hash/sha1.c": package(cstruct)
+"xen/native/hash/sha1.c": package(lwt.syntax)
+"xen/native/hash/sha1.c": package(mirage-entropy-xen)
+"xen/native/hash/sha1.c": package(sexplib.syntax)
+"xen/native/hash/sha1.c": package(type_conv)
+"xen/native/hash/sha1.c": package(zarith)
+"xen/native/hash/sha1.c": use_nocrypto
+"xen/native/hash/sha256.c": package(cstruct)
+"xen/native/hash/sha256.c": package(lwt.syntax)
+"xen/native/hash/sha256.c": package(mirage-entropy-xen)
+"xen/native/hash/sha256.c": package(sexplib.syntax)
+"xen/native/hash/sha256.c": package(type_conv)
+"xen/native/hash/sha256.c": package(zarith)
+"xen/native/hash/sha256.c": use_nocrypto
+"xen/native/hash/sha512.c": package(cstruct)
+"xen/native/hash/sha512.c": package(lwt.syntax)
+"xen/native/hash/sha512.c": package(mirage-entropy-xen)
+"xen/native/hash/sha512.c": package(sexplib.syntax)
+"xen/native/hash/sha512.c": package(type_conv)
+"xen/native/hash/sha512.c": package(zarith)
+"xen/native/hash/sha512.c": use_nocrypto
+"xen/native/aes/generic.c": package(cstruct)
+"xen/native/aes/generic.c": package(lwt.syntax)
+"xen/native/aes/generic.c": package(mirage-entropy-xen)
+"xen/native/aes/generic.c": package(sexplib.syntax)
+"xen/native/aes/generic.c": package(type_conv)
+"xen/native/aes/generic.c": package(zarith)
+"xen/native/aes/generic.c": use_nocrypto
+"xen/native/aes/aesni.c": package(cstruct)
+"xen/native/aes/aesni.c": package(lwt.syntax)
+"xen/native/aes/aesni.c": package(mirage-entropy-xen)
+"xen/native/aes/aesni.c": package(sexplib.syntax)
+"xen/native/aes/aesni.c": package(type_conv)
+"xen/native/aes/aesni.c": package(zarith)
+"xen/native/aes/aesni.c": use_nocrypto
+"xen/native/des/generic.c": package(cstruct)
+"xen/native/des/generic.c": package(lwt.syntax)
+"xen/native/des/generic.c": package(mirage-entropy-xen)
+"xen/native/des/generic.c": package(sexplib.syntax)
+"xen/native/des/generic.c": package(type_conv)
+"xen/native/des/generic.c": package(zarith)
+"xen/native/des/generic.c": use_nocrypto
 # Library testlib
 "tests/testlib.cmxs": use_testlib
 # Executable test_runner
 <tests/testrunner.{native,byte}>: package(cstruct)
-<tests/testrunner.{native,byte}>: package(cstruct.unix)
 <tests/testrunner.{native,byte}>: package(oUnit)
 <tests/testrunner.{native,byte}>: package(sexplib.syntax)
 <tests/testrunner.{native,byte}>: package(type_conv)
 <tests/testrunner.{native,byte}>: package(zarith)
 <tests/testrunner.{native,byte}>: use_nocrypto
 <tests/testrunner.{native,byte}>: use_testlib
-<tests/*.ml{,i,y}>: package(oUnit)
-<tests/*.ml{,i,y}>: use_testlib
-# Executable bench
-"tests/runnable.native": package(cstruct)
-"tests/runnable.native": package(lwt)
-"tests/runnable.native": package(lwt.syntax)
-"tests/runnable.native": package(lwt.unix)
-"tests/runnable.native": package(sexplib.syntax)
-"tests/runnable.native": package(type_conv)
-"tests/runnable.native": package(zarith)
-"tests/runnable.native": use_nocrypto
-<tests/*.ml{,i,y}>: package(lwt)
-<tests/*.ml{,i,y}>: package(lwt.syntax)
-<tests/*.ml{,i,y}>: package(lwt.unix)
-# Executable hashbench
-"tests/hashbench.native": package(cstruct)
-"tests/hashbench.native": package(cstruct.unix)
-"tests/hashbench.native": package(sexplib.syntax)
-"tests/hashbench.native": package(type_conv)
-"tests/hashbench.native": package(zarith)
-"tests/hashbench.native": use_nocrypto
 <tests/*.ml{,i,y}>: package(cstruct)
-<tests/*.ml{,i,y}>: package(cstruct.unix)
+<tests/*.ml{,i,y}>: package(oUnit)
 <tests/*.ml{,i,y}>: package(sexplib.syntax)
 <tests/*.ml{,i,y}>: package(type_conv)
 <tests/*.ml{,i,y}>: package(zarith)
 <tests/*.ml{,i,y}>: use_nocrypto
+<tests/*.ml{,i,y}>: use_testlib
+# Executable bench
+"bench/runnable.native": package(cstruct)
+"bench/runnable.native": package(lwt)
+"bench/runnable.native": package(lwt.syntax)
+"bench/runnable.native": package(lwt.unix)
+"bench/runnable.native": package(sexplib.syntax)
+"bench/runnable.native": package(type_conv)
+"bench/runnable.native": package(zarith)
+"bench/runnable.native": use_nocrypto
+<bench/*.ml{,i,y}>: package(lwt)
+<bench/*.ml{,i,y}>: package(lwt.syntax)
+<bench/*.ml{,i,y}>: package(lwt.unix)
+# Executable hashbench
+"bench/hashbench.native": package(cstruct)
+"bench/hashbench.native": package(cstruct.unix)
+"bench/hashbench.native": package(sexplib.syntax)
+"bench/hashbench.native": package(type_conv)
+"bench/hashbench.native": package(zarith)
+"bench/hashbench.native": use_nocrypto
+<bench/*.ml{,i,y}>: package(cstruct)
+<bench/*.ml{,i,y}>: package(cstruct.unix)
+<bench/*.ml{,i,y}>: package(sexplib.syntax)
+<bench/*.ml{,i,y}>: package(type_conv)
+<bench/*.ml{,i,y}>: package(zarith)
+<bench/*.ml{,i,y}>: use_nocrypto
 # OASIS_STOP
 
 "src/nocrypto_generated.cmx": for-pack(Nocrypto)
 "src/bindings.cmx": for-pack(Nocrypto)
+
+"rondom": -traverse
+"rondom": not_hygienic

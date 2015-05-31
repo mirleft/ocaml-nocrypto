@@ -19,8 +19,8 @@ type g =
   }
 
 let create () =
-  let k = Cs.create_with 32 0 in
-  { ctr    = Cs.create_with 16 0
+  let k = Cs.zeros 32 in
+  { ctr    = Cs.zeros 16
   ; secret = k
   ; key    = AES_CTR.of_secret k
   ; trap   = None

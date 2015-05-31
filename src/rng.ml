@@ -12,17 +12,17 @@ module T = struct
     type t
     type g
 
-    val gen : ?g:g -> t -> t
-    val gen_r : ?g:g -> t -> t -> t
-    val gen_bits : ?g:g -> int -> t
+    val gen      : ?g:g -> t -> t
+    val gen_r    : ?g:g -> t -> t -> t
+    val gen_bits : ?g:g -> ?msb:int -> int -> t
   end
 
   module type Rng_numeric = sig
 
     type g
 
-    val prime : ?g:g -> ?msb:int -> bits:int -> Z.t
-    val safe_prime : ?g:g -> bits:int -> Z.t * Z.t
+    val prime : ?g:g -> ?msb:int -> int -> Z.t
+    val safe_prime : ?g:g -> int -> Z.t * Z.t
 
     module Int   : N with type g = g and type t = int
     module Int32 : N with type g = g and type t = int32
@@ -81,8 +81,11 @@ module Numeric_of (Rng : T.Rng) = struct
     let gen_r ?g a b =
       (if !relax then gen_r_ns else gen_r_s) ?g a b
 
-    let gen_bits ?g bits =
-      N.of_cstruct_be ~bits Rng.(generate ?g (cdiv bits 8))
+    let gen_bits ?g ?(msb = 0) bits =
+      let res = Rng.generate ?g (cdiv bits 8) in
+      Cs.set_msb msb res ;
+      N.of_cstruct_be ~bits res
+
   end
 
   module Int   = N_gen (Numeric.Int  )
@@ -93,23 +96,21 @@ module Numeric_of (Rng : T.Rng) = struct
 
   (* Invalid combinations of ~bits and ~msb will loop forever, but there is no
    * way to quickly determine upfront whether there are any primes in the
-   * interval. *)
-  let prime ?g ?(msb = 1) ~bits =
-    let limit = Z.(one lsl bits)
-    and mask  = Z.((lsl) (pred (one lsl msb))) (bits - msb) in
-    let rec attempt () =
-      let p = Z.(nextprime @@ ZN.gen_bits ?g bits lor mask) in
-      if p < limit then p else attempt () in
-    attempt ()
+   * interval.
+   * XXX Probability is distributed as inter-prime gaps. So?
+   *)
+  let rec prime ?g ?(msb = 1) bits =
+    let p = Z.(nextprime @@ ZN.gen_bits ?g ~msb bits) in
+    if p < Z.(one lsl bits) then p else prime ?g ~msb bits
 
   (* XXX Add ~msb param for p? *)
-  let rec safe_prime ?g ~bits =
-    let gg = prime ?g ~msb:1 ~bits:(bits - 1) in
-    let p  = Z.(gg * two + one) in
-    if Numeric.pseudoprime p then (gg, p) else safe_prime ?g ~bits
+  let rec safe_prime ?g bits =
+    let q = prime ?g ~msb:1 (bits - 1) in
+    let p = Z.(q * ~$2 + ~$1) in
+    if Numeric.pseudoprime p then (q, p) else safe_prime ?g bits
 
 (*     |+ Pocklington primality test specialized for `a = 2`. +|
-    if Z.(gcd (of_int 3) p = one) then (gg, p)
+    if Z.(gcd (of_int 3) p = one) then (q, p)
     else safe_prime ?g ~bits *)
 
   module Z = ZN
@@ -121,23 +122,15 @@ type g = Fortuna.g
 
 open Fortuna
 
-let gref = ref (create ())
+let generator = ref (create ())
 
-let reseedv    = reseedv ~g:!gref
-and reseed     = reseed  ~g:!gref
-and seeded ()  = seeded  ~g:!gref
-and set_gen ~g = gref := g
+let reseedv    = reseedv ~g:!generator
+and reseed     = reseed  ~g:!generator
+and seeded ()  = seeded  ~g:!generator
 
 let block_size = block_size
 
-let generate ?(g = !gref) n = generate ~g n
-
-module Accumulator = struct
-  (* XXX breaks down after set_gen. Make `g` and `acc` one-to-one? *)
-  let acc    = Accumulator.create ~g:!gref
-  let add    = Accumulator.add ~acc
-  and add_rr = Accumulator.add_rr ~acc
-end
+let generate ?(g = !generator) n = generate ~g n
 
 include ( Numeric_of (
   struct

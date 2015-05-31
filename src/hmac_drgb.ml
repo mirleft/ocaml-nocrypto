@@ -9,7 +9,7 @@ module Make (H : Hash.T) = struct
 
   let block_size = H.digest_size
 
-  let (bx00, bx01) = Cstruct.(of_string "\000", of_string "\001")
+  let (bx00, bx01) = Cs.(b 0x00, b 0x01)
 
   let create () =
     { k = Cs.create_with H.digest_size 0x00

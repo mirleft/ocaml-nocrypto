@@ -29,13 +29,13 @@ end
 
 module Option = struct
 
-  let v_map ~default ~f = function
+  let v_map ~def ~f = function
     | Some x -> f x
-    | None   -> default
+    | None   -> def
 
-  let value ~default = function
+  let value ~def = function
     | Some x -> x
-    | None   -> default
+    | None   -> def
 
   let map ~f = function
     | Some x -> Some (f x)
@@ -45,6 +45,8 @@ end
 let string_fold ~f ~z str =
   let st = ref z in
   ( String.iter (fun c -> st := f !st c) str  ; !st )
+
+let bytes bits = cdiv bits 8
 
 (* The Sexplib hack... *)
 module Z = struct
@@ -114,6 +116,25 @@ module Cs = struct
     let cs' = create len in
     ( blit cs off cs' 0 len ; cs' )
 
+  let clone ?n cs =
+    let n  = match n with
+      | None   -> len cs
+      | Some n -> n in
+    let cs' = create n in
+    ( blit cs 0 cs' 0 n ; cs' )
+
+  let rec find_uint8 ?(mask=false) ?(off=0) ~f cs =
+    let f' x = ignore (f x) ; false in
+    let rec go i = function
+      | 0 -> None
+      | n ->
+          match f (get_uint8 cs i) with
+          | false -> go (succ i) (pred n)
+          | true  ->
+              if mask then ignore (find_uint8 ~off:(succ i) ~f:f' cs) ;
+              Some i in
+    go off (len cs - off)
+
   let xor_into src dst n =
     if n > imin (len src) (len dst) then
       Raise.invalid1 "Uncommon.Cs.xor_into: buffers to small (need %d)" n
@@ -136,6 +157,26 @@ module Cs = struct
   let create_with n x =
     let cs = create n in ( memset cs x ; cs )
 
+  let set_msb bits cs =
+    if bits > 0 then
+      let n = len cs in
+      let rec go width = function
+        | i when i = n     -> ()
+        | i when width < 8 ->
+            set_uint8 cs i (get_uint8 cs i lor (0xff lsl (8 - width)))
+        | i ->
+            set_uint8 cs i 0xff ; go (width - 8) (succ i) in
+      go bits 0
+
+  let zeros n = create_with n 0x00
+
+  let split2 cs l =
+    (sub cs 0 l, sub cs l (len cs - l))
+
+  let split3 cs l1 l2 =
+    let l12 = l1 + l2 in
+    (sub cs 0 l1, sub cs l1 l2, sub cs l12 (len cs - l12))
+
   let rpad cs size x =
     let l = len cs and cs' = create size in
     if size < l then invalid_arg "Nocrypto.Uncommon.Cs.rpad: size < len";
@@ -157,6 +198,9 @@ module Cs = struct
       cs
     in
     (aux 1 set_uint8, aux 4 BE.set_uint32, aux 8 BE.set_uint64)
+
+  let b x =
+    let cs = Cstruct.create 1 in ( set_uint8 cs 0 x ; cs )
 
   let rec shift_left_inplace cs = function
     | 0 -> ()
@@ -227,6 +271,8 @@ module Cs = struct
   and (lsr) cs bits =
     let cs' = clone cs in
     shift_right_inplace cs' bits ; cs'
+
+  and (lxor) cs1 cs2 = xor cs1 cs2
 
 end
 

@@ -16,6 +16,12 @@ module Uncommon : sig
   val (&.) : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c
   val id   : 'a -> 'a
 
+  module Option : sig
+    val v_map : def:'b -> f:('a -> 'b) -> 'a option -> 'b
+    val map   : f:('a -> 'b) -> 'a option -> 'b option
+    val value : def:'a -> 'a option -> 'a
+  end
+
   (** Addons to {!Cstruct}. *)
   module Cs : sig
 
@@ -377,9 +383,11 @@ module Rng : sig
       val gen_r : ?g:g -> t -> t -> t
       (** [gen_r ~g low high] picks a value from the interval [\[low, high - 1\]]
           uniformly at random. *)
-      val gen_bits : ?g:g -> int -> t
-      (** [gen_bits ~g n] picks a value with exactly [n] significant bits,
-          uniformly at random. *)
+      val gen_bits : ?g:g -> ?msb:int -> int -> t
+      (** [gen_bits ~g ~msb n] creates a bit-string of [n] bits, sets [msb] most
+          significant bits and converts it into a value. This yields a value in
+          the interval [\[2^(n-1) + ... + 2^(n-msb), 2^n - 1\]].
+          [msb] defaults to [0].*)
     end
 
     (** RNG with full suite of typed numeric extractions. *)
@@ -388,14 +396,14 @@ module Rng : sig
       type g
       (** Random generator. *)
 
-      val prime : ?g:g -> ?msb:int -> bits:int -> Z.t
-      (** [prime ~g ~msb ~bits] generates a prime smaller than [2^bits], such that
+      val prime : ?g:g -> ?msb:int -> int -> Z.t
+      (** [prime ~g ~msb bits] generates a prime smaller than [2^bits], such that
           its [msb] most significant bits are set.
-          [prime ~g ~msb:1 ~bits] (the default) yields a prime in the interval
+          [prime ~g ~msb:1 bits] (the default) yields a prime in the interval
           [\[2^(bits - 1), 2^bits - 1\]]. *)
 
-      val safe_prime : ?g:g -> bits:int -> Z.t * Z.t
-      (** [safe_prime ~g ~bits] gives a prime pair [(g, p)] such that [p = 2g + 1]
+      val safe_prime : ?g:g -> int -> Z.t * Z.t
+      (** [safe_prime ~g bits] gives a prime pair [(g, p)] such that [p = 2g + 1]
           and [p] has [bits] significant bits. *)
 
       module Int   : N with type g = g and type t = int
@@ -417,15 +425,12 @@ module Rng : sig
   include T.Rng         with type g := g (** Base RNG generation. *)
   include T.Rng_numeric with type g := g (** Numeric RNG generation. *)
 
-  val reseed  : Cstruct.t      -> unit
-  val reseedv : Cstruct.t list -> unit
-  val seeded  : unit           -> bool
-  val set_gen : g:g            -> unit
+  val reseed    : Cstruct.t      -> unit
+  val reseedv   : Cstruct.t list -> unit
+  val seeded    : unit           -> bool
+  val generator : g ref
+  (** [generator] is a reference to the current default generator. *)
 
-  module Accumulator : sig
-    val add    : source:int -> pool:int -> Cstruct.t -> unit
-    val add_rr : source:int -> Cstruct.t -> unit
-  end
 end
 
 
@@ -439,11 +444,12 @@ exceptions.
 Private-key operations are optionally protected through RSA blinding.  *)
 module Rsa : sig
 
-  exception Invalid_message
-  (** Raised if the numeric magnitude of a message, with potential padding, is
-      inappropriate for a given key, i.e. the message, when interpreted as
-      big-endian encoding of a natural number, meets or exceeds the key's [n],
-      or is 0. *)
+  exception Insufficient_key
+  (** Raised if the key is too small to transform the given message, i.e. if the
+      numerical interpretation of the (potentially padded) message is not
+      smaller than the modulus.
+      It is additionally raised if the message is [0] and the mode does not
+      involve padding. *)
 
   type pub  = {
     e : Z.t ; (** Public exponent *)
@@ -485,47 +491,83 @@ module Rsa : sig
 
   val encrypt : key:pub  -> Cstruct.t -> Cstruct.t
   (** [encrypt key message] is the encrypted [message].
-      @raise Invalid_message (see {!Invalid_message}) *)
+      @raise Insufficient_key (see {!Insufficient_key}) *)
 
   val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
   (** [decrypt mask key ciphertext] is the decrypted [ciphertext], left-padded
       with [0x00] up to [key] size.
-      @raise Invalid_message (see {!Invalid_message}) *)
+      @raise Insufficient_key (see {!Insufficient_key}) *)
 
   val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
   (** [generate g e bits] is a new {!priv}. [e] defaults to [2^16+1].
       @raise Invalid_argument if [e] is bad or [bits] is too small. *)
 
 
-  (** Module providing operations with {b PKCS1} padding.
+  (** {b PKCS v1.5}-padded operations, as defined by {b PKCS #1 v1.5}.
 
-      The operations that take cleartext to ciphertext, {!sign} and {!encrypt},
-      assume that the key has enough bits to encode the message and the padding,
-      and raise exceptions otherwise. The operations that recover cleartext
-      from ciphertext, {!verify} and {!decrypt}, return size and padding
-      mismatches as [None]. *)
+      Keys must have a minimum of [11 + len(message)] bytes. *)
   module PKCS1 : sig
 
     val sign : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
-    (** [sign mask key message] is the PKCS1-padded (type 1) signature of the
-        [message].
-        @raise Invalid_message (see {!Invalid_message}) *)
+    (** [sign mask key message] is the PKCS1-padded (type 1) [message] signed by
+        the [key]. Note that this operation performs only the padding and RSA
+        transformation steps of the PKCS 1.5 signature.
+        @raise Insufficient_key (see {!Insufficient_key}) *)
 
     val verify : key:pub -> Cstruct.t -> Cstruct.t option
-    (** [verify key signature] is either the message that was PKCS1-padded and
-        transformed with [key]'s private counterpart, or [None] if the padding
-        is incorrect or the underlying {!Rsa.encrypt} would raise. *)
+    (** [verify key signature] is either [Some message] if the [signature] was
+        produced with the given [key] as per {!sign}, or [None] *)
 
     val encrypt : ?g:Rng.g -> key:pub -> Cstruct.t -> Cstruct.t
     (** [encrypt g key message] is a PKCS1-padded (type 2) and encrypted
         [message].
-        @raise Invalid_message (see {!Invalid_message}) *)
+        @raise Insufficient_key (see {!Insufficient_key}) *)
 
     val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
-    (** [decrypt mask key ciphertext] is decrypted [ciphertext] stripped of
-        PKCS1 padding, or [None] if the padding is incorrect or the underlying
-        {!Rsa.decrypt} would raise. *)
+    (** [decrypt mask key ciphertext] is [Some message] if the [ciphertext] was
+        produced by the corresponding {!encrypt} operation, or [None] otherwise. *)
   end
+
+  (** {b OAEP}-padded encryption, as defined by {b PKCS #1 v2.1}.
+
+      The same hash function is used for padding and MGF. MGF is {b MGF1} as
+      defined in {b PKCS #1 2.1}.
+
+      Keys must have a minimum of [2 + 2 * hlen + len(message)] bytes, where
+      [hlen] is the hash length. *)
+  module OAEP (T : Hash.T) : sig
+
+    val encrypt : ?g:Rng.g -> ?label:Cstruct.t -> key:pub -> Cstruct.t -> Cstruct.t
+    (** [encrypt ~g ~label ~key message] is {b OAEP}-padded and encrypted
+        [message], using the optional [label].
+        @raise Insufficient_key (see {!Insufficient_key}) *)
+
+    val decrypt : ?mask:mask -> ?label:Cstruct.t -> key:priv -> Cstruct.t -> Cstruct.t option
+    (** [decrypt ~mask ~label ~key ciphertext] is [Some message] if the
+        [ciphertext] was produced by the corresponding {!encrypt} operation,
+        or [None] otherwise. *)
+  end
+
+  (** {b PSS}-passed signing, as defined by {b PKCS #1 v2.1}.
+
+      The same hash function is used for padding, MGF and computing message
+      digest. MGF is {b MGF1} as defined in {b PKCS #1 2.1}.
+
+      Keys must have a minimum of [2 + hlen + slen] bytes, where [hlen] is the
+      hash length and [slen] is the seed length. *)
+  module PSS (T: Hash.T) : sig
+
+    val sign : ?g:Rng.g -> ?slen:int -> key:priv -> Cstruct.t -> Cstruct.t
+    (** [sign ~g ~slen ~key message] the {p PSS}-padded digest of [message],
+        signed with the [key]. [slen] is the optional seed length and default to
+        the size of the underlying hash function.
+        @raise Insufficient_key (see {!Insufficient_key}) *)
+
+    val verify : ?slen:int -> key:pub -> signature:Cstruct.t -> Cstruct.t -> bool
+    (** [verify ~slen ~key ~signature message] checks whether [signature] is a
+        valid {b PSS} signature of the [message] under the given [key]. *)
+  end
+
 end
 
 
@@ -626,19 +668,20 @@ module Dh : sig
       [s] as secret.
       @raise Invalid_public_key if the secret is degenerate. *)
 
-  val gen_secret : ?g:Rng.g -> group -> secret * Cstruct.t
-  (** Generate a random {!secret} and the corresponding public message. *)
+  val gen_secret : ?g:Rng.g -> ?bits:int -> group -> secret * Cstruct.t
+  (** Generate a random {!secret} and the corresponding public message.
+      [bits] is the exact bit-size of {!secret} and defaults to a value
+      dependent on the {!group}'s [p]. *)
 
   val shared : group -> secret -> Cstruct.t -> Cstruct.t
   (** [shared group secret message] is the shared key, given a group, a previously
       generated {!secret} and the other party's public message.
       @raise Invalid_public_key if the public message is degenerate.  *)
 
-  val gen_group : ?g:Rng.g -> bits:int -> group
+  val gen_group : ?g:Rng.g -> int -> group
   (** [gen_group bits] generates a random {!group} with modulus size [bits].
-      Uses a safe prime [p = 2q + 1] (with prime [q]) as modulus, and [2] or [q] as
-      the generator.
-      Subgroup order is strictly [q].
+      Uses a safe prime [p = 2q + 1] (with [q] prime) for the modulus and [2]
+      for the generator, such that [2^q = 1 mod p].
       Runtime is on the order of minute for 1024 bits.
       @raise Invalid_argument if [bits] is ridiculously small.  *)
 
@@ -664,5 +707,14 @@ module Dh : sig
     val rfc_5114_1 : group
     val rfc_5114_2 : group
     val rfc_5114_3 : group
+
+    (** From draft-ietf-tls-negotiated-ff-dhe-08 *)
+
+    val ffdhe2048 : group
+    val ffdhe3072 : group
+    val ffdhe4096 : group
+    val ffdhe6144 : group
+    val ffdhe8192 : group
+
   end
 end

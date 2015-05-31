@@ -174,6 +174,24 @@ let rsa_pkcs1_encrypt_selftest ~bits n =
     | Some dec -> assert_cs_equal msg dec
                     ~msg:("recovery failure " ^ show_key_size key)
 
+let rsa_oaep_encrypt_selftest ~bits n =
+  let module Oaep_sha1 = Rsa.OAEP (Hash.SHA1) in
+  "selftest" >:: times ~n @@ fun _ ->
+    let (key, _) = gen_rsa ~bits
+    and msg      = Rng.generate (cdiv bits 8 - 2 * Hash.SHA1.digest_size - 2) in
+    let enc      = Oaep_sha1.encrypt ~key:(Rsa.pub_of_priv key) msg in
+    match Oaep_sha1.decrypt ~key enc with
+    | None     -> assert_failure "unpad failure"
+    | Some dec -> assert_cs_equal msg dec ~msg:"recovery failure"
+
+let rsa_pss_sign_selftest ~bits n =
+  let module Pss_sha1 = Rsa.PSS (Hash.SHA1) in
+  "selftest" >:: times ~n @@ fun _ ->
+    let (key, _)  = gen_rsa ~bits
+    and msg       = Rng.generate (cdiv bits 8 - 2 * Hash.SHA1.digest_size - 2) in
+    let signature = Pss_sha1.sign ~key msg in
+    let ok        = Pss_sha1.verify ~key:(Rsa.pub_of_priv key) ~signature msg in
+    assert ok
 
 let dh_selftest ~bits n =
 
@@ -188,6 +206,52 @@ let dh_selftest ~bits n =
     and sh2 = Dh.shared p s2 m1 in
 
     assert_cs_equal ~msg:"shared secret" sh1 sh2
+
+
+let dh_shared_0 =
+  "shared_0" >:: fun _ ->
+    let gy = Cs.of_hex
+        "14 ac e2 c0 9c c0 0c 25 89 71 b2 d0 1c 94 58 21
+         02 23 b7 23 ec 3e 24 e5 a3 c2 fd 16 cc 49 f0 e2
+         87 62 a5 a0 73 f5 de 5b 9b eb c3 60 0b a4 03 38
+         0f e1 8c f2 80 b3 64 16 f2 af ab 2e ec 25 81 2c
+         84 ae 92 0a 0f 15 9b f3 d9 1f dc 08 7d 8d 27 3a
+         91 7d a5 89 dc 94 d6 bc 3f 9d 6d b3 f8 8e f2 37
+         86 54 ec 85 ea 4c a0 4c b1 f6 49 83 1c 62 a7 79
+         2b 8b 9c e7 fa 47 3e 34 6c c5 ae 12 a3 4e d5 ce
+         4b da ea 72 7a 8d c6 67 ef 7e f2 00 24 d7 21 42
+         a5 23 69 38 7e ec b5 fc 4b 89 42 c4 32 fa e5 58
+         6f 39 5d a7 4e cd b5 da dc 1e 52 fe a4 33 72 c1
+         82 48 8a 5b c1 44 bc 60 9b 38 5b 80 5f 44 14 93"
+    and x = Z.of_string
+        ("23470361953339977856215906246766568090277126224" ^
+         "58636151978966400512654549033555040948213229848" ^
+         "44092505612118347092515076359177669532343371345" ^
+         "61540845747210753461362582640354539781336659786" ^
+         "49132681581094517392567177137220849349665451861" ^
+         "63535606836394786229940419433977361946250077889" ^
+         "15616026603768128693965416427929562919061913522" ^
+         "01582519866642619303222487137982760024801832945" ^
+         "68318473142742956714664051946350205669424821847" ^
+         "2875845645255006910229292890370065967188")
+    and shared = Cs.of_hex
+        "a7 40 0d eb f0 4b 2b ec cb 90 3c 55 2d 3c 17 63
+         b2 4b 4e 1a ff 1e a0 24 c6 56 e3 5e 44 7b d0 01
+         ef b3 6b 57 20 0e 15 95 b1 53 1a 83 16 3a b1 61
+         06 65 f1 7e 64 63 6f 23 86 22 34 c3 fe a9 60 87
+         3f 18 c6 5d 44 3e ac e3 85 34 86 6f db aa 31 3b
+         4b 4d 68 f7 19 d7 91 a3 12 27 d6 5a ce 29 c8 1b
+         5a 59 74 10 8c ff 98 4e 4f 37 ef 5b 43 e8 e2 ad
+         a8 49 c9 7e c3 c5 3d 35 40 30 8e a4 41 69 1d 16
+         34 ba 9a 7e f3 ab d1 0e bb f2 81 15 e9 04 63 ee
+         1b bf cc 24 6d cb 41 c4 06 b2 f3 01 1b 31 3a 1e
+         dc e3 3b c7 cc 1d 19 95 d9 fe 6a 5c a7 57 46 dd
+         84 69 0c 45 37 2e 1f 52 96 05 d7 e5 01 9a c8"
+    in
+    let shared' = Dh.(shared Group.oakley_5 { x } gy) in
+
+    assert_cs_equal ~msg:"shared secret is good" shared shared'
+
 
 (* Xor *)
 
@@ -762,9 +826,22 @@ let suite =
       rsa_pkcs1_sign_selftest ~bits:512 10 ;
     ] ;
 
+    "RSA-OAEP(SHA1)-ENC" >::: [
+      rsa_oaep_encrypt_selftest ~bits:511 15 ;
+      rsa_oaep_encrypt_selftest ~bits:512 15 ;
+      rsa_oaep_encrypt_selftest ~bits:513 15 ;
+    ] ;
+
+    "RSA-PSS(SHA1)-END" >::: [
+      rsa_pss_sign_selftest ~bits:511 15 ;
+      rsa_pss_sign_selftest ~bits:512 15 ;
+      rsa_pss_sign_selftest ~bits:513 15 ;
+    ] ;
+
     "DHE" >::: [
       dh_selftest ~bits:16  1000 ;
       dh_selftest ~bits:128 100  ;
+      dh_shared_0
     ] ;
 
     "XOR" >::: [ xor_selftest 300 ; "example" >::: xor_cases ];
