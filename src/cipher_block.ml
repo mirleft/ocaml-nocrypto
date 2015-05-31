@@ -2,8 +2,6 @@ open Uncommon
 
 module T = struct
 
-  module type Counter = sig val increment : Cstruct.t -> unit end
-
   (* XXX old block-level sig, remove *)
   module type Raw = sig
 
@@ -43,8 +41,8 @@ module T = struct
     val block : int
 
     (* XXX currently unsafe point *)
-    val encrypt  : key:ekey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
-    val decrypt  : key:dkey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
+    val encrypt : key:ekey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
+    val decrypt : key:dkey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
   end
 
   module type ECB = sig
@@ -314,32 +312,31 @@ module Modes2 = struct
 
 end
 
-module Counters = struct
+module Counter = struct
 
   open Cstruct
-  (* XXX Counters for k*8 block sizes. *)
 
-  module Inc_LE = struct
+  let incr cs =
+    let rec go = function
+      | n when n >= 8 ->
+          let i = n - 8 in
+          let x = Int64.succ @@ BE.get_uint64 cs i in
+          BE.set_uint64 cs i x ;
+          if x = 0L then go i
+      | n when n >= 4 ->
+          let i = n - 4 in
+          let x = Int32.succ @@ BE.get_uint32 cs i in
+          BE.set_uint32 cs i x ;
+          if x = 0l then go i
+      | n when n >= 2 ->
+          let i = n - 2 in
+          let x = succ @@ BE.get_uint16 cs i in
+          BE.set_uint16 cs i x ;
+          if x = 0x10000 then go i
+      | 1 -> set_uint8 cs 0 @@ succ @@ get_uint8 cs 0
+      | _ -> () in
+    go (len cs)
 
-    let increment cs =
-      let rec inc cs i n =
-        if n >= 8 then
-          let b = Int64.succ LE.(get_uint64 cs i) in
-          LE.set_uint64 cs i b ;
-          if b = 0L then inc cs (i + 8) (n - 8) in
-      inc cs 0 (len cs)
-  end
-
-  module Inc_BE = struct
-
-    let increment cs =
-      let rec inc cs i =
-        if i >= 0 then
-          let b = Int64.succ BE.(get_uint64 cs i) in
-          BE.set_uint64 cs i b ;
-          if b = 0L then inc cs (i - 8) in
-      inc cs (len cs - 8)
-  end
 end
 
 open Bigarray

@@ -148,9 +148,6 @@ module Cipher_block : sig
   (** Module types for various instantiations of block ciphers. *)
   module T : sig
 
-    (** Counter type for CTR. *)
-    module type Counter = sig val increment : Cstruct.t -> unit end
-
     (** Raw block cipher in all its glory. *)
     module type Core = sig
 
@@ -234,12 +231,9 @@ module Cipher_block : sig
     end
   end
 
-  (** {!T.Counter}s for easy {!T.CTR} instantiation. *)
-  module Counters : sig
-    module Inc_LE : T.Counter
-    (** Increment-by-one, little endian. Works on [8*n]-long vectors. *)
-    module Inc_BE : T.Counter
-    (** Increment-by-one, big endian. Works on [8*n]-long vectors. *)
+  (** Stand-alone BE counter function. *)
+  module Counter : sig
+    val incr : Cstruct.t -> unit
   end
 
   (** {b AES}, plus a few modes of operation. *)
