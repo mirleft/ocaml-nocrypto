@@ -30,4 +30,10 @@ typedef unsigned int u_int;
 #define _ba_uchar_option_off(ba, off) (Is_block(ba) ? _ba_uchar_off(Field(ba, 0), off) : 0)
 #define _ba_uchar_option(ba)          _ba_uchar_option_off (ba, 0)
 
+#define __define_bc_6(f) \
+  CAMLprim value f ## _bc (value *v, int argc) { return f(v[0], v[1], v[2], v[3], v[4], v[5]); }
+
+#define __define_bc_7(f) \
+  CAMLprim value f ## _bc (value *v, int argc) { return f(v[0], v[1], v[2], v[3], v[4], v[5], v[6]); }
+
 #endif /* H__NOCRYPTO */

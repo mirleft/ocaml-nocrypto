@@ -353,16 +353,9 @@ caml_nc_aes_dec (value src, value off1, value dst, value off2, value rk, value r
   return Val_unit;
 }
 
-CAMLprim value
-caml_nc_aes_enc_bc (value *argv, int argc) {
-  return caml_nc_aes_enc (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
-}
-
-CAMLprim value
-caml_nc_aes_dec_bc (value *argv, int argc) {
-  return caml_nc_aes_dec (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
-}
-
 CAMLprim value caml_nc_aes_mode (value unit) { return Val_int (1); }
+
+__define_bc_7 (caml_nc_aes_enc)
+__define_bc_7 (caml_nc_aes_dec)
 
 #endif /* NC_AES_NI */
