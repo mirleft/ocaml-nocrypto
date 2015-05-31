@@ -138,15 +138,6 @@ module Cs = struct
     let cs  = clone ~len cs2 in
     ( xor_into cs1 cs len ; cs )
 
-  (* XXX
-   * Kill me once
-   * https://github.com/mirage/ocaml-cstruct/commit/c32083359615b0fade99ff57914409d98a1528cc
-   * is released.
-   *)
-  external _memset : Native.buffer -> int -> int -> int -> unit = "caml_fill_bigstring"
-  let memset cs x = _memset cs.buffer cs.off cs.len x
-  (* XXX *)
-
   let create_with n x =
     let cs = create n in ( memset cs x ; cs )
 
