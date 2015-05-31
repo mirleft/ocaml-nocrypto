@@ -3,7 +3,7 @@
 #define u_long_s sizeof (unsigned long)
 
 
-static inline void xor_into (u_char *src, u_char *dst, u_int n) {
+static inline void xor_into (uint8_t *src, uint8_t *dst, u_int n) {
 #if defined (__SSE2__)
   while (n >= 16) {
     _mm_storeu_si128 (
@@ -58,22 +58,22 @@ static inline void nc_count_16_be (uint64_t *init, uint64_t *dst, u_int blocks) 
 
 CAMLprim value
 caml_nc_xor_into (value b1, value off1, value b2, value off2, value n) {
-  xor_into (_ba_uchar_off (b1, off1), _ba_uchar_off (b2, off2), Int_val (n));
+  xor_into (_ba_uint8_off (b1, off1), _ba_uint8_off (b2, off2), Int_val (n));
   return Val_unit;
 }
 
 CAMLprim value
 caml_nc_count_8_be (value init, value off1, value dst, value off2, value blocks) {
-  nc_count_8_be ( (uint64_t *) _ba_uchar_off (init, off1),
-                  (uint64_t *) _ba_uchar_off (dst, off2),
+  nc_count_8_be ( (uint64_t *) _ba_uint8_off (init, off1),
+                  (uint64_t *) _ba_uint8_off (dst, off2),
                   Long_val (blocks) );
   return Val_unit;
 }
 
 CAMLprim value
 caml_nc_count_16_be (value init, value off1, value dst, value off2, value blocks) {
-  nc_count_16_be ( (uint64_t *) _ba_uchar_off (init, off1),
-                   (uint64_t *) _ba_uchar_off (dst, off2),
+  nc_count_16_be ( (uint64_t *) _ba_uint8_off (init, off1),
+                   (uint64_t *) _ba_uint8_off (dst, off2),
                    Long_val (blocks) );
   return Val_unit;
 }

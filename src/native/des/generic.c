@@ -698,7 +698,7 @@ caml_nc_des_key_size (__unit ()) {
 
 CAMLprim value
 caml_nc_des_des3key (value key, value off, value direction) {
-  des3key (_ba_uchar_off (key, off), Int_val (direction));
+  des3key (_ba_uint8_off (key, off), Int_val (direction));
   return Val_unit;
 }
 
@@ -716,6 +716,6 @@ caml_nc_des_use3key (value src) {
 
 CAMLprim value
 caml_nc_des_ddes (value src, value off1, value dst, value off2, value blocks) {
-  _nc_ddes (_ba_uchar_off (src, off1), _ba_uchar_off (dst, off2), Int_val (blocks));
+  _nc_ddes (_ba_uint8_off (src, off1), _ba_uint8_off (dst, off2), Int_val (blocks));
   return Val_unit;
 }

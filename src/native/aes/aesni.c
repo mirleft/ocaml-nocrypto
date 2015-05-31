@@ -28,7 +28,7 @@ static inline void __pack (__m128i *o1, __m128i *o2, __m128i r1, __m128i r2, __m
   *o2 = (__m128i) _mm_shuffle_pd ((__m128d) r2, (__m128d) r3, 1);
 }
 
-static inline void _nc_aesni_derive_e_key (const u_char *key, u_char *rk0, uint8_t rounds) {
+static inline void _nc_aesni_derive_e_key (const uint8_t *key, uint8_t *rk0, uint8_t rounds) {
 
   __m128i *rk = (__m128i*) rk0;
   __m128i temp1, temp2;
@@ -113,7 +113,7 @@ static inline void _nc_aesni_derive_e_key (const u_char *key, u_char *rk0, uint8
   }
 }
 
-static inline void _nc_aesni_invert_e_key (const u_char *rk0, u_char *kr0, uint8_t rounds) {
+static inline void _nc_aesni_invert_e_key (const uint8_t *rk0, uint8_t *kr0, uint8_t rounds) {
 
   __m128i *rk1 = (__m128i*) rk0,
           *kr  = (__m128i*) kr0,
@@ -130,7 +130,7 @@ static inline void _nc_aesni_invert_e_key (const u_char *rk0, u_char *kr0, uint8
   kr[rounds] = rk[0];
 }
 
-static void _nc_aesni_derive_d_key (const u_char *key, u_char *kr, uint8_t rounds, u_char *rk) {
+static void _nc_aesni_derive_d_key (const uint8_t *key, uint8_t *kr, uint8_t rounds, uint8_t *rk) {
   if (!rk) {
     _nc_aesni_derive_e_key (key, kr, rounds);
     rk = kr;
@@ -139,7 +139,7 @@ static void _nc_aesni_derive_d_key (const u_char *key, u_char *kr, uint8_t round
 }
 
 
-static inline void _nc_aesni_enc (const u_char src[16], u_char dst[16], const u_char *rk0, uint8_t rounds) {
+static inline void _nc_aesni_enc (const uint8_t src[16], uint8_t dst[16], const uint8_t *rk0, uint8_t rounds) {
 
   __m128i r   = _mm_loadu_si128 ((__m128i*) src),
           *rk = (__m128i*) rk0;
@@ -153,7 +153,7 @@ static inline void _nc_aesni_enc (const u_char src[16], u_char dst[16], const u_
   _mm_storeu_si128 ((__m128i*) dst, r);
 }
 
-static inline void _nc_aesni_dec (const u_char src[16], u_char dst[16], const u_char *rk0, uint8_t rounds) {
+static inline void _nc_aesni_dec (const uint8_t src[16], uint8_t dst[16], const uint8_t *rk0, uint8_t rounds) {
 
   __m128i r   = _mm_loadu_si128 ((__m128i*) src),
           *rk = (__m128i*) rk0;
@@ -167,7 +167,7 @@ static inline void _nc_aesni_dec (const u_char src[16], u_char dst[16], const u_
   _mm_storeu_si128 ((__m128i*) dst, r);
 }
 
-static inline void _nc_aesni_enc8 (const u_char src[128], u_char dst[128], const u_char *rk0, uint8_t rounds) {
+static inline void _nc_aesni_enc8 (const uint8_t src[128], uint8_t dst[128], const uint8_t *rk0, uint8_t rounds) {
 
   __m128i *in  = (__m128i*) src,
           *out = (__m128i*) dst,
@@ -221,7 +221,7 @@ static inline void _nc_aesni_enc8 (const u_char src[128], u_char dst[128], const
   _mm_storeu_si128 (out + 7, r7);
 }
 
-static inline void _nc_aesni_dec8 (const u_char src[128], u_char dst[128], const u_char *rk0, uint8_t rounds) {
+static inline void _nc_aesni_dec8 (const uint8_t src[128], uint8_t dst[128], const uint8_t *rk0, uint8_t rounds) {
 
   __m128i *in  = (__m128i*) src,
           *out = (__m128i*) dst,
@@ -302,11 +302,11 @@ static inline void _nc_aesni_dec8 (const u_char src[128], u_char dst[128], const
     }                                                        \
   }                                                          \
 
-static inline void _nc_aesni_enc_blocks (const u_char *src, u_char *dst, const u_char *rk, uint8_t rounds, u_int blocks) {
+static inline void _nc_aesni_enc_blocks (const uint8_t *src, uint8_t *dst, const uint8_t *rk, uint8_t rounds, u_int blocks) {
   __blocked_loop (_nc_aesni_enc, _nc_aesni_enc8, src, dst, rk, rounds, blocks);
 }
 
-static inline void _nc_aesni_dec_blocks (const u_char *src, u_char *dst, const u_char *rk, uint8_t rounds, u_int blocks) {
+static inline void _nc_aesni_dec_blocks (const uint8_t *src, uint8_t *dst, const uint8_t *rk, uint8_t rounds, u_int blocks) {
   __blocked_loop (_nc_aesni_dec, _nc_aesni_dec8, src, dst, rk, rounds, blocks);
 }
 
@@ -318,26 +318,26 @@ caml_nc_aes_rk_size (value rounds) {
 
 CAMLprim value
 caml_nc_aes_derive_e_key (value key, value off1, value rk, value rounds) {
-  _nc_aesni_derive_e_key (_ba_uchar_off (key, off1),
-                          _ba_uchar (rk),
+  _nc_aesni_derive_e_key (_ba_uint8_off (key, off1),
+                          _ba_uint8 (rk),
                           Int_val (rounds));
   return Val_unit;
 }
 
 CAMLprim value
 caml_nc_aes_derive_d_key (value key, value off1, value kr, value rounds, value rk) {
-  _nc_aesni_derive_d_key (_ba_uchar_off (key, off1),
-                          _ba_uchar (kr),
+  _nc_aesni_derive_d_key (_ba_uint8_off (key, off1),
+                          _ba_uint8 (kr),
                           Int_val (rounds),
-                          _ba_uchar_option (rk) );
+                          _ba_uint8_option (rk) );
   return Val_unit;
 }
 
 CAMLprim value
 caml_nc_aes_enc (value src, value off1, value dst, value off2, value rk, value rounds, value blocks) {
-  _nc_aesni_enc_blocks ( _ba_uchar_off (src, off1),
-                         _ba_uchar_off (dst, off2),
-                         _ba_uchar (rk),
+  _nc_aesni_enc_blocks ( _ba_uint8_off (src, off1),
+                         _ba_uint8_off (dst, off2),
+                         _ba_uint8 (rk),
                          Int_val (rounds),
                          Int_val (blocks) );
   return Val_unit;
@@ -345,9 +345,9 @@ caml_nc_aes_enc (value src, value off1, value dst, value off2, value rk, value r
 
 CAMLprim value
 caml_nc_aes_dec (value src, value off1, value dst, value off2, value rk, value rounds, value blocks) {
-  _nc_aesni_dec_blocks ( _ba_uchar_off (src, off1),
-                         _ba_uchar_off (dst, off2),
-                         _ba_uchar (rk),
+  _nc_aesni_dec_blocks ( _ba_uint8_off (src, off1),
+                         _ba_uint8_off (dst, off2),
+                         _ba_uint8 (rk),
                          Int_val (rounds),
                          Int_val (blocks) );
   return Val_unit;

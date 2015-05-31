@@ -1228,11 +1228,11 @@ static void nc_rijndaelDecrypt(const u32 *rk, int nrounds, const u8 ciphertext[1
     src += 16 ; dst += 16 ;                             \
   }
 
-static inline void _nc_aes_enc_blocks (const u_char *src, u_char *dst, const u_long *rk, u_int rounds, u_int blocks) {
+static inline void _nc_aes_enc_blocks (const uint8_t *src, uint8_t *dst, const u_long *rk, u_int rounds, u_int blocks) {
   __blocked_loop (nc_rijndaelEncrypt, src, dst, rk, rounds, blocks);
 }
 
-static inline void _nc_aes_dec_blocks (const u_char *src, u_char *dst, const u_long *rk, u_int rounds, u_int blocks) {
+static inline void _nc_aes_dec_blocks (const uint8_t *src, uint8_t *dst, const u_long *rk, u_int rounds, u_int blocks) {
   __blocked_loop (nc_rijndaelDecrypt, src, dst, rk, rounds, blocks);
 }
 
@@ -1244,23 +1244,23 @@ caml_nc_aes_rk_size (value rounds) {
 CAMLprim value
 caml_nc_aes_derive_e_key (value key, value off1, value rk, value rounds) {
   nc_rijndaelSetupEncrypt (_ba_ulong (rk),
-                           _ba_uchar_off (key, off1),
+                           _ba_uint8_off (key, off1),
                            keybits_of_r (Int_val (rounds)));
   return Val_unit;
 }
 
 CAMLprim value
-caml_nc_aes_derive_d_key (value key, value off1, value kr, value rounds, value rk) {
+caml_nc_aes_derive_d_key (value key, value off1, value kr, value rounds, value __unused (rk)) {
   nc_rijndaelSetupDecrypt (_ba_ulong (kr),
-                           _ba_uchar_off (key, off1),
+                           _ba_uint8_off (key, off1),
                            keybits_of_r (Int_val (rounds)));
   return Val_unit;
 }
 
 CAMLprim value
 caml_nc_aes_enc (value src, value off1, value dst, value off2, value rk, value rounds, value blocks) {
-  _nc_aes_enc_blocks ( _ba_uchar_off (src, off1),
-                       _ba_uchar_off (dst, off2),
+  _nc_aes_enc_blocks ( _ba_uint8_off (src, off1),
+                       _ba_uint8_off (dst, off2),
                        _ba_ulong (rk),
                        Int_val (rounds),
                        Int_val (blocks) );
@@ -1269,8 +1269,8 @@ caml_nc_aes_enc (value src, value off1, value dst, value off2, value rk, value r
 
 CAMLprim value
 caml_nc_aes_dec (value src, value off1, value dst, value off2, value rk, value rounds, value blocks) {
-  _nc_aes_dec_blocks ( _ba_uchar_off (src, off1),
-                       _ba_uchar_off (dst, off2),
+  _nc_aes_dec_blocks ( _ba_uint8_off (src, off1),
+                       _ba_uint8_off (dst, off2),
                        _ba_ulong (rk),
                        Int_val (rounds),
                        Int_val (blocks) );
