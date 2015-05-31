@@ -8,7 +8,7 @@
 #define _S_1111 0x55
 #define _S_0000 0x00
 
-int _nc_aesni_rk_size (u_int rounds) {
+int _nc_aesni_rk_size (uint8_t rounds) {
   return (rounds + 1) * 16;
 }
 
@@ -28,7 +28,7 @@ static inline void __pack (__m128i *o1, __m128i *o2, __m128i r1, __m128i r2, __m
   *o2 = (__m128i) _mm_shuffle_pd ((__m128d) r2, (__m128d) r3, 1);
 }
 
-static inline void _nc_aesni_derive_e_key (const u_char *key, u_char *rk0, u_int rounds) {
+static inline void _nc_aesni_derive_e_key (const u_char *key, u_char *rk0, uint8_t rounds) {
 
   __m128i *rk = (__m128i*) rk0;
   __m128i temp1, temp2;
@@ -113,24 +113,24 @@ static inline void _nc_aesni_derive_e_key (const u_char *key, u_char *rk0, u_int
   }
 }
 
-static inline void _nc_aesni_invert_e_key (const u_char *rk0, u_char *kr0, u_int rounds) {
+static inline void _nc_aesni_invert_e_key (const u_char *rk0, u_char *kr0, uint8_t rounds) {
 
   __m128i *rk1 = (__m128i*) rk0,
           *kr  = (__m128i*) kr0,
           rk[15];
 
-  for (u_int i = 0; i <= rounds; i++)
+  for (uint8_t i = 0; i <= rounds; i++)
     rk[i] = rk1[i];
 
   kr[0] = rk[rounds];
 
-  for (u_int i = 1; i < rounds; i++)
+  for (uint8_t i = 1; i < rounds; i++)
     kr[i] = _mm_aesimc_si128 (rk[rounds - i]);
 
   kr[rounds] = rk[0];
 }
 
-static void _nc_aesni_derive_d_key (const u_char *key, u_char *kr, u_int rounds, u_char *rk) {
+static void _nc_aesni_derive_d_key (const u_char *key, u_char *kr, uint8_t rounds, u_char *rk) {
   if (!rk) {
     _nc_aesni_derive_e_key (key, kr, rounds);
     rk = kr;
@@ -139,35 +139,35 @@ static void _nc_aesni_derive_d_key (const u_char *key, u_char *kr, u_int rounds,
 }
 
 
-static inline void _nc_aesni_enc (const u_char src[16], u_char dst[16], const u_char *rk0, u_int rounds) {
+static inline void _nc_aesni_enc (const u_char src[16], u_char dst[16], const u_char *rk0, uint8_t rounds) {
 
   __m128i r   = _mm_loadu_si128 ((__m128i*) src),
           *rk = (__m128i*) rk0;
 
   r = _mm_xor_si128 (r, rk[0]);
 
-  for (u_int i = 1; i < rounds; i++)
+  for (uint8_t i = 1; i < rounds; i++)
     r = _mm_aesenc_si128 (r, rk[i]);
 
   r = _mm_aesenclast_si128 (r, rk[rounds]);
   _mm_storeu_si128 ((__m128i*) dst, r);
 }
 
-static inline void _nc_aesni_dec (const u_char src[16], u_char dst[16], const u_char *rk0, u_int rounds) {
+static inline void _nc_aesni_dec (const u_char src[16], u_char dst[16], const u_char *rk0, uint8_t rounds) {
 
   __m128i r   = _mm_loadu_si128 ((__m128i*) src),
           *rk = (__m128i*) rk0;
 
   r = _mm_xor_si128 (r, rk[0]);
 
-  for (u_int i = 1; i < rounds; i++)
+  for (uint8_t i = 1; i < rounds; i++)
     r = _mm_aesdec_si128 (r, rk[i]);
 
   r = _mm_aesdeclast_si128 (r, rk[rounds]);
   _mm_storeu_si128 ((__m128i*) dst, r);
 }
 
-static inline void _nc_aesni_enc8 (const u_char src[128], u_char dst[128], const u_char *rk0, u_int rounds) {
+static inline void _nc_aesni_enc8 (const u_char src[128], u_char dst[128], const u_char *rk0, uint8_t rounds) {
 
   __m128i *in  = (__m128i*) src,
           *out = (__m128i*) dst,
@@ -191,7 +191,7 @@ static inline void _nc_aesni_enc8 (const u_char src[128], u_char dst[128], const
   r6 = _mm_xor_si128 (r6, rk[0]);
   r7 = _mm_xor_si128 (r7, rk[0]);
 
-  for (u_int i = 1; i < rounds; i++) {
+  for (uint8_t i = 1; i < rounds; i++) {
     r0 = _mm_aesenc_si128 (r0, rk[i]);
     r1 = _mm_aesenc_si128 (r1, rk[i]);
     r2 = _mm_aesenc_si128 (r2, rk[i]);
@@ -221,7 +221,7 @@ static inline void _nc_aesni_enc8 (const u_char src[128], u_char dst[128], const
   _mm_storeu_si128 (out + 7, r7);
 }
 
-static inline void _nc_aesni_dec8 (const u_char src[128], u_char dst[128], const u_char *rk0, u_int rounds) {
+static inline void _nc_aesni_dec8 (const u_char src[128], u_char dst[128], const u_char *rk0, uint8_t rounds) {
 
   __m128i *in  = (__m128i*) src,
           *out = (__m128i*) dst,
@@ -245,7 +245,7 @@ static inline void _nc_aesni_dec8 (const u_char src[128], u_char dst[128], const
   r6 = _mm_xor_si128 (r6, rk[0]);
   r7 = _mm_xor_si128 (r7, rk[0]);
 
-  for (u_int i = 1; i < rounds; i++) {
+  for (uint8_t i = 1; i < rounds; i++) {
     r0 = _mm_aesdec_si128 (r0, rk[i]);
     r1 = _mm_aesdec_si128 (r1, rk[i]);
     r2 = _mm_aesdec_si128 (r2, rk[i]);
@@ -302,11 +302,11 @@ static inline void _nc_aesni_dec8 (const u_char src[128], u_char dst[128], const
     }                                                        \
   }                                                          \
 
-static inline void _nc_aesni_enc_blocks (const u_char *src, u_char *dst, const u_char *rk, u_int rounds, u_int blocks) {
+static inline void _nc_aesni_enc_blocks (const u_char *src, u_char *dst, const u_char *rk, uint8_t rounds, u_int blocks) {
   __blocked_loop (_nc_aesni_enc, _nc_aesni_enc8, src, dst, rk, rounds, blocks);
 }
 
-static inline void _nc_aesni_dec_blocks (const u_char *src, u_char *dst, const u_char *rk, u_int rounds, u_int blocks) {
+static inline void _nc_aesni_dec_blocks (const u_char *src, u_char *dst, const u_char *rk, uint8_t rounds, u_int blocks) {
   __blocked_loop (_nc_aesni_dec, _nc_aesni_dec8, src, dst, rk, rounds, blocks);
 }
 
