@@ -1,5 +1,4 @@
 #include "nocrypto.h"
-#include "string.h" /* memset */
 
 #define u_long_s sizeof (unsigned long)
 
@@ -76,18 +75,5 @@ caml_nc_count_16_be (value init, value off1, value dst, value off2, value blocks
   nc_count_16_be ( (uint64_t *) _ba_uchar_off (init, off1),
                    (uint64_t *) _ba_uchar_off (dst, off2),
                    Long_val (blocks) );
-  return Val_unit;
-}
-
-
-/* XXX
- * Kill me once
- * https://github.com/mirage/ocaml-cstruct/commit/c32083359615b0fade99ff57914409d98a1528cc
- * is released.
- */
-CAMLprim value
-caml_fill_bigstring(value buf, value off, value len, value byte)
-{
-  memset( _ba_uchar_off (buf, off), Int_val (byte), Long_val (len));
   return Val_unit;
 }
