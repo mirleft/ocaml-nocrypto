@@ -5,6 +5,8 @@ let cdiv x y =
   else if x < 0 && y < 0 then (x + y + 1) / y
   else x / y
 
+let align x y = cdiv x y * y
+
 let (&.) f g = fun h -> f (g h)
 
 let id x = x
