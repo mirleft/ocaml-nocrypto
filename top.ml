@@ -1,4 +1,4 @@
-#require "cstruct, zarith, ctypes, ctypes.stubs, sexplib" ;;
+#require "cstruct, zarith, sexplib" ;;
 #directory "_build/src" ;;
 #load "nocrypto.cma";;
 #require "oUnit";;
