@@ -5,21 +5,36 @@ open Cipher_block
 open Hash
 
 
+module Time = struct
+
+  let time f =
+    let t1 = Sys.time () in
+    ignore (f ());
+    let t2 = Sys.time () in
+    (t2 -. t1)
+
+  let warmup () =
+    let x = ref 0 in
+    let rec go start =
+      if Sys.time () -. start < 1. then begin
+        for i = 0 to 10000 do x := !x + i done ;
+        go start
+      end in
+    go (Sys.time ())
+
+end
+
+
 let _ = Rng.reseed (Cstruct.of_string "abcd")
 
 let burn_period = 2.0
 
 let sizes = [16; 64; 256; 1024; 8192]
 
-let time f =
-  let t1 = Sys.time () in
-  ignore (f ());
-  let t2 = Sys.time () in
-  (t2 -. t1)
 
 let burn f n =
   let cs    = Rng.generate n in
-  let run x = time @@ fun () ->
+  let run x = Time.time @@ fun () ->
     for i = 1 to x do f cs done in
   let (t1, n1) =
     let rec loop n =
@@ -83,6 +98,7 @@ let _ =
         let fs =
           args |> List.map @@ fun n ->
             snd (benchmarks |> List.find @@ fun (n1, _) -> n = n1) in
+        Time.warmup () ;
         List.iter (fun f -> f ()) fs
       with Not_found -> help ()
     end
