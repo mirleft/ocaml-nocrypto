@@ -5,6 +5,12 @@
 #include <caml/mlvalues.h>
 #include <caml/bigarray.h>
 
+/* For endian-related conversions -- would be better to pick it up from the
+ * platform!
+ * <endian.h> ??
+ */
+#include "hash/bitfn.h"
+
 #if ( defined (__i386__) || defined (__x86_64__) )
 #include <x86intrin.h>
 #endif

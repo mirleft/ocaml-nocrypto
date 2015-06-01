@@ -28,28 +28,21 @@ static inline void xor_into (uint8_t *src, uint8_t *dst, size_t n) {
   }
 }
 
-
-#if defined (__SSE2__)
-#define swap64(x) _bswap64(x)
-#else
-#error "fixme"
-#endif
-
 static inline void nc_count_8_be (uint64_t *init, uint64_t *dst, size_t blocks) {
-  uint64_t qw = swap64(*init);
+  uint64_t qw = be64_to_cpu (*init);
   while (blocks --) {
-    *dst = swap64(qw);
+    *dst = cpu_to_be64(qw);
     ++qw;
     ++dst;
   }
 }
 
 static inline void nc_count_16_be (uint64_t *init, uint64_t *dst, size_t blocks) {
-  uint64_t qw1 = swap64 (init[0]),
-           qw2 = swap64 (init[1]);
+  uint64_t qw1 = be64_to_cpu  (init[0]),
+           qw2 = be64_to_cpu  (init[1]);
   while (blocks --) {
-    dst[0] = swap64 (qw1);
-    dst[1] = swap64 (qw2);
+    dst[0] = cpu_to_be64 (qw1);
+    dst[1] = cpu_to_be64 (qw2);
     qw1 += ((++qw2) == 0);
     dst += 2;
   }
