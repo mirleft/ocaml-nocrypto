@@ -69,7 +69,7 @@ Library nocrypto
   XMETAExtraLines: xen_linkopts = "-lnocrypto_xen_stubs"
   ByteOpt:         -w A-4-33-40-41-42-43-34-44
   CCOpt:           --std=c99 -Wall -Wextra -Werror -O3
-  if flag(modernity) && ( architecture(i386) || architecture(amd64) )
+  if flag(modernity) && architecture(amd64)
     CCOpt+: -msse2 -maes
 
 Library nocrypto_lwt
@@ -105,7 +105,7 @@ Library nocrypto_xen
   BuildDepends:    nocrypto, lwt.syntax, mirage-entropy-xen
   XMETARequires:   nocrypto, lwt, mirage-entropy-xen
   CCOpt:           --std=c99 -Wall -Wextra -Werror -O3 -DNDEBUG $XEN_CFLAGS
-  if flag(modernity) && ( architecture(i386) || architecture(amd64) )
+  if flag(modernity) && architecture(amd64)
     CCOpt+: -msse2 -maes
 
 Library testlib
