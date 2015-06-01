@@ -3,7 +3,7 @@
 #define u_long_s sizeof (unsigned long)
 
 
-static inline void xor_into (uint8_t *src, uint8_t *dst, u_int n) {
+static inline void xor_into (uint8_t *src, uint8_t *dst, size_t n) {
 #if defined (__SSE2__)
   while (n >= 16) {
     _mm_storeu_si128 (
@@ -35,7 +35,7 @@ static inline void xor_into (uint8_t *src, uint8_t *dst, u_int n) {
 #error "fixme"
 #endif
 
-static inline void nc_count_8_be (uint64_t *init, uint64_t *dst, u_int blocks) {
+static inline void nc_count_8_be (uint64_t *init, uint64_t *dst, size_t blocks) {
   uint64_t qw = swap64(*init);
   while (blocks --) {
     *dst = swap64(qw);
@@ -44,7 +44,7 @@ static inline void nc_count_8_be (uint64_t *init, uint64_t *dst, u_int blocks) {
   }
 }
 
-static inline void nc_count_16_be (uint64_t *init, uint64_t *dst, u_int blocks) {
+static inline void nc_count_16_be (uint64_t *init, uint64_t *dst, size_t blocks) {
   uint64_t qw1 = swap64 (init[0]),
            qw2 = swap64 (init[1]);
   while (blocks --) {

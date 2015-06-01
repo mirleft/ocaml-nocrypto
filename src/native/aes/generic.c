@@ -1228,11 +1228,11 @@ static void nc_rijndaelDecrypt(const u32 *rk, int nrounds, const u8 ciphertext[1
     src += 16 ; dst += 16 ;                             \
   }
 
-static inline void _nc_aes_enc_blocks (const uint8_t *src, uint8_t *dst, const u_long *rk, u_int rounds, u_int blocks) {
+static inline void _nc_aes_enc_blocks (const uint8_t *src, uint8_t *dst, const u_long *rk, uint8_t rounds, size_t blocks) {
   __blocked_loop (nc_rijndaelEncrypt, src, dst, rk, rounds, blocks);
 }
 
-static inline void _nc_aes_dec_blocks (const uint8_t *src, uint8_t *dst, const u_long *rk, u_int rounds, u_int blocks) {
+static inline void _nc_aes_dec_blocks (const uint8_t *src, uint8_t *dst, const u_long *rk, uint8_t rounds, size_t blocks) {
   __blocked_loop (nc_rijndaelDecrypt, src, dst, rk, rounds, blocks);
 }
 

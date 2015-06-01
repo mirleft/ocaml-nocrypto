@@ -302,11 +302,11 @@ static inline void _nc_aesni_dec8 (const uint8_t src[128], uint8_t dst[128], con
     }                                                        \
   }                                                          \
 
-static inline void _nc_aesni_enc_blocks (const uint8_t *src, uint8_t *dst, const uint8_t *rk, uint8_t rounds, u_int blocks) {
+static inline void _nc_aesni_enc_blocks (const uint8_t *src, uint8_t *dst, const uint8_t *rk, uint8_t rounds, size_t blocks) {
   __blocked_loop (_nc_aesni_enc, _nc_aesni_enc8, src, dst, rk, rounds, blocks);
 }
 
-static inline void _nc_aesni_dec_blocks (const uint8_t *src, uint8_t *dst, const uint8_t *rk, uint8_t rounds, u_int blocks) {
+static inline void _nc_aesni_dec_blocks (const uint8_t *src, uint8_t *dst, const uint8_t *rk, uint8_t rounds, size_t blocks) {
   __blocked_loop (_nc_aesni_dec, _nc_aesni_dec8, src, dst, rk, rounds, blocks);
 }
 

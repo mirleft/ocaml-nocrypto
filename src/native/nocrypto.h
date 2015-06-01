@@ -19,7 +19,6 @@
 #define __unit() value __unused(unit)
 
 typedef unsigned long u_long;
-typedef unsigned int u_int;
 
 #define _ba_uint8_off(ba, off) ((uint8_t*) Caml_ba_data_val (ba) + Long_val (off))
 #define _ba_ulong_off(ba, off) (( u_long*) Caml_ba_data_val (ba) + Long_val (off))
