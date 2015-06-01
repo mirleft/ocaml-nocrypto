@@ -74,6 +74,14 @@ let benchmarks = [
     let key = AES.CTR.of_secret (Rng.generate 16)
     and ctr = Cs.create_with 16 0x00 in
     throughput name (fun cs -> AES.CTR.encrypt ~key ~ctr cs)) ;
+  bm "aes-128-gcm" (fun name ->
+    let key = AES.GCM.of_secret (Rng.generate 16)
+    and iv  = Rng.generate 16 in
+    throughput name (fun cs -> AES.GCM.encrypt ~key ~iv cs));
+  bm "aes-128-ccm" (fun name ->
+    let key   = AES.CCM.of_secret ~maclen:16 (Rng.generate 16)
+    and nonce = Rng.generate 10 in
+    throughput name (fun cs -> AES.CCM.encrypt ~key ~nonce cs));
 
   bm "aes-192-ecb" (fun name ->
     let key = AES.ECB.of_secret (Rng.generate 24) in
