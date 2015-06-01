@@ -17,7 +17,7 @@ static inline void xor_into (uint8_t *src, uint8_t *dst, size_t n) {
   }
 #endif
   while (n >= u_long_s) {
-    *((u_long *) dst) = *((u_long *) src) ^ *((u_long *) dst);
+    *((u_long *) dst) ^= *((u_long *) src);
     src += u_long_s;
     dst += u_long_s;
     n   -= u_long_s;
