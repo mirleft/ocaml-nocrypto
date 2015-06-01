@@ -21,9 +21,11 @@
 typedef unsigned long u_long;
 
 #define _ba_uint8_off(ba, off) ((uint8_t*) Caml_ba_data_val (ba) + Long_val (off))
-#define _ba_ulong_off(ba, off) (( u_long*) Caml_ba_data_val (ba) + Long_val (off))
+#define _ba_uint32_off(ba, off) ((uint32_t*) Caml_ba_data_val (ba) + Long_val (off))
+#define _ba_ulong_off(ba, off) ((u_long*) Caml_ba_data_val (ba) + Long_val (off))
 
 #define _ba_uint8(ba) _ba_uint8_off (ba, 0)
+#define _ba_uint32(ba) _ba_uint32_off (ba, 0)
 #define _ba_ulong(ba) _ba_ulong_off (ba, 0)
 
 #define _ba_uint8_option_off(ba, off) (Is_block(ba) ? _ba_uint8_off(Field(ba, 0), off) : 0)

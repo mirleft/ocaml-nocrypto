@@ -14,10 +14,7 @@
 
 #define FULL_UNROLL
 
-typedef unsigned long u32;
-typedef unsigned char u8;
-
-static const u32 Te0[256] =
+static const uint32_t Te0[256] =
 {
   0xc66363a5U, 0xf87c7c84U, 0xee777799U, 0xf67b7b8dU,
   0xfff2f20dU, 0xd66b6bbdU, 0xde6f6fb1U, 0x91c5c554U,
@@ -85,7 +82,7 @@ static const u32 Te0[256] =
   0x7bb0b0cbU, 0xa85454fcU, 0x6dbbbbd6U, 0x2c16163aU,
 };
 
-static const u32 Te1[256] =
+static const uint32_t Te1[256] =
 {
   0xa5c66363U, 0x84f87c7cU, 0x99ee7777U, 0x8df67b7bU,
   0x0dfff2f2U, 0xbdd66b6bU, 0xb1de6f6fU, 0x5491c5c5U,
@@ -153,7 +150,7 @@ static const u32 Te1[256] =
   0xcb7bb0b0U, 0xfca85454U, 0xd66dbbbbU, 0x3a2c1616U,
 };
 
-static const u32 Te2[256] =
+static const uint32_t Te2[256] =
 {
   0x63a5c663U, 0x7c84f87cU, 0x7799ee77U, 0x7b8df67bU,
   0xf20dfff2U, 0x6bbdd66bU, 0x6fb1de6fU, 0xc55491c5U,
@@ -221,7 +218,7 @@ static const u32 Te2[256] =
   0xb0cb7bb0U, 0x54fca854U, 0xbbd66dbbU, 0x163a2c16U,
 };
 
-static const u32 Te3[256] =
+static const uint32_t Te3[256] =
 {
   0x6363a5c6U, 0x7c7c84f8U, 0x777799eeU, 0x7b7b8df6U,
   0xf2f20dffU, 0x6b6bbdd6U, 0x6f6fb1deU, 0xc5c55491U,
@@ -289,7 +286,7 @@ static const u32 Te3[256] =
   0xb0b0cb7bU, 0x5454fca8U, 0xbbbbd66dU, 0x16163a2cU,
 };
 
-static const u32 Te4[256] =
+static const uint32_t Te4[256] =
 {
   0x63636363U, 0x7c7c7c7cU, 0x77777777U, 0x7b7b7b7bU,
   0xf2f2f2f2U, 0x6b6b6b6bU, 0x6f6f6f6fU, 0xc5c5c5c5U,
@@ -357,7 +354,7 @@ static const u32 Te4[256] =
   0xb0b0b0b0U, 0x54545454U, 0xbbbbbbbbU, 0x16161616U,
 };
 
-static const u32 Td0[256] =
+static const uint32_t Td0[256] =
 {
   0x51f4a750U, 0x7e416553U, 0x1a17a4c3U, 0x3a275e96U,
   0x3bab6bcbU, 0x1f9d45f1U, 0xacfa58abU, 0x4be30393U,
@@ -425,7 +422,7 @@ static const u32 Td0[256] =
   0x7bcb8461U, 0xd532b670U, 0x486c5c74U, 0xd0b85742U,
 };
 
-static const u32 Td1[256] =
+static const uint32_t Td1[256] =
 {
   0x5051f4a7U, 0x537e4165U, 0xc31a17a4U, 0x963a275eU,
   0xcb3bab6bU, 0xf11f9d45U, 0xabacfa58U, 0x934be303U,
@@ -493,7 +490,7 @@ static const u32 Td1[256] =
   0x617bcb84U, 0x70d532b6U, 0x74486c5cU, 0x42d0b857U,
 };
 
-static const u32 Td2[256] =
+static const uint32_t Td2[256] =
 {
   0xa75051f4U, 0x65537e41U, 0xa4c31a17U, 0x5e963a27U,
   0x6bcb3babU, 0x45f11f9dU, 0x58abacfaU, 0x03934be3U,
@@ -561,7 +558,7 @@ static const u32 Td2[256] =
   0x84617bcbU, 0xb670d532U, 0x5c74486cU, 0x5742d0b8U,
 };
 
-static const u32 Td3[256] =
+static const uint32_t Td3[256] =
 {
   0xf4a75051U, 0x4165537eU, 0x17a4c31aU, 0x275e963aU,
   0xab6bcb3bU, 0x9d45f11fU, 0xfa58abacU, 0xe303934bU,
@@ -629,7 +626,7 @@ static const u32 Td3[256] =
   0xcb84617bU, 0x32b670d5U, 0x6c5c7448U, 0xb85742d0U,
 };
 
-static const u32 Td4[256] =
+static const uint32_t Td4[256] =
 {
   0x52525252U, 0x09090909U, 0x6a6a6a6aU, 0xd5d5d5d5U,
   0x30303030U, 0x36363636U, 0xa5a5a5a5U, 0x38383838U,
@@ -697,7 +694,7 @@ static const u32 Td4[256] =
   0x55555555U, 0x21212121U, 0x0c0c0c0cU, 0x7d7d7d7dU,
 };
 
-static const u32 rcon[] =
+static const uint32_t rcon[] =
 {
   0x01000000, 0x02000000, 0x04000000, 0x08000000,
   0x10000000, 0x20000000, 0x40000000, 0x80000000,
@@ -705,25 +702,25 @@ static const u32 rcon[] =
   /* for 128-bit blocks, Rijndael never uses more than 10 rcon values */
 };
 
-#define GETU32(plaintext) (((u32)(plaintext)[0] << 24) ^ \
-                    ((u32)(plaintext)[1] << 16) ^ \
-                    ((u32)(plaintext)[2] <<  8) ^ \
-                    ((u32)(plaintext)[3]))
+#define GETU32(plaintext) (((uint32_t)(plaintext)[0] << 24) ^ \
+                    ((uint32_t)(plaintext)[1] << 16) ^ \
+                    ((uint32_t)(plaintext)[2] <<  8) ^ \
+                    ((uint32_t)(plaintext)[3]))
 
-#define PUTU32(ciphertext, st) { (ciphertext)[0] = (u8)((st) >> 24); \
-                         (ciphertext)[1] = (u8)((st) >> 16); \
-                         (ciphertext)[2] = (u8)((st) >>  8); \
-                         (ciphertext)[3] = (u8)(st); }
+#define PUTU32(ciphertext, st) { (ciphertext)[0] = (uint8_t)((st) >> 24); \
+                         (ciphertext)[1] = (uint8_t)((st) >> 16); \
+                         (ciphertext)[2] = (uint8_t)((st) >>  8); \
+                         (ciphertext)[3] = (uint8_t)(st); }
 
 /**
  * Expand the cipher key into the encryption key schedule.
  *
  * @return the number of rounds for the given cipher key size.
  */
-static int nc_rijndaelSetupEncrypt(u32 *rk, const u8 *key, int keybits)
+static int nc_rijndaelSetupEncrypt(uint32_t *rk, const uint8_t *key, int keybits)
 {
   int i = 0;
-  u32 temp;
+  uint32_t temp;
 
   rk[0] = GETU32(key     );
   rk[1] = GETU32(key +  4);
@@ -809,10 +806,9 @@ static int nc_rijndaelSetupEncrypt(u32 *rk, const u8 *key, int keybits)
  *
  * @return the number of rounds for the given cipher key size.
  */
-static int nc_rijndaelSetupDecrypt(u32 *rk, const u8 *key, int keybits)
-{
+static int nc_rijndaelSetupDecrypt(uint32_t *rk, const uint8_t *key, int keybits) {
   int nrounds, i, j;
-  u32 temp;
+  uint32_t temp;
 
   /* expand the cipher key: */
   nrounds = nc_rijndaelSetupEncrypt(rk, key, keybits);
@@ -852,10 +848,8 @@ static int nc_rijndaelSetupDecrypt(u32 *rk, const u8 *key, int keybits)
   return nrounds;
 }
 
-static void nc_rijndaelEncrypt(const u32 *rk, int nrounds, const u8 plaintext[16],
-  u8 ciphertext[16])
-{
-  u32 s0, s1, s2, s3, t0, t1, t2, t3;
+static void nc_rijndaelEncrypt(const uint32_t *rk, int nrounds, const uint8_t plaintext[16], uint8_t ciphertext[16]) {
+  uint32_t s0, s1, s2, s3, t0, t1, t2, t3;
   #ifndef FULL_UNROLL
     int r;
   #endif /* ?FULL_UNROLL */
@@ -1034,10 +1028,8 @@ static void nc_rijndaelEncrypt(const u32 *rk, int nrounds, const u8 plaintext[16
   PUTU32(ciphertext + 12, s3);
 }
 
-static void nc_rijndaelDecrypt(const u32 *rk, int nrounds, const u8 ciphertext[16],
-  u8 plaintext[16])
-{
-  u32 s0, s1, s2, s3, t0, t1, t2, t3;
+static void nc_rijndaelDecrypt(const uint32_t *rk, int nrounds, const uint8_t ciphertext[16], uint8_t plaintext[16]) {
+  uint32_t s0, s1, s2, s3, t0, t1, t2, t3;
   #ifndef FULL_UNROLL
     int r;
   #endif /* ?FULL_UNROLL */
@@ -1228,22 +1220,22 @@ static void nc_rijndaelDecrypt(const u32 *rk, int nrounds, const u8 ciphertext[1
     src += 16 ; dst += 16 ;                             \
   }
 
-static inline void _nc_aes_enc_blocks (const uint8_t *src, uint8_t *dst, const u_long *rk, uint8_t rounds, size_t blocks) {
+static inline void _nc_aes_enc_blocks (const uint8_t *src, uint8_t *dst, const uint32_t *rk, uint8_t rounds, size_t blocks) {
   __blocked_loop (nc_rijndaelEncrypt, src, dst, rk, rounds, blocks);
 }
 
-static inline void _nc_aes_dec_blocks (const uint8_t *src, uint8_t *dst, const u_long *rk, uint8_t rounds, size_t blocks) {
+static inline void _nc_aes_dec_blocks (const uint8_t *src, uint8_t *dst, const uint32_t *rk, uint8_t rounds, size_t blocks) {
   __blocked_loop (nc_rijndaelDecrypt, src, dst, rk, rounds, blocks);
 }
 
 CAMLprim value
 caml_nc_aes_rk_size (value rounds) {
-  return Val_int (RKLENGTH (keybits_of_r (Int_val (rounds))) * sizeof(u_long));
+  return Val_int (RKLENGTH (keybits_of_r (Int_val (rounds))) * sizeof(uint32_t));
 }
 
 CAMLprim value
 caml_nc_aes_derive_e_key (value key, value off1, value rk, value rounds) {
-  nc_rijndaelSetupEncrypt (_ba_ulong (rk),
+  nc_rijndaelSetupEncrypt (_ba_uint32 (rk),
                            _ba_uint8_off (key, off1),
                            keybits_of_r (Int_val (rounds)));
   return Val_unit;
@@ -1251,7 +1243,7 @@ caml_nc_aes_derive_e_key (value key, value off1, value rk, value rounds) {
 
 CAMLprim value
 caml_nc_aes_derive_d_key (value key, value off1, value kr, value rounds, value __unused (rk)) {
-  nc_rijndaelSetupDecrypt (_ba_ulong (kr),
+  nc_rijndaelSetupDecrypt (_ba_uint32 (kr),
                            _ba_uint8_off (key, off1),
                            keybits_of_r (Int_val (rounds)));
   return Val_unit;
@@ -1261,7 +1253,7 @@ CAMLprim value
 caml_nc_aes_enc (value src, value off1, value dst, value off2, value rk, value rounds, value blocks) {
   _nc_aes_enc_blocks ( _ba_uint8_off (src, off1),
                        _ba_uint8_off (dst, off2),
-                       _ba_ulong (rk),
+                       _ba_uint32 (rk),
                        Int_val (rounds),
                        Int_val (blocks) );
   return Val_unit;
@@ -1271,7 +1263,7 @@ CAMLprim value
 caml_nc_aes_dec (value src, value off1, value dst, value off2, value rk, value rounds, value blocks) {
   _nc_aes_dec_blocks ( _ba_uint8_off (src, off1),
                        _ba_uint8_off (dst, off2),
-                       _ba_ulong (rk),
+                       _ba_uint32 (rk),
                        Int_val (rounds),
                        Int_val (blocks) );
   return Val_unit;
