@@ -45,7 +45,7 @@ let reseedv ~g css =
 let reseed ~g cs = reseedv ~g [cs]
 
 let generate_rekey ~g bytes =
-  let n  = align (bytes + 32) 16 in
+  let n  = align ~block:16 (bytes + 32) in
   let r  = AES_CTR.stream ~key:g.key ~ctr:g.ctr n in
   let r1 = Cstruct.sub r.AES_CTR.message 0 bytes
   and r2 = Cstruct.sub r.AES_CTR.message (n - 32) 32 in

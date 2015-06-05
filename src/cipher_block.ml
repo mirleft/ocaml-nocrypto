@@ -158,6 +158,8 @@ end
 
 module Modes2 = struct
 
+  open Cstruct
+
   module Raw_of (Core : T.Core) : T.Raw = struct
 
     type ekey = Core.ekey
@@ -168,8 +170,6 @@ module Modes2 = struct
 
     let key_sizes  = Core.key
     let block_size = Core.block
-
-    open Cstruct
 
     let encrypt_block ~key:key src dst =
       if src.len < block_size || dst.len < block_size then invalid_arg "xxx" ;
@@ -189,8 +189,6 @@ module Modes2 = struct
     let key_sizes  = Core.key
     let block_size = Core.block
 
-    open Cstruct
-
     let encrypt ~key:(key, _) src =
       if src.len < block_size then invalid_arg "xxx" ;
       let dst = create block_size in
@@ -205,8 +203,6 @@ module Modes2 = struct
   end
 
   module ECB_of (Core : T.Core) : T.ECB = struct
-
-    open Cstruct
 
     type key = Core.ekey * Core.dkey
 
@@ -229,8 +225,6 @@ module Modes2 = struct
   end
 
   module CBC_of (Core : T.Core) : T.CBC = struct
-
-    open Cstruct
 
     type result = { message : Cstruct.t ; iv : Cstruct.t }
     type key    = Core.ekey * Core.dkey
@@ -281,8 +275,6 @@ module Modes2 = struct
       | 16 -> Native.count16be
       | 8  -> Native.count8be
       | n  -> Raise.invalid1 "CTR_of: bad block size (%d): not {8,16}" n
-
-    open Cstruct
 
     type key = Core.ekey
 

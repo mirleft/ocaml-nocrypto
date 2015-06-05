@@ -5,7 +5,7 @@ let cdiv x y =
   else if x < 0 && y < 0 then (x + y + 1) / y
   else x / y
 
-let align x y = cdiv x y * y
+let align ~block n = cdiv n block * block
 
 let imin (a : int) (b : int) = if a < b then a else b
 
