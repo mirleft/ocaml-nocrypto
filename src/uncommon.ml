@@ -1,6 +1,6 @@
 (** [Uncommon] is a [Common], now with less name clashes. *)
 
-let cdiv x y =
+let cdiv (x : int) (y : int) =
   if x > 0 && y > 0 then (x + y - 1) / y
   else if x < 0 && y < 0 then (x + y + 1) / y
   else x / y
