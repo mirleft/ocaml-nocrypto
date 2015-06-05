@@ -308,26 +308,19 @@ module Counter = struct
 
   open Cstruct
 
-  let incr cs =
-    let rec go = function
-      | n when n >= 8 ->
-          let i = n - 8 in
-          let x = Int64.succ @@ BE.get_uint64 cs i in
-          BE.set_uint64 cs i x ;
-          if x = 0L then go i
-      | n when n >= 4 ->
-          let i = n - 4 in
-          let x = Int32.succ @@ BE.get_uint32 cs i in
-          BE.set_uint32 cs i x ;
-          if x = 0l then go i
-      | n when n >= 2 ->
-          let i = n - 2 in
-          let x = succ @@ BE.get_uint16 cs i in
-          BE.set_uint16 cs i x ;
-          if x = 0x10000 then go i
-      | 1 -> set_uint8 cs 0 @@ succ @@ get_uint8 cs 0
-      | _ -> () in
-    go (len cs)
+  let incr1 cs i =
+    let x = succ (get_uint8 cs i) in (set_uint8 cs i x ; x = 0x100)
+
+  let incr2 cs i =
+    let x = succ (BE.get_uint16 cs i) in (BE.set_uint16 cs i x ; x = 0x10000)
+
+  let incr4 cs i =
+    let x = Int32.succ (BE.get_uint32 cs i) in (BE.set_uint32 cs i x ; x = 0l)
+
+  let incr8 cs i =
+    let x = Int64.succ (BE.get_uint64 cs i) in (BE.set_uint64 cs i x ; x = 0L)
+
+  let incr16 cs i = incr8 cs (i + 8) && incr8 cs i
 
 end
 

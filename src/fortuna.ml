@@ -39,7 +39,7 @@ let set_key ~g sec =
 
 let reseedv ~g css =
   set_key ~g @@ SHAd256.digestv (g.secret :: css) ;
-  Counter.incr g.ctr ;
+  ignore (Counter.incr16 g.ctr 0) ;
   g.seeded <- true
 
 let reseed ~g cs = reseedv ~g [cs]

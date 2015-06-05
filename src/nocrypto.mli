@@ -236,9 +236,17 @@ module Cipher_block : sig
     end
   end
 
-  (** Stand-alone BE counter function. *)
+  (** BE counter function.
+
+      Each [incrX cs i] increments [X]-sized block of [cs] at the offset [i] by
+      one, returning [true] if an overfow occurred (and the block is now
+      zeroed-out). *)
   module Counter : sig
-    val incr : Cstruct.t -> unit
+    val incr1  : Cstruct.t -> int -> bool
+    val incr2  : Cstruct.t -> int -> bool
+    val incr4  : Cstruct.t -> int -> bool
+    val incr8  : Cstruct.t -> int -> bool
+    val incr16 : Cstruct.t -> int -> bool
   end
 
   (** {b AES}, plus a few modes of operation. *)
