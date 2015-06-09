@@ -76,9 +76,9 @@ module T = struct
     val key_sizes  : int array
     val block_size : int
 
-    val stream  : key:key -> ctr:Cstruct.t -> int -> Cstruct.t
-    val encrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
-    val decrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
+    val stream  : key:key -> ctr:Cstruct.t -> ?off:int -> int -> Cstruct.t
+    val encrypt : key:key -> ctr:Cstruct.t -> ?off:int -> Cstruct.t -> Cstruct.t
+    val decrypt : key:key -> ctr:Cstruct.t -> ?off:int -> Cstruct.t -> Cstruct.t
   end
 
   module type GCM = sig
@@ -299,10 +299,12 @@ module Modes2 = struct
 
     (* FIXME: CTR has more room for speedups. *)
 
-    let count_be =
-      match Core.block with
-      | 16 -> Native.count16be
-      | 8  -> Native.count8be
+    let block = Core.block
+
+    let (count, ctr_add) =
+      match block with
+      | 16 -> (Native.count16be, Counter.add16)
+      | 8  -> (Native.count8be, Counter.add8)
       | n  -> Raise.invalid1 "CTR_of: bad block size (%d): not {8,16}" n
 
     type key = Core.ekey
@@ -310,18 +312,44 @@ module Modes2 = struct
     let (key_sizes, block_size) = Core.(key, block)
     let of_secret = Core.e_of_secret
 
-    let block = Core.block
-
     let stream ~key ~ctr n =
       let blocks = cdiv n block in
       let buf    = Native.buffer (blocks * block) in
-      count_be ctr.buffer ctr.off buf 0 blocks ;
+      count ctr.buffer ctr.off buf 0 blocks ;
       Core.encrypt ~key ~blocks buf 0 buf 0 ;
       of_bigarray ~len:n buf
 
-    let encrypt ~key ~ctr src =
-      let res = stream ~key ~ctr src.len in
-      Native.xor_into src.buffer src.off res.buffer 0 src.len ;
+    let cbuf  = Cstruct.create block
+    let bmask = block - 1
+
+    let stream_shifted ~key ~ctr off n =
+      let ctr = match off / block with
+        | 0     -> ctr
+        | shift ->
+            Native.blit ctr.buffer ctr.off cbuf.buffer 0 block ;
+            ctr_add cbuf 0 Int64.(of_int shift) ;
+            cbuf
+      in
+      let off    = off land bmask in
+      let blocks = cdiv (off + n) block in
+      let buf    = Native.buffer (blocks * block) in
+      count ctr.buffer ctr.off buf 0 blocks ;
+      Core.encrypt ~key ~blocks buf 0 buf 0 ;
+      of_bigarray ~len:n ~off buf
+
+    let stream ~key ~ctr ?off n =
+      if ctr.len <> block then
+        Raise.invalid1 "CTR: counter not %d bytes" ctr.len ;
+      if n < 0 then
+        Raise.invalid1 "CTR: negative size (%d)" n ;
+      match off with
+      | None               -> stream ~key ~ctr n
+      | Some k when k >= 0 -> stream_shifted ~key ~ctr k n
+      | Some k             -> Raise.invalid1 "CTR: negative offset (%d)" k
+
+    let encrypt ~key ~ctr ?off src =
+      let res = stream ~key ~ctr ?off src.len in
+      Native.xor_into src.buffer src.off res.buffer res.off src.len ;
       res
 
     let decrypt = encrypt

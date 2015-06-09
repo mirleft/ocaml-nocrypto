@@ -206,9 +206,24 @@ module Cipher_block : sig
       val key_sizes  : int array
       val block_size : int
 
-      val stream  : key:key -> ctr:Cstruct.t -> int -> Cstruct.t
-      val encrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
-      val decrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
+      val stream : key:key -> ctr:Cstruct.t -> ?off:int -> int -> Cstruct.t
+      (** [stream ~key ~ctr ~off n] is the first [n] bytes obtained by
+          encrypting and concatenating blocks [c(0), c(1), ...], where [c(0)] is
+          [ctr], and [c(n + 1)] is [c(n) + 1] interpreted in big-endian.
+
+          If [off] is greater than [0] then the result is the last [n] bytes of
+          an [off + n] bytes long stream. Thus,
+          [stream ~key ~ctr ~off:0 n || stream ~key ~ctr ~off:n n ==
+           stream ~key ~ctr ~off:0 (n*2)].
+
+          [ctr] has to be block-sized, and [off] and [n] need to be
+          non-negative. *)
+
+      val encrypt : key:key -> ctr:Cstruct.t -> ?off:int -> Cstruct.t -> Cstruct.t
+      (** [encrypt ~key ~ctr ~off msg] is
+          [(stream ~key ~ctr ~off (len msg)) xor msg]. *)
+
+      val decrypt : key:key -> ctr:Cstruct.t -> ?off:int -> Cstruct.t -> Cstruct.t
     end
 
     (** {e Galois/Counter Mode}. *)
