@@ -421,6 +421,10 @@ module Rng : sig
 
     end
 
+    type 'a generator = (module Generator with type g = 'a)
+    (** Type of first-class modules encapsulating methods of random number
+        generation. *)
+
     (** Typed random number extraction. *)
     module type N = sig
 
@@ -444,11 +448,7 @@ module Rng : sig
   end
 
 
-  type 'a generator = (module S.Generator with type g = 'a)
-  (** Type of first-class modules encapsulating methods of random number
-      generation. *)
-
-  val create : ?strict:bool -> ?g:'a -> 'a generator -> g
+  val create : ?strict:bool -> ?g:'a -> 'a S.generator -> g
   (** [create module] creates a {!g} for use with functions in this module. *)
 
   val generator : g ref

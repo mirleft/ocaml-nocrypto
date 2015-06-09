@@ -1,60 +1,27 @@
 open Uncommon
 
-type acc = source:int -> Cstruct.t -> unit
-
-module type Generator = sig
-
-  type g
-
-  val block : int
-
-  val create   : unit -> g
-  val generate : g:g -> int -> Cstruct.t
-
-  val reseed     : g:g -> Cstruct.t -> unit
-  val accumulate : g:g -> acc one
-  val seeded     : g:g -> bool
-end
-
-
-type 'a generator = (module Generator with type g = 'a)
-
-type g = Generator : ('a * bool * 'a generator) -> g
-
-
-let create (type a) ?(strict=false) ?g (m : a generator) =
-  let module M = (val m) in
-  let g = match g with Some g -> g | _ -> M.create () in
-  Generator (g, strict, m)
-
-let generator = ref (create (module Fortuna))
-
-let get = function Some g -> g | None -> !generator
-
-let generate ?(g = !generator) n =
-  let Generator (g, _, m) = g in let module M = (val m) in M.generate ~g n
-
-let reseed ?(g = !generator) cs =
-  let Generator (g, _, m) = g in let module M = (val m) in M.reseed ~g cs
-
-let accumulate g =
-  let Generator (g, _, m) = get g in let module M = (val m) in M.accumulate ~g
-
-let seeded g =
-  let Generator (g, _, m) = get g in let module M = (val m) in M.seeded ~g
-
-let block g =
-  let Generator (_, _, m) = get g in let module M = (val m) in M.block
-
-let strict g =
-  let Generator (_, s, _) = get g in s
-
 
 module S = struct
 
-  type accumulator = acc
+  type accumulator = source:int -> Cstruct.t -> unit
 
-  module type Generator = Generator
+  module type Generator = sig
+
+    type g
+
+    val block : int
+
+    val create   : unit -> g
+    val generate : g:g -> int -> Cstruct.t
+
+    val reseed     : g:g -> Cstruct.t -> unit
+    val accumulate : g:g -> accumulator one
+    val seeded     : g:g -> bool
+  end
+
+  type 'a generator = (module Generator with type g = 'a)
+
+  type g = Generator : ('a * bool * 'a generator) -> g
 
   module type N = sig
 
@@ -64,7 +31,39 @@ module S = struct
     val gen_r    : ?g:g -> t -> t -> t
     val gen_bits : ?g:g -> ?msb:int -> int -> t
   end
+
 end
+
+type g = S.g
+
+
+let create (type a) ?(strict=false) ?g (m : a S.generator) =
+  let module M = (val m) in
+  let g = match g with Some g -> g | _ -> M.create () in
+  S.Generator (g, strict, m)
+
+let generator = ref (create (module Fortuna))
+
+let get = function Some g -> g | None -> !generator
+
+let generate ?(g = !generator) n =
+  let S.Generator (g, _, m) = g in let module M = (val m) in M.generate ~g n
+
+let reseed ?(g = !generator) cs =
+  let S.Generator (g, _, m) = g in let module M = (val m) in M.reseed ~g cs
+
+let accumulate g =
+  let S.Generator (g, _, m) = get g in let module M = (val m) in M.accumulate ~g
+
+let seeded g =
+  let S.Generator (g, _, m) = get g in let module M = (val m) in M.seeded ~g
+
+let block g =
+  let S.Generator (_, _, m) = get g in let module M = (val m) in M.block
+
+let strict g =
+  let S.Generator (_, s, _) = get g in s
+
 
 
 module N_gen (N : Numeric.T) = struct
