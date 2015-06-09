@@ -99,14 +99,14 @@ module PKCS1 = struct
   (* XXX Generalize this into `Rng.samplev` or something. *)
   let generate_with ?g ~f n =
     let cs = create n
-    and bs = Rng.(block_size * cdiv n block_size) in
+    and k  = let b = Rng.block g in Rng.(b * cdiv n b) in
     let rec go nonce i j =
       if i = n then cs else
-      if j = bs then go Rng.(generate ?g bs) i 0 else
+      if j = k then go Rng.(generate ?g k) i 0 else
       match get_uint8 nonce j with
       | b when f b -> set_uint8 cs i b ; go nonce (succ i) (succ j)
       | _          -> go nonce i (succ j) in
-    go Rng.(generate ?g bs) 0 0
+    go Rng.(generate ?g k) 0 0
 
 
   let pad ~mark ~padding k msg =

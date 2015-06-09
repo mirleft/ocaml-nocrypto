@@ -48,18 +48,17 @@ let generate ?g size =
   let y = Z.(powm gg x p) in
   { p; q; gg; x; y }
 
+
 module K_gen (H : Hash.T) = struct
 
-  module R_gen = Hmac_drgb.Make (H)
-  module R_num = Rng.Numeric_of (R_gen)
-
-  let () = R_num.strict true
+  let drgb : 'a Rng.generator =
+    let module M = Hmac_drgb.Make (H) in (module M)
 
   let z_gen ~key:{ q; x; _ } z =
-    let repr = Numeric.Z.(to_cstruct_be ~size:(cdiv (bits q) 8)) in
-    let g    = R_gen.create () in
-    R_gen.reseed ~g Cs.(repr x <+> repr Z.(z mod q));
-    R_num.Z.gen_r ~g Z.one q
+    let repr = Numeric.Z.(to_cstruct_be ~size:(bytes (bits q))) in
+    let g    = Rng.create ~strict:true drgb in
+    Rng.reseed ~g Cs.(repr x <+> repr Z.(z mod q));
+    Rng.Z.gen_r ~g Z.one q
 
   let generate ~key cs =
     z_gen ~key Numeric.Z.(of_cstruct_be ~bits:(bits key.q) cs)
