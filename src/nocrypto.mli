@@ -240,13 +240,20 @@ module Cipher_block : sig
 
       Each [incrX cs i] increments [X]-sized block of [cs] at the offset [i] by
       one, returning [true] if an overfow occurred (and the block is now
-      zeroed-out). *)
+      zeroed-out).
+
+      Each [addX cs i n] adds [n] to the [X]-sized block. *)
   module Counter : sig
+
     val incr1  : Cstruct.t -> int -> bool
     val incr2  : Cstruct.t -> int -> bool
     val incr4  : Cstruct.t -> int -> bool
     val incr8  : Cstruct.t -> int -> bool
     val incr16 : Cstruct.t -> int -> bool
+
+    val add4   : Cstruct.t -> int -> int32 -> unit
+    val add8   : Cstruct.t -> int -> int64 -> unit
+    val add16  : Cstruct.t -> int -> int64 -> unit
   end
 
   (** {b AES}, plus a few modes of operation. *)

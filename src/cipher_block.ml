@@ -318,6 +318,15 @@ module Counter = struct
 
   let incr16 cs i = incr8 cs (i + 8) && incr8 cs i
 
+  let add4 cs i x =
+    BE.(set_uint32 cs i (Int32.add x (get_uint32 cs i)))
+
+  let add8 cs i x =
+    BE.(set_uint64 cs i (Int64.add x (get_uint64 cs i)))
+
+  (* FIXME: overflow: higher order bits. *)
+  let add16 cs i x = add8 cs (i + 8) x
+
 end
 
 open Bigarray
