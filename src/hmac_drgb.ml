@@ -17,7 +17,8 @@ module Make (H : Hash.T) = struct
     }
 
   (* XXX *)
-  let seeded ~g = true
+  let seeded ~g:_ = invalid_arg "implement Hmac_drgb.seeded..."
+  let accumulate ~g:_ = invalid_arg "implement Hmac_drgb.accumulate..."
 
   let reseed ~g cs =
     let (k, v) = (g.k, g.v) in

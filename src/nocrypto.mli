@@ -298,18 +298,26 @@ module Fortuna : sig
 
   val create : unit -> g
   (** Create new, unseeded {!g}. *)
+
   val clone  : g:g -> g
   (** Clone a generator in its current state. *)
+
   val seeded : g:g -> bool
   (** [seeded ~g] is [true] iff operations won't throw {!Unseeded_generator}. *)
 
   val reseed   : g:g -> Cstruct.t -> unit
   (** [reseed ~g bytes] updates [g] by mixing in [bytes] which should be
    unpredictable and ideally environmentally sourced. *)
+
   val reseedv  : g:g -> Cstruct.t list -> unit
   (** [reseedv ~g list] is like [reseed] with a concatenation of [list], but faster. *)
+
   val generate : g:g -> int -> Cstruct.t
   (** [generate ~g n] extracts [n] bytes of random stream from [g]. *)
+
+  val accumulate : g:g -> Rng.S.accumulator Uncommon.one
+  (** [accumulate ~g] is a is a closure that feeds an accumulator pool in a
+      round-robin fashion. *)
 
   (** Accumulator pools, collecting entropy and periodically reseeding the
     attached {!g}.
@@ -334,10 +342,6 @@ module Fortuna : sig
       amounts of environmentally sourced entropy, such as timings or user input.
       [source] should indicate a stable source of input but has no meaning beyond
       that. [pool]s should be rotated roughly round-robin.  *)
-    val add_rr : acc:t -> (source:int -> Cstruct.t -> unit)
-    (** [add_rr ~acc] is [fun], where each successive call to [fun ~source bytes]
-    performs [add] with the next pool in [acc], in a round-robin fashion. *)
-
   end
 end
 

@@ -105,15 +105,15 @@ module Accumulator = struct
     SHAd256.feed h data ;
     (* XXX This is clobbered on multi-pool. *)
     acc.gen.trap <- Some (fun () -> fire acc)
-
-  (* XXX
-   * Schneier recommends against using generator-imposed pool-seeding schedule
-   * but it just makes for a horrid api.
-   *)
-  let add_rr ~acc =
-    let pool = ref 0 in
-    fun ~source data ->
-      add ~acc ~source ~pool:!pool data ;
-      incr pool
-
 end
+
+(* XXX
+ * Schneier recommends against using generator-imposed pool-seeding schedule
+ * but it just makes for a horrid api.
+ *)
+let accumulate ~g =
+  let acc  = Accumulator.create ~g
+  and pool = ref 0 in
+  One (fun ~source cs ->
+    Accumulator.add ~acc ~source ~pool:!pool cs ;
+    incr pool)
