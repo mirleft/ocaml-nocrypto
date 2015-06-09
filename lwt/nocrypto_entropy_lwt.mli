@@ -1,6 +1,6 @@
 type t
 
-val attach : period:int -> device:string -> Nocrypto.Fortuna.g -> t Lwt.t
+val attach : period:int -> device:string -> Nocrypto.Rng.g -> t Lwt.t
 (** Arranges for bytes from [device] to be used to reseed [g] at most every
  * [period] seconds. *)
 
