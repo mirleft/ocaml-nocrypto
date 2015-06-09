@@ -270,7 +270,7 @@ module Modes2 = struct
         Raise.invalid1 "CBC: argument is not N * %d bytes" block
 
     let encrypt ~key:(key, _) ~iv plain =
-      let () = bounds_check ~iv plain in
+      bounds_check ~iv plain ;
       let rec loop iv i_iv dst i_buf = function
         | 0 -> of_bigarray ~off:i_iv ~len:block iv
         | b ->
@@ -283,8 +283,8 @@ module Modes2 = struct
       { message = msg ; iv }
 
     let decrypt ~key:(_, key) ~iv src =
-      let ()  = bounds_check ~iv src
-      and msg = create (len src) in
+      bounds_check ~iv src ;
+      let msg = create (len src) in
       match len src / block with
       | 0 -> { message = msg ; iv }
       | b ->
