@@ -291,8 +291,8 @@ module Fortuna : sig
   exception Unseeded_generator
   (** Thrown when using an uninitialized {!g}. *)
 
-  val block_size : int
-  (** Internally, generation always produces a multiple of [block_size] bytes. *)
+  val block : int
+  (** Internally, generation always produces a multiple of [block] bytes. *)
 
   val create : unit -> g
   (** Create new, unseeded {!g}. *)
@@ -343,14 +343,7 @@ end
 (** HMAC_DRBG: A NIST-specified RNG based on HMAC construction over the
     provided hash. *)
 module Hmac_drgb : sig
-
-  module Make (H : Hash.T) : sig
-    type g
-    val block_size : int
-    val create : unit -> g
-    val reseed : ?g:g -> Cstruct.t -> unit
-    val generate : ?g:g -> int -> Cstruct.t
-  end
+  module Make (H : Hash.T) : Rng.S.Generator
 end
 
 

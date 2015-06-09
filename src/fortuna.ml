@@ -5,7 +5,7 @@ open Hash
 module Counter = Cipher_block.Counters.Inc_LE
 module AES_CTR = Cipher_block.AES.CTR (Counter)
 
-let block_size = AES_CTR.block_size
+let block = AES_CTR.block_size
 
 exception Unseeded_generator
 
@@ -117,4 +117,3 @@ module Accumulator = struct
       incr pool
 
 end
-

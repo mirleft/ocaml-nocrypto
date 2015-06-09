@@ -7,7 +7,7 @@ module Make (H : Hash.T) = struct
     ; mutable v : Cstruct.t
     }
 
-  let block_size = H.digest_size
+  let block = H.digest_size
 
   let (bx00, bx01) = Cs.(b 0x00, b 0x01)
 
@@ -16,9 +16,10 @@ module Make (H : Hash.T) = struct
     ; v = Cs.create_with H.digest_size 0x01
     }
 
-  let g = create ()
+  (* XXX *)
+  let seeded ~g = true
 
-  let reseed ?(g=g) cs =
+  let reseed ~g cs =
     let (k, v) = (g.k, g.v) in
     let k = H.hmac ~key:k @@ Cs.concat [v; bx00; cs] in
     let v = H.hmac ~key:k v in
@@ -26,7 +27,7 @@ module Make (H : Hash.T) = struct
     let v = H.hmac ~key:k v in
     g.k <- k; g.v <- v
 
-  let generate ?(g=g) bytes =
+  let generate ~g bytes =
     let rec go acc k v = function
       | 0 -> (v, Cs.concat @@ List.rev acc)
       | i -> let v = H.hmac ~key:k v in go (v::acc) k v (pred i) in
