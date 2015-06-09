@@ -1,5 +1,7 @@
 (** [Uncommon] is a [Common], now with less name clashes. *)
 
+type 'a one = One of 'a
+
 let cdiv x y =
   if x > 0 && y > 0 then (x + y - 1) / y
   else if x < 0 && y < 0 then (x + y + 1) / y

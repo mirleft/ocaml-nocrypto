@@ -11,6 +11,8 @@ end
     This is largely an internal API and prone to breakage. *)
 module Uncommon : sig
 
+  type 'a one = One of 'a
+
   val cdiv : int -> int -> int
 
   val (&.) : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c
