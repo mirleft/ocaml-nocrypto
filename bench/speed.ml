@@ -97,6 +97,11 @@ let benchmarks = [
     let key = DES.ECB.of_secret (Rng.generate 24) in
     throughput name (fun cs -> DES.ECB.encrypt ~key cs)) ;
 
+  bm "fortuna" (fun name ->
+    let g = Fortuna.create () in
+    Fortuna.reseed ~g (Cstruct.of_string "abcd") ;
+    throughput name (fun cs -> Fortuna.generate ~g (Cstruct.len cs))) ;
+
   bm "md5"    (fun name -> throughput name MD5.digest) ;
   bm "sha1"   (fun name -> throughput name SHA1.digest) ;
   bm "sha256" (fun name -> throughput name SHA256.digest) ;
