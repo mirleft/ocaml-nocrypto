@@ -444,6 +444,9 @@ module Rng : sig
   val block : g option -> int
   (** {!S.Generator.block} size of [g] or {!generator}. *)
 
+  module Null_gen : S.Generator
+  (** No-op generator returning bytes it was seeded with. *)
+
 
   module N_gen (N : Numeric.T) : S.N with type t = N.t
   (** Functor giving typed extraction for a numeric type. *)

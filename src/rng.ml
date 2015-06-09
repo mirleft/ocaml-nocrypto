@@ -105,10 +105,10 @@ module ZN    = N_gen (Numeric.Z    )
 
 
 (* Invalid combinations of ~bits and ~msb will loop forever, but there is no
-  * way to quickly determine upfront whether there are any primes in the
-  * interval.
-  * XXX Probability is distributed as inter-prime gaps. So?
-  *)
+ * way to quickly determine upfront whether there are any primes in the
+ * interval.
+ * XXX Probability is distributed as inter-prime gaps. So?
+ *)
 let rec prime ?g ?(msb = 1) bits =
   let p = Z.(nextprime @@ ZN.gen_bits ?g ~msb bits) in
   if p < Z.(one lsl bits) then p else prime ?g ~msb bits
@@ -124,3 +124,24 @@ let rec safe_prime ?g bits =
   else safe_prime ?g ~bits *)
 
 module Z = ZN
+
+
+module Null_gen = struct
+
+  type g = Cstruct.t ref
+
+  let block = 1
+
+  let create () = ref Cs.empty
+
+  let generate ~g n =
+    try
+      let (a, b) = Cstruct.split !g n in ( g := b ; a )
+    with Invalid_argument _ -> invalid_arg "generate: null generator drained"
+
+  let reseed ~g cs = g := Cs.(!g <+> cs)
+
+  let seeded ~g = Cstruct.len !g > 0
+
+  let accumulate ~g = One (fun ~source:_ -> reseed ~g)
+end
