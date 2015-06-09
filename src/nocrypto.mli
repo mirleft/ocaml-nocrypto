@@ -358,6 +358,9 @@ module Rng : sig
   (** Related module signatures. *)
   module S : sig
 
+    type accumulator = source:int -> Cstruct.t -> unit
+    (** A closure feeding entropy into a generator. *)
+
     (** A particular method of generating random numbers. *)
     module type Generator = sig
 
@@ -375,8 +378,12 @@ module Rng : sig
           updating the state of [g]. *)
 
       val reseed : g:g -> Cstruct.t -> unit
-      (** [reseed ~g bytes] updates the internal state of [g]. The new state
-          depends both on [bytes] and the previous state. *)
+      (** [reseed ~g bytes] directly updates the internal state of [g]. The new
+          state depends both on [bytes] and the previous state. *)
+
+      val accumulate : g:g -> accumulator Uncommon.one
+      (** [accumulate ~g] is a closure suitable for incrementally feeding
+          entropy into this [g]. *)
 
       val seeded : g:g -> bool
       (** [seeded ~g] checks whether [g] has been seeded at least once. *)
@@ -423,6 +430,9 @@ module Rng : sig
 
   val reseed : ?g:g -> Cstruct.t -> unit
   (** Invoke {!S.Generator.generate} on [g] or {!generator}. *)
+
+  val accumulate : g option -> S.accumulator Uncommon.one
+  (** Invoke {!S.Generator.accumulate} on [g] or {!generator}. *)
 
   val seeded : g option -> bool
   (** Invoke {!S.Generator.seeded on [g] or {!generator}. *)
