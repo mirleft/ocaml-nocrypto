@@ -30,19 +30,19 @@ let generator = ref (create (module Fortuna))
 let get = function Some g -> g | None -> !generator
 
 let generate ?(g = !generator) n =
-  match g with Generator (g, _, m) -> let module M = (val m) in M.generate ~g n
+  let Generator (g, _, m) = g in let module M = (val m) in M.generate ~g n
 
 let reseed ?(g = !generator) cs =
-  match g with Generator (g, _, m) -> let module M = (val m) in M.reseed ~g cs
+  let Generator (g, _, m) = g in let module M = (val m) in M.reseed ~g cs
 
 let seeded g =
-  match get g with Generator (g, _, m) -> let module M = (val m) in M.seeded ~g
+  let Generator (g, _, m) = get g in let module M = (val m) in M.seeded ~g
 
 let block g =
-  match get g with Generator (_, _, m) -> let module M = (val m) in M.block
+  let Generator (_, _, m) = get g in let module M = (val m) in M.block
 
 let strict g =
-  match get g with Generator (_, s, _) -> s
+  let Generator (_, s, _) = get g in s
 
 
 module S = struct
