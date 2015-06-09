@@ -1,9 +1,10 @@
 0.5.0 (trunk):
 * support for AES-NI and some SSE2 bits
-* do not use ctypes for internal C primitives
+* do not use ctypes for internal C calls
 * support RSA-OAEP and RSA-PSS
 * generate smaller secret exponents for DH, making operations on large groups much faster
-* collateral API breakage
+* support dynamic switching of RNG algorithms and decouple Rng from Fortuna
+* collateral API breakage all around
 
 0.4.0 (2015-05-02):
 * module for injecting entropy into RNG on Unix/Lwt (optional)
