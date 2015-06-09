@@ -1,5 +1,5 @@
 
-val attach : Entropy_xen.t -> Nocrypto.Fortuna.g -> Entropy_xen.token Lwt.t
+val attach : Entropy_xen.t -> Nocrypto.Rng.g -> Entropy_xen.token Lwt.t
 (** [attach e g] starts seeding [g] from the entropy provider [e] and returns
  * the token to stop the seeding. *)
 
