@@ -354,84 +354,105 @@ module Hmac_drgb : sig
 end
 
 
-(** The global RNG. Instantiates {!Fortuna}. *)
+(** General interface to random number generation. *)
 module Rng : sig
 
-  (** Module types. *)
-  module T : sig
+  type g
+  (** Type of random number generators. *)
 
-    (** The core random generator signature. *)
-    module type Rng = sig
+  (** Related module signatures. *)
+  module S : sig
+
+    (** A particular method of generating random numbers. *)
+    module type Generator = sig
 
       type g
       (** State type for this generator. *)
-      val block_size : int
-      (** Internally, this generator's {!generate} always produces [k * block_size] bytes. *)
-      val generate : ?g:g -> int -> Cstruct.t
-      (** [generate ~g n] produces [n] random bytes, using either the given or a
-          default {!g}. *)
+
+      val block : int
+      (** Internally, this generator's {!generate} always produces [k * block] bytes. *)
+
+      val create : unit -> g
+      (** Create a fresh generator. *)
+
+      val generate : g:g -> int -> Cstruct.t
+      (** [generate ~g n] produces [n] uniformly distributed random bytes,
+          updating the state of [g]. *)
+
+      val reseed : g:g -> Cstruct.t -> unit
+      (** [reseed ~g bytes] updates the internal state of [g]. The new state
+          depends both on [bytes] and the previous state. *)
+
+      val seeded : g:g -> bool
+      (** [seeded ~g] checks whether [g] has been seeded at least once. *)
+
     end
 
-    (** Typed random number extraction: {!Rng} for a type [t]. *)
+    (** Typed random number extraction. *)
     module type N = sig
 
       type t
       (** The type of extracted values. *)
-      type g
-      (** Random generator. *)
 
       val gen : ?g:g -> t -> t
       (** [gen ~g n] picks a value in the interval [\[0, n - 1\]] uniformly at random. *)
+
       val gen_r : ?g:g -> t -> t -> t
       (** [gen_r ~g low high] picks a value from the interval [\[low, high - 1\]]
           uniformly at random. *)
+
       val gen_bits : ?g:g -> ?msb:int -> int -> t
       (** [gen_bits ~g ~msb n] creates a bit-string of [n] bits, sets [msb] most
           significant bits and converts it into a value. This yields a value in
           the interval [\[2^(n-1) + ... + 2^(n-msb), 2^n - 1\]].
-          [msb] defaults to [0].*)
+          [msb] defaults to [0]. *)
     end
 
-    (** RNG with full suite of typed numeric extractions. *)
-    module type Rng_numeric = sig
-
-      type g
-      (** Random generator. *)
-
-      val prime : ?g:g -> ?msb:int -> int -> Z.t
-      (** [prime ~g ~msb bits] generates a prime smaller than [2^bits], such that
-          its [msb] most significant bits are set.
-          [prime ~g ~msb:1 bits] (the default) yields a prime in the interval
-          [\[2^(bits - 1), 2^bits - 1\]]. *)
-
-      val safe_prime : ?g:g -> int -> Z.t * Z.t
-      (** [safe_prime ~g bits] gives a prime pair [(g, p)] such that [p = 2g + 1]
-          and [p] has [bits] significant bits. *)
-
-      module Int   : N with type g = g and type t = int
-      module Int32 : N with type g = g and type t = int32
-      module Int64 : N with type g = g and type t = int64
-      module Z     : N with type g = g and type t = Z.t
-
-      val strict : bool -> unit
-    end
   end
 
-  (** Produces the numeric extraction suite over a {!T.Rng}. *)
-  module Numeric_of :
-    functor (Rng : T.Rng) -> T.Rng_numeric with type g = Rng.g
 
+  type 'a generator = (module S.Generator with type g = 'a)
+  (** Type of first-class modules encapsulating methods of random number
+      generation. *)
 
-  type g = Fortuna.g
+  val create : ?strict:bool -> ?g:'a -> 'a generator -> g
+  (** [create module] creates a {!g} for use with functions in this module. *)
 
-  include T.Rng         with type g := g (** Base RNG generation. *)
-  include T.Rng_numeric with type g := g (** Numeric RNG generation. *)
-
-  val reseed    : Cstruct.t      -> unit
-  val reseedv   : Cstruct.t list -> unit
-  val seeded    : unit           -> bool
   val generator : g ref
-  (** [generator] is a reference to the current default generator. *)
+  (* The global {!g}. Functions in this module use this generator when not
+     explicityl supplied with one.
+     [generator] defaults to {!Fortuna}. *)
+
+  val generate : ?g:g -> int -> Cstruct.t
+  (** Invoke {!S.Generator.generate} on [g] or {!generator}. *)
+
+  val reseed : ?g:g -> Cstruct.t -> unit
+  (** Invoke {!S.Generator.generate} on [g] or {!generator}. *)
+
+  val seeded : g option -> bool
+  (** Invoke {!S.Generator.seeded on [g] or {!generator}. *)
+
+  val block : g option -> int
+  (** {!S.Generator.block} size of [g] or {!generator}. *)
+
+
+  module N_gen (N : Numeric.T) : S.N with type t = N.t
+  (** Functor giving typed extraction for a numeric type. *)
+
+  module Int   : S.N with type t = int
+  module Int32 : S.N with type t = int32
+  module Int64 : S.N with type t = int64
+  module Z     : S.N with type t = Z.t
+
+  val prime : ?g:g -> ?msb:int -> int -> Z.t
+  (** [prime ~g ~msb bits] generates a prime smaller than [2^bits], such that
+      its [msb] most significant bits are set.
+      [prime ~g ~msb:1 bits] (the default) yields a prime in the interval
+      [\[2^(bits - 1), 2^bits - 1\]]. *)
+
+  val safe_prime : ?g:g -> int -> Z.t * Z.t
+  (** [safe_prime ~g bits] gives a prime pair [(g, p)] such that [p = 2g + 1]
+      and [p] has [bits] significant bits. *)
 
 end
 
