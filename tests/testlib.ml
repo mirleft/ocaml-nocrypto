@@ -99,9 +99,8 @@ let ctr_selftest (m : (module Cipher_block.T.CTR)) n =
     and ctr  = Rng.generate C.block_size
     and data = Rng.(generate @@ C.block_size * 8 + Int.gen C.block_size) in
     let enc = C.encrypt ~key ~ctr data in
-    let dec = C.decrypt ~key ~ctr enc.C.message in
-    assert_cs_equal ~msg:"ctr result mismatch" data dec.C.message ;
-    assert_cs_equal ~msg:"ctr counter mismatch" enc.C.ctr dec.C.ctr
+    let dec = C.decrypt ~key ~ctr enc in
+    assert_cs_equal ~msg:"ctr result mismatch" data dec
 
 let xor_selftest n =
   "selftest" >:: times ~n @@ fun _ ->
@@ -562,12 +561,11 @@ let aes_ctr_cases =
   let case ~key ~ctr ~out ~ctr1 =
     Cs.(of_secret (of_hex key), of_hex ctr, of_hex out, of_hex ctr1)
 
-  and check (key, ctr, out, ctr1) _ =
+  and check (key, ctr, out, _) _ =
     let enc = encrypt ~key ~ctr nist_sp_800_38a in
-    let dec = decrypt ~key ~ctr enc.message in
-    assert_cs_equal ~msg:"cyphertext" out enc.message ;
-    assert_cs_equal ~msg:"plaintext" nist_sp_800_38a dec.message ;
-    assert_cs_equal ~msg:"counter" ctr1 enc.ctr
+    let dec = decrypt ~key ~ctr enc in
+    assert_cs_equal ~msg:"cyphertext" out enc ;
+    assert_cs_equal ~msg:"plaintext" nist_sp_800_38a dec
   in
 
   cases_of check [
