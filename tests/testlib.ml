@@ -9,7 +9,7 @@ open Nocrypto.Uncommon
 module Fc = struct
 
   module Rng = struct
-    type 'a t = (module Rng.T.N with type g = Rng.g and type t = 'a)
+    type 'a t = (module Rng.S.N with type t = 'a)
     let int   : int   t = (module Rng.Int)
     let int32 : int32 t = (module Rng.Int32)
     let int64 : int64 t = (module Rng.Int64)
