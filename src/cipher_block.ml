@@ -104,6 +104,35 @@ module T = struct
   end
 end
 
+module Counter = struct
+
+  open Cstruct
+
+  let incr1 cs i =
+    let x = succ (get_uint8 cs i) in (set_uint8 cs i x ; x = 0x100)
+
+  let incr2 cs i =
+    let x = succ (BE.get_uint16 cs i) in (BE.set_uint16 cs i x ; x = 0x10000)
+
+  let incr4 cs i =
+    let x = Int32.succ (BE.get_uint32 cs i) in (BE.set_uint32 cs i x ; x = 0l)
+
+  let incr8 cs i =
+    let x = Int64.succ (BE.get_uint64 cs i) in (BE.set_uint64 cs i x ; x = 0L)
+
+  let incr16 cs i = incr8 cs (i + 8) && incr8 cs i
+
+  let add4 cs i x =
+    BE.(set_uint32 cs i (Int32.add x (get_uint32 cs i)))
+
+  let add8 cs i x =
+    BE.(set_uint64 cs i (Int64.add x (get_uint64 cs i)))
+
+  (* FIXME: overflow: higher order bits. *)
+  let add16 cs i x = add8 cs (i + 8) x
+
+end
+
 module Modes = struct
 
   module GCM_of (C : T.Base) : T.GCM = struct
@@ -297,35 +326,6 @@ module Modes2 = struct
 
     let decrypt = encrypt
   end
-
-end
-
-module Counter = struct
-
-  open Cstruct
-
-  let incr1 cs i =
-    let x = succ (get_uint8 cs i) in (set_uint8 cs i x ; x = 0x100)
-
-  let incr2 cs i =
-    let x = succ (BE.get_uint16 cs i) in (BE.set_uint16 cs i x ; x = 0x10000)
-
-  let incr4 cs i =
-    let x = Int32.succ (BE.get_uint32 cs i) in (BE.set_uint32 cs i x ; x = 0l)
-
-  let incr8 cs i =
-    let x = Int64.succ (BE.get_uint64 cs i) in (BE.set_uint64 cs i x ; x = 0L)
-
-  let incr16 cs i = incr8 cs (i + 8) && incr8 cs i
-
-  let add4 cs i x =
-    BE.(set_uint32 cs i (Int32.add x (get_uint32 cs i)))
-
-  let add8 cs i x =
-    BE.(set_uint64 cs i (Int64.add x (get_uint64 cs i)))
-
-  (* FIXME: overflow: higher order bits. *)
-  let add16 cs i x = add8 cs (i + 8) x
 
 end
 
