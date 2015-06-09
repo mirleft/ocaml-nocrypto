@@ -166,8 +166,8 @@ module Cipher_block : sig
       val key   : int array
       val block : int
 
-      val encrypt  : key:ekey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
-      val decrypt  : key:dkey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
+      val encrypt : key:ekey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
+      val decrypt : key:dkey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
     end
 
     (** Modes of operation: *)
@@ -274,7 +274,7 @@ module Cipher_block : sig
   (** {b AES}, plus a few modes of operation. *)
   module AES : sig
     val mode : [ `Generic | `AES_NI ]
-    module Core : T.Core
+(*     module Core : T.Core *)
     module ECB  : T.ECB
     module CBC  : T.CBC
     module CTR  : T.CTR
@@ -284,7 +284,7 @@ module Cipher_block : sig
 
   (** {b DES}, plus a few modes of operation. *)
   module DES : sig
-    module Core : T.Core
+(*     module Core : T.Core *)
     module ECB  : T.ECB
     module CBC  : T.CBC
     module CTR  : T.CTR
