@@ -2,7 +2,7 @@
 # DO NOT EDIT (digest: 7263a105107046d7a010479b6d3daa5a)
 version = "0.4.0"
 description = "Simple crypto for the modern age"
-requires = "cstruct zarith ctypes.stubs sexplib"
+requires = "cstruct zarith sexplib"
 archive(byte) = "nocrypto.cma"
 archive(byte, plugin) = "nocrypto.cma"
 archive(native) = "nocrypto.cmxa"

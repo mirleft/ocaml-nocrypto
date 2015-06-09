@@ -2,10 +2,14 @@
 
 type 'a one = One of 'a
 
-let cdiv x y =
+let cdiv (x : int) (y : int) =
   if x > 0 && y > 0 then (x + y - 1) / y
   else if x < 0 && y < 0 then (x + y + 1) / y
   else x / y
+
+let align ~block n = cdiv n block * block
+
+let imin (a : int) (b : int) = if a < b then a else b
 
 let (&.) f g = fun h -> f (g h)
 
@@ -13,6 +17,17 @@ let id x = x
 
 let rec until p f =
   let r = f () in if p r then r else until p f
+
+module Raise = struct
+
+  open Printf
+
+  let tag = (^) "Nocrypto: "
+
+  let invalid  fmt     = invalid_arg @@ tag fmt
+  let invalid1 fmt a   = invalid_arg @@ tag (sprintf fmt a)
+  let invalid2 fmt a b = invalid_arg @@ tag (sprintf fmt a b)
+end
 
 module Option = struct
 
@@ -91,7 +106,7 @@ module Cs = struct
         | _             -> ok
       in
       let n1 = len cs1 and n2 = len cs2 in
-      loop true 0 (min n1 n2) && n1 = n2 in
+      loop true 0 (imin n1 n2) && n1 = n2 in
 
     if mask then
       eq_with_mask cs1 cs2
@@ -110,41 +125,23 @@ module Cs = struct
               Some i in
     go off (len cs - off)
 
-  let clone ?n cs =
-    let n  = match n with
-      | None   -> len cs
-      | Some n -> n in
-    let cs' = create n in
-    ( blit cs 0 cs' 0 n ; cs' )
+  let clone ?(off = 0) ?len cs =
+    let len = match len with None -> cs.len - off | Some x -> x in
+    let cs' = create len in
+    ( blit cs off cs' 0 len ; cs' )
 
   let xor_into src dst n =
-    let open LE in
-    let rec loop i = function
-      | n when n >= 8 ->
-          set_uint64 dst i (Int64.logxor (get_uint64 src i) (get_uint64 dst i));
-          loop (i + 8) (n - 8)
-      | n when n >= 4 ->
-          set_uint32 dst i (Int32.logxor (get_uint32 src i) (get_uint32 dst i));
-          loop (i + 4) (n - 4)
-      | n when n >= 2 ->
-          set_uint16 dst i (get_uint16 src i lxor get_uint16 dst i);
-          loop (i + 2) (n - 2)
-      | 1 -> set_uint8 dst i (get_uint8 src i lxor get_uint8 dst i)
-      | _ -> ()
-    in
-    loop 0 n
+    if n > imin (len src) (len dst) then
+      Raise.invalid1 "Uncommon.Cs.xor_into: buffers to small (need %d)" n
+    else Native.xor_into src.buffer src.off dst.buffer dst.off n
 
   let xor cs1 cs2 =
-    let n  = min (len cs1) (len cs2) in
-    let cs = clone ~n cs2 in
-    ( xor_into cs1 cs n ; cs )
-
-  let fill cs x =
-    let open Native in (* XXX This should probably go into Cstruct. *)
-    ignore @@ Bindings.Libc.memset Conv.(cs_ptr cs) x Conv.(cs_len_size_t cs)
+    let len = imin (len cs1) (len cs2) in
+    let cs  = clone ~len cs2 in
+    ( xor_into cs1 cs len ; cs )
 
   let create_with n x =
-    let cs = create n in ( fill cs x ; cs )
+    let cs = create n in ( memset cs x ; cs )
 
   let set_msb bits cs =
     if bits > 0 then
@@ -170,14 +167,14 @@ module Cs = struct
     let l = len cs and cs' = create size in
     if size < l then invalid_arg "Nocrypto.Uncommon.Cs.rpad: size < len";
     blit cs 0 cs' 0 l ;
-    fill (sub cs' l (size - l)) x ;
+    memset (sub cs' l (size - l)) x ;
     cs'
 
   let lpad cs size x =
     let l = len cs and cs' = create size in
     if size < l then invalid_arg "Nocrypto.Uncommon.Cs.lpad: size < len";
     blit cs 0 cs' (size - l) l ;
-    fill (sub cs' 0 (size - l)) x ;
+    memset (sub cs' 0 (size - l)) x ;
     cs'
 
   let of_bytes, of_int32s, of_int64s =
@@ -196,7 +193,7 @@ module Cs = struct
     | bits when bits mod 8 = 0 ->
         let off = bits / 8 in
         blit cs off cs 0 (cs.len - off) ;
-        fill (shift cs (cs.len - off)) 0x00
+        memset (shift cs (cs.len - off)) 0x00
     | bits when bits < 8 ->
         let foo = 8 - bits in
         for i = 0 to cs.len - 2 do
@@ -214,7 +211,7 @@ module Cs = struct
     | bits when bits mod 8 = 0 ->
         let off = bits / 8 in
         blit cs 0 cs off (cs.len - off) ;
-        fill (sub cs 0 off) 0x00
+        memset (sub cs 0 off) 0x00
     | bits when bits < 8 ->
         let foo = 8 - bits in
         for i = cs.len - 1 downto 1 do

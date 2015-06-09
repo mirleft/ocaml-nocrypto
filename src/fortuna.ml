@@ -2,8 +2,8 @@
 open Uncommon
 open Hash
 
-module Counter = Cipher_block.Counters.Inc_LE
-module AES_CTR = Cipher_block.AES.CTR (Counter)
+module Counter = Cipher_block.Counter
+module AES_CTR = Cipher_block.AES.CTR
 
 let block = AES_CTR.block_size
 
@@ -11,7 +11,7 @@ exception Unseeded_generator
 
 (* XXX Locking!! *)
 type g =
-  { ctr            : Cstruct.t
+  {         ctr    : Cstruct.t
   ; mutable secret : Cstruct.t
   ; mutable key    : AES_CTR.key
   ; mutable trap   : (unit -> unit) option
@@ -33,24 +33,25 @@ let clone ~g: { ctr ; seeded ; secret ; key ; _ } =
 let seeded ~g = g.seeded
 
 (* XXX We might want to erase the old key. *)
-let exchange_key ~g sec =
+let set_key ~g sec =
   g.secret <- sec ;
   g.key    <- AES_CTR.of_secret sec
 
 let reseedv ~g css =
-  exchange_key ~g @@ SHAd256.digestv (g.secret :: css) ;
-  Counter.increment g.ctr ;
+  set_key ~g @@ SHAd256.digestv (g.secret :: css) ;
+  ignore (Counter.incr16 g.ctr 0) ;
   g.seeded <- true
 
 let reseed ~g cs = reseedv ~g [cs]
 
-let stream ~g:{ ctr ; key ; _ } bytes =
-  AES_CTR.stream ~ctr ~key bytes
-
 let generate_rekey ~g bytes =
-  let r1 = stream ~g bytes
-  and r2 = stream ~g 32 in
-  exchange_key ~g r2 ;
+  let b  = cdiv bytes 16 + 2 in
+  let n  = b * 16 in
+  let r  = AES_CTR.stream ~key:g.key ~ctr:g.ctr n in
+  let r1 = Cstruct.sub r 0 bytes
+  and r2 = Cstruct.sub r (n - 32) 32 in
+  set_key ~g r2 ;
+  Counter.add16 g.ctr 0 (Int64.of_int b) ;
   r1
 
 let generate ~g bytes =
@@ -59,7 +60,7 @@ let generate ~g bytes =
   let rec chunk = function
     | i when i <= 0 -> []
     | n ->
-        let n' = min n 0x10000 in
+        let n' = imin n 0x10000 in
         generate_rekey ~g n' :: chunk (n - n')
   in
   Cs.concat @@ chunk bytes

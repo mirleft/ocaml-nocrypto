@@ -15,52 +15,53 @@ module type T = sig
   val hmac    : key:Cstruct.t -> Cstruct.t -> Cstruct.t
 end
 
-module type Native_hash = sig
-
-  open Ctypes
-
-  val block_size  : int
-  val digest_size : int
-  val ssize       : unit -> Unsigned.size_t
-  val init   : unit ptr -> unit
-  val update : unit ptr -> char ptr -> Unsigned.UInt32.t -> unit
-  val final  : unit ptr -> char ptr -> unit
-end
-
-module Wrap_native (H : Native_hash) = struct
+module type Foreign = sig
 
   open Native
 
-  type t = unit Ctypes.ptr
+  val init     : buffer -> unit
+  val update   : buffer -> buffer -> int -> int -> unit
+  val finalize : buffer -> buffer -> int -> unit
+  val ctx_size : unit -> int
+end
 
-  let block_size  = H.block_size
-  and digest_size = H.digest_size
-  and struct_size = Unsigned.Size_t.to_int H.(ssize ())
+module type Desc = sig
+  val block_size  : int
+  val digest_size : int
+end
+
+module Core (F : Foreign) (D : Desc) = struct
+
+  type t = Native.buffer
+
+  let block_size  = D.block_size
+  and digest_size = D.digest_size
+  and ctx_size    = F.ctx_size ()
 
   let init () =
-    let t = Conv.allocate_voidp ~count:struct_size in
-    ( H.init t; t )
+    let t = Native.buffer ctx_size in
+    ( F.init t ; t )
 
-  let feed t cs =
-    H.update t Conv.(cs_ptr cs) Conv.(cs_len32 cs)
+  let feed t { Cstruct.buffer ; off ; len } =
+    F.update t buffer off len
 
   let get t =
-    let res = Cstruct.create H.digest_size in
-    ( H.final t Conv.(cs_ptr res); res )
-
-  let digestv css =
-    let t = init () in ( List.iter (feed t) css ; get t )
+    let res = Cstruct.create digest_size in
+    F.finalize t res.Cstruct.buffer res.Cstruct.off ;
+    res
 
   let digest cs =
     let t = init () in ( feed t cs ; get t )
 
+  let digestv css =
+    let t = init () in ( List.iter (feed t) css ; get t )
 end
 
-module Hash_of (H : Native_hash) = struct
+module Hash_of (F : Foreign) (D : Desc) = struct
 
   open Cs
 
-  include Wrap_native (H)
+  include Core (F) (D)
 
   let opad = create_with block_size 0x5c
   let ipad = create_with block_size 0x36
@@ -78,35 +79,27 @@ module Hash_of (H : Native_hash) = struct
     digestv [ outer ; digestv [ inner ; message ] ]
 end
 
-module Bindings = Native.Bindings
-
-module MD5 = Hash_of ( struct
-  include Bindings.MD5
+module MD5 = Hash_of (Native.MD5) ( struct
   let (digest_size, block_size) = (16, 64)
 end )
 
-module SHA1 = Hash_of ( struct
-  include Bindings.SHA1
+module SHA1 = Hash_of (Native.SHA1) ( struct
   let (digest_size, block_size) = (20, 64)
 end )
 
-module SHA224 = Hash_of ( struct
-  include Bindings.SHA224
+module SHA224 = Hash_of (Native.SHA224) ( struct
   let (digest_size, block_size) = (28, 64)
 end )
 
-module SHA256 = Hash_of ( struct
-  include Bindings.SHA256
+module SHA256 = Hash_of (Native.SHA256) ( struct
   let (digest_size, block_size) = (32, 64)
 end )
 
-module SHA384 = Hash_of ( struct
-  include Bindings.SHA384
+module SHA384 = Hash_of (Native.SHA384) ( struct
   let (digest_size, block_size) = (48, 128)
 end )
 
-module SHA512 = Hash_of ( struct
-  include Bindings.SHA512
+module SHA512 = Hash_of (Native.SHA512) ( struct
   let (digest_size, block_size) = (64, 128)
 end )
 

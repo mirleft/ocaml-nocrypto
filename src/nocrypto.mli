@@ -38,7 +38,6 @@ module Uncommon : sig
     val xor_into : Cstruct.t -> Cstruct.t -> int -> unit
     val xor      : Cstruct.t -> Cstruct.t -> Cstruct.t
 
-    val fill : Cstruct.t -> int -> unit
     val create_with : int -> int -> Cstruct.t
 
     val of_hex : string -> Cstruct.t
@@ -156,22 +155,21 @@ module Cipher_block : sig
   (** Module types for various instantiations of block ciphers. *)
   module T : sig
 
-    (** Counter type for CTR. *)
-    module type Counter = sig val increment : Cstruct.t -> unit end
-
     (** Raw block cipher in all its glory. *)
-    module type Raw = sig
+    module type Core = sig
 
       type ekey
       type dkey
 
+      val of_secret   : Cstruct.t -> ekey * dkey
       val e_of_secret : Cstruct.t -> ekey
       val d_of_secret : Cstruct.t -> dkey
 
-      val key_sizes  : int array
-      val block_size : int
-      val encrypt_block : key:ekey -> Cstruct.t -> Cstruct.t -> unit
-      val decrypt_block : key:dkey -> Cstruct.t -> Cstruct.t -> unit
+      val key   : int array
+      val block : int
+
+      val encrypt : key:ekey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
+      val decrypt : key:dkey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
     end
 
     (** Modes of operation: *)
@@ -209,9 +207,25 @@ module Cipher_block : sig
 
       val key_sizes  : int array
       val block_size : int
-      val stream  : key:key -> ctr:Cstruct.t -> int -> Cstruct.t
-      val encrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
-      val decrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
+
+      val stream : key:key -> ctr:Cstruct.t -> ?off:int -> int -> Cstruct.t
+      (** [stream ~key ~ctr ~off n] is the first [n] bytes obtained by
+          encrypting and concatenating blocks [c(0), c(1), ...], where [c(0)] is
+          [ctr], and [c(n + 1)] is [c(n) + 1] interpreted in big-endian.
+
+          If [off] is greater than [0] then the result is the last [n] bytes of
+          an [off + n] bytes long stream. Thus,
+          [stream ~key ~ctr ~off:0 n || stream ~key ~ctr ~off:n n ==
+           stream ~key ~ctr ~off:0 (n*2)].
+
+          [ctr] has to be block-sized, and [off] and [n] need to be
+          non-negative. *)
+
+      val encrypt : key:key -> ctr:Cstruct.t -> ?off:int -> Cstruct.t -> Cstruct.t
+      (** [encrypt ~key ~ctr ~off msg] is
+          [(stream ~key ~ctr ~off (len msg)) xor msg]. *)
+
+      val decrypt : key:key -> ctr:Cstruct.t -> ?off:int -> Cstruct.t -> Cstruct.t
     end
 
     (** {e Galois/Counter Mode}. *)
@@ -239,30 +253,43 @@ module Cipher_block : sig
     end
   end
 
-  (** {!T.Counter}s for easy {!T.CTR} instantiation. *)
-  module Counters : sig
-    module Inc_LE : T.Counter
-    (** Increment-by-one, little endian. Works on [8*n]-long vectors. *)
-    module Inc_BE : T.Counter
-    (** Increment-by-one, big endian. Works on [8*n]-long vectors. *)
+  (** BE counter function.
+
+      Each [incrX cs i] increments [X]-sized block of [cs] at the offset [i] by
+      one, returning [true] if an overfow occurred (and the block is now
+      zeroed-out).
+
+      Each [addX cs i n] adds [n] to the [X]-sized block. *)
+  module Counter : sig
+
+    val incr1  : Cstruct.t -> int -> bool
+    val incr2  : Cstruct.t -> int -> bool
+    val incr4  : Cstruct.t -> int -> bool
+    val incr8  : Cstruct.t -> int -> bool
+    val incr16 : Cstruct.t -> int -> bool
+
+    val add4   : Cstruct.t -> int -> int32 -> unit
+    val add8   : Cstruct.t -> int -> int64 -> unit
+    val add16  : Cstruct.t -> int -> int64 -> unit
   end
 
   (** {b AES}, plus a few modes of operation. *)
   module AES : sig
-    module Raw : T.Raw
-    module ECB : T.ECB
-    module CBC : T.CBC
-    module CTR : functor (C : T.Counter) -> T.CTR
-    module GCM : T.GCM
-    module CCM : T.CCM
+    val mode : [ `Generic | `AES_NI ]
+(*     module Core : T.Core *)
+    module ECB  : T.ECB
+    module CBC  : T.CBC
+    module CTR  : T.CTR
+    module GCM  : T.GCM
+    module CCM  : T.CCM
   end
 
   (** {b DES}, plus a few modes of operation. *)
   module DES : sig
-    module Raw : T.Raw
-    module ECB : T.ECB
-    module CBC : T.CBC
-    module CTR : functor (C : T.Counter) -> T.CTR
+(*     module Core : T.Core *)
+    module ECB  : T.ECB
+    module CBC  : T.CBC
+    module CTR  : T.CTR
   end
 end
 

@@ -92,6 +92,34 @@ let cbc_selftest ( m : (module Cipher_block.T.CBC) ) n  =
     in
     assert_cs_equal ~msg:"cbc mismatch" data data'
 
+let ctr_selftest (m : (module Cipher_block.T.CTR)) n =
+  let module C = (val m) in
+  "selftest" >:: times ~n @@ fun _ ->
+    let key  = C.of_secret @@ Rng.generate (sample C.key_sizes)
+    and ctr  = Rng.generate C.block_size
+    and data = Rng.(generate @@ C.block_size * 8 + Int.gen C.block_size) in
+    let enc = C.encrypt ~key ~ctr data in
+    let dec = C.decrypt ~key ~ctr enc in
+    assert_cs_equal ~msg:"ctr result mismatch" data dec
+
+let ctr_offsets (m : (module Cipher_block.T.CTR)) =
+  let module C = (val m) in
+  "offsets" >:: fun _ ->
+    let key = C.of_secret @@ Rng.generate C.key_sizes.(0) in
+    let ctr = Cs.create_with C.block_size 0x00 in
+    for i = 0 to 128 do
+      let s1 = C.stream ~key ~ctr ~off:i (C.block_size + 1)
+      and s2 = C.stream ~key ~ctr ~off:(i + 1) (C.block_size + 1) in
+      assert_cs_equal ~msg:"stream shifts"
+        Cstruct.(sub s1 1 C.block_size)
+        Cstruct.(sub s2 0 C.block_size)
+    done ;
+    let xs = range 0 100 |> List.map (fun _ -> Rng.generate 3) in
+    assert_cs_equal ~msg:"shifted stitches"
+      (C.encrypt ~key ~ctr Cs.(concat xs))
+      (Cs.concat (xs |> List.mapi @@ fun i cs ->
+        C.encrypt ~key ~ctr ~off:(i * 3) cs))
+
 let xor_selftest n =
   "selftest" >:: times ~n @@ fun _ ->
 
@@ -467,6 +495,125 @@ let sha2_cases = [
   "sha512" >::: sha512_cases ;
 ]
 
+(* NIST SP 800-38A test vectors for block cipher modes of operation *)
+
+let nist_sp_800_38a = Cs.of_hex
+  "6b c1 be e2 2e 40 9f 96 e9 3d 7e 11 73 93 17 2a
+   ae 2d 8a 57 1e 03 ac 9c 9e b7 6f ac 45 af 8e 51
+   30 c8 1c 46 a3 5c e4 11 e5 fb c1 19 1a 0a 52 ef
+   f6 9f 24 45 df 4f 9b 17 ad 2b 41 7b e6 6c 37 10"
+
+let aes_ecb_cases =
+  let open Cipher_block in
+
+  let case ~key ~out = Cs.(AES.ECB.of_secret (of_hex key), of_hex out)
+
+  and check (key, out) _ =
+    let enc = AES.ECB.encrypt ~key nist_sp_800_38a in
+    let dec = AES.ECB.decrypt ~key enc in
+    assert_cs_equal ~msg:"cyphertext" out enc ;
+    assert_cs_equal ~msg:"plaintext" nist_sp_800_38a dec in
+
+  cases_of check [
+    case ~key: "2b 7e 15 16 28 ae d2 a6 ab f7 15 88 09 cf 4f 3c"
+         ~out: "3a d7 7b b4 0d 7a 36 60 a8 9e ca f3 24 66 ef 97
+                f5 d3 d5 85 03 b9 69 9d e7 85 89 5a 96 fd ba af
+                43 b1 cd 7f 59 8e ce 23 88 1b 00 e3 ed 03 06 88
+                7b 0c 78 5e 27 e8 ad 3f 82 23 20 71 04 72 5d d4"
+
+  ; case ~key: "8e 73 b0 f7 da 0e 64 52 c8 10 f3 2b 80 90 79 e5
+                62 f8 ea d2 52 2c 6b 7b"
+         ~out: "bd 33 4f 1d 6e 45 f2 5f f7 12 a2 14 57 1f a5 cc
+                97 41 04 84 6d 0a d3 ad 77 34 ec b3 ec ee 4e ef
+                ef 7a fd 22 70 e2 e6 0a dc e0 ba 2f ac e6 44 4e
+                9a 4b 41 ba 73 8d 6c 72 fb 16 69 16 03 c1 8e 0e"
+
+  ; case ~key: "60 3d eb 10 15 ca 71 be 2b 73 ae f0 85 7d 77 81
+                1f 35 2c 07 3b 61 08 d7 2d 98 10 a3 09 14 df f4"
+         ~out: "f3 ee d1 bd b5 d2 a0 3c 06 4b 5a 7e 3d b1 81 f8
+                59 1c cb 10 d4 10 ed 26 dc 5b a7 4a 31 36 28 70
+                b6 ed 21 b9 9c a6 f4 f9 f1 53 e7 b1 be af ed 1d
+                23 30 4b 7a 39 f9 f3 ff 06 7d 8d 8f 9e 24 ec c7"
+  ]
+
+let aes_cbc_cases =
+  let open Cipher_block in
+
+  let case ~key ~iv ~out =
+    Cs.(AES.CBC.of_secret (of_hex key), of_hex iv, of_hex out)
+
+  and check (key, iv, out) _ =
+    let { AES.CBC.message = enc ; _ } = AES.CBC.encrypt ~key ~iv nist_sp_800_38a in
+    let { AES.CBC.message = dec ; _ } = AES.CBC.decrypt ~key ~iv enc in
+    assert_cs_equal ~msg:"cyphertext" out enc ;
+    assert_cs_equal ~msg:"plaintext" nist_sp_800_38a dec in
+
+  cases_of check [
+    case ~key: "2b 7e 15 16 28 ae d2 a6 ab f7 15 88 09 cf 4f 3c"
+         ~iv:  "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f"
+         ~out: "76 49 ab ac 81 19 b2 46 ce e9 8e 9b 12 e9 19 7d
+                50 86 cb 9b 50 72 19 ee 95 db 11 3a 91 76 78 b2
+                73 be d6 b8 e3 c1 74 3b 71 16 e6 9e 22 22 95 16
+                3f f1 ca a1 68 1f ac 09 12 0e ca 30 75 86 e1 a7"
+
+  ; case ~key: "8e 73 b0 f7 da 0e 64 52 c8 10 f3 2b 80 90 79 e5
+                62 f8 ea d2 52 2c 6b 7b"
+         ~iv:  "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f"
+         ~out: "4f 02 1d b2 43 bc 63 3d 71 78 18 3a 9f a0 71 e8
+                b4 d9 ad a9 ad 7d ed f4 e5 e7 38 76 3f 69 14 5a
+                57 1b 24 20 12 fb 7a e0 7f a9 ba ac 3d f1 02 e0
+                08 b0 e2 79 88 59 88 81 d9 20 a9 e6 4f 56 15 cd"
+
+  ; case ~key: "60 3d eb 10 15 ca 71 be 2b 73 ae f0 85 7d 77 81
+                1f 35 2c 07 3b 61 08 d7 2d 98 10 a3 09 14 df f4"
+         ~iv:  "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f"
+         ~out: "f5 8c 4c 04 d6 e5 f1 ba 77 9e ab fb 5f 7b fb d6
+                9c fc 4e 96 7e db 80 8d 67 9f 77 7b c6 70 2c 7d
+                39 f2 33 69 a9 d9 ba cf a5 30 e2 63 04 23 14 61
+                b2 eb 05 e2 c3 9b e9 fc da 6c 19 07 8c 6a 9d 1b"
+  ]
+
+let aes_ctr_cases =
+  let open Cipher_block.AES.CTR in
+
+  let case ~key ~ctr ~out ~ctr1 =
+    Cs.(of_secret (of_hex key), of_hex ctr, of_hex out, of_hex ctr1)
+
+  and check (key, ctr, out, _) _ =
+    let enc = encrypt ~key ~ctr nist_sp_800_38a in
+    let dec = decrypt ~key ~ctr enc in
+    assert_cs_equal ~msg:"cyphertext" out enc ;
+    assert_cs_equal ~msg:"plaintext" nist_sp_800_38a dec
+  in
+
+  cases_of check [
+    case ~key:  "2b 7e 15 16 28 ae d2 a6 ab f7 15 88 09 cf 4f 3c"
+         ~ctr:  "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff"
+         ~out:  "87 4d 61 91 b6 20 e3 26 1b ef 68 64 99 0d b6 ce
+                 98 06 f6 6b 79 70 fd ff 86 17 18 7b b9 ff fd ff
+                 5a e4 df 3e db d5 d3 5e 5b 4f 09 02 0d b0 3e ab
+                 1e 03 1d da 2f be 03 d1 79 21 70 a0 f3 00 9c ee"
+         ~ctr1: "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd ff 03"
+
+  ; case ~key:  "8e 73 b0 f7 da 0e 64 52 c8 10 f3 2b 80 90 79 e5
+                 62 f8 ea d2 52 2c 6b 7b"
+         ~ctr:  "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff"
+         ~out:  "1a bc 93 24 17 52 1c a2 4f 2b 04 59 fe 7e 6e 0b
+                 09 03 39 ec 0a a6 fa ef d5 cc c2 c6 f4 ce 8e 94
+                 1e 36 b2 6b d1 eb c6 70 d1 bd 1d 66 56 20 ab f7
+                 4f 78 a7 f6 d2 98 09 58 5a 97 da ec 58 c6 b0 50"
+         ~ctr1: "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd ff 03"
+
+  ; case ~key:  "60 3d eb 10 15 ca 71 be 2b 73 ae f0 85 7d 77 81
+                 1f 35 2c 07 3b 61 08 d7 2d 98 10 a3 09 14 df f4"
+         ~ctr:  "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff"
+         ~out:  "60 1e c3 13 77 57 89 a5 b7 a7 f5 04 bb f3 d2 28
+                 f4 43 e3 ca 4d 62 b5 9a ca 84 e9 90 ca ca f5 c5
+                 2b 09 30 da a2 3d e9 4c e8 70 17 ba 2d 84 98 8d
+                 df c9 c5 8d b6 7a ad a6 13 c2 dd 08 45 79 41 a6"
+         ~ctr1: "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd ff 03"
+  ]
+
 (* aes gcm *)
 
 let gcm_cases =
@@ -725,11 +872,20 @@ let suite =
 
     "3DES-ECB" >::: [ ecb_selftest (module Cipher_block.DES.ECB) 100 ] ;
 
-    "3DES-ECB" >::: [ cbc_selftest (module Cipher_block.AES.CBC) 100 ] ;
+    "3DES-CBC" >::: [ cbc_selftest (module Cipher_block.DES.CBC) 100 ] ;
 
-    "AES-ECB" >::: [ ecb_selftest (module Cipher_block.AES.ECB) 100 ] ;
+    "3DES-CTR" >::: [ ctr_selftest (module Cipher_block.DES.CTR) 100
+                    ; ctr_offsets  (module Cipher_block.DES.CTR) ] ;
 
-    "AES-CBC" >::: [ cbc_selftest (module Cipher_block.AES.CBC) 100 ] ;
+    "AES-ECB" >::: [ ecb_selftest (module Cipher_block.AES.ECB) 100
+                   ; "SP 300-38A" >::: aes_ecb_cases ] ;
+
+    "AES-CBC" >::: [ cbc_selftest (module Cipher_block.AES.CBC) 100
+                   ; "SP 300-38A" >::: aes_cbc_cases ] ;
+
+    "AES-CTR" >::: [ ctr_selftest (module Cipher_block.AES.CTR) 100
+                   ; ctr_offsets  (module Cipher_block.AES.CTR)
+                   ; "SP 300-38A" >::: aes_ctr_cases ] ;
 
     "AES-GCM" >::: gcm_cases ;
 

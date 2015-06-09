@@ -22,15 +22,15 @@ Flag lwt
   Description: Build Lwt/Unix support
   Default:     true
 
-Flag "pedantic"
-  Description: Make the C compiler go hardcore
-  Default:     false
+Flag modernity
+  Description: Use CPU extensions
+  Default:     true
 
-Flag "benchmarks"
+Flag benchmarks
   Description: Build the benchmark programs
   Default:     false
 
-Library "nocrypto"
+Library nocrypto
   Path:            src/
   Pack:            true
   Modules:         Uncommon,
@@ -45,38 +45,34 @@ Library "nocrypto"
                    Rsa,
                    Dsa,
                    Dh
-  InternalModules: Nocrypto_generated,
-                   Bindings,
-                   Native,
+  InternalModules: Native,
                    Gcm,
                    Ccm
-  CSources:        native/bitfn.h,
-                   native/md5.c,
-                   native/md5.h,
-                   native/sha1.c,
-                   native/sha1.h,
-                   native/sha256.c,
-                   native/sha256.h,
-                   native/sha512.c,
-                   native/sha512.h,
-                   native/rijndael.c,
-                   native/rijndael.h,
-                   native/d3des.c,
-                   native/d3des.h,
-                   native/nocrypto_stubs.h,
-                   native/nocrypto_stubs.c,
-                   native/nocrypto_generated_stubs.c
-  BuildDepends:    cstruct (>= 1.2.0), zarith, ctypes,
-                   ctypes.stubs, sexplib.syntax, type_conv
-  XMETARequires:   cstruct, zarith, ctypes.stubs, sexplib
+  CSources:        native/nocrypto.h,
+                   native/misc.c,
+                   native/hash/stubs.c,
+                   native/hash/bitfn.h,
+                   native/hash/md5.c,
+                   native/hash/md5.h,
+                   native/hash/sha1.c,
+                   native/hash/sha1.h,
+                   native/hash/sha256.c,
+                   native/hash/sha256.h,
+                   native/hash/sha512.c,
+                   native/hash/sha512.h,
+                   native/aes/generic.c,
+                   native/aes/aesni.c,
+                   native/des/generic.c,
+                   native/des/generic.h
+  BuildDepends:    cstruct (>= 1.6.0), zarith, sexplib.syntax, type_conv
+  XMETARequires:   cstruct, zarith, sexplib
   XMETAExtraLines: xen_linkopts = "-lnocrypto_xen_stubs"
-  CCOpt:           -O3 -I$pkg_ctypes -I$pkg_ctypes/..
-  BuildTools:      nocrypto_bindgen
   ByteOpt:         -w A-4-33-40-41-42-43-34-44
-  if flag(pedantic)
-    CCOpt: -Wall -Wpedantic
+  CCOpt:           --std=c99 -Wall -Wextra -Werror -O3
+  if flag(modernity) && architecture(amd64)
+    CCOpt+: -msse2 -maes
 
-Library "nocrypto_lwt"
+Library nocrypto_lwt
   Path:          lwt/
   Findlibparent: nocrypto
   Findlibname:   lwt
@@ -84,49 +80,42 @@ Library "nocrypto_lwt"
   Modules:       Nocrypto_entropy_lwt
   BuildDepends:  nocrypto, lwt.unix, cstruct.lwt
 
-Library "nocrypto_xen"
+Library nocrypto_xen
   Path:            xen/
   Findlibparent:   nocrypto
   Findlibname:     xen
   Build$:          flag(xen)
   Modules:         Nocrypto_entropy_xen
-  CSources:        native/bitfn.h,
-                   native/md5.c,
-                   native/md5.h,
-                   native/sha1.c,
-                   native/sha1.h,
-                   native/sha256.c,
-                   native/sha256.h,
-                   native/sha512.c,
-                   native/sha512.h,
-                   native/rijndael.c,
-                   native/rijndael.h,
-                   native/d3des.c,
-                   native/d3des.h,
-                   native/nocrypto_stubs.h,
-                   native/nocrypto_stubs.c,
-                   native/nocrypto_generated_stubs.c
+  CSources:        native/nocrypto.h,
+                   native/misc.c,
+                   native/hash/stubs.c,
+                   native/hash/bitfn.h,
+                   native/hash/md5.c,
+                   native/hash/md5.h,
+                   native/hash/sha1.c,
+                   native/hash/sha1.h,
+                   native/hash/sha256.c,
+                   native/hash/sha256.h,
+                   native/hash/sha512.c,
+                   native/hash/sha512.h,
+                   native/aes/generic.c,
+                   native/aes/aesni.c,
+                   native/des/generic.c,
+                   native/des/generic.h
   BuildDepends:    nocrypto, lwt.syntax, mirage-entropy-xen
   XMETARequires:   nocrypto, lwt, mirage-entropy-xen
-  CCOpt:           -O3 -I$pkg_ctypes -I$pkg_ctypes/.. -DNDEBUG $XEN_CFLAGS
-  BuildTools:      nocrypto_bindgen
-  if flag(pedantic)
-    CCOpt: -Wall -Wpedantic
+  CCOpt:           --std=c99 -Wall -Wextra -Werror -O3 -DNDEBUG $XEN_CFLAGS
+  if flag(modernity) && architecture(amd64)
+    CCOpt+: -msse2 -maes
 
-Executable "nocrypto_bindgen"
-  MainIs:         nocrypto_bindgen.ml
-  Install:        false
-  Path:           src_gen
-  BuildDepends:   ctypes.stubs
-
-Library "testlib"
+Library testlib
   Path:         tests/
   Modules:      Notest, Hmac_tests, Dsa_tests, Testlib
   Install:      false
   Build$:       flag(tests)
   BuildDepends: nocrypto, oUnit
 
-Executable "test_runner"
+Executable test_runner
   Path:           tests/
   Install:        false
   CompiledObject: best
@@ -139,20 +128,12 @@ Test the_things
   TestTools: test_runner
   Run$:      flag(tests)
 
-Executable "bench"
+Executable speed
   Path:           bench/
   Install:        false
   CompiledObject: native
-  MainIs:         runnable.ml
-  Build$:         flag(tests) && flag(benchmarks)
-  BuildDepends:   nocrypto, cstruct, lwt, lwt.syntax, lwt.unix
-
-Executable "hashbench"
-  Path:           bench/
-  Install:        false
-  CompiledObject: native
-  MainIs:         hashbench.ml
-  Build$:         flag(tests) && flag(benchmarks)
+  MainIs:         speed.ml
+  Build$:         flag(benchmarks)
   BuildDepends:   nocrypto, cstruct, cstruct.unix
 
 Document api
