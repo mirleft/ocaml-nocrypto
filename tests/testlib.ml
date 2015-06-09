@@ -102,6 +102,24 @@ let ctr_selftest (m : (module Cipher_block.T.CTR)) n =
     let dec = C.decrypt ~key ~ctr enc in
     assert_cs_equal ~msg:"ctr result mismatch" data dec
 
+let ctr_offsets (m : (module Cipher_block.T.CTR)) =
+  let module C = (val m) in
+  "offsets" >:: fun _ ->
+    let key = C.of_secret @@ Rng.generate C.key_sizes.(0) in
+    let ctr = Cs.create_with C.block_size 0x00 in
+    for i = 0 to 128 do
+      let s1 = C.stream ~key ~ctr ~off:i (C.block_size + 1)
+      and s2 = C.stream ~key ~ctr ~off:(i + 1) (C.block_size + 1) in
+      assert_cs_equal ~msg:"stream shifts"
+        Cstruct.(sub s1 1 C.block_size)
+        Cstruct.(sub s2 0 C.block_size)
+    done ;
+    let xs = range 0 100 |> List.map (fun _ -> Rng.generate 3) in
+    assert_cs_equal ~msg:"shifted stitches"
+      (C.encrypt ~key ~ctr Cs.(concat xs))
+      (Cs.concat (xs |> List.mapi @@ fun i cs ->
+        C.encrypt ~key ~ctr ~off:(i * 3) cs))
+
 let xor_selftest n =
   "selftest" >:: times ~n @@ fun _ ->
 
@@ -856,7 +874,8 @@ let suite =
 
     "3DES-CBC" >::: [ cbc_selftest (module Cipher_block.DES.CBC) 100 ] ;
 
-    "3DES-CTR" >::: [ ctr_selftest (module Cipher_block.DES.CTR) 100 ] ;
+    "3DES-CTR" >::: [ ctr_selftest (module Cipher_block.DES.CTR) 100
+                    ; ctr_offsets  (module Cipher_block.DES.CTR) ] ;
 
     "AES-ECB" >::: [ ecb_selftest (module Cipher_block.AES.ECB) 100
                    ; "SP 300-38A" >::: aes_ecb_cases ] ;
@@ -865,6 +884,7 @@ let suite =
                    ; "SP 300-38A" >::: aes_cbc_cases ] ;
 
     "AES-CTR" >::: [ ctr_selftest (module Cipher_block.AES.CTR) 100
+                   ; ctr_offsets  (module Cipher_block.AES.CTR)
                    ; "SP 300-38A" >::: aes_ctr_cases ] ;
 
     "AES-GCM" >::: gcm_cases ;
