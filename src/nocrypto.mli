@@ -201,14 +201,14 @@ module Cipher_block : sig
     module type CTR = sig
 
       type key
-      type result = { message : Cstruct.t ; ctr : Cstruct.t }
       val of_secret : Cstruct.t -> key
 
       val key_sizes  : int array
       val block_size : int
-      val stream  : key:key -> ctr:Cstruct.t -> int -> result
-      val encrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> result
-      val decrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> result
+
+      val stream  : key:key -> ctr:Cstruct.t -> int -> Cstruct.t
+      val encrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
+      val decrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
     end
 
     (** {e Galois/Counter Mode}. *)

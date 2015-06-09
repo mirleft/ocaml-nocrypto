@@ -71,14 +71,14 @@ module T = struct
   module type CTR = sig
 
     type key
-    type result = { message : Cstruct.t ; ctr : Cstruct.t }
     val of_secret : Cstruct.t -> key
 
     val key_sizes  : int array
     val block_size : int
-    val stream  : key:key -> ctr:Cstruct.t -> int -> result
-    val encrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> result
-    val decrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> result
+
+    val stream  : key:key -> ctr:Cstruct.t -> int -> Cstruct.t
+    val encrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
+    val decrypt : key:key -> ctr:Cstruct.t -> Cstruct.t -> Cstruct.t
   end
 
   module type GCM = sig
@@ -268,7 +268,7 @@ module Modes2 = struct
 
   module CTR_of (Core : T.Core) : T.CTR = struct
 
-    (* FIXME: CTR can easily be ~40% faster. *)
+    (* FIXME: CTR has more room for speedups. *)
 
     let count_be =
       match Core.block with
@@ -278,8 +278,6 @@ module Modes2 = struct
 
     type key = Core.ekey
 
-    type result = { message : Cstruct.t ; ctr : Cstruct.t }
-
     let (key_sizes, block_size) = Core.(key, block)
     let of_secret = Core.e_of_secret
 
@@ -287,19 +285,17 @@ module Modes2 = struct
 
     let stream ~key ~ctr n =
       let blocks = cdiv n block in
-      let size   = blocks * block in
-      let res    = create (size + block) in
-      count_be ctr.buffer ctr.off res.buffer res.off (blocks + 1) ;
-      Core.encrypt ~key ~blocks res.buffer res.off res.buffer res.off ;
-      { message = sub res 0 n ; ctr = sub res size block }
+      let buf    = Native.buffer (blocks * block) in
+      count_be ctr.buffer ctr.off buf 0 blocks ;
+      Core.encrypt ~key ~blocks buf 0 buf 0 ;
+      of_bigarray ~len:n buf
 
     let encrypt ~key ~ctr src =
-      let { message ; _ } as res = stream ~key ~ctr src.len in
-      Native.xor_into src.buffer src.off message.buffer message.off src.len ;
+      let res = stream ~key ~ctr src.len in
+      Native.xor_into src.buffer src.off res.buffer 0 src.len ;
       res
 
     let decrypt = encrypt
-
   end
 
 end
