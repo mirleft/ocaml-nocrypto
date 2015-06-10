@@ -270,3 +270,12 @@ module Arr = struct
       | n  -> arr.(n) = x || scan (pred n) in
     scan (Array.length arr - 1)
 end
+
+(* Random stuff needed for other modules because deps. *)
+module Boot = struct
+
+  (* Should be thrown be generators and live in Rng, but Rng needs to
+   * instantiate Fortuna for the latter can't depend on the former. *)
+  exception Unseeded_generator
+
+end

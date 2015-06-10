@@ -1,5 +1,6 @@
 open Uncommon
 
+exception Unseeded_generator = Uncommon.Boot.Unseeded_generator
 
 module S = struct
 

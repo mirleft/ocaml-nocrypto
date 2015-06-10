@@ -7,7 +7,7 @@ module AES_CTR = Cipher_block.AES.CTR
 
 let block = AES_CTR.block_size
 
-exception Unseeded_generator
+exception Unseeded_generator = Uncommon.Boot.Unseeded_generator
 
 (* XXX Locking!! *)
 type g =
