@@ -5,7 +5,7 @@ open Hash
 module Counter = Cipher_block.Counter
 module AES_CTR = Cipher_block.AES.CTR
 
-let block = AES_CTR.block_size
+let block = 16
 
 exception Unseeded_generator = Uncommon.Boot.Unseeded_generator
 
@@ -20,7 +20,7 @@ type g =
 
 let create () =
   let k = Cs.zeros 32 in
-  { ctr    = Cs.zeros 16
+  { ctr    = Cs.zeros block
   ; secret = k
   ; key    = AES_CTR.of_secret k
   ; trap   = None
@@ -45,8 +45,8 @@ let reseedv ~g css =
 let reseed ~g cs = reseedv ~g [cs]
 
 let generate_rekey ~g bytes =
-  let b  = cdiv bytes 16 + 2 in
-  let n  = b * 16 in
+  let b  = cdiv bytes block + 2 in
+  let n  = b * block in
   let r  = AES_CTR.stream ~key:g.key ~ctr:g.ctr n in
   let r1 = Cstruct.sub r 0 bytes
   and r2 = Cstruct.sub r (n - 32) 32 in
