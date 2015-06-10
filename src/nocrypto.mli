@@ -311,19 +311,43 @@ module Cipher_stream : sig
 end
 
 
-(** General interface to random number generation. *)
+(**
+  General interface to randomness.
+
+  It defines a general module type of generators, {!S.Generator}, a facility to
+  convert such modules into generators that can be used uniformly, {!g}, and
+  functions that operate on this generic representation.
+
+  It contains a reference, {!generator}, to a global [g] instance.
+  When not explicitly supplied a [g], random-generation functions use the
+  contents of this reference. It starts with {!Fortuna}.
+
+  It defines a module type of utilities for generating a particular numeric
+  type, {!S.N}, contains instances of this module type for [int], [int32],
+  [int64] and [Z.t], and functor to create them given a ground numeric type.
+
+  It includes specialized operations for generating random primes.
+*)
 module Rng : sig
 
   type g
-  (** Type of random number generators. *)
+  (** A generator with its state. Changes when used. *)
+
+  exception Unseeded_generator
+  (** Thrown when using an uninitialized {!g}. *)
+
 
   (** Related module signatures. *)
   module S : sig
 
     type accumulator = source:int -> Cstruct.t -> unit
-    (** A closure feeding entropy into a generator. *)
+    (** A closure feeding entropy into a generator.
 
-    (** A particular method of generating random numbers. *)
+       In systems where several distinct sources are set up to feed a single
+       generator, they should identify by picking a distinct but stable [source]
+       numbers. *)
+
+    (** A particular RNG algorithm. *)
     module type Generator = sig
 
       type g
@@ -333,30 +357,34 @@ module Rng : sig
       (** Internally, this generator's {!generate} always produces [k * block] bytes. *)
 
       val create : unit -> g
-      (** Create a fresh generator. *)
+      (** Create a new, unseeded {!g}. *)
 
       val generate : g:g -> int -> Cstruct.t
       (** [generate ~g n] produces [n] uniformly distributed random bytes,
           updating the state of [g]. *)
 
       val reseed : g:g -> Cstruct.t -> unit
-      (** [reseed ~g bytes] directly updates the internal state of [g]. The new
-          state depends both on [bytes] and the previous state. *)
+      (** [reseed ~g bytes] directly updates [g]. Its new state depends both on
+          [bytes] and the previous state.
+
+          A generator is seded after a single application of [reseed]. *)
 
       val accumulate : g:g -> accumulator Uncommon.one
       (** [accumulate ~g] is a closure suitable for incrementally feeding
-          entropy into this [g]. *)
+          small amounts of environmentally sourced entropy into the given [g],
+          and should fast enough to be called from e.g. event loops.
+
+          A generator is seeded after a single application of the closure. *)
 
       val seeded : g:g -> bool
-      (** [seeded ~g] checks whether [g] has been seeded at least once. *)
+      (** [seeded ~g] is [true] iff operations won't throw {!Unseeded_generator}. *)
 
     end
 
     type 'a generator = (module Generator with type g = 'a)
-    (** Type of first-class modules encapsulating methods of random number
-        generation. *)
+    (** Type of first-class modules encapsulating a particular RNG algorithm. *)
 
-    (** Typed random number extraction. *)
+    (** Random number generation. *)
     module type N = sig
 
       type t
@@ -380,11 +408,12 @@ module Rng : sig
 
 
   val create : ?strict:bool -> ?g:'a -> 'a S.generator -> g
-  (** [create module] creates a {!g} for use with functions in this module. *)
+  (** [create module] creates generic RNG representation {!g}. *)
 
   val generator : g ref
   (* The global {!g}. Functions in this module use this generator when not
-     explicityl supplied with one.
+     explicitly supplied one.
+
      [generator] defaults to {!Fortuna}. *)
 
   val generate : ?g:g -> int -> Cstruct.t
@@ -407,12 +436,13 @@ module Rng : sig
 
 
   module N_gen (N : Numeric.T) : S.N with type t = N.t
-  (** Functor giving typed extraction for a numeric type. *)
+  (** Functor giving random number generation for a numeric type. *)
 
   module Int   : S.N with type t = int
   module Int32 : S.N with type t = int32
   module Int64 : S.N with type t = int64
   module Z     : S.N with type t = Z.t
+
 
   val prime : ?g:g -> ?msb:int -> int -> Z.t
   (** [prime ~g ~msb bits] generates a prime smaller than [2^bits], such that
@@ -428,66 +458,7 @@ end
 
 
 (** Implementation of {{: https://www.schneier.com/fortuna.html} Fortuna} CSPRNG. *)
-module Fortuna : sig
-
-  type g
-  (** Generator state. Changes when operated upon. *)
-
-  exception Unseeded_generator
-  (** Thrown when using an uninitialized {!g}. *)
-
-  val block : int
-  (** Internally, generation always produces a multiple of [block] bytes. *)
-
-  val create : unit -> g
-  (** Create new, unseeded {!g}. *)
-
-  val clone  : g:g -> g
-  (** Clone a generator in its current state. *)
-
-  val seeded : g:g -> bool
-  (** [seeded ~g] is [true] iff operations won't throw {!Unseeded_generator}. *)
-
-  val reseed   : g:g -> Cstruct.t -> unit
-  (** [reseed ~g bytes] updates [g] by mixing in [bytes] which should be
-   unpredictable and ideally environmentally sourced. *)
-
-  val reseedv  : g:g -> Cstruct.t list -> unit
-  (** [reseedv ~g list] is like [reseed] with a concatenation of [list], but faster. *)
-
-  val generate : g:g -> int -> Cstruct.t
-  (** [generate ~g n] extracts [n] bytes of random stream from [g]. *)
-
-  val accumulate : g:g -> Rng.S.accumulator Uncommon.one
-  (** [accumulate ~g] is a is a closure that feeds an accumulator pool in a
-      round-robin fashion. *)
-
-  (** Accumulator pools, collecting entropy and periodically reseeding the
-    attached {!g}.
-
-    Reseeding is performed on the first {!generate} following a non-empty
-    sequence of calls to {!add}.
-
-    Each accumulator instance contains 32 entropy pools, which are taken into
-    account with exponentially decreasing frequency and are meant to be fed
-    round-robin.  *)
-  module Accumulator : sig
-
-    type t
-    (** An accumulator. *)
-    val create : g:g -> t
-    (** Creates a new accumulator feeding into [g]. *)
-    val add : acc:t -> source:int -> pool:int -> Cstruct.t -> unit
-    (** [add ~acc ~source ~pool bytes] adds bytes into [pool]-th entropy pool of
-      the accumulator [acc], marked as coming from [source]. [pool] is taken
-      [mod 32] and [source] is taken [mod 256].
-      This operation is fast and is expected to be frequently called with small
-      amounts of environmentally sourced entropy, such as timings or user input.
-      [source] should indicate a stable source of input but has no meaning beyond
-      that. [pool]s should be rotated roughly round-robin.  *)
-  end
-end
-
+module Fortuna : Rng.S.Generator
 
 (** HMAC_DRBG: A NIST-specified RNG based on HMAC construction over the
     provided hash. *)
