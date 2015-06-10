@@ -21,7 +21,9 @@
 #define NC_AES_GENERIC
 #endif
 
+#ifndef __unused
 #define __unused(x) x __attribute__((unused))
+#endif
 #define __unit() value __unused(unit)
 
 typedef unsigned long u_long;
