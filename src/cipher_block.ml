@@ -323,19 +323,14 @@ module Modes2 = struct
     let bmask = block - 1
 
     let stream_shifted ~key ~ctr off n =
-      let ctr = match off / block with
-        | 0     -> ctr
-        | shift ->
-            Native.blit ctr.buffer ctr.off cbuf.buffer 0 block ;
-            ctr_add cbuf 0 Int64.(of_int shift) ;
-            cbuf
-      in
-      let off    = off land bmask in
-      let blocks = cdiv (off + n) block in
+      let shift  = off land bmask in
+      let blocks = cdiv (shift + n) block in
       let buf    = Native.buffer (blocks * block) in
-      count ctr.buffer ctr.off buf 0 blocks ;
+      Native.blit ctr.buffer ctr.off cbuf.buffer 0 block ;
+      ctr_add cbuf 0 (Int64.of_int (off / block)) ;
+      count cbuf.buffer 0 buf 0 blocks ;
       Core.encrypt ~key ~blocks buf 0 buf 0 ;
-      of_bigarray ~len:n ~off buf
+      of_bigarray ~len:n ~off:shift buf
 
     let stream ~key ~ctr ?off n =
       if ctr.len <> block then
