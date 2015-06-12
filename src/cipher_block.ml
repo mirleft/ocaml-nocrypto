@@ -301,11 +301,13 @@ module Modes2 = struct
 
     let block = Core.block
 
-    let (count, ctr_add) =
-      match block with
-      | 16 -> (Native.count16be, Counter.add16)
-      | 8  -> (Native.count8be, Counter.add8)
-      | n  -> Raise.invalid1 "CTR_of: bad block size (%d): not {8,16}" n
+    module Ctr = struct
+      let (count, add) =
+        match block with
+        | 16 -> (Native.count16be, Counter.add16)
+        | 8  -> (Native.count8be, Counter.add8)
+        | n  -> Raise.invalid1 "CTR_of: bad block size (%d): not {8,16}" n
+    end
 
     type key = Core.ekey
 
@@ -315,7 +317,7 @@ module Modes2 = struct
     let stream ~key ~ctr n =
       let blocks = cdiv n block in
       let buf    = Native.buffer (blocks * block) in
-      count ctr.buffer ctr.off buf 0 blocks ;
+      Ctr.count ctr.buffer ctr.off buf 0 blocks ;
       Core.encrypt ~key ~blocks buf 0 buf 0 ;
       of_bigarray ~len:n buf
 
@@ -327,8 +329,8 @@ module Modes2 = struct
       let blocks = cdiv (shift + n) block in
       let buf    = Native.buffer (blocks * block) in
       Native.blit ctr.buffer ctr.off cbuf.buffer 0 block ;
-      ctr_add cbuf 0 (Int64.of_int (off / block)) ;
-      count cbuf.buffer 0 buf 0 blocks ;
+      Ctr.add cbuf 0 (Int64.of_int (off / block)) ;
+      Ctr.count cbuf.buffer 0 buf 0 blocks ;
       Core.encrypt ~key ~blocks buf 0 buf 0 ;
       of_bigarray ~len:n ~off:shift buf
 
