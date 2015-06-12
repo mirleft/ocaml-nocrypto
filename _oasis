@@ -39,13 +39,13 @@ Library nocrypto
                    Cipher_stream,
                    Cipher_block,
                    Numeric,
-                   Fortuna,
-                   Hmac_drgb,
                    Rng,
                    Rsa,
                    Dsa,
                    Dh
   InternalModules: Native,
+                   Fortuna,
+                   Hmac_drgb,
                    Gcm,
                    Ccm
   CSources:        native/nocrypto.h,

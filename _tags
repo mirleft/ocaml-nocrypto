@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: c968a59e23207d6bd36c0e6e39ea39b6)
+# DO NOT EDIT (digest: f63de4025051f29ce02f9be0fa0e05dc)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -22,13 +22,13 @@ true: annot, bin_annot
 "src/cipher_stream.cmx": for-pack(Nocrypto)
 "src/cipher_block.cmx": for-pack(Nocrypto)
 "src/numeric.cmx": for-pack(Nocrypto)
-"src/fortuna.cmx": for-pack(Nocrypto)
-"src/hmac_drgb.cmx": for-pack(Nocrypto)
 "src/rng.cmx": for-pack(Nocrypto)
 "src/rsa.cmx": for-pack(Nocrypto)
 "src/dsa.cmx": for-pack(Nocrypto)
 "src/dh.cmx": for-pack(Nocrypto)
 "src/native.cmx": for-pack(Nocrypto)
+"src/fortuna.cmx": for-pack(Nocrypto)
+"src/hmac_drgb.cmx": for-pack(Nocrypto)
 "src/gcm.cmx": for-pack(Nocrypto)
 "src/ccm.cmx": for-pack(Nocrypto)
 <src/*.ml{,i,y}>: oasis_library_nocrypto_ccopt
