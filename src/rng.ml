@@ -126,22 +126,30 @@ let rec safe_prime ?g bits =
 module Z = ZN
 
 
-module Null_gen = struct
+module Generators = struct
 
-  type g = Cstruct.t ref
+  module Fortuna = Fortuna
 
-  let block = 1
+  module Hmac_drgb = Hmac_drgb
 
-  let create () = ref Cs.empty
+  module Null = struct
 
-  let generate ~g n =
-    try
-      let (a, b) = Cstruct.split !g n in ( g := b ; a )
-    with Invalid_argument _ -> invalid_arg "generate: null generator drained"
+    type g = Cstruct.t ref
 
-  let reseed ~g cs = g := Cs.(!g <+> cs)
+    let block = 1
 
-  let seeded ~g = Cstruct.len !g > 0
+    let create () = ref Cs.empty
 
-  let accumulate ~g = One (fun ~source:_ -> reseed ~g)
+    let generate ~g n =
+      try
+        let (a, b) = Cstruct.split !g n in ( g := b ; a )
+      with Invalid_argument _ -> raise Unseeded_generator
+
+    let reseed ~g cs = g := Cs.(!g <+> cs)
+
+    let seeded ~g = Cstruct.len !g > 0
+
+    let accumulate ~g = One (fun ~source:_ -> reseed ~g)
+  end
+
 end

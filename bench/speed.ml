@@ -98,9 +98,10 @@ let benchmarks = [
     throughput name (fun cs -> DES.ECB.encrypt ~key cs)) ;
 
   bm "fortuna" (fun name ->
-    let g = Fortuna.create () in
-    Fortuna.reseed ~g (Cstruct.of_string "abcd") ;
-    throughput name (fun cs -> Fortuna.generate ~g (Cstruct.len cs))) ;
+    let open Rng.Generators.Fortuna in
+    let g = create () in
+    reseed ~g (Cstruct.of_string "abcd") ;
+    throughput name (fun cs -> generate ~g (Cstruct.len cs))) ;
 
   bm "md5"    (fun name -> throughput name MD5.digest) ;
   bm "sha1"   (fun name -> throughput name SHA1.digest) ;

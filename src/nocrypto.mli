@@ -330,6 +330,7 @@ end
 *)
 module Rng : sig
 
+
   type g
   (** A generator with its state. Changes when used. *)
 
@@ -337,17 +338,10 @@ module Rng : sig
   (** Thrown when using an uninitialized {!g}. *)
 
 
-  (** Related module signatures. *)
+  (** Module signatures. *)
   module S : sig
 
-    type accumulator = source:int -> Cstruct.t -> unit
-    (** A closure feeding entropy into a generator.
-
-       In systems where several distinct sources are set up to feed a single
-       generator, they should identify by picking a distinct but stable [source]
-       numbers. *)
-
-    (** A particular RNG algorithm. *)
+    (** A single randomness-generating algorithm. *)
     module type Generator = sig
 
       type g
@@ -369,10 +363,13 @@ module Rng : sig
 
           A generator is seded after a single application of [reseed]. *)
 
-      val accumulate : g:g -> accumulator Uncommon.one
+      val accumulate : g:g -> (source:int -> Cstruct.t -> unit) Uncommon.one
       (** [accumulate ~g] is a closure suitable for incrementally feeding
-          small amounts of environmentally sourced entropy into the given [g],
-          and should fast enough to be called from e.g. event loops.
+          small amounts of environmentally sourced entropy into [g].
+
+          Its operation should be fast enough for repeated calling from e.g.
+          event loops. Systems with several distinct, stable entropy sources
+          should use stable [source] to distinguish their sources.
 
           A generator is seeded after a single application of the closure. *)
 
@@ -381,10 +378,7 @@ module Rng : sig
 
     end
 
-    type 'a generator = (module Generator with type g = 'a)
-    (** Type of first-class modules encapsulating a particular RNG algorithm. *)
-
-    (** Random number generation. *)
+    (** A suite of functions for generating numbers of a particular type. *)
     module type N = sig
 
       type t
@@ -398,17 +392,36 @@ module Rng : sig
           uniformly at random. *)
 
       val gen_bits : ?g:g -> ?msb:int -> int -> t
-      (** [gen_bits ~g ~msb n] creates a bit-string of [n] bits, sets [msb] most
-          significant bits and converts it into a value. This yields a value in
-          the interval [\[2^(n-1) + ... + 2^(n-msb), 2^n - 1\]].
-          [msb] defaults to [0]. *)
+      (** [gen_bits ~g ~msb n] picks a bit-string [n] bits long, with [msb] most
+          significant bits set, and interprets it as a {!t} in big-endidan. This
+          yields a value in the interval [\[2^(n-1) + ... + 2^(n-msb), 2^n - 1\]].
+          [msb] defaults to [0] which reduces [gen_bits k] to [gen 2^k]. *)
     end
 
   end
 
 
-  val create : ?strict:bool -> ?g:'a -> 'a S.generator -> g
-  (** [create module] creates generic RNG representation {!g}. *)
+  module Generators : sig
+
+    (** {b Fortuna}, a CSPRNG {{: https://www.schneier.com/fortuna.html} proposed}
+        by Schneier. *)
+    module Fortuna : S.Generator
+
+    (** {b HMAC_DRBG}: A NIST-specified RNG based on HMAC construction over the
+        provided hash. *)
+    module Hmac_drgb : sig
+      module Make (H : Hash.T) : S.Generator
+    end
+
+    module Null : S.Generator
+    (** No-op generator returning exactly the bytes it was seeded with. *)
+
+  end
+
+
+  val create : ?strict:bool -> ?g:'a -> (module S.Generator with type g = 'a) -> g
+  (** [create module] uses a module conforming to {!S.Generator} to instantiate
+      the generic generator {!g}. *)
 
   val generator : g ref
   (* The global {!g}. Functions in this module use this generator when not
@@ -422,21 +435,18 @@ module Rng : sig
   val reseed : ?g:g -> Cstruct.t -> unit
   (** Invoke {!S.Generator.generate} on [g] or {!generator}. *)
 
-  val accumulate : g option -> S.accumulator Uncommon.one
+  val accumulate : g option -> (source:int -> Cstruct.t -> unit) Uncommon.one
   (** Invoke {!S.Generator.accumulate} on [g] or {!generator}. *)
 
   val seeded : g option -> bool
-  (** Invoke {!S.Generator.seeded on [g] or {!generator}. *)
+  (** Invoke {!S.Generator.seeded} on [g] or {!generator}. *)
 
   val block : g option -> int
   (** {!S.Generator.block} size of [g] or {!generator}. *)
 
-  module Null_gen : S.Generator
-  (** No-op generator returning bytes it was seeded with. *)
-
 
   module N_gen (N : Numeric.T) : S.N with type t = N.t
-  (** Functor giving random number generation for a numeric type. *)
+  (** Create a suite of generating functions over a numeric type. *)
 
   module Int   : S.N with type t = int
   module Int32 : S.N with type t = int32
@@ -445,8 +455,8 @@ module Rng : sig
 
 
   val prime : ?g:g -> ?msb:int -> int -> Z.t
-  (** [prime ~g ~msb bits] generates a prime smaller than [2^bits], such that
-      its [msb] most significant bits are set.
+  (** [prime ~g ~msb bits] generates a prime smaller than [2^bits], with [msb]
+      most significant bits set.
       [prime ~g ~msb:1 bits] (the default) yields a prime in the interval
       [\[2^(bits - 1), 2^bits - 1\]]. *)
 
@@ -454,16 +464,6 @@ module Rng : sig
   (** [safe_prime ~g bits] gives a prime pair [(g, p)] such that [p = 2g + 1]
       and [p] has [bits] significant bits. *)
 
-end
-
-
-(** Implementation of {{: https://www.schneier.com/fortuna.html} Fortuna} CSPRNG. *)
-module Fortuna : Rng.S.Generator
-
-(** HMAC_DRBG: A NIST-specified RNG based on HMAC construction over the
-    provided hash. *)
-module Hmac_drgb : sig
-  module Make (H : Hash.T) : Rng.S.Generator
 end
 
 

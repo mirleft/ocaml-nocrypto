@@ -52,7 +52,7 @@ let generate ?g size =
 module K_gen (H : Hash.T) = struct
 
   let drgb : 'a Rng.S.generator =
-    let module M = Hmac_drgb.Make (H) in (module M)
+    let module M = Rng.Generators.Hmac_drgb.Make (H) in (module M)
 
   let z_gen ~key:{ q; x; _ } z =
     let repr = Numeric.Z.(to_cstruct_be ~size:(bytes (bits q))) in
