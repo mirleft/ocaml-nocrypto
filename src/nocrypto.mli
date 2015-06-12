@@ -8,15 +8,24 @@ end
 
 
 (** A treasure-trove of random utilities.
+
     This is largely an internal API and prone to breakage. *)
 module Uncommon : sig
 
+  (** ['a one] is just an ['a].
+
+      Useful to break the chain of curried functions when an intermediate
+      "partial" application is worth holding onto. *)
   type 'a one = One of 'a
 
   val cdiv : int -> int -> int
+  (** Ceiling division. [cdiv a b] == [ceil(a / b)] *)
 
   val (&.) : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c
-  val id   : 'a -> 'a
+  (** Function composition. *)
+
+  val id : 'a -> 'a
+  (** identity *)
 
   module Option : sig
     val v_map : def:'b -> f:('a -> 'b) -> 'a option -> 'b
@@ -395,6 +404,7 @@ module Rng : sig
       (** [gen_bits ~g ~msb n] picks a bit-string [n] bits long, with [msb] most
           significant bits set, and interprets it as a {!t} in big-endidan. This
           yields a value in the interval [\[2^(n-1) + ... + 2^(n-msb), 2^n - 1\]].
+
           [msb] defaults to [0] which reduces [gen_bits k] to [gen 2^k]. *)
     end
 
@@ -421,7 +431,10 @@ module Rng : sig
 
   val create : ?strict:bool -> ?g:'a -> (module S.Generator with type g = 'a) -> g
   (** [create module] uses a module conforming to {!S.Generator} to instantiate
-      the generic generator {!g}. *)
+      the generic generator {!g}.
+
+      [strict] puts the generator into a slighty more standards-conformant and
+      slower mode. Useful if the outputs are to match published test-vectors. *)
 
   val generator : g ref
   (* The global {!g}. Functions in this module use this generator when not
@@ -457,6 +470,7 @@ module Rng : sig
   val prime : ?g:g -> ?msb:int -> int -> Z.t
   (** [prime ~g ~msb bits] generates a prime smaller than [2^bits], with [msb]
       most significant bits set.
+
       [prime ~g ~msb:1 bits] (the default) yields a prime in the interval
       [\[2^(bits - 1), 2^bits - 1\]]. *)
 
