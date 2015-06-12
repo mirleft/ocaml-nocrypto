@@ -49,7 +49,7 @@ let generate ?g size =
   { p; q; gg; x; y }
 
 
-module K_gen (H : Hash.T) = struct
+module K_gen (H : Hash.S) = struct
 
   let drgb : 'a Rng.S.generator =
     let module M = Rng.Generators.Hmac_drgb.Make (H) in (module M)

@@ -17,7 +17,7 @@ module Fc = struct
   end
 
   module Numeric = struct
-    type 'a t = (module Numeric.T with type t = 'a)
+    type 'a t = (module Numeric.S with type t = 'a)
     let int   : int   t = (module Numeric.Int)
     let int32 : int32 t = (module Numeric.Int32)
     let int64 : int64 t = (module Numeric.Int64)
@@ -69,7 +69,7 @@ let random_n_selftest (type a) ~typ (m : a Fc.Rng.t) n (bounds : (a * a) list) =
         if x < lo || x >= hi then assert_failure "range error"
   )
 
-let ecb_selftest ( m : (module Cipher_block.T.ECB) ) n =
+let ecb_selftest (m : (module Cipher_block.S.ECB)) n =
   let module C = ( val m ) in
   "selftest" >:: times ~n @@ fun _ ->
     let data  = Rng.generate (C.block_size * 8)
@@ -79,7 +79,7 @@ let ecb_selftest ( m : (module Cipher_block.T.ECB) ) n =
                |> decrypt ~key |> decrypt ~key ) in
     assert_cs_equal ~msg:"ecb mismatch" data data'
 
-let cbc_selftest ( m : (module Cipher_block.T.CBC) ) n  =
+let cbc_selftest (m : (module Cipher_block.S.CBC)) n  =
   let module C = ( val m ) in
   let (!) f x = (f x).C.message in
   "selftest" >:: times ~n @@ fun _ ->
@@ -92,7 +92,7 @@ let cbc_selftest ( m : (module Cipher_block.T.CBC) ) n  =
     in
     assert_cs_equal ~msg:"cbc mismatch" data data'
 
-let ctr_selftest (m : (module Cipher_block.T.CTR)) n =
+let ctr_selftest (m : (module Cipher_block.S.CTR)) n =
   let module C = (val m) in
   "selftest" >:: times ~n @@ fun _ ->
     let key  = C.of_secret @@ Rng.generate (sample C.key_sizes)
@@ -102,7 +102,7 @@ let ctr_selftest (m : (module Cipher_block.T.CTR)) n =
     let dec = C.decrypt ~key ~ctr enc in
     assert_cs_equal ~msg:"ctr result mismatch" data dec
 
-let ctr_offsets (m : (module Cipher_block.T.CTR)) =
+let ctr_offsets (m : (module Cipher_block.S.CTR)) =
   let module C = (val m) in
   "offsets" >:: fun _ ->
     let key = C.of_secret @@ Rng.generate C.key_sizes.(0) in
@@ -292,13 +292,13 @@ let f1_blk_eq ?msg ?(n=1) f (x, y) _ =
   let xs     = blocks_of_cs n x in
   assert_cs_equal ?msg (f xs) y
 
-let hash_cases ( m : (module Hash.T) ) ~hash =
+let hash_cases (m : (module Hash.S)) ~hash =
   let module H = ( val m ) in
   [ "digest"  >::: cases_of (f1_eq H.digest) hash ;
     "digestv" >::: cases_of (f1_blk_eq H.digestv) hash ;
   ]
 
-let hash_cases_mac ( m : (module Hash.T) ) ~hash ~mac =
+let hash_cases_mac (m : (module Hash.S)) ~hash ~mac =
   let module H = ( val m ) in
   [ "digest"  >::: cases_of (f1_eq H.digest) hash ;
     "digestv" >::: cases_of (f1_blk_eq H.digestv) hash ;

@@ -2,7 +2,7 @@ open Uncommon
 
 module Z_orig = Z
 
-module type T_core = sig
+module type S_core = sig
   type t
   val zero : t
   val one  : t
@@ -23,8 +23,8 @@ module type T_core = sig
   val bit_bound : t -> int
 end
 
-module type T = sig
-  include T_core
+module type S = sig
+  include S_core
   val bits            : t -> int
   val of_cstruct_be   : ?bits:int -> Cstruct.t -> t
   val to_cstruct_be   : ?size:int -> t -> Cstruct.t
@@ -85,7 +85,7 @@ module Z_core = struct
 end
 
 
-module Repr ( N : T_core ) = struct
+module Repr (N : S_core) = struct
 
   (* If there was only, like, an instruction doing `ceil (log2 n)`... *)
   let bits i =
@@ -163,15 +163,15 @@ module Repr ( N : T_core ) = struct
 
 end
 
-module T (N : T_core) : T with type t = N.t = struct
+module S (N : S_core) : S with type t = N.t = struct
   include N
   include Repr (N)
 end
 
-module Int   = T (Int_core  )
-module Int32 = T (Int32_core)
-module Int64 = T (Int64_core)
-module Z     = T (Z_core    )
+module Int   = S (Int_core  )
+module Int32 = S (Int32_core)
+module Int64 = S (Int64_core)
+module Z     = S (Z_core    )
 
 
 (* Handbook of Applied Cryptography, Table 4.4:

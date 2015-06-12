@@ -69,7 +69,7 @@ module Numeric : sig
       Includes basic common numeric ops, range of conversions to and from
       variously-sized int types, and a few basic function for representing such
       numbers as {!Cstruct.t}. *)
-  module type T = sig
+  module type S = sig
 
     type t
 
@@ -103,10 +103,10 @@ module Numeric : sig
 
   end
 
-  module Int   : T with type t = int
-  module Int32 : T with type t = int32
-  module Int64 : T with type t = int64
-  module Z     : T with type t = Z.t
+  module Int   : S with type t = int
+  module Int32 : S with type t = int32
+  module Int64 : S with type t = int64
+  module Z     : S with type t = Z.t
 
   (** Misc elementary number theory functions: *)
 
@@ -120,7 +120,7 @@ end
 module Hash : sig
 
   (** Hash algorithm. *)
-  module type T = sig
+  module type S = sig
 
     type t (** Mutable hashing context. *)
 
@@ -139,12 +139,12 @@ module Hash : sig
         algorithm. *)
   end
 
-  module MD5     : T
-  module SHA1    : T
-  module SHA224  : T
-  module SHA256  : T
-  module SHA384  : T
-  module SHA512  : T
+  module MD5     : S
+  module SHA1    : S
+  module SHA224  : S
+  module SHA256  : S
+  module SHA384  : S
+  module SHA512  : S
 
   (** Simpler short-hands for common operations over varying hashes: *)
 
@@ -153,7 +153,7 @@ module Hash : sig
   val digest      : [< hash ] -> Cstruct.t -> Cstruct.t
   val mac         : [< hash ] -> key:Cstruct.t -> Cstruct.t -> Cstruct.t
   val digest_size : [< hash ] -> int
-  val module_of   : [< hash ] -> (module T)
+  val module_of   : [< hash ] -> (module S)
 
 end
 
@@ -162,7 +162,7 @@ end
 module Cipher_block : sig
 
   (** Module types for various instantiations of block ciphers. *)
-  module T : sig
+  module S : sig
 
     (** Raw block cipher in all its glory. *)
     module type Core = sig
@@ -285,20 +285,20 @@ module Cipher_block : sig
   (** {b AES}, plus a few modes of operation. *)
   module AES : sig
     val mode : [ `Generic | `AES_NI ]
-(*     module Core : T.Core *)
-    module ECB  : T.ECB
-    module CBC  : T.CBC
-    module CTR  : T.CTR
-    module GCM  : T.GCM
-    module CCM  : T.CCM
+(*     module Core : S.Core *)
+    module ECB  : S.ECB
+    module CBC  : S.CBC
+    module CTR  : S.CTR
+    module GCM  : S.GCM
+    module CCM  : S.CCM
   end
 
   (** {b DES}, plus a few modes of operation. *)
   module DES : sig
-(*     module Core : T.Core *)
-    module ECB  : T.ECB
-    module CBC  : T.CBC
-    module CTR  : T.CTR
+(*     module Core : S.Core *)
+    module ECB  : S.ECB
+    module CBC  : S.CBC
+    module CTR  : S.CTR
   end
 end
 
@@ -307,7 +307,7 @@ end
 module Cipher_stream : sig
 
   (** General stream cipher type. *)
-  module type T = sig
+  module type S = sig
     type key
     type result = { message : Cstruct.t ; key : key }
     val of_secret : Cstruct.t -> key
@@ -316,7 +316,7 @@ module Cipher_stream : sig
   end
 
   (** {e Alleged Rivest Cipher 4}. *)
-  module ARC4 : T
+  module ARC4 : S
 end
 
 
@@ -420,7 +420,7 @@ module Rng : sig
     (** {b HMAC_DRBG}: A NIST-specified RNG based on HMAC construction over the
         provided hash. *)
     module Hmac_drgb : sig
-      module Make (H : Hash.T) : S.Generator
+      module Make (H : Hash.S) : S.Generator
     end
 
     module Null : S.Generator
@@ -458,7 +458,7 @@ module Rng : sig
   (** {!S.Generator.block} size of [g] or {!generator}. *)
 
 
-  module N_gen (N : Numeric.T) : S.N with type t = N.t
+  module N_gen (N : Numeric.S) : S.N with type t = N.t
   (** Create a suite of generating functions over a numeric type. *)
 
   module Int   : S.N with type t = int
@@ -582,7 +582,7 @@ module Rsa : sig
 
       Keys must have a minimum of [2 + 2 * hlen + len(message)] bytes, where
       [hlen] is the hash length. *)
-  module OAEP (T : Hash.T) : sig
+  module OAEP (H : Hash.S) : sig
 
     val encrypt : ?g:Rng.g -> ?label:Cstruct.t -> key:pub -> Cstruct.t -> Cstruct.t
     (** [encrypt ~g ~label ~key message] is {b OAEP}-padded and encrypted
@@ -602,7 +602,7 @@ module Rsa : sig
 
       Keys must have a minimum of [2 + hlen + slen] bytes, where [hlen] is the
       hash length and [slen] is the seed length. *)
-  module PSS (T: Hash.T) : sig
+  module PSS (H: Hash.S) : sig
 
     val sign : ?g:Rng.g -> ?slen:int -> key:priv -> Cstruct.t -> Cstruct.t
     (** [sign ~g ~slen ~key message] the {p PSS}-padded digest of [message],
@@ -667,7 +667,7 @@ module Dsa : sig
   (** [verify fips key (r, s) digest] verifies that the pair [(r, s)] is the signature
       of [digest], the message digest, under the private counterpart to [key]. *)
 
-  module K_gen (H : Hash.T) : sig
+  module K_gen (H : Hash.S) : sig
   (** [K_gen] can be instantiated over a hashing module to obtain an RFC6979
       compliant [k]-generator over that hash. *)
 

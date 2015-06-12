@@ -1,6 +1,6 @@
 open Uncommon
 
-module T = struct
+module S = struct
 
   (* XXX old block-level sig, remove *)
   module type Raw = sig
@@ -135,7 +135,7 @@ end
 
 module Modes = struct
 
-  module GCM_of (C : T.Base) : T.GCM = struct
+  module GCM_of (C : S.Base) : S.GCM = struct
 
     assert (C.block_size = 16)
 
@@ -158,7 +158,7 @@ module Modes = struct
 
   end
 
-  module CCM_of (C : T.Raw) : T.CCM = struct
+  module CCM_of (C : S.Raw) : S.CCM = struct
 
     assert (C.block_size = 16)
 
@@ -189,7 +189,7 @@ module Modes2 = struct
 
   open Cstruct
 
-  module Raw_of (Core : T.Core) : T.Raw = struct
+  module Raw_of (Core : S.Core) : S.Raw = struct
 
     type ekey = Core.ekey
     type dkey = Core.dkey
@@ -209,7 +209,7 @@ module Modes2 = struct
       Core.decrypt ~key ~blocks:1 src.buffer src.off dst.buffer dst.off
   end
 
-  module Base_of (Core : T.Core) : T.Base = struct
+  module Base_of (Core : S.Core) : S.Base = struct
 
     type key = Core.ekey * Core.dkey
 
@@ -231,7 +231,7 @@ module Modes2 = struct
       dst
   end
 
-  module ECB_of (Core : T.Core) : T.ECB = struct
+  module ECB_of (Core : S.Core) : S.ECB = struct
 
     type key = Core.ekey * Core.dkey
 
@@ -253,7 +253,7 @@ module Modes2 = struct
 
   end
 
-  module CBC_of (Core : T.Core) : T.CBC = struct
+  module CBC_of (Core : S.Core) : S.CBC = struct
 
     type result = { message : Cstruct.t ; iv : Cstruct.t }
     type key    = Core.ekey * Core.dkey
@@ -295,7 +295,7 @@ module Modes2 = struct
 
   end
 
-  module CTR_of (Core : T.Core) : T.CTR = struct
+  module CTR_of (Core : S.Core) : S.CTR = struct
 
     (* FIXME: CTR has more room for speedups. *)
 
@@ -362,7 +362,7 @@ module AES = struct
     match Native.AES.mode () with
     | 0 -> `Generic | 1 -> `AES_NI | _ -> assert false
 
-  module Core : T.Core = struct
+  module Core : S.Core = struct
 
     let key   = [| 16; 24; 32 |]
     let block = 16
@@ -410,7 +410,7 @@ end
 
 module DES = struct
 
-  module Core : T.Core = struct
+  module Core : S.Core = struct
 
     let key   = [| 24 |]
     let block = 8

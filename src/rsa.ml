@@ -156,7 +156,7 @@ module PKCS1 = struct
 
 end
 
-module MGF1 (H : Hash.T) = struct
+module MGF1 (H : Hash.S) = struct
 
   open Cstruct
 
@@ -173,7 +173,7 @@ module MGF1 (H : Hash.T) = struct
 
 end
 
-module OAEP (H : Hash.T) = struct
+module OAEP (H : Hash.S) = struct
 
   open Cstruct
 
@@ -224,7 +224,7 @@ module OAEP (H : Hash.T) = struct
 
 end
 
-module PSS (H: Hash.T) = struct
+module PSS (H: Hash.S) = struct
 
   open Cstruct
 

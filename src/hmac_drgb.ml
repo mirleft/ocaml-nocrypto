@@ -1,4 +1,4 @@
-module Make (H : Hash.T) = struct
+module Make (H : Hash.S) = struct
 
   open Uncommon
 

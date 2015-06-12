@@ -1,6 +1,6 @@
 open Uncommon
 
-module type T = sig
+module type S = sig
 
   type t
 
@@ -138,9 +138,9 @@ let digest_size = function
   | `SHA512 -> SHA512.digest_size
 
 let module_of = function
-  | `MD5    -> (module MD5 : T)
-  | `SHA1   -> (module SHA1 : T)
-  | `SHA224 -> (module SHA224 : T)
-  | `SHA256 -> (module SHA256 : T)
-  | `SHA384 -> (module SHA384 : T)
-  | `SHA512 -> (module SHA512 : T)
+  | `MD5    -> (module MD5    : S)
+  | `SHA1   -> (module SHA1   : S)
+  | `SHA224 -> (module SHA224 : S)
+  | `SHA256 -> (module SHA256 : S)
+  | `SHA384 -> (module SHA384 : S)
+  | `SHA512 -> (module SHA512 : S)

@@ -69,7 +69,7 @@ let strict g =
 
 
 
-module N_gen (N : Numeric.T) = struct
+module N_gen (N : Numeric.S) = struct
 
   type t = N.t
 

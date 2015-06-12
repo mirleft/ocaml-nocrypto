@@ -1,5 +1,5 @@
 
-module type T = sig
+module type S = sig
   type key
   type result = { message : Cstruct.t ; key : key }
   val of_secret : Cstruct.t -> key
