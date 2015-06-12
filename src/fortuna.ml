@@ -1,4 +1,3 @@
-
 open Uncommon
 open Hash
 
@@ -6,8 +5,6 @@ module Counter = Cipher_block.Counter
 module AES_CTR = Cipher_block.AES.CTR
 
 let block = 16
-
-exception Unseeded_generator = Uncommon.Boot.Unseeded_generator
 
 (* XXX Locking!! *)
 type g =
@@ -56,7 +53,7 @@ let generate_rekey ~g bytes =
 
 let generate ~g bytes =
   ( match g.trap with None -> () | Some f -> g.trap <- None ; f () );
-  if not g.seeded then raise Unseeded_generator ;
+  if not g.seeded then raise Boot.Unseeded_generator ;
   let rec chunk = function
     | i when i <= 0 -> []
     | n ->

@@ -1,10 +1,10 @@
 open Uncommon
 
-exception Unseeded_generator = Uncommon.Boot.Unseeded_generator
+
+exception Unseeded_generator = Boot.Unseeded_generator
+
 
 module S = struct
-
-  type accumulator = source:int -> Cstruct.t -> unit
 
   module type Generator = sig
 
@@ -16,13 +16,14 @@ module S = struct
     val generate : g:g -> int -> Cstruct.t
 
     val reseed     : g:g -> Cstruct.t -> unit
-    val accumulate : g:g -> accumulator one
+    val accumulate : g:g -> (source:int -> Cstruct.t -> unit) one
     val seeded     : g:g -> bool
   end
 
   type 'a generator = (module Generator with type g = 'a)
 
   type g = Generator : ('a * bool * 'a generator) -> g
+
 
   module type N = sig
 
@@ -34,6 +35,7 @@ module S = struct
   end
 
 end
+
 
 type g = S.g
 
