@@ -1,4 +1,7 @@
 # OASIS_START
-# DO NOT EDIT (digest: 48aa850a60451453d74d83dcbea3d030)
+# DO NOT EDIT (digest: 7cfb0f90bbcc285cdf4e9cfc8a110788)
 src/Nocrypto
+unix/Nocrypto_entropy_unix
+lwt/Nocrypto_entropy_lwt
+xen/Nocrypto_entropy_xen
 # OASIS_STOP

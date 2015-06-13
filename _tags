@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: f63de4025051f29ce02f9be0fa0e05dc)
+# DO NOT EDIT (digest: 1d62f39e6e4a05067c88504f00d17978)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -93,15 +93,27 @@ true: annot, bin_annot
 "src/native/des/generic.c": package(sexplib.syntax)
 "src/native/des/generic.c": package(type_conv)
 "src/native/des/generic.c": package(zarith)
+# Library nocrypto_unix
+"unix/nocrypto_unix.cmxs": use_nocrypto_unix
+<unix/*.ml{,i,y}>: package(bytes)
+<unix/*.ml{,i,y}>: package(cstruct)
+<unix/*.ml{,i,y}>: package(sexplib.syntax)
+<unix/*.ml{,i,y}>: package(type_conv)
+<unix/*.ml{,i,y}>: package(unix)
+<unix/*.ml{,i,y}>: package(zarith)
+<unix/*.ml{,i,y}>: use_nocrypto
 # Library nocrypto_lwt
 "lwt/nocrypto_lwt.cmxs": use_nocrypto_lwt
+<lwt/*.ml{,i,y}>: package(bytes)
 <lwt/*.ml{,i,y}>: package(cstruct)
 <lwt/*.ml{,i,y}>: package(cstruct.lwt)
 <lwt/*.ml{,i,y}>: package(lwt.unix)
 <lwt/*.ml{,i,y}>: package(sexplib.syntax)
 <lwt/*.ml{,i,y}>: package(type_conv)
+<lwt/*.ml{,i,y}>: package(unix)
 <lwt/*.ml{,i,y}>: package(zarith)
 <lwt/*.ml{,i,y}>: use_nocrypto
+<lwt/*.ml{,i,y}>: use_nocrypto_unix
 # Library nocrypto_xen
 "xen/nocrypto_xen.cmxs": use_nocrypto_xen
 <xen/*.ml{,i,y}>: oasis_library_nocrypto_xen_ccopt

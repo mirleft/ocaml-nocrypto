@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 7263a105107046d7a010479b6d3daa5a)
+# DO NOT EDIT (digest: 259a7fa8c26c60a9e5d60b99211583b5)
 version = "0.4.0"
 description = "Simple crypto for the modern age"
 requires = "cstruct zarith sexplib"
@@ -20,10 +20,21 @@ package "xen" (
  exists_if = "nocrypto_xen.cma"
 )
 
+package "unix" (
+ version = "0.4.0"
+ description = "Simple crypto for the modern age"
+ requires = "nocrypto unix bytes"
+ archive(byte) = "nocrypto_unix.cma"
+ archive(byte, plugin) = "nocrypto_unix.cma"
+ archive(native) = "nocrypto_unix.cmxa"
+ archive(native, plugin) = "nocrypto_unix.cmxs"
+ exists_if = "nocrypto_unix.cma"
+)
+
 package "lwt" (
  version = "0.4.0"
  description = "Simple crypto for the modern age"
- requires = "nocrypto lwt.unix cstruct.lwt"
+ requires = "nocrypto nocrypto.unix lwt.unix cstruct.lwt"
  archive(byte) = "nocrypto_lwt.cma"
  archive(byte, plugin) = "nocrypto_lwt.cma"
  archive(native) = "nocrypto_lwt.cmxa"
