@@ -12,15 +12,16 @@ let attach e g =
   E.add_handler e acc
 
 let active = ref None
+and mx     = Lwt_mutex.create ()
 
 let initialize () =
-  let g = !Rng.generator in
-  let register e =
-    lwt token = attach e g in return (active := Some { e ; token ; g }) in
-  match !active with
-  | Some t when t.g == g -> return_unit
-  | Some t               -> E.remove_handler t.e t.token ; register t.e
-  | None                 -> E.connect () >>= register
+  Lwt_mutex.with_lock mx @@ fun () ->
+    let g     = !Rng.generator in
+    let reg e = attach e g >|= fun token -> active := Some { e ; token ; g } in
+    match !active with
+    | Some t when t.g == g -> return_unit
+    | Some t               -> E.remove_handler t.e t.token ; reg t.e
+    | None                 -> E.connect () >>= reg
 
 let sources () =
   Option.map ~f:(fun { e; _ } -> Entropy_xen.sources e) !active
