@@ -1,4 +1,4 @@
-(** RNG seeding on {b Unix}.
+(** {b RNG} seeding on {b Unix}.
 
     Calling {!initialize} is enough to bring the RNG into a working state.
 

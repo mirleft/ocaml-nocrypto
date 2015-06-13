@@ -1,4 +1,4 @@
-(** Rng seeding on {b Lwt/Unix}.
+(** {b RNG} seeding on {b Lwt/Unix}.
 
     Calling {!initialize} is enough to bring the RNG into a working state. In
     addition, a background task is set up to periodically reseed the RNG.
@@ -8,19 +8,27 @@
 
     Note that while {!initialize} creates a thread and the init phase is fully
     completed only after this thread has completed, the initial seeding is done
-    synchronously with the call. This means that there is no need to synchronize
-    to the returned thread to simply start using the RNG.
+    synchronously with the call. This means that there is no need to bind to the
+    returned thread to simply start using the RNG.
 
     Therefore, all of the following is correct usage:
 
-    [let _ = Nocrypto_entropy_lwt.initialize ()]
+{[
+let _ = Nocrypto_entropy_lwt.initialize ()
+]}
 
-    [let () =
-      ignore (Nocrypto_entropy_lwt.initialize ());
-      Lwt_main.run (main ())]
+{[
+let () =
+  ignore (Nocrypto_entropy_lwt.initialize ());
+  Lwt_main.run (main ())
+]}
 
-    [let () =
-      Lwt_main.run (Nocrypto_entropy_lwt.initialize () >>= main)]
+{[
+let () =
+  Lwt_main.run
+    (Nocrypto_entropy_lwt.initialize () >>= main)
+]}
+
 *)
 
 

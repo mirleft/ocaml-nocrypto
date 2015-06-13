@@ -46,8 +46,7 @@ let initialize () =
   Nocrypto_entropy_unix.initialize () ;
   Lwt_mutex.with_lock mx @@ fun () ->
     let g      = !Rng.generator in
-    let reg () =
-      attach ~period g >|= fun t -> active := Some t in
+    let reg () = attach ~period g >|= fun t -> active := Some t in
     match !active with
     | Some t when t.g == g -> return_unit
     | Some t               -> stop t >>= reg
