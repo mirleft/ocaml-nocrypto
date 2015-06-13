@@ -2,6 +2,9 @@
 
 type 'a one = One of 'a
 
+type ('a, 'b) either = Left of 'a | Right of 'b
+
+
 let cdiv (x : int) (y : int) =
   if x > 0 && y > 0 then (x + y - 1) / y
   else if x < 0 && y < 0 then (x + y + 1) / y
@@ -279,3 +282,9 @@ module Boot = struct
   exception Unseeded_generator
 
 end
+
+let bracket ~init ~fini f =
+  let a   = init () in
+  let res = try Right (f a) with exn -> Left exn in
+  fini a ;
+  match res with Right b -> b | Left exn -> raise exn

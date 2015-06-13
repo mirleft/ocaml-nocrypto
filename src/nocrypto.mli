@@ -59,6 +59,10 @@ module Uncommon : sig
   module Arr : sig
     val mem : 'a -> 'a array -> bool
   end
+
+  val bracket : init:(unit -> 'a) -> fini:('a -> unit) -> ('a -> 'b) -> 'b
+  (** Safe acquire-use-release combinator. *)
+
 end
 
 
