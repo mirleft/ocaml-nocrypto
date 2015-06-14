@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 1d62f39e6e4a05067c88504f00d17978)
+# DO NOT EDIT (digest: 16f075df658e6e6a2f466bc6aa160eaa)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -128,70 +128,60 @@ true: annot, bin_annot
 "xen/native/des/generic.c": oasis_library_nocrypto_xen_ccopt
 <xen/nocrypto_xen.{cma,cmxa}>: use_libnocrypto_xen_stubs
 <xen/*.ml{,i,y}>: package(cstruct)
-<xen/*.ml{,i,y}>: package(lwt.syntax)
 <xen/*.ml{,i,y}>: package(mirage-entropy-xen)
 <xen/*.ml{,i,y}>: package(sexplib.syntax)
 <xen/*.ml{,i,y}>: package(type_conv)
 <xen/*.ml{,i,y}>: package(zarith)
 <xen/*.ml{,i,y}>: use_nocrypto
 "xen/native/misc.c": package(cstruct)
-"xen/native/misc.c": package(lwt.syntax)
 "xen/native/misc.c": package(mirage-entropy-xen)
 "xen/native/misc.c": package(sexplib.syntax)
 "xen/native/misc.c": package(type_conv)
 "xen/native/misc.c": package(zarith)
 "xen/native/misc.c": use_nocrypto
 "xen/native/hash/stubs.c": package(cstruct)
-"xen/native/hash/stubs.c": package(lwt.syntax)
 "xen/native/hash/stubs.c": package(mirage-entropy-xen)
 "xen/native/hash/stubs.c": package(sexplib.syntax)
 "xen/native/hash/stubs.c": package(type_conv)
 "xen/native/hash/stubs.c": package(zarith)
 "xen/native/hash/stubs.c": use_nocrypto
 "xen/native/hash/md5.c": package(cstruct)
-"xen/native/hash/md5.c": package(lwt.syntax)
 "xen/native/hash/md5.c": package(mirage-entropy-xen)
 "xen/native/hash/md5.c": package(sexplib.syntax)
 "xen/native/hash/md5.c": package(type_conv)
 "xen/native/hash/md5.c": package(zarith)
 "xen/native/hash/md5.c": use_nocrypto
 "xen/native/hash/sha1.c": package(cstruct)
-"xen/native/hash/sha1.c": package(lwt.syntax)
 "xen/native/hash/sha1.c": package(mirage-entropy-xen)
 "xen/native/hash/sha1.c": package(sexplib.syntax)
 "xen/native/hash/sha1.c": package(type_conv)
 "xen/native/hash/sha1.c": package(zarith)
 "xen/native/hash/sha1.c": use_nocrypto
 "xen/native/hash/sha256.c": package(cstruct)
-"xen/native/hash/sha256.c": package(lwt.syntax)
 "xen/native/hash/sha256.c": package(mirage-entropy-xen)
 "xen/native/hash/sha256.c": package(sexplib.syntax)
 "xen/native/hash/sha256.c": package(type_conv)
 "xen/native/hash/sha256.c": package(zarith)
 "xen/native/hash/sha256.c": use_nocrypto
 "xen/native/hash/sha512.c": package(cstruct)
-"xen/native/hash/sha512.c": package(lwt.syntax)
 "xen/native/hash/sha512.c": package(mirage-entropy-xen)
 "xen/native/hash/sha512.c": package(sexplib.syntax)
 "xen/native/hash/sha512.c": package(type_conv)
 "xen/native/hash/sha512.c": package(zarith)
 "xen/native/hash/sha512.c": use_nocrypto
 "xen/native/aes/generic.c": package(cstruct)
-"xen/native/aes/generic.c": package(lwt.syntax)
 "xen/native/aes/generic.c": package(mirage-entropy-xen)
 "xen/native/aes/generic.c": package(sexplib.syntax)
 "xen/native/aes/generic.c": package(type_conv)
 "xen/native/aes/generic.c": package(zarith)
 "xen/native/aes/generic.c": use_nocrypto
 "xen/native/aes/aesni.c": package(cstruct)
-"xen/native/aes/aesni.c": package(lwt.syntax)
 "xen/native/aes/aesni.c": package(mirage-entropy-xen)
 "xen/native/aes/aesni.c": package(sexplib.syntax)
 "xen/native/aes/aesni.c": package(type_conv)
 "xen/native/aes/aesni.c": package(zarith)
 "xen/native/aes/aesni.c": use_nocrypto
 "xen/native/des/generic.c": package(cstruct)
-"xen/native/des/generic.c": package(lwt.syntax)
 "xen/native/des/generic.c": package(mirage-entropy-xen)
 "xen/native/des/generic.c": package(sexplib.syntax)
 "xen/native/des/generic.c": package(type_conv)

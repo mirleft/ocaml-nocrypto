@@ -114,7 +114,7 @@ Library nocrypto_xen
                    native/aes/aesni.c,
                    native/des/generic.c,
                    native/des/generic.h
-  BuildDepends:    nocrypto, lwt.syntax, mirage-entropy-xen
+  BuildDepends:    nocrypto, mirage-entropy-xen
   XMETARequires:   nocrypto, lwt, mirage-entropy-xen
   CCOpt:           --std=c99 -Wall -Wextra -Werror -O3 -DNDEBUG $XEN_CFLAGS
   if flag(modernity) && architecture(amd64)
