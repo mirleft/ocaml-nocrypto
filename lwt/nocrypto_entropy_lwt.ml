@@ -6,6 +6,14 @@ and period = 30
 and device = Nocrypto_entropy_unix.sys_rng
 
 
+let mvar_map v f =
+  Lwt_mvar.take v >>= fun x ->
+    catch (fun () -> f x >>= Lwt_mvar.put v)
+          (fun exn -> Lwt_mvar.put v x >>= fun () -> fail exn)
+
+let some x = Some x
+
+
 type t = {
   fd     : Lwt_unix.file_descr ;
   remove : (unit -> unit) Lwt_sequence.node ;
@@ -39,15 +47,12 @@ let stop t =
   catch (fun () -> Lwt_unix.close t.fd)
     Unix.(function Unix_error (EBADF, _, _) -> return_unit | exn -> fail exn)
 
-let active = ref None
-and mx     = Lwt_mutex.create ()
+let active = Lwt_mvar.create None
 
 let initialize () =
   Nocrypto_entropy_unix.initialize () ;
-  Lwt_mutex.with_lock mx @@ fun () ->
-    let g      = !Rng.generator in
-    let reg () = attach ~period g >|= fun t -> active := Some t in
-    match !active with
-    | Some t when t.g == g -> return_unit
-    | Some t               -> stop t >>= reg
-    | None                 -> reg ()
+  let g = !Rng.generator in
+  mvar_map active @@ function
+    | Some t when t.g == g -> return (Some t)
+    | Some t               -> stop t >>= fun () -> attach ~period g >|= some
+    | None                 -> attach ~period g >|= some
