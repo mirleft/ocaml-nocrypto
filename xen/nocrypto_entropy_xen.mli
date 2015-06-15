@@ -16,6 +16,6 @@ val attach : Entropy_xen.t -> Nocrypto.Rng.g -> Entropy_xen.token Lwt.t
     the token to stop the seeding. *)
 
 val initialize : unit -> unit Lwt.t
-(** Starts seeding the current default generator in [Nocrypto.Rng]. Stops the
-    previous seeding process started through the same function. Idempotent as
-    long as the default generator is unchanged. *)
+(** Starts seeding the current default generator and stops the previous seeding
+    process started through the same function. Idempotent as long as the default
+    generator is unchanged. *)

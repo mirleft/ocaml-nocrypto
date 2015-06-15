@@ -2,13 +2,11 @@
 
     Calling {!initialize} is enough to bring the RNG into a working state.
 
-    {!initialize} is idempotent as long as {!Nocrypto.Rng.generator} remains
-    unswapped, and it is harmless to call it several times.
+    [initialize] is idempotent as long as the default generator is unchanged.
+    It is harmless to call it several times.
 
-    Depending on the generator in use, periodic reseeding is advisable for
-    long-running services. You might want to keep invoking {!reseed} on
-    {!Nocrypto.Rng.generator} (or the generator you are using) with a low
-    frequency. If you rely on {b lwt}, check out {!Nocrypto_entropy_lwt}.
+    If you are using {b lwt}, you should use {!Nocrypto_entropy_lwt} as this
+    module allows for continuous reseeding of the RNG.
 *)
 
 val sys_rng : string
@@ -23,8 +21,8 @@ val reseed : ?bytes:int -> ?device:string -> Nocrypto.Rng.g -> unit
     [device] defaults to {!sys_rng}. *)
 
 val initialize : unit -> unit
-(** Checks if the current global generator {!Nocrypto.Rng.generator} is already
-    seeded. If not, it is seeded from the system RNG device.
+(** Seeds the current defalt generator from the system RNG device if it is
+    currently unseeded.
 
     This is the closest thing to {!Random.self_init} and is a good way to prime
     the RNG. *)
