@@ -89,14 +89,13 @@ let ecb_selftest (m : (module Cipher_block.S.ECB)) n =
 
 let cbc_selftest (m : (module Cipher_block.S.CBC)) n  =
   let module C = ( val m ) in
-  let (!) f x = (f x).C.message in
   "selftest" >:: times ~n @@ fun _ ->
     let data = Rng.generate (C.block_size * 8)
     and iv   = Rng.generate C.block_size
     and key  = C.of_secret @@ Rng.generate (sample C.key_sizes) in
     let data' =
-      C.( data |> !(encrypt ~key ~iv) |> !(encrypt ~key ~iv)
-               |> !(decrypt ~key ~iv) |> !(decrypt ~key ~iv) )
+      C.( data |> encrypt ~key ~iv |> encrypt ~key ~iv
+               |> decrypt ~key ~iv |> decrypt ~key ~iv )
     in
     assert_cs_equal ~msg:"cbc mismatch" data data'
 
@@ -551,8 +550,8 @@ let aes_cbc_cases =
     Cs.(AES.CBC.of_secret (of_hex key), of_hex iv, of_hex out)
 
   and check (key, iv, out) _ =
-    let { AES.CBC.message = enc ; _ } = AES.CBC.encrypt ~key ~iv nist_sp_800_38a in
-    let { AES.CBC.message = dec ; _ } = AES.CBC.decrypt ~key ~iv enc in
+    let enc = AES.CBC.encrypt ~key ~iv nist_sp_800_38a in
+    let dec = AES.CBC.decrypt ~key ~iv enc in
     assert_cs_equal ~msg:"cyphertext" out enc ;
     assert_cs_equal ~msg:"plaintext" nist_sp_800_38a dec in
 
