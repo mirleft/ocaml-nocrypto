@@ -307,28 +307,29 @@ module Modes2 = struct
     let z = Cs.zeros 16
 
     type key = {
-      key : C.ekey ;
-      h   : Cstruct.t
+      key  : C.ekey ;
+      hkey : Gcm.GF128.hkey
     }
 
     let of_secret cs =
       let key = C.e_of_secret cs
       and h   = Cstruct.create 16 in
       C.encrypt ~key ~blocks:1 z.buffer z.off h.buffer h.off ;
-      { h ; key }
+      let hkey = Gcm.hkey h in
+      { key ; hkey }
 
     let (key_sizes, block_size) = C.(key, block)
 
-    let encrypt ~key ~iv ?adata cs =
-      let encrypt ~ctr cs = CTR.encrypt ~key:key.key ~ctr cs in
+    let encrypt ~key:{ key ; hkey } ~iv ?adata cs =
+      let encrypt ~ctr cs = CTR.encrypt ~key ~ctr cs in
       let (message, tag) =
-        Gcm.gcm ~encrypt ~mode:`Encrypt ~iv ~h:key.h ?adata cs
+        Gcm.gcm ~encrypt ~mode:`Encrypt ~iv ~hkey ?adata cs
       in { message ; tag }
 
-    let decrypt ~key ~iv ?adata cs =
-      let encrypt ~ctr cs = CTR.encrypt ~key:key.key ~ctr cs in
+    let decrypt ~key:{ key ; hkey } ~iv ?adata cs =
+      let encrypt ~ctr cs = CTR.encrypt ~key ~ctr cs in
       let (message, tag) =
-        Gcm.gcm ~encrypt ~mode:`Decrypt ~iv ~h:key.h ?adata cs
+        Gcm.gcm ~encrypt ~mode:`Decrypt ~iv ~hkey ?adata cs
       in { message ; tag }
 
   end
