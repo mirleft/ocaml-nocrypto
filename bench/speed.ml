@@ -77,7 +77,7 @@ let benchmarks = [
 
   bm "aes-128-gcm" (fun name ->
     let key = AES.GCM.of_secret (Rng.generate 16)
-    and iv  = Rng.generate 16 in
+    and iv  = Rng.generate 12 in
     throughput name (fun cs -> AES.GCM.encrypt ~key ~iv cs));
 
   bm "aes-128-ccm" (fun name ->
