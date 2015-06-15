@@ -17,17 +17,6 @@ module S = struct
     val decrypt_block : key:dkey -> Cstruct.t -> Cstruct.t -> unit
   end
 
-  (* XXX old block-level + duplex sig, remove *)
-  module type Base = sig
-    type key
-    val of_secret : Cstruct.t -> key
-
-    val key_sizes  : int array
-    val block_size : int
-    val encrypt : key:key -> Cstruct.t -> Cstruct.t
-    val decrypt : key:key -> Cstruct.t -> Cstruct.t
-  end
-
   module type Core = sig
 
     type ekey
@@ -184,28 +173,6 @@ module Modes2 = struct
     let decrypt_block ~key:key src dst =
       if src.len < block_size || dst.len < block_size then invalid_arg "xxx" ;
       Core.decrypt ~key ~blocks:1 src.buffer src.off dst.buffer dst.off
-  end
-
-  module Base_of (Core : S.Core) : S.Base = struct
-
-    type key = Core.ekey * Core.dkey
-
-    let of_secret = Core.of_secret
-
-    let key_sizes  = Core.key
-    let block_size = Core.block
-
-    let encrypt ~key:(key, _) src =
-      if src.len < block_size then invalid_arg "xxx" ;
-      let dst = create block_size in
-      Core.encrypt ~key ~blocks:1 src.buffer src.off dst.buffer dst.off ;
-      dst
-
-    let decrypt ~key:(_, key) src =
-      if src.len < block_size then invalid_arg "xxx" ;
-      let dst = create block_size in
-      Core.decrypt ~key ~blocks:1 src.buffer src.off dst.buffer dst.off ;
-      dst
   end
 
   module ECB_of (Core : S.Core) : S.ECB = struct
