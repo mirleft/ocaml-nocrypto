@@ -25,6 +25,14 @@ module Fc = struct
   end
 end
 
+let bits64 x =
+  String.init 64 @@ fun i ->
+    let o = 63 - i in
+    if Numeric.Int64.((x lsr o) land 1L = 1L) then '1' else '0'
+
+let bits   = bits64 &. Int64.of_int
+let bits32 = bits64 &. Int64.of_int32
+
 
 let f1_eq ?msg f (a, b) _ =
   let (a, b) = Cs.(of_hex a, of_hex b) in
