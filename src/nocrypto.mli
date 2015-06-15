@@ -83,6 +83,8 @@ module Numeric : sig
     val (lsr)  : t -> int -> t
     val (lsl)  : t -> int -> t
     val (land) : t -> t -> t
+    val (lor)  : t -> t -> t
+    val (lxor) : t -> t -> t
 
     val (+)  : t -> t -> t
     val (-)  : t -> t -> t

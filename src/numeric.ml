@@ -9,6 +9,8 @@ module type S_core = sig
   val (lsr)  : t -> int -> t
   val (lsl)  : t -> int -> t
   val (land) : t -> t -> t
+  val (lor)  : t -> t -> t
+  val (lxor) : t -> t -> t
   val (+)  : t -> t -> t
   val (-)  : t -> t -> t
   val succ : t -> t
@@ -38,6 +40,8 @@ module Int_core = struct
   let (lsr)  = (lsr)
   let (lsl)  = (lsl)
   let (land) = (land)
+  let (lor)  = (lor)
+  let (lxor) = (lxor)
   let (+)  = (+)
   let (-)  = (-)
   let succ = succ
@@ -57,6 +61,8 @@ module Int32_core = struct
   let (lsr)  = shift_right_logical
   let (lsl)  = shift_left
   let (land) = logand
+  let (lor)  = logor
+  let (lxor) = logxor
   let (+)    = add
   let (-)    = sub
   let of_int32 = id
@@ -71,6 +77,8 @@ module Int64_core = struct
   let (lsr)  = shift_right_logical
   let (lsl)  = shift_left
   let (land) = logand
+  let (lor)  = logor
+  let (lxor) = logxor
   let (+)    = add
   let (-)    = sub
   let of_int64 = id
