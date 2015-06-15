@@ -135,29 +135,6 @@ end
 
 module Modes = struct
 
-  module GCM_of (C : S.Base) : S.GCM = struct
-
-    assert (C.block_size = 16)
-
-    type result = { message : Cstruct.t ; tag : Cstruct.t }
-    type key    = C.key
-
-    let of_secret = C.of_secret
-
-    let (key_sizes, block_size) = C.(key_sizes, block_size)
-
-    let encrypt ~key ~iv ?adata cs =
-      let (message, tag) =
-        Gcm.gcm ~cipher:C.encrypt ~mode:`Encrypt ~key ~iv ?adata cs
-      in { message ; tag }
-
-    let decrypt ~key ~iv ?adata cs =
-      let (message, tag) =
-        Gcm.gcm ~cipher:C.encrypt ~mode:`Decrypt ~key ~iv ?adata cs
-      in { message ; tag }
-
-  end
-
   module CCM_of (C : S.Raw) : S.CCM = struct
 
     assert (C.block_size = 16)
@@ -295,7 +272,7 @@ module Modes2 = struct
 
   end
 
-  module CTR_of (Core : S.Core) : S.CTR = struct
+  module CTR_of (Core : S.Core) : S.CTR with type key = Core.ekey = struct
 
     (* FIXME: CTR has more room for speedups. *)
 
@@ -352,6 +329,44 @@ module Modes2 = struct
     let decrypt = encrypt
   end
 
+  module GCM_of (C : S.Core) : S.GCM = struct
+
+    module CTR = CTR_of (C)
+
+    assert (C.block = 16)
+
+    type result = { message : Cstruct.t ; tag : Cstruct.t }
+
+    let z = Cs.zeros 16
+
+    type key = {
+      key : C.ekey ;
+      h   : Cstruct.t
+    }
+
+    let of_secret cs =
+      let key = C.e_of_secret cs
+      and h   = Cstruct.create 16 in
+      C.encrypt ~key ~blocks:1 z.buffer z.off h.buffer h.off ;
+      { h ; key }
+
+    let (key_sizes, block_size) = C.(key, block)
+
+    let encrypt ~key ~iv ?adata cs =
+      let encrypt ~ctr cs = CTR.encrypt ~key:key.key ~ctr cs in
+      let (message, tag) =
+        Gcm.gcm ~encrypt ~mode:`Encrypt ~iv ~h:key.h ?adata cs
+      in { message ; tag }
+
+    let decrypt ~key ~iv ?adata cs =
+      let encrypt ~ctr cs = CTR.encrypt ~key:key.key ~ctr cs in
+      let (message, tag) =
+        Gcm.gcm ~encrypt ~mode:`Decrypt ~iv ~h:key.h ?adata cs
+      in { message ; tag }
+
+  end
+
+
 end
 
 open Bigarray
@@ -402,8 +417,8 @@ module AES = struct
   module ECB = Modes2.ECB_of (Core)
   module CBC = Modes2.CBC_of (Core)
   module CTR = Modes2.CTR_of (Core)
+  module GCM = Modes2.GCM_of (Core)
 
-  module GCM = Modes.GCM_of (Modes2.Base_of(Core))
   module CCM = Modes.CCM_of (Modes2.Raw_of(Core))
 
 end

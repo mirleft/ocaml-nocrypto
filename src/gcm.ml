@@ -91,31 +91,21 @@ let ghash ~key cs =
   in
   GF128.(loop (of_cstruct key) zero cs)
 
-let gctr ~cipher ~key ~icb cs =
-  let rec loop acc cb cs =
-    let y = Cs.xor cs (cipher ~key cb) in
-    if len cs > 16 then
-      loop (y :: acc) (incr32 cb) (shift cs 16)
-    else Cs.concat @@ List.rev (y :: acc) in
-  loop [] icb cs
-
-
 let padding cs =
   let p_len n = (16 - (n mod 16)) mod 16 in
   Cs.create_with (p_len (len cs)) 0
 
 let nbits cs = Int64.of_int (len cs * 8)
 
-let gcm ~cipher ~mode ~key ~iv ?(adata=Cs.empty) data =
+let gcm ~encrypt ~mode ~iv ~h ?(adata=Cs.empty) data =
 
-  let h  = cipher ~key (Cs.of_int64s [0L; 0L]) in
-
+  (* XXX limit blocks; overflows at 32 bits. *)
   let j0 = match len iv with
     | 12 -> Cs.concat [ iv; Cs.of_int32s [1l] ]
     | _  -> ghash ~key:h @@
             Cs.concat [ iv; padding iv; Cs.of_int64s [0L; nbits iv] ] in
 
-  let data' = gctr ~cipher ~key ~icb:(incr32 j0) data in
+  let data' = encrypt ~ctr:(incr32 j0) data in
 
   let cdata = match mode with
     | `Encrypt -> data'
@@ -126,7 +116,7 @@ let gcm ~cipher ~mode ~key ~iv ?(adata=Cs.empty) data =
                     ; cdata ; padding cdata
                     ; Cs.of_int64s [ nbits adata ; nbits cdata  ] ]
   in
-  let t = gctr ~cipher ~key ~icb:j0 s in
+  let t = encrypt ~ctr:j0 s in
 
   (data', t)
 
