@@ -240,13 +240,14 @@ module Cipher_block : sig
     module type CBC = sig
 
       type key
-      type result = { message : Cstruct.t ; iv : Cstruct.t }
       val of_secret : Cstruct.t -> key
 
       val key_sizes  : int array
       val block_size : int
-      val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
-      val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
+
+      val next_iv : Cstruct.t -> Cstruct.t
+      val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
+      val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
     end
 
     (** {e Counter} mode. *)

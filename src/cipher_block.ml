@@ -48,13 +48,14 @@ module S = struct
   module type CBC = sig
 
     type key
-    type result = { message : Cstruct.t ; iv : Cstruct.t }
     val of_secret : Cstruct.t -> key
 
     val key_sizes  : int array
     val block_size : int
-    val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
-    val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> result
+
+    val next_iv : Cstruct.t -> Cstruct.t
+    val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
+    val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
   end
 
   module type CTR = sig
@@ -199,13 +200,14 @@ module Modes2 = struct
 
   module CBC_of (Core : S.Core) : S.CBC = struct
 
-    type result = { message : Cstruct.t ; iv : Cstruct.t }
-    type key    = Core.ekey * Core.dkey
+    type key = Core.ekey * Core.dkey
 
     let (key_sizes, block_size) = Core.(key, block)
     let block = block_size
 
     let of_secret = Core.of_secret
+
+    let next_iv cs = sub cs (len cs - block_size) block_size
 
     let bounds_check ~iv cs =
       if len iv <> block then
@@ -213,29 +215,29 @@ module Modes2 = struct
       if len cs mod block <> 0 then
         Raise.invalid1 "CBC: argument is not N * %d bytes" block
 
-    let encrypt ~key:(key, _) ~iv plain =
-      bounds_check ~iv plain ;
-      let rec loop iv i_iv dst i_buf = function
-        | 0 -> of_bigarray ~off:i_iv ~len:block iv
-        | b ->
-            Native.xor_into iv i_iv dst i_buf block ;
-            Core.encrypt ~key ~blocks:1 dst i_buf dst i_buf ;
-            loop dst i_buf dst (i_buf + block) (pred b)
-      in
-      let msg = Cs.clone plain in
-      let iv = loop iv.buffer iv.off msg.buffer msg.off (len plain / block) in
-      { message = msg ; iv }
+    let encrypt ~key:(key, _) ~iv src =
+      bounds_check ~iv src ;
+      let msg = Cs.clone src in
+      let dst = msg.buffer in
+      let rec loop iv iv_i dst_i b =
+        if b > 0 then begin
+          Native.xor_into iv iv_i dst dst_i block ;
+          Core.encrypt ~key ~blocks:1 dst dst_i dst dst_i ;
+          loop dst dst_i (dst_i + block) (b - 1)
+        end in
+      loop iv.buffer iv.off msg.off (len msg / block) ;
+      msg
 
     let decrypt ~key:(_, key) ~iv src =
       bounds_check ~iv src ;
-      let msg = create (len src) in
-      match len src / block with
-      | 0 -> { message = msg ; iv }
-      | b ->
-          Core.decrypt ~key ~blocks:b src.buffer src.off msg.buffer msg.off ;
-          Native.xor_into iv.buffer iv.off msg.buffer msg.off block ;
-          Native.xor_into src.buffer src.off msg.buffer (msg.off + block) ((b - 1) * block) ;
-          { message = msg ; iv = sub src (len src - block) block }
+      let msg = create (len src)
+      and b   = len src / block in
+      if b > 0 then begin
+        Core.decrypt ~key ~blocks:b src.buffer src.off msg.buffer msg.off ;
+        Native.xor_into iv.buffer iv.off msg.buffer msg.off block ;
+        Native.xor_into src.buffer src.off msg.buffer (msg.off + block) ((b - 1) * block) ;
+      end ;
+      msg
 
   end
 
