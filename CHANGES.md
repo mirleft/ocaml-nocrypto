@@ -1,15 +1,17 @@
 0.5.0 (trunk):
-* support for AES-NI and some SSE2 bits
-* do not use ctypes for internal C calls
+* support for AES-NI and SSE2
 * support RSA-OAEP and RSA-PSS
+* drop ctypes for internal C calls
 * generate smaller secret exponents for DH, making operations on large groups much faster
 * support dynamic switching of RNG algorithms and decouple Rng from Fortuna
-* collateral API breakage all around
+* module for injectring entropy into RNG on pure Unix (optional)
+* `Nocrypto_entropy_lwt.initialize` no longer need to be synchronized on
+* renamed module signatures and modules containing only signatures from `T` to `S`
+* changes to block cipher API
 
 0.4.0 (2015-05-02):
 * module for injecting entropy into RNG on Unix/Lwt (optional)
-* module for injecting entropy into RNG on Mirage/Xen (optional; depends on
-  mirage-entropy-xen)
+* module for injecting entropy into RNG on Mirage/Xen (optional; depends on mirage-entropy-xen)
 * API changes in Rng
 * do not 0-pad DH public and shared representations
 * more named DH groups
