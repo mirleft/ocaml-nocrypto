@@ -7,6 +7,15 @@
 
     If you are using {b lwt}, you should use {!Nocrypto_entropy_lwt} as this
     module allows for continuous reseeding of the RNG.
+
+    Unless you want to recover from an unlikely case of missing system RNG, the
+    recommended way to prime the RNG is to invoke [initialize] at the module
+    level:
+
+{[
+let () = Nocrypto_entropy_unix.initialize ()
+]}
+
 *)
 
 val sys_rng : string

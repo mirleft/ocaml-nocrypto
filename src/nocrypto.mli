@@ -326,28 +326,74 @@ module Cipher_stream : sig
 end
 
 
-(**
-  General interface to randomness.
+(** Secure randomness generation.
 
-  It defines a general module type of generators, {!S.Generator}, a facility to
+  There are several parts of this module:
+
+  The module type of generators, {!S.Generator}, together with a facility to
   convert such modules into generators that can be used uniformly, {!g}, and
   functions that operate on this generic representation.
 
-  It contains a reference, {!generator}, to a global [g] instance.
-  When not explicitly supplied a [g], random-generation functions use the
-  contents of this reference. It starts with {!Fortuna}.
+  A global [g] instance, which defaults to {!Rng.Generators.Fortuna}. When a
+  generator is not explicitly supplied, functions in this module default to the
+  global instance.
 
-  It defines a module type of utilities for generating a particular numeric
-  type, {!S.N}, contains instances of this module type for [int], [int32],
-  [int64] and [Z.t], and functor to create them given a ground numeric type.
+  Module type of utility-modules with a suite of functions for generating a
+  particular numeric type ({!S.N}), a functor to produce such modules from a
+  ground numeric type ({!N_gen}), and instances for [int], [int32], [int64] and
+  [Z.t].
 
-  It includes specialized operations for generating random primes.
+  Several specialized functions for e.g. primes.
+
+  {6 Usage notes}
+
+  The RNGs here are merely the deterministic part of a full random number
+  generation suite. For proper operation, they need to be seeded with a
+  high-quality entropy source.
+
+  Suitable entropy sources are provided by sub-libraries [nocrypto.unix]
+  ({!Nocrypto_entropy_unix}), [nocrypto.lwt] ({!Nocrypto_entropy_lwt}) and
+  [nocrypto.xen] ({!Nocrypto_entropy_xen}). Although this module exposes a more
+  fine-grained interface, allowing manual seeding of generators, this is
+  intended either for implementing entropy-harvesting modules, or very
+  specialized purposes. Users of this library should almost certainly use one of
+  the above entropy libraries, and avoid manually managing the generator
+  seeding.
+
+  Similarly, although it is possible to swap the global generator and gain
+  control over the random stream, this is also intended for specialized
+  applications such as testing or similar scenarios where the RNG needs to be
+  fully deterministic, or as a component of deterministic algorithms which
+  internally rely on pseudorandom streams.
+
+  In the general case, users should not maintain their local instances of {!g}.
+  All of the generators in a process have to compete for entropy, and it is
+  likely that the overall result will have lower effective unpredictability.
+
+  The recommended way to use these functions is either to accept an optional
+  generator and pass it down, or to ignore the generator altogether. For
+  example:
+
+{[
+let rec f1 ?g ~limit = function
+  | 0 -> []
+  | n -> Rng.Z.gen ?g limit :: f1 ?g ~limit (pred n)
+]}
+
+{[
+let rec f2 ~limit = function
+  | 0 -> []
+  | n -> Rng.Z.gen limit :: f2 ~limit (pred n)
+]}
+
 *)
 module Rng : sig
 
+  (** {6 Core interface} *)
+
 
   type g
-  (** A generator with its state. Changes when used. *)
+  (** A generator with its state. *)
 
   exception Unseeded_generator
   (** Thrown when using an uninitialized {!g}. *)
@@ -417,6 +463,7 @@ module Rng : sig
   end
 
 
+  (** Ready-to-use RNG algorithms. *)
   module Generators : sig
 
     (** {b Fortuna}, a CSPRNG {{: https://www.schneier.com/fortuna.html} proposed}
@@ -429,8 +476,8 @@ module Rng : sig
       module Make (H : Hash.S) : S.Generator
     end
 
-    module Null : S.Generator
     (** No-op generator returning exactly the bytes it was seeded with. *)
+    module Null : S.Generator
 
   end
 
@@ -439,39 +486,47 @@ module Rng : sig
   (** [create module] uses a module conforming to {!S.Generator} to instantiate
       the generic generator {!g}.
 
-      [strict] puts the generator into a slighty more standards-conformant and
-      slower mode. Useful if the outputs are to match published test-vectors. *)
+      [strict] puts the generator into a slighty more standards-conformant, but
+      slower mode. Useful if the outputs need to match published test-vectors.  *)
 
   val generator : g ref
-  (* The global {!g}. Functions in this module use this generator when not
-     explicitly supplied one.
+  (** The global {!g}. Functions in this module use this generator when not
+      explicitly supplied one.
 
-     [generator] defaults to {!Fortuna}. *)
+      Swapping the [generator] is a way to subvert the random-generation process
+      e.g. to make it fully deterministic. It is not meant for general use.
+
+      [generator] defaults to {!Fortuna}. *)
 
   val generate : ?g:g -> int -> Cstruct.t
   (** Invoke {!S.Generator.generate} on [g] or {!generator}. *)
 
-  val reseed : ?g:g -> Cstruct.t -> unit
-  (** Invoke {!S.Generator.generate} on [g] or {!generator}. *)
-
-  val accumulate : g option -> (source:int -> Cstruct.t -> unit) Uncommon.one
-  (** Invoke {!S.Generator.accumulate} on [g] or {!generator}. *)
-
-  val seeded : g option -> bool
-  (** Invoke {!S.Generator.seeded} on [g] or {!generator}. *)
-
   val block : g option -> int
   (** {!S.Generator.block} size of [g] or {!generator}. *)
 
+  (**/**)
+  (* The following functions expose the seeding interface. They are meant to
+   * connect the RNG with entropy-providing libraries. A client application
+   * should not use them directly. *)
+
+  val reseed     : ?g:g -> Cstruct.t -> unit
+  val accumulate : g option -> (source:int -> Cstruct.t -> unit) Uncommon.one
+  val seeded     : g option -> bool
+  (**/**)
+
+
+  (** {6 Generation of common numeric types} *)
 
   module N_gen (N : Numeric.S) : S.N with type t = N.t
-  (** Create a suite of generating functions over a numeric type. *)
+  (** Creates a suite of generating functions over a numeric type. *)
 
   module Int   : S.N with type t = int
   module Int32 : S.N with type t = int32
   module Int64 : S.N with type t = int64
   module Z     : S.N with type t = Z.t
 
+
+  (** {6 Specialized generation} *)
 
   val prime : ?g:g -> ?msb:int -> int -> Z.t
   (** [prime ~g ~msb bits] generates a prime smaller than [2^bits], with [msb]
