@@ -8,8 +8,18 @@
 #define _S_1111 0x55
 #define _S_0000 0x00
 
+/*
+ * RKs are currently aligned from the C side on access. Would be better to
+ * allocate and pass them in pre-aligned.
+ *
+ * XXX Get rid of the correction here.
+ */
 int _nc_aesni_rk_size (uint8_t rounds) {
-  return (rounds + 1) * 16;
+  return (rounds + 1) * 16 + 15;
+}
+
+static inline __m128i* __rk (const void *rk) {
+  return (__m128i *) ((uint64_t) (rk + 15) & -16);
 }
 
 static inline __m128i __mix (__m128i r1, __m128i r2) {
@@ -30,7 +40,7 @@ static inline void __pack (__m128i *o1, __m128i *o2, __m128i r1, __m128i r2, __m
 
 static inline void _nc_aesni_derive_e_key (const uint8_t *key, uint8_t *rk0, uint8_t rounds) {
 
-  __m128i *rk = (__m128i*) rk0;
+  __m128i *rk = __rk (rk0);
   __m128i temp1, temp2;
 
   switch (rounds) {
@@ -115,8 +125,8 @@ static inline void _nc_aesni_derive_e_key (const uint8_t *key, uint8_t *rk0, uin
 
 static inline void _nc_aesni_invert_e_key (const uint8_t *rk0, uint8_t *kr0, uint8_t rounds) {
 
-  __m128i *rk1 = (__m128i*) rk0,
-          *kr  = (__m128i*) kr0,
+  __m128i *rk1 = __rk (rk0),
+          *kr  = __rk (kr0),
           rk[15];
 
   for (uint8_t i = 0; i <= rounds; i++)
@@ -142,7 +152,7 @@ static void _nc_aesni_derive_d_key (const uint8_t *key, uint8_t *kr, uint8_t rou
 static inline void _nc_aesni_enc (const uint8_t src[16], uint8_t dst[16], const uint8_t *rk0, uint8_t rounds) {
 
   __m128i r   = _mm_loadu_si128 ((__m128i*) src),
-          *rk = (__m128i*) rk0;
+          *rk = __rk (rk0);
 
   r = _mm_xor_si128 (r, rk[0]);
 
@@ -156,7 +166,7 @@ static inline void _nc_aesni_enc (const uint8_t src[16], uint8_t dst[16], const 
 static inline void _nc_aesni_dec (const uint8_t src[16], uint8_t dst[16], const uint8_t *rk0, uint8_t rounds) {
 
   __m128i r   = _mm_loadu_si128 ((__m128i*) src),
-          *rk = (__m128i*) rk0;
+          *rk = __rk (rk0);
 
   r = _mm_xor_si128 (r, rk[0]);
 
@@ -171,7 +181,7 @@ static inline void _nc_aesni_enc8 (const uint8_t src[128], uint8_t dst[128], con
 
   __m128i *in  = (__m128i*) src,
           *out = (__m128i*) dst,
-          *rk  = (__m128i*) rk0;
+          *rk  = __rk (rk0);
 
   __m128i r0 = _mm_loadu_si128 (in    ),
           r1 = _mm_loadu_si128 (in + 1),
@@ -225,7 +235,7 @@ static inline void _nc_aesni_dec8 (const uint8_t src[128], uint8_t dst[128], con
 
   __m128i *in  = (__m128i*) src,
           *out = (__m128i*) dst,
-          *rk  = (__m128i*) rk0;
+          *rk  = __rk (rk0);
 
   __m128i r0 = _mm_loadu_si128 (in    ),
           r1 = _mm_loadu_si128 (in + 1),
