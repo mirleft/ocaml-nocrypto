@@ -26,7 +26,7 @@ module Fc = struct
 end
 
 let bits64 x =
-  String.init 64 @@ fun i ->
+  Bytes.init 64 @@ fun i ->
     let o = 63 - i in
     if Numeric.Int64.((x lsr o) land 1L = 1L) then '1' else '0'
 
