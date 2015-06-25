@@ -1,0 +1,11 @@
+S src
+S unix
+S lwt
+S xen
+
+B _build/src
+B _build/unix
+B _build/lwt
+B _build/xen
+
+PKG cstruct zarith sexplib
