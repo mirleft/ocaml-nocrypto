@@ -34,6 +34,9 @@ end
 
 module Option = struct
 
+  let get a = function None -> a | Some b -> b
+  let getf a = function None -> a () | Some b -> b
+
   let v_map ~def ~f = function
     | Some x -> f x
     | None   -> def
@@ -45,6 +48,10 @@ module Option = struct
   let map ~f = function
     | Some x -> Some (f x)
     | None   -> None
+
+  let cond ~f = function
+    | Some x -> ignore (f x)
+    | None   -> ()
 end
 
 let string_fold ~f ~z str =

@@ -345,6 +345,36 @@ end
 
   Several specialized functions for e.g. primes.
 
+
+  {6 Examples}
+
+  Generating a random 13-byte {!Cstruct.t}:
+{[let cs = Rng.generate 13]}
+
+  Generating a list of {!Cstruct.t}s, passing down an optional {!g}:
+{[let rec f1 ?g ~n i =
+  if i < 1 then [] else Rng.generate ?g n :: f1 ?g ~n (i - 1)]}
+
+  Generating a [Z.t] smaller than [10] and an [int64] in the range [\[3, 7\]]:
+{[let f2 ?g () = Rng.(Z.gen ?g ~$10, Int64.gen_r 3L 8L)]}
+
+  Creating a local Fortuna instance and using it as a key-derivation function:
+{[let f3 secret =
+  let g = Rng.(create ~seed:secret (module Generators.Fortuna)) in
+  Rng.generate ~g 32]}
+
+  Generating a 17-bit prime with two leading bits set:
+{[let p = Rng.prime ~msb:2 17]}
+
+  Fisher-Yates shuffle:
+{[let f4 ~g arr =
+  let n = Array.length arr in
+  arr |> Array.iter @@ fun i ->
+    let j = Rng.Int.gen_r ~g i n in
+    let (a, b) = (arr.(i), arr.(j)) in
+    arr.(i) <- b ; arr.(j) <- a ]}
+
+
   {6 Usage notes}
 
   The RNGs here are merely the deterministic part of a full random number
@@ -371,26 +401,12 @@ end
   likely that the overall result will have lower effective unpredictability.
 
   The recommended way to use these functions is either to accept an optional
-  generator and pass it down, or to ignore the generator altogether. For
-  example:
-
-{[
-let rec f1 ?g ~limit = function
-  | 0 -> []
-  | n -> Rng.Z.gen ?g limit :: f1 ?g ~limit (pred n)
-]}
-
-{[
-let rec f2 ~limit = function
-  | 0 -> []
-  | n -> Rng.Z.gen limit :: f2 ~limit (pred n)
-]}
+  generator and pass it down, or to ignore the generator alltogether.
 
 *)
 module Rng : sig
 
   (** {6 Core interface} *)
-
 
   type g
   (** A generator with its state. *)
@@ -482,15 +498,19 @@ module Rng : sig
   end
 
 
-  val create : ?strict:bool -> ?g:'a -> (module S.Generator with type g = 'a) -> g
+  val create : ?g:'a -> ?seed:Cstruct.t -> ?strict:bool -> (module S.Generator with type g = 'a) -> g
   (** [create module] uses a module conforming to {!S.Generator} to instantiate
       the generic generator {!g}.
 
-      [strict] puts the generator into a slighty more standards-conformant, but
-      slower mode. Useful if the outputs need to match published test-vectors.  *)
+      [g] is a generator to wrap, otherwise a fresh one is created.
+
+      [seed] can be provided to immediately reseed the generator with.
+
+      [strict] puts the generator into a more standards-conformant, but slighty
+      slower mode. Useful if the outputs need to match published test-vectors. *)
 
   val generator : g ref
-  (** The global {!g}. Functions in this module use this generator when not
+  (** The global generator. Functions in this module use this generator when not
       explicitly supplied one.
 
       Swapping the [generator] is a way to subvert the random-generation process
@@ -505,6 +525,7 @@ module Rng : sig
   (** {!S.Generator.block} size of [g] or {!generator}. *)
 
   (**/**)
+
   (* The following functions expose the seeding interface. They are meant to
    * connect the RNG with entropy-providing libraries. A client application
    * should not use them directly. *)

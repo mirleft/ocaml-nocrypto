@@ -13,21 +13,15 @@
 
     All of the following is correct usage of [initialize]:
 
-{[
-let _ = Nocrypto_entropy_lwt.initialize ()
-]}
+{[let _ = Nocrypto_entropy_lwt.initialize () ]}
 
-{[
-let () =
+{[let () =
   ignore (Nocrypto_entropy_lwt.initialize ());
-  Lwt_main.run (main ())
-]}
+  Lwt_main.run (main ()) ]}
 
-{[
-let () =
+{[let () =
   Lwt_main.run
-    (Nocrypto_entropy_lwt.initialize () >>= main)
-]}
+    (Nocrypto_entropy_lwt.initialize () >>= main) ]}
 
 *)
 
