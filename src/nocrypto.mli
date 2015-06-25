@@ -1,4 +1,8 @@
+
 (** {b Nocrypto}: for when you're sick of crypto. *)
+
+
+(** {1 Utilities} *)
 
 module Base64 : sig
   val encode : Cstruct.t -> Cstruct.t
@@ -114,7 +118,7 @@ module Numeric : sig
   module Int64 : S with type t = int64
   module Z     : S with type t = Z.t
 
-  (** Misc elementary number theory functions: *)
+  (** {1 Misc elementary number theory} *)
 
   val pseudoprime : Z.t -> bool
   (** Miller-Rabin with sane rounds parameter. *)
@@ -122,22 +126,35 @@ module Numeric : sig
 end
 
 
-(** Hashes. *)
+(** {1 Hashing} *)
+
+(** Hashes.
+
+    Each hash algorithm is contained in its own separate module. *)
 module Hash : sig
 
-  (** Hash algorithm. *)
+  (** A single hash algorithm. *)
   module type S = sig
 
-    type t (** Mutable hashing context. *)
+    type t (** Hash state. *)
 
-    val digest_size : int (** Size of hashing results, in bytes. *)
+    val digest_size : int
+    (** Size of hash results, in bytes. *)
 
-    val init : unit -> t (** Create a new hashing context. *)
-    val feed : t    -> Cstruct.t -> unit (** Update the context *)
-    val get  : t    -> Cstruct.t (** Extract the digest; [t] becomes invalid. *)
+    val init : unit -> t
+    (** Create a new hash state. *)
 
-    val digest  : Cstruct.t      -> Cstruct.t (** Digest in one go. *)
-    val digestv : Cstruct.t list -> Cstruct.t (** Digest in one go. *)
+    val feed : t -> Cstruct.t -> unit
+    (** Hash the input, updating the state. *)
+
+    val get : t -> Cstruct.t
+    (** Extract the digest; state becomes invalid. *)
+
+    val digest  : Cstruct.t -> Cstruct.t
+    (** Compute the digest. *)
+
+    val digestv : Cstruct.t list -> Cstruct.t
+    (** Compute the digest. *)
 
     val hmac : key:Cstruct.t -> Cstruct.t -> Cstruct.t
     (** [hmac ~key bytes] is authentication code for [bytes] under the secret
@@ -152,7 +169,7 @@ module Hash : sig
   module SHA384  : S
   module SHA512  : S
 
-  (** Simpler short-hands for common operations over varying hashes: *)
+  (** {1 Short-hands} *)
 
   type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] with sexp
 
@@ -164,10 +181,15 @@ module Hash : sig
 end
 
 
-(** Block ciphers.  *)
+(** {1 Symmetric-key cryptography} *)
+
+(** Block ciphers.
+ 
+    Each algorithm, and each mode of operation, is contained in its own separate
+    module. *)
 module Cipher_block : sig
 
-  (** Module types for various instantiations of block ciphers. *)
+  (** Module types for various block cipher modes of operation. *)
   module S : sig
 
     (** Raw block cipher in all its glory. *)
@@ -288,7 +310,6 @@ module Cipher_block : sig
     val add16  : Cstruct.t -> int -> int64 -> unit
   end
 
-  (** {b AES}, plus a few modes of operation. *)
   module AES : sig
     val mode : [ `Generic | `AES_NI ]
 (*     module Core : S.Core *)
@@ -299,7 +320,6 @@ module Cipher_block : sig
     module CCM  : S.CCM
   end
 
-  (** {b DES}, plus a few modes of operation. *)
   module DES : sig
 (*     module Core : S.Core *)
     module ECB  : S.ECB
@@ -326,32 +346,33 @@ module Cipher_stream : sig
 end
 
 
-(** Secure randomness generation.
+(** {1 Random numbers} *)
+
+(** Secure random number generation.
 
   There are several parts of this module:
 
-  The module type of generators, {!S.Generator}, together with a facility to
-  convert such modules into generators that can be used uniformly, {!g}, and
-  functions that operate on this generic representation.
+  The module type of generators, {{!S.Generator}S.Generator}, together with a
+  facility to convert such modules into generators that can be used uniformly,
+  {{!g}g}, and functions that operate on this generic representation.
 
-  A global [g] instance, which defaults to {!Rng.Generators.Fortuna}. When a
-  generator is not explicitly supplied, functions in this module default to the
-  global instance.
+  A global [g] instance, implemented by {{!Rng.Generators.Fortuna}Fortuna}.
+  This is the default generator, used when one is not explicitly supplied.
 
   Module type of utility-modules with a suite of functions for generating a
-  particular numeric type ({!S.N}), a functor to produce such modules from a
-  ground numeric type ({!N_gen}), and instances for [int], [int32], [int64] and
-  [Z.t].
+  particular numeric type ({{!S.N}S.N}), a functor to produce such modules from
+  a ground numeric type ({{!N_gen}N_gen}), and instances for [int], [int32],
+  [int64] and [Z.t].
 
   Several specialized functions for e.g. primes.
 
 
-  {6 Examples}
+  {1 Examples}
 
   Generating a random 13-byte {!Cstruct.t}:
 {[let cs = Rng.generate 13]}
 
-  Generating a list of {!Cstruct.t}s, passing down an optional {!g}:
+  Generating a list of {!Cstruct.t}s, passing down an optional {{!g}generator}:
 {[let rec f1 ?g ~n i =
   if i < 1 then [] else Rng.generate ?g n :: f1 ?g ~n (i - 1)]}
 
@@ -375,30 +396,30 @@ end
     arr.(i) <- b ; arr.(j) <- a ]}
 
 
-  {6 Usage notes}
+  {1 Usage notes}
 
   The RNGs here are merely the deterministic part of a full random number
   generation suite. For proper operation, they need to be seeded with a
   high-quality entropy source.
 
-  Suitable entropy sources are provided by sub-libraries [nocrypto.unix]
-  ({!Nocrypto_entropy_unix}), [nocrypto.lwt] ({!Nocrypto_entropy_lwt}) and
-  [nocrypto.xen] ({!Nocrypto_entropy_xen}). Although this module exposes a more
-  fine-grained interface, allowing manual seeding of generators, this is
-  intended either for implementing entropy-harvesting modules, or very
-  specialized purposes. Users of this library should almost certainly use one of
-  the above entropy libraries, and avoid manually managing the generator
-  seeding.
+  Suitable entropy sources are provided by sub-libraries
+  {{!Nocrypto_entropy_unix}nocrypto.unix}, {{!Nocrypto_entropy_lwt}nocrypto.lwt}
+  and {{!Nocrypto_entropy_xen}nocrypto.xen}. Although this module exposes a more
+  fine-grained interface, allowing manual seeding of generators, this is intended
+  either for implementing entropy-harvesting modules, or very specialized
+  purposes. Users of this library should almost certainly use one of the above
+  entropy libraries, and avoid manually managing the generator seeding.
 
-  Similarly, although it is possible to swap the global generator and gain
+  Similarly, although it is possible to swap the default generator and gain
   control over the random stream, this is also intended for specialized
   applications such as testing or similar scenarios where the RNG needs to be
   fully deterministic, or as a component of deterministic algorithms which
   internally rely on pseudorandom streams.
 
-  In the general case, users should not maintain their local instances of {!g}.
-  All of the generators in a process have to compete for entropy, and it is
-  likely that the overall result will have lower effective unpredictability.
+  In the general case, users should not maintain their local instances of
+  {{!g}g}. All of the generators in a process have to compete for entropy, and
+  it is likely that the overall result will have lower effective
+  unpredictability.
 
   The recommended way to use these functions is either to accept an optional
   generator and pass it down, or to ignore the generator alltogether.
@@ -406,13 +427,13 @@ end
 *)
 module Rng : sig
 
-  (** {6 Core interface} *)
+  (** {1 Core interface} *)
 
   type g
   (** A generator with its state. *)
 
   exception Unseeded_generator
-  (** Thrown when using an uninitialized {!g}. *)
+  (** Thrown when using an uninitialized {{!g}generator}. *)
 
 
   (** Module signatures. *)
@@ -425,10 +446,11 @@ module Rng : sig
       (** State type for this generator. *)
 
       val block : int
-      (** Internally, this generator's {!generate} always produces [k * block] bytes. *)
+      (** Internally, this generator's {{!generate}generate} always produces
+          [k * block] bytes. *)
 
       val create : unit -> g
-      (** Create a new, unseeded {!g}. *)
+      (** Create a new, unseeded {{!g}g}. *)
 
       val generate : g:g -> int -> Cstruct.t
       (** [generate ~g n] produces [n] uniformly distributed random bytes,
@@ -451,7 +473,8 @@ module Rng : sig
           A generator is seeded after a single application of the closure. *)
 
       val seeded : g:g -> bool
-      (** [seeded ~g] is [true] iff operations won't throw {!Unseeded_generator}. *)
+      (** [seeded ~g] is [true] iff operations won't throw
+          {{!Unseeded_generator}Unseeded_generator}. *)
 
     end
 
@@ -470,8 +493,9 @@ module Rng : sig
 
       val gen_bits : ?g:g -> ?msb:int -> int -> t
       (** [gen_bits ~g ~msb n] picks a bit-string [n] bits long, with [msb] most
-          significant bits set, and interprets it as a {!t} in big-endidan. This
-          yields a value in the interval [\[2^(n-1) + ... + 2^(n-msb), 2^n - 1\]].
+          significant bits set, and interprets it as a {{!t}t} in big-endidan.
+          This yields a value in the interval
+          [\[2^(n-1) + ... + 2^(n-msb), 2^n - 1\]].
 
           [msb] defaults to [0] which reduces [gen_bits k] to [gen 2^k]. *)
     end
@@ -499,10 +523,10 @@ module Rng : sig
 
 
   val create : ?g:'a -> ?seed:Cstruct.t -> ?strict:bool -> (module S.Generator with type g = 'a) -> g
-  (** [create module] uses a module conforming to {!S.Generator} to instantiate
-      the generic generator {!g}.
+  (** [create module] uses a module conforming to the {{!S.Generator}Generator}
+      signature to instantiate the generic generator {{!g}g}.
 
-      [g] is a generator to wrap, otherwise a fresh one is created.
+      [g] is the state to use, otherwise a fresh one is created.
 
       [seed] can be provided to immediately reseed the generator with.
 
@@ -510,19 +534,21 @@ module Rng : sig
       slower mode. Useful if the outputs need to match published test-vectors. *)
 
   val generator : g ref
-  (** The global generator. Functions in this module use this generator when not
+  (** Default generator. Functions in this module use this generator when not
       explicitly supplied one.
 
       Swapping the [generator] is a way to subvert the random-generation process
       e.g. to make it fully deterministic. It is not meant for general use.
 
-      [generator] defaults to {!Fortuna}. *)
+      [generator] defaults to {{!Generators.Fortuna}Fortuna}. *)
 
   val generate : ?g:g -> int -> Cstruct.t
-  (** Invoke {!S.Generator.generate} on [g] or {!generator}. *)
+  (** Invoke {{!S.Generator.generate}generate} on [g] or
+      {{!generator}default generator}. *)
 
   val block : g option -> int
-  (** {!S.Generator.block} size of [g] or {!generator}. *)
+  (** {{!S.Generator.block}Block} size of [g] or
+      {{!generator}default generator}. *)
 
   (**/**)
 
@@ -536,7 +562,7 @@ module Rng : sig
   (**/**)
 
 
-  (** {6 Generation of common numeric types} *)
+  (** {1 Generation of common numeric types} *)
 
   module N_gen (N : Numeric.S) : S.N with type t = N.t
   (** Creates a suite of generating functions over a numeric type. *)
@@ -547,7 +573,7 @@ module Rng : sig
   module Z     : S.N with type t = Z.t
 
 
-  (** {6 Specialized generation} *)
+  (** {1 Specialized generation} *)
 
   val prime : ?g:g -> ?msb:int -> int -> Z.t
   (** [prime ~g ~msb bits] generates a prime smaller than [2^bits], with [msb]
@@ -562,6 +588,8 @@ module Rng : sig
 
 end
 
+
+(** {1 Public-key cryptography} *)
 
 (** {b RSA} public-key cryptography.
 
@@ -612,23 +640,23 @@ module Rsa : sig
   (** Bit-size of a private key. *)
 
   val priv_of_primes : e:Z.t -> p:Z.t -> q:Z.t -> priv
-  (** [priv_of_primes e p q] creates {!priv} from a minimal description: the
-      public exponent and the two primes. *)
+  (** [priv_of_primes e p q] creates {{!priv}priv} from a minimal description:
+      the public exponent and the two primes. *)
 
   val pub_of_priv : priv -> pub
   (** Extract the public component from a private key. *)
 
   val encrypt : key:pub  -> Cstruct.t -> Cstruct.t
   (** [encrypt key message] is the encrypted [message].
-      @raise Insufficient_key (see {!Insufficient_key}) *)
+      @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
   val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
   (** [decrypt mask key ciphertext] is the decrypted [ciphertext], left-padded
       with [0x00] up to [key] size.
-      @raise Insufficient_key (see {!Insufficient_key}) *)
+      @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
   val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
-  (** [generate g e bits] is a new {!priv}. [e] defaults to [2^16+1].
+  (** [generate g e bits] is a new {{!priv}priv}. [e] defaults to [2^16+1].
       @raise Invalid_argument if [e] is bad or [bits] is too small. *)
 
 
@@ -641,20 +669,21 @@ module Rsa : sig
     (** [sign mask key message] is the PKCS1-padded (type 1) [message] signed by
         the [key]. Note that this operation performs only the padding and RSA
         transformation steps of the PKCS 1.5 signature.
-        @raise Insufficient_key (see {!Insufficient_key}) *)
+        @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
     val verify : key:pub -> Cstruct.t -> Cstruct.t option
     (** [verify key signature] is either [Some message] if the [signature] was
-        produced with the given [key] as per {!sign}, or [None] *)
+        produced with the given [key] as per {{!sign}sign}, or [None] *)
 
     val encrypt : ?g:Rng.g -> key:pub -> Cstruct.t -> Cstruct.t
     (** [encrypt g key message] is a PKCS1-padded (type 2) and encrypted
         [message].
-        @raise Insufficient_key (see {!Insufficient_key}) *)
+        @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
     val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
     (** [decrypt mask key ciphertext] is [Some message] if the [ciphertext] was
-        produced by the corresponding {!encrypt} operation, or [None] otherwise. *)
+        produced by the corresponding {{!encrypt}encrypt} operation, or [None]
+        otherwise. *)
   end
 
   (** {b OAEP}-padded encryption, as defined by {b PKCS #1 v2.1}.
@@ -669,12 +698,12 @@ module Rsa : sig
     val encrypt : ?g:Rng.g -> ?label:Cstruct.t -> key:pub -> Cstruct.t -> Cstruct.t
     (** [encrypt ~g ~label ~key message] is {b OAEP}-padded and encrypted
         [message], using the optional [label].
-        @raise Insufficient_key (see {!Insufficient_key}) *)
+        @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
     val decrypt : ?mask:mask -> ?label:Cstruct.t -> key:priv -> Cstruct.t -> Cstruct.t option
     (** [decrypt ~mask ~label ~key ciphertext] is [Some message] if the
-        [ciphertext] was produced by the corresponding {!encrypt} operation,
-        or [None] otherwise. *)
+        [ciphertext] was produced by the corresponding {{!encrypt}encrypt}
+        operation, or [None] otherwise. *)
   end
 
   (** {b PSS}-passed signing, as defined by {b PKCS #1 v2.1}.
@@ -690,7 +719,7 @@ module Rsa : sig
     (** [sign ~g ~slen ~key message] the {p PSS}-padded digest of [message],
         signed with the [key]. [slen] is the optional seed length and default to
         the size of the underlying hash function.
-        @raise Insufficient_key (see {!Insufficient_key}) *)
+        @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
     val verify : ?slen:int -> key:pub -> signature:Cstruct.t -> Cstruct.t -> bool
     (** [verify ~slen ~key ~signature message] checks whether [signature] is a
@@ -718,7 +747,7 @@ module Dsa : sig
     gg : Z.t ;
     y  : Z.t ;
   } with sexp
-  (** Public key, a subset of {!priv}. *)
+  (** Public key, a subset of {{!priv}private key}. *)
 
   type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `Exactly of int * int ]
   (** Key size request. Three {e Fips} variants refer to FIPS-standardized
@@ -732,9 +761,9 @@ module Dsa : sig
   (** Extract the public component from a private key. *)
 
   val generate : ?g:Rng.g -> keysize -> priv
-  (** [generate g size] is a fresh {!priv} key. The domain parameters are derived
-      using a modified FIPS.186-4 probabilistic process, but the derivation can
-      not be validated. *)
+  (** [generate g size] is a fresh {{!priv}private} key. The domain parameters
+      are derived using a modified FIPS.186-4 probabilistic process, but the
+      derivation can not be validated. *)
 
   val sign : ?mask:mask -> ?k:Z.t -> key:priv -> Cstruct.t -> Cstruct.t * Cstruct.t
   (** [sign mask k fips key digest] is the signature, a pair of {!Cstruct.t}s
@@ -749,6 +778,18 @@ module Dsa : sig
   (** [verify fips key (r, s) digest] verifies that the pair [(r, s)] is the signature
       of [digest], the message digest, under the private counterpart to [key]. *)
 
+  val massage : key:pub -> Cstruct.t -> Cstruct.t
+  (** [massage key digest] is the numeric value of [digest] taken modulo [q] and
+      represented in the leftmost [bits(q)] bits of the result.
+
+      Both FIPS.186-4 and RFC6979 specify that only the leftmost [bits(q)] bits of
+      [digest] are to be taken into account, but some implementations consider the
+      entire [digest]. In cases where {{!sign}sign} and {{!verify}verify} seem
+      incompatible with a given implementation (esp. if {{!sign}sign} produces
+      signatures with the [s] component different from the other
+      implementation's), it might help to pre-process [digest] using this
+      function (e.g. [sign ~key (massage ~key:(pub_of_priv key) digest)]).  *)
+
   module K_gen (H : Hash.S) : sig
   (** [K_gen] can be instantiated over a hashing module to obtain an RFC6979
       compliant [k]-generator over that hash. *)
@@ -758,17 +799,6 @@ module Dsa : sig
         message digest to a [k] suitable for seeding the signing process. *)
   end
 
-  val massage : key:pub -> Cstruct.t -> Cstruct.t
-  (** [massage key digest] is the numeric value of [digest] taken modulo [q] and
-      represented in the leftmost [bits(q)] bits of the result.
-
-      Both FIPS.186-4 and RFC6979 specify that only the leftmost [bits(q)] bits of
-      [digest] are to be taken into account, but some implementations consider the
-      entire [digest]. In cases where {!sign} and {!verify} seem incompatible with
-      a given implementation (esp. if {!sign} produces signatures with the [s]
-      component different from the other implementation's), it might help to
-      pre-process [digest] using this function
-      (e.g. [sign ~key (massage ~key:(pub_of_priv key) digest)]).  *)
 end
 
 

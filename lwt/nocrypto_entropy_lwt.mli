@@ -1,7 +1,8 @@
 (** {b RNG} seeding on {b Lwt/Unix}.
 
-    Calling {!initialize} is enough to bring the RNG into a working state. In
-    addition, a background task is set up to periodically reseed the RNG.
+    Calling {{!initialize}initialize} is enough to bring the RNG into a working
+    state. In addition, a background task is set up to periodically reseed the
+    RNG.
 
     [initialize] is idempotent as long as the default generator is unchanged.
     It is harmless to call it several times.
@@ -11,20 +12,37 @@
     the function returns. Is is safe to use the RNG immediately after the
     invocation.
 
-    All of the following is correct usage of [initialize]:
+    {1 Usage}
 
+    Seed during module initialization, not waiting for the background seeding to
+    start:
 {[let _ = Nocrypto_entropy_lwt.initialize () ]}
 
+    Seed just before the main function, not waiting for the background seeding
+    to start:
 {[let () =
   ignore (Nocrypto_entropy_lwt.initialize ());
   Lwt_main.run (main ()) ]}
 
+    Seed just before the main function, and wait for the background seeding to
+    start before proceeding:
 {[let () =
-  Lwt_main.run
-    (Nocrypto_entropy_lwt.initialize () >>= main) ]}
+  Lwt_main.run (Nocrypto_entropy_lwt.initialize () >>= main) ]}
 
 *)
 
+
+(** {1 Default generator initialization} *)
+
+val initialize : unit -> unit Lwt.t
+(** Immediately seeds the current defalt generator using
+    {!Nocrypto_entropy_unix.initialize}. The initial seeding is finished before
+    the function returns.
+
+    It then invokes {{!attach}attach}. Once the returned thread completes, a
+    background reseeding task has been attached to the defalt generator. *)
+
+(** {1 Background seeding} *)
 
 type t
 (** Represents background reseeding task. *)
@@ -38,11 +56,3 @@ val attach : period:int -> ?device:string -> Nocrypto.Rng.g -> t Lwt.t
 
 val stop : t -> unit Lwt.t
 (** Stops the reseeding task associated with [t]. Idempotent. *)
-
-val initialize : unit -> unit Lwt.t
-(** Immediately seeds the current defalt generator using
-    {!Nocrypto_entropy_unix.initialize}. The initial seeding is finished before
-    the function returns.
-
-    It then invokes {!attach}. Once the returned thread completes, a
-    background reseeding task has been attached to the defalt generator. *)
