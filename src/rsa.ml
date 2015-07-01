@@ -142,10 +142,10 @@ module PKCS1 = struct
       try unpad (transform msg) with Insufficient_key -> None
     else None
 
-  let sign ?mask ~key msg =
+  let sig_encode ?mask ~key msg =
     padded pad_01 (decrypt ?mask ~key) (priv_bits key) msg
 
-  let verify ~key msg =
+  let sig_decode ~key msg =
     unpadded unpad_01 (encrypt ~key) (pub_bits key) msg
 
   let encrypt ?g ~key msg =

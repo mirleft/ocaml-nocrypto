@@ -182,8 +182,8 @@ let rsa_pkcs1_sign_selftest ~bits n =
   "selftest" >:: times ~n @@ fun _ ->
     let (key, _) = gen_rsa ~bits
     and msg      = pkcs_message_for_bits bits in
-    let sgn      = Rsa.PKCS1.sign ~key msg in
-    match Rsa.(PKCS1.verify ~key:(pub_of_priv key) sgn) with
+    let sgn      = Rsa.PKCS1.sig_encode ~key msg in
+    match Rsa.(PKCS1.sig_decode ~key:(pub_of_priv key) sgn) with
     | None     -> assert_failure ("unpad failure " ^ show_key_size key)
     | Some dec -> assert_cs_equal msg dec
                     ~msg:("recovery failure " ^ show_key_size key)

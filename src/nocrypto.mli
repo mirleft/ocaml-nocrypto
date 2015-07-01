@@ -689,15 +689,15 @@ module Rsa : sig
       Keys must have a minimum of [11 + len(message)] bytes. *)
   module PKCS1 : sig
 
-    val sign : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
-    (** [sign mask key message] is the PKCS1-padded (type 1) [message] signed by
-        the [key]. Note that this operation performs only the padding and RSA
-        transformation steps of the PKCS 1.5 signature.
+    val sig_encode : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
+    (** [sig_encode mask key message] is the PKCS1-padded (type 1) [message]
+        signed by the [key]. Note that this operation performs only the padding
+        and RSA transformation steps of the PKCS 1.5 signature.
         @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
-    val verify : key:pub -> Cstruct.t -> Cstruct.t option
-    (** [verify key signature] is either [Some message] if the [signature] was
-        produced with the given [key] as per {{!sign}sign}, or [None] *)
+    val sig_decode : key:pub -> Cstruct.t -> Cstruct.t option
+    (** [sig_decode key signature] is either [Some message] if the [signature]
+        was produced with the given [key] as per {{!sign}sign}, or [None] *)
 
     val encrypt : ?g:Rng.g -> key:pub -> Cstruct.t -> Cstruct.t
     (** [encrypt g key message] is a PKCS1-padded (type 2) and encrypted
