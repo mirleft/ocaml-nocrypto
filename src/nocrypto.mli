@@ -245,7 +245,12 @@ module Cipher_block : sig
       val key_sizes  : int array
       val block_size : int
 
-      val next_iv : Cstruct.t -> Cstruct.t
+      val next_iv : iv:Cstruct.t -> Cstruct.t -> Cstruct.t
+      (** [next_iv iv msg] for a [msg] and an [iv] it was transformed with gives
+          the iv to use to transform the next message, for protocols which perform
+          inter-message chaining. It is either the last block of [msg] or [iv] if
+          [msg] is too short. *)
+
       val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
       val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
     end

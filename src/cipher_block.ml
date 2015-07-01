@@ -53,7 +53,7 @@ module S = struct
     val key_sizes  : int array
     val block_size : int
 
-    val next_iv : Cstruct.t -> Cstruct.t
+    val next_iv : iv:Cstruct.t -> Cstruct.t -> Cstruct.t
     val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
     val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
   end
@@ -207,13 +207,17 @@ module Modes2 = struct
 
     let of_secret = Core.of_secret
 
-    let next_iv cs = sub cs (len cs - block_size) block_size
-
     let bounds_check ~iv cs =
       if len iv <> block then
         Raise.invalid1 "CBC: iv is not %d bytes" block ;
       if len cs mod block <> 0 then
         Raise.invalid1 "CBC: argument is not N * %d bytes" block
+
+    let next_iv ~iv cs =
+      bounds_check ~iv cs ;
+      if len cs > 0 then
+        sub cs (len cs - block_size) block_size
+      else iv
 
     let encrypt ~key:(key, _) ~iv src =
       bounds_check ~iv src ;
