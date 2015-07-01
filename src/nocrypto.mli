@@ -1,6 +1,11 @@
 
 (** {b Nocrypto}: for when you're sick of crypto. *)
 
+(*
+ * Doc note: Sexplib conversions are noted explicitly instead of using
+ * `with sexp` because the syntax extension interacts badly with ocamldoc.
+ *)
+
 
 (** {1 Utilities} *)
 
@@ -169,14 +174,22 @@ module Hash : sig
   module SHA384  : S
   module SHA512  : S
 
-  (** {1 Short-hands} *)
+  (** {1 Short-hand functions} *)
 
-  type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] with sexp
+  type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]
+  (** Hashing algorithm.
+
+      {e [Sexplib] convertible}. *)
 
   val digest      : [< hash ] -> Cstruct.t -> Cstruct.t
   val mac         : [< hash ] -> key:Cstruct.t -> Cstruct.t -> Cstruct.t
   val digest_size : [< hash ] -> int
   val module_of   : [< hash ] -> (module S)
+
+  (**/**)
+  val hash_of_sexp : Sexplib.Sexp.t -> hash
+  val sexp_of_hash : hash -> Sexplib.Sexp.t
+  (**/**)
 
 end
 
@@ -598,8 +611,12 @@ Keys are taken to be trusted material, and their properties are not checked.
 Messages are checked not to exceed the key size, and this is signalled via
 exceptions.
 
-Private-key operations are optionally protected through RSA blinding.  *)
+Private-key operations are optionally protected through RSA blinding.
+
+*)
 module Rsa : sig
+
+  (** {1 RSA public-key encryption} *)
 
   exception Insufficient_key
   (** Raised if the key is too small to transform the given message, i.e. if the
@@ -611,8 +628,10 @@ module Rsa : sig
   type pub  = {
     e : Z.t ; (** Public exponent *)
     n : Z.t ; (** Modulus *)
-  } with sexp
-  (** Public key *)
+  }
+  (** Public key.
+
+      {e [Sexplib] convertible}. *)
 
   type priv = {
     e  : Z.t ; (** Public exponent *)
@@ -623,15 +642,13 @@ module Rsa : sig
     dp : Z.t ; (** [d mod (p-1)] *)
     dq : Z.t ; (** [d mod (q-1)] *)
     q' : Z.t ; (** [q^(-1) mod p] *)
-  } with sexp
-  (** Private key (two-factor version) *)
+  }
+  (** Private key (two-factor version).
 
-  type mask = [
-    | `No                (** Don't perform blinding. *)
-    | `Yes               (** Use default {!Rng.g} for blinding. *)
-    | `Yes_with of Rng.g (** Use the provided {!Rng.g} for blinding. *)
-  ]
-  (** Masking (blinding) request. *)
+      {e [Sexplib] convertible}. *)
+
+  type mask = [ `No | `Yes | `Yes_with of Rng.g ]
+  (** Masking (cryptographic blinding) option. *)
 
   val pub_bits : pub -> int
   (** Bit-size of a public key. *)
@@ -659,6 +676,7 @@ module Rsa : sig
   (** [generate g e bits] is a new {{!priv}priv}. [e] defaults to [2^16+1].
       @raise Invalid_argument if [e] is bad or [bits] is too small. *)
 
+  (** {1 PKCS#1 padded modes} *)
 
   (** {b PKCS v1.5}-padded operations, as defined by {b PKCS #1 v1.5}.
 
@@ -706,7 +724,7 @@ module Rsa : sig
         operation, or [None] otherwise. *)
   end
 
-  (** {b PSS}-passed signing, as defined by {b PKCS #1 v2.1}.
+  (** {b PSS}-based signing, as defined by {b PKCS #1 v2.1}.
 
       The same hash function is used for padding, MGF and computing message
       digest. MGF is {b MGF1} as defined in {b PKCS #1 2.1}.
@@ -726,11 +744,21 @@ module Rsa : sig
         valid {b PSS} signature of the [message] under the given [key]. *)
   end
 
+  (**/**)
+  val pub_of_sexp : Sexplib.Sexp.t -> pub
+  val sexp_of_pub : pub -> Sexplib.Sexp.t
+
+  val priv_of_sexp : Sexplib.Sexp.t -> priv
+  val sexp_of_priv : priv -> Sexplib.Sexp.t
+  (**/**)
+
 end
 
 
 (** {b DSA} digital signature algorithm. *)
 module Dsa : sig
+
+  (** {1 DSA signature algorithm} *)
 
   type priv = {
     p  : Z.t ; (** Modulus *)
@@ -738,16 +766,20 @@ module Dsa : sig
     gg : Z.t ; (** Group Generator *)
     x  : Z.t ; (** Private key proper *)
     y  : Z.t ; (** Public component *)
-  } with sexp
-  (** Private key. [p], [q] and [gg] comprise {i domain parameters}. *)
+  }
+  (** Private key. [p], [q] and [gg] comprise {i domain parameters}.
+
+      {e [Sexplib] convertible}. *)
 
   type pub  = {
     p  : Z.t ;
     q  : Z.t ;
     gg : Z.t ;
     y  : Z.t ;
-  } with sexp
-  (** Public key, a subset of {{!priv}private key}. *)
+  }
+  (** Public key, a subset of {{!priv}private key}.
+
+      {e [Sexplib] convertible}. *)
 
   type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `Exactly of int * int ]
   (** Key size request. Three {e Fips} variants refer to FIPS-standardized
@@ -755,7 +787,7 @@ module Dsa : sig
       variants specifies L and N directly. *)
 
   type mask = [ `No | `Yes | `Yes_with of Rng.g ]
-  (** Masking request. *)
+  (** Masking (cryptographic blinding) option. *)
 
   val pub_of_priv : priv -> pub
   (** Extract the public component from a private key. *)
@@ -790,20 +822,30 @@ module Dsa : sig
       implementation's), it might help to pre-process [digest] using this
       function (e.g. [sign ~key (massage ~key:(pub_of_priv key) digest)]).  *)
 
-  module K_gen (H : Hash.S) : sig
   (** [K_gen] can be instantiated over a hashing module to obtain an RFC6979
-      compliant [k]-generator over that hash. *)
+      compliant [k]-generator for that hash. *)
+  module K_gen (H : Hash.S) : sig
 
     val generate : key:priv -> Cstruct.t -> Z.t
     (** [generate key digest] deterministically takes the given private key and
         message digest to a [k] suitable for seeding the signing process. *)
   end
 
+  (**/**)
+  val pub_of_sexp : Sexplib.Sexp.t -> pub
+  val sexp_of_pub : pub -> Sexplib.Sexp.t
+
+  val priv_of_sexp : Sexplib.Sexp.t -> priv
+  val sexp_of_priv : priv -> Sexplib.Sexp.t
+  (**/**)
+
 end
 
 
 (** Diffie-Hellman, MODP version. *)
 module Dh : sig
+
+  (** {1 Diffie-Hellman key exchange} *)
 
   exception Invalid_public_key
   (** Raised if the public key is degenerate. Implies either badly malfunctioning
@@ -813,11 +855,15 @@ module Dh : sig
     p  : Z.t ;        (** modulus *)
     gg : Z.t ;        (** generator *)
     q  : Z.t option ; (** subgroup order; potentially unknown *)
-  } with sexp
-  (** A DH group. *)
+  }
+  (** A DH group.
 
-  type secret = { x : Z.t } with sexp
-  (** A private secret. *)
+      {e [Sexplib] convertible}. *)
+
+  type secret = { x : Z.t }
+  (** A private secret.
+
+      {e [Sexplib] convertible.} *)
 
   val apparent_bit_size : group -> int
   (** Bit size of the modulus (not the subgroup order, which might not be known). *)
@@ -876,4 +922,13 @@ module Dh : sig
     val ffdhe8192 : group
 
   end
+
+  (**/**)
+  val group_of_sexp : Sexplib.Sexp.t -> group
+  val sexp_of_group : group -> Sexplib.Sexp.t
+
+  val secret_of_sexp : Sexplib.Sexp.t -> secret
+  val sexp_of_secret : secret -> Sexplib.Sexp.t
+  (**/**)
+
 end
