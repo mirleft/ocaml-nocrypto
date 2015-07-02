@@ -7,7 +7,7 @@
 * module for injectring entropy into RNG on pure Unix (optional)
 * `Nocrypto_entropy_lwt.initialize` no longer need to be synchronized on
 * renamed module signatures and modules containing only signatures from `T` to `S`
-* changes to block cipher API
+* changes to CTR, CBC, Rsa and Dh APIs
 
 0.4.0 (2015-05-02):
 * module for injecting entropy into RNG on Unix/Lwt (optional)
