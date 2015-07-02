@@ -1,0 +1,131 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Nocrypto.Dsa.html">
+<link rel="Up" href="Nocrypto.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_xen" rel="Chapter" href="Nocrypto_entropy_xen.html"><link title="Diffie-Hellman key exchange" rel="Section" href="#1_DiffieHellmankeyexchange">
+<title>Nocrypto.Dh</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Nocrypto.Dsa.html" title="Nocrypto.Dsa">Previous</a>
+&nbsp;<a class="up" href="Nocrypto.html" title="Nocrypto">Up</a>
+&nbsp;</div>
+<h1>Module <a href="type_Nocrypto.Dh.html">Nocrypto.Dh</a></h1>
+
+<pre><span class="keyword">module</span> Dh: <code class="code">sig</code> <a href="Nocrypto.Dh.html">..</a> <code class="code">end</code></pre><div class="info module top">
+Diffie-Hellman, MODP version.<br>
+</div>
+<hr width="100%">
+<br>
+<h1 id="1_DiffieHellmankeyexchange">Diffie-Hellman key exchange</h1><br>
+
+<pre><span id="EXCEPTIONInvalid_public_key"><span class="keyword">exception</span> Invalid_public_key</span></pre>
+<div class="info ">
+Raised if the public key is degenerate. Implies either badly malfunctioning
+      DH on the other side, or an attack attempt.<br>
+</div>
+
+<pre><code><span id="TYPEgroup"><span class="keyword">type</span> <code class="type"></code>group</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTgroup.p">p</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+modulus<br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTgroup.gg">gg</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+generator<br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTgroup.q">q</span>&nbsp;: <code class="type">Z.t option</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+subgroup order; potentially unknown<br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr></table>
+}
+
+<div class="info ">
+A DH group.
+<p>
+
+      <em><code class="code">Sexplib</code> convertible</em>.<br>
+</div>
+
+
+<pre><code><span id="TYPEsecret"><span class="keyword">type</span> <code class="type"></code>secret</span> = private {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTsecret.x">x</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+
+</tr></table>
+}
+
+<div class="info ">
+A private secret.
+<p>
+
+      <em><code class="code">Sexplib</code> convertible.</em><br>
+</div>
+
+
+<pre><span id="VALmodulus_size"><span class="keyword">val</span> modulus_size</span> : <code class="type"><a href="Nocrypto.Dh.html#TYPEgroup">group</a> -> int</code></pre><div class="info ">
+Bit size of the modulus.<br>
+</div>
+
+<pre><span id="VALkey_of_secret"><span class="keyword">val</span> key_of_secret</span> : <code class="type"><a href="Nocrypto.Dh.html#TYPEgroup">group</a> -> s:Cstruct.t -> <a href="Nocrypto.Dh.html#TYPEsecret">secret</a> * Cstruct.t</code></pre><div class="info ">
+<code class="code">key_of_secret group s</code> is the <a href="Nocrypto.Dh.html#TYPEsecret"><code class="code">Nocrypto.Dh.secret</code></a> and the corresponding public
+      key which use <code class="code">s</code> as the secret exponent.<br>
+<b>Raises</b> <code>Invalid_public_key</code> if <code class="code">s</code> is degenerate.<br>
+</div>
+
+<pre><span id="VALgen_key"><span class="keyword">val</span> gen_key</span> : <code class="type">?g:<a href="Nocrypto.Rng.html#TYPEg">Nocrypto.Rng.g</a> -><br>       ?bits:int -> <a href="Nocrypto.Dh.html#TYPEgroup">group</a> -> <a href="Nocrypto.Dh.html#TYPEsecret">secret</a> * Cstruct.t</code></pre><div class="info ">
+Generate a random <a href="Nocrypto.Dh.html#TYPEsecret"><code class="code">Nocrypto.Dh.secret</code></a> and the corresponding public key.
+      <code class="code">bits</code> is the exact bit-size of <a href="Nocrypto.Dh.html#TYPEsecret"><code class="code">Nocrypto.Dh.secret</code></a> and defaults to a value
+      dependent on the <a href="Nocrypto.Dh.html#TYPEgroup"><code class="code">Nocrypto.Dh.group</code></a>'s <code class="code">p</code>.<br>
+</div>
+
+<pre><span id="VALshared"><span class="keyword">val</span> shared</span> : <code class="type"><a href="Nocrypto.Dh.html#TYPEgroup">group</a> -> <a href="Nocrypto.Dh.html#TYPEsecret">secret</a> -> Cstruct.t -> Cstruct.t</code></pre><div class="info ">
+<code class="code">shared group secret message</code> is the shared key, given a group, a previously
+      generated <a href="Nocrypto.Dh.html#TYPEsecret"><code class="code">Nocrypto.Dh.secret</code></a> and the other party's public message.<br>
+<b>Raises</b> <code>Invalid_public_key</code> if the public message is degenerate.<br>
+</div>
+
+<pre><span id="VALgen_group"><span class="keyword">val</span> gen_group</span> : <code class="type">?g:<a href="Nocrypto.Rng.html#TYPEg">Nocrypto.Rng.g</a> -> int -> <a href="Nocrypto.Dh.html#TYPEgroup">group</a></code></pre><div class="info ">
+<code class="code">gen_group bits</code> generates a random <a href="Nocrypto.Dh.html#TYPEgroup"><code class="code">Nocrypto.Dh.group</code></a> with modulus size <code class="code">bits</code>.
+      Uses a safe prime <code class="code">p = 2q + 1</code> (with <code class="code">q</code> prime) for the modulus and <code class="code">2</code>
+      for the generator, such that <code class="code">2^q = 1 mod p</code>.
+      Runtime is on the order of minute for 1024 bits.<br>
+<b>Raises</b> <code>Invalid_argument</code> if <code class="code">bits</code> is ridiculously small.<br>
+</div>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Dh.Group.html">Group</a>: <code class="code">sig</code> <a href="Nocrypto.Dh.Group.html">..</a> <code class="code">end</code></pre><div class="info">
+A small catalog of standardized <a href="Nocrypto.Dh.html#TYPEgroup"><code class="code">Nocrypto.Dh.group</code></a>s.
+</div>
+</body></html>

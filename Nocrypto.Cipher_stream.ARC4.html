@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="Up" href="Nocrypto.Cipher_stream.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_xen" rel="Chapter" href="Nocrypto_entropy_xen.html"><title>Nocrypto.Cipher_stream.ARC4</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="Nocrypto.Cipher_stream.html" title="Nocrypto.Cipher_stream">Up</a>
+&nbsp;</div>
+<h1>Module <a href="type_Nocrypto.Cipher_stream.ARC4.html">Nocrypto.Cipher_stream.ARC4</a></h1>
+
+<pre><span class="keyword">module</span> ARC4: <code class="type"><a href="Nocrypto.Cipher_stream.S.html">S</a></code><code class="type"> </code></pre><div class="info module top">
+<em>Alleged Rivest Cipher 4</em>.<br>
+</div>
+<hr width="100%">
+
+<pre><span id="TYPEkey"><span class="keyword">type</span> <code class="type"></code>key</span> </pre>
+
+
+<pre><code><span id="TYPEresult"><span class="keyword">type</span> <code class="type"></code>result</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTresult.message">message</span>&nbsp;: <code class="type">Cstruct.t</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTresult.key">key</span>&nbsp;: <code class="type"><a href="Nocrypto.Cipher_stream.S.html#TYPEkey">key</a></code>;</code></td>
+
+</tr></table>
+}
+
+
+
+<pre><span id="VALof_secret"><span class="keyword">val</span> of_secret</span> : <code class="type">Cstruct.t -> <a href="Nocrypto.Cipher_stream.S.html#TYPEkey">key</a></code></pre>
+<pre><span id="VALencrypt"><span class="keyword">val</span> encrypt</span> : <code class="type">key:<a href="Nocrypto.Cipher_stream.S.html#TYPEkey">key</a> -><br>       Cstruct.t -> <a href="Nocrypto.Cipher_stream.S.html#TYPEresult">result</a></code></pre>
+<pre><span id="VALdecrypt"><span class="keyword">val</span> decrypt</span> : <code class="type">key:<a href="Nocrypto.Cipher_stream.S.html#TYPEkey">key</a> -><br>       Cstruct.t -> <a href="Nocrypto.Cipher_stream.S.html#TYPEresult">result</a></code></pre></body></html>

@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Nocrypto_entropy_lwt.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_xen" rel="Chapter" href="Nocrypto_entropy_xen.html"><link title="Default generator initialization" rel="Section" href="#1_Defaultgeneratorinitialization">
+<link title="Interface to Mirage Entropy" rel="Section" href="#1_InterfacetoMirageEntropy">
+<title>Nocrypto_entropy_xen</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Nocrypto_entropy_lwt.html" title="Nocrypto_entropy_lwt">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;</div>
+<h1>Module <a href="type_Nocrypto_entropy_xen.html">Nocrypto_entropy_xen</a></h1>
+
+<pre><span class="keyword">module</span> Nocrypto_entropy_xen: <code class="code">sig</code> <a href="Nocrypto_entropy_xen.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<b>RNG</b> seeding on <b>Mirage/Xen</b>.
+<p>
+
+    Calling <a href="Nocrypto_entropy_xen.html#VALinitialize">initialize</a> should be enough to get a seeded RNG.
+<p>
+
+    It is the responsibility of the Mirage platform to set up entropy harvesting
+    and seeding of the Nocrypto RNG. There is no need to use this module
+    directly.<br>
+</div>
+<hr width="100%">
+<br>
+<h1 id="1_Defaultgeneratorinitialization">Default generator initialization</h1><br>
+
+<pre><span id="VALinitialize"><span class="keyword">val</span> initialize</span> : <code class="type">unit -> unit Lwt.t</code></pre><div class="info ">
+Starts seeding the current default generator and stops the previous seeding
+    process started through the same function. Idempotent as long as the default
+    generator is unchanged.<br>
+</div>
+<br>
+<h1 id="1_InterfacetoMirageEntropy">Interface to Mirage Entropy</h1><br>
+
+<pre><span id="VALsources"><span class="keyword">val</span> sources</span> : <code class="type">unit -> Entropy_xen.source list option</code></pre><div class="info ">
+<code class="code">Entropy_xen.source</code>s set up with the last <a href="Nocrypto_entropy_xen.html#VALinitialize">initialize</a>.<br>
+</div>
+
+<pre><span id="VALattach"><span class="keyword">val</span> attach</span> : <code class="type">Entropy_xen.t -> <a href="Nocrypto.Rng.html#TYPEg">Nocrypto.Rng.g</a> -> Entropy_xen.token Lwt.t</code></pre><div class="info ">
+<code class="code">attach e g</code> starts seeding <code class="code">g</code> from the entropy provider <code class="code">e</code> and returns
+    the token to stop the seeding.<br>
+</div>
+</body></html>

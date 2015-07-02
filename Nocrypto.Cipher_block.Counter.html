@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Nocrypto.Cipher_block.S.html">
+<link rel="next" href="Nocrypto.Cipher_block.AES.html">
+<link rel="Up" href="Nocrypto.Cipher_block.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_xen" rel="Chapter" href="Nocrypto_entropy_xen.html"><title>Nocrypto.Cipher_block.Counter</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Nocrypto.Cipher_block.S.html" title="Nocrypto.Cipher_block.S">Previous</a>
+&nbsp;<a class="up" href="Nocrypto.Cipher_block.html" title="Nocrypto.Cipher_block">Up</a>
+&nbsp;<a class="post" href="Nocrypto.Cipher_block.AES.html" title="Nocrypto.Cipher_block.AES">Next</a>
+</div>
+<h1>Module <a href="type_Nocrypto.Cipher_block.Counter.html">Nocrypto.Cipher_block.Counter</a></h1>
+
+<pre><span class="keyword">module</span> Counter: <code class="code">sig</code> <a href="Nocrypto.Cipher_block.Counter.html">..</a> <code class="code">end</code></pre><div class="info module top">
+BE counter function.
+<p>
+
+      Each <code class="code">incrX cs i</code> increments <code class="code">X</code>-sized block of <code class="code">cs</code> at the offset <code class="code">i</code> by
+      one, returning <code class="code">true</code> if an overfow occurred (and the block is now
+      zeroed-out).
+<p>
+
+      Each <code class="code">addX cs i n</code> adds <code class="code">n</code> to the <code class="code">X</code>-sized block.<br>
+</div>
+<hr width="100%">
+
+<pre><span id="VALincr1"><span class="keyword">val</span> incr1</span> : <code class="type">Cstruct.t -> int -> bool</code></pre>
+<pre><span id="VALincr2"><span class="keyword">val</span> incr2</span> : <code class="type">Cstruct.t -> int -> bool</code></pre>
+<pre><span id="VALincr4"><span class="keyword">val</span> incr4</span> : <code class="type">Cstruct.t -> int -> bool</code></pre>
+<pre><span id="VALincr8"><span class="keyword">val</span> incr8</span> : <code class="type">Cstruct.t -> int -> bool</code></pre>
+<pre><span id="VALincr16"><span class="keyword">val</span> incr16</span> : <code class="type">Cstruct.t -> int -> bool</code></pre>
+<pre><span id="VALadd4"><span class="keyword">val</span> add4</span> : <code class="type">Cstruct.t -> int -> int32 -> unit</code></pre>
+<pre><span id="VALadd8"><span class="keyword">val</span> add8</span> : <code class="type">Cstruct.t -> int -> int64 -> unit</code></pre>
+<pre><span id="VALadd16"><span class="keyword">val</span> add16</span> : <code class="type">Cstruct.t -> int -> int64 -> unit</code></pre></body></html>

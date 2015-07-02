@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="next" href="Nocrypto.Rng.S.N.html">
+<link rel="Up" href="Nocrypto.Rng.S.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_xen" rel="Chapter" href="Nocrypto_entropy_xen.html"><title>Nocrypto.Rng.S.Generator</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="Nocrypto.Rng.S.html" title="Nocrypto.Rng.S">Up</a>
+&nbsp;<a class="post" href="Nocrypto.Rng.S.N.html" title="Nocrypto.Rng.S.N">Next</a>
+</div>
+<h1>Module type <a href="type_Nocrypto.Rng.S.Generator.html">Nocrypto.Rng.S.Generator</a></h1>
+
+<pre><span class="keyword">module type</span> Generator = <code class="code">sig</code> <a href="Nocrypto.Rng.S.Generator.html">..</a> <code class="code">end</code></pre><div class="info modtype top">
+A single randomness-generating algorithm.<br>
+</div>
+<hr width="100%">
+
+<pre><span id="TYPEg"><span class="keyword">type</span> <code class="type"></code>g</span> </pre>
+<div class="info ">
+State type for this generator.<br>
+</div>
+
+
+<pre><span id="VALblock"><span class="keyword">val</span> block</span> : <code class="type">int</code></pre><div class="info ">
+Internally, this generator's <a href="Nocrypto.Rng.S.Generator.html#VALgenerate">generate</a> always produces
+          <code class="code">k * block</code> bytes.<br>
+</div>
+
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">unit -> <a href="Nocrypto.Rng.S.Generator.html#TYPEg">g</a></code></pre><div class="info ">
+Create a new, unseeded <a href="Nocrypto.Rng.S.Generator.html#TYPEg">g</a>.<br>
+</div>
+
+<pre><span id="VALgenerate"><span class="keyword">val</span> generate</span> : <code class="type">g:<a href="Nocrypto.Rng.S.Generator.html#TYPEg">g</a> -> int -> Cstruct.t</code></pre><div class="info ">
+<code class="code">generate ~g n</code> produces <code class="code">n</code> uniformly distributed random bytes,
+          updating the state of <code class="code">g</code>.<br>
+</div>
+
+<pre><span id="VALreseed"><span class="keyword">val</span> reseed</span> : <code class="type">g:<a href="Nocrypto.Rng.S.Generator.html#TYPEg">g</a> -> Cstruct.t -> unit</code></pre><div class="info ">
+<code class="code">reseed ~g bytes</code> directly updates <code class="code">g</code>. Its new state depends both on
+          <code class="code">bytes</code> and the previous state.
+<p>
+
+          A generator is seded after a single application of <code class="code">reseed</code>.<br>
+</div>
+
+<pre><span id="VALaccumulate"><span class="keyword">val</span> accumulate</span> : <code class="type">g:<a href="Nocrypto.Rng.S.Generator.html#TYPEg">g</a> -><br>       (source:int -> Cstruct.t -> unit) <a href="Nocrypto.Uncommon.html#TYPEone">Nocrypto.Uncommon.one</a></code></pre><div class="info ">
+<code class="code">accumulate ~g</code> is a closure suitable for incrementally feeding
+          small amounts of environmentally sourced entropy into <code class="code">g</code>.
+<p>
+
+          Its operation should be fast enough for repeated calling from e.g.
+          event loops. Systems with several distinct, stable entropy sources
+          should use stable <code class="code">source</code> to distinguish their sources.
+<p>
+
+          A generator is seeded after a single application of the closure.<br>
+</div>
+
+<pre><span id="VALseeded"><span class="keyword">val</span> seeded</span> : <code class="type">g:<a href="Nocrypto.Rng.S.Generator.html#TYPEg">g</a> -> bool</code></pre><div class="info ">
+<code class="code">seeded ~g</code> is <code class="code">true</code> iff operations won't throw
+          <a href="Nocrypto.Rng.html#EXCEPTIONUnseeded_generator">Unseeded_generator</a>.<br>
+</div>
+</body></html>

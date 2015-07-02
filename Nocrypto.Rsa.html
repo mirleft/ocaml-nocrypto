@@ -1,0 +1,231 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Nocrypto.Rng.html">
+<link rel="next" href="Nocrypto.Dsa.html">
+<link rel="Up" href="Nocrypto.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_xen" rel="Chapter" href="Nocrypto_entropy_xen.html"><link title="RSA public-key encryption" rel="Section" href="#1_RSApublickeyencryption">
+<link title="PKCS#1 padded modes" rel="Section" href="#1_PKCS1paddedmodes">
+<title>Nocrypto.Rsa</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Nocrypto.Rng.html" title="Nocrypto.Rng">Previous</a>
+&nbsp;<a class="up" href="Nocrypto.html" title="Nocrypto">Up</a>
+&nbsp;<a class="post" href="Nocrypto.Dsa.html" title="Nocrypto.Dsa">Next</a>
+</div>
+<h1>Module <a href="type_Nocrypto.Rsa.html">Nocrypto.Rsa</a></h1>
+
+<pre><span class="keyword">module</span> Rsa: <code class="code">sig</code> <a href="Nocrypto.Rsa.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<b>RSA</b> public-key cryptography.
+<p>
+
+Keys are taken to be trusted material, and their properties are not checked.
+<p>
+
+Messages are checked not to exceed the key size, and this is signalled via
+exceptions.
+<p>
+
+Private-key operations are optionally protected through RSA blinding.<br>
+</div>
+<hr width="100%">
+<br>
+<h1 id="1_RSApublickeyencryption">RSA public-key encryption</h1><br>
+
+<pre><span id="EXCEPTIONInsufficient_key"><span class="keyword">exception</span> Insufficient_key</span></pre>
+<div class="info ">
+Raised if the key is too small to transform the given message, i.e. if the
+      numerical interpretation of the (potentially padded) message is not
+      smaller than the modulus.
+<p>
+
+      It is additionally raised if the message is <code class="code">0</code> and the mode does not
+      involve padding.<br>
+</div>
+
+<pre><code><span id="TYPEpub"><span class="keyword">type</span> <code class="type"></code>pub</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpub.e">e</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+Public exponent<br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpub.n">n</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+Modulus<br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr></table>
+}
+
+<div class="info ">
+Public key.
+<p>
+
+      <em><code class="code">Sexplib</code> convertible</em>.<br>
+</div>
+
+
+<pre><code><span id="TYPEpriv"><span class="keyword">type</span> <code class="type"></code>priv</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpriv.e">e</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+Public exponent<br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpriv.d">d</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+Private exponent<br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpriv.n">n</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+Modulus<br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpriv.p">p</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+Prime factor <code class="code">p</code><br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpriv.q">q</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+Prime factor <code class="code">q</code><br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpriv.dp">dp</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+<code class="code">d mod (p-1)</code><br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpriv.dq">dq</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+<code class="code">d mod (q-1)</code><br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpriv.q'">q'</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+<code class="code">q^(-1) mod p</code><br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr></table>
+}
+
+<div class="info ">
+Private key (two-factor version).
+<p>
+
+      <em><code class="code">Sexplib</code> convertible</em>.<br>
+</div>
+
+
+<pre><span id="TYPEmask"><span class="keyword">type</span> <code class="type"></code>mask</span> = <code class="type">[ `No | `Yes | `Yes_with of <a href="Nocrypto.Rng.html#TYPEg">Nocrypto.Rng.g</a> ]</code> </pre>
+<div class="info ">
+Masking (cryptographic blinding) option.<br>
+</div>
+
+
+<pre><span id="VALpub_bits"><span class="keyword">val</span> pub_bits</span> : <code class="type"><a href="Nocrypto.Rsa.html#TYPEpub">pub</a> -> int</code></pre><div class="info ">
+Bit-size of a public key.<br>
+</div>
+
+<pre><span id="VALpriv_bits"><span class="keyword">val</span> priv_bits</span> : <code class="type"><a href="Nocrypto.Rsa.html#TYPEpriv">priv</a> -> int</code></pre><div class="info ">
+Bit-size of a private key.<br>
+</div>
+
+<pre><span id="VALpriv_of_primes"><span class="keyword">val</span> priv_of_primes</span> : <code class="type">e:Z.t -> p:Z.t -> q:Z.t -> <a href="Nocrypto.Rsa.html#TYPEpriv">priv</a></code></pre><div class="info ">
+<code class="code">priv_of_primes e p q</code> creates <a href="Nocrypto.Rsa.html#TYPEpriv">priv</a> from a minimal description:
+      the public exponent and the two primes.<br>
+</div>
+
+<pre><span id="VALpub_of_priv"><span class="keyword">val</span> pub_of_priv</span> : <code class="type"><a href="Nocrypto.Rsa.html#TYPEpriv">priv</a> -> <a href="Nocrypto.Rsa.html#TYPEpub">pub</a></code></pre><div class="info ">
+Extract the public component from a private key.<br>
+</div>
+
+<pre><span id="VALencrypt"><span class="keyword">val</span> encrypt</span> : <code class="type">key:<a href="Nocrypto.Rsa.html#TYPEpub">pub</a> -> Cstruct.t -> Cstruct.t</code></pre><div class="info ">
+<code class="code">encrypt key message</code> is the encrypted <code class="code">message</code>.<br>
+<b>Raises</b> <code>Insufficient_key</code> (see <a href="Nocrypto.Rsa.html#EXCEPTIONInsufficient_key">Insufficient_key</a>)<br>
+</div>
+
+<pre><span id="VALdecrypt"><span class="keyword">val</span> decrypt</span> : <code class="type">?mask:<a href="Nocrypto.Rsa.html#TYPEmask">mask</a> -> key:<a href="Nocrypto.Rsa.html#TYPEpriv">priv</a> -> Cstruct.t -> Cstruct.t</code></pre><div class="info ">
+<code class="code">decrypt mask key ciphertext</code> is the decrypted <code class="code">ciphertext</code>, left-padded
+      with <code class="code">0x00</code> up to <code class="code">key</code> size.<br>
+<b>Raises</b> <code>Insufficient_key</code> (see <a href="Nocrypto.Rsa.html#EXCEPTIONInsufficient_key">Insufficient_key</a>)<br>
+</div>
+
+<pre><span id="VALgenerate"><span class="keyword">val</span> generate</span> : <code class="type">?g:<a href="Nocrypto.Rng.html#TYPEg">Nocrypto.Rng.g</a> -> ?e:Z.t -> int -> <a href="Nocrypto.Rsa.html#TYPEpriv">priv</a></code></pre><div class="info ">
+<code class="code">generate g e bits</code> is a new <a href="Nocrypto.Rsa.html#TYPEpriv">priv</a>. <code class="code">e</code> defaults to <code class="code">2^16+1</code>.<br>
+<b>Raises</b> <code>Invalid_argument</code> if <code class="code">e</code> is bad or <code class="code">bits</code> is too small.<br>
+</div>
+<br>
+<h1 id="1_PKCS1paddedmodes">PKCS#1 padded modes</h1><br>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rsa.PKCS1.html">PKCS1</a>: <code class="code">sig</code> <a href="Nocrypto.Rsa.PKCS1.html">..</a> <code class="code">end</code></pre><div class="info">
+<b>PKCS v1.5</b>-padded operations, as defined by <b>PKCS #1 v1.5</b>.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rsa.OAEP.html">OAEP</a>: <div class="sig_block"><code class="code">functor (</code><code class="code">H</code><code class="code"> : </code><code class="type"><a href="Nocrypto.Hash.S.html">Nocrypto.Hash.S</a></code><code class="code">) -&gt; </code><code class="code">sig</code> <a href="Nocrypto.Rsa.OAEP.html">..</a> <code class="code">end</code></div></pre><div class="info">
+<b>OAEP</b>-padded encryption, as defined by <b>PKCS #1 v2.1</b>.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rsa.PSS.html">PSS</a>: <div class="sig_block"><code class="code">functor (</code><code class="code">H</code><code class="code"> : </code><code class="type"><a href="Nocrypto.Hash.S.html">Nocrypto.Hash.S</a></code><code class="code">) -&gt; </code><code class="code">sig</code> <a href="Nocrypto.Rsa.PSS.html">..</a> <code class="code">end</code></div></pre><div class="info">
+<b>PSS</b>-based signing, as defined by <b>PKCS #1 v2.1</b>.
+</div>
+</body></html>

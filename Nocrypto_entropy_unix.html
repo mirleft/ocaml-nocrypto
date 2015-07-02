@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Nocrypto.html">
+<link rel="next" href="Nocrypto_entropy_lwt.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_xen" rel="Chapter" href="Nocrypto_entropy_xen.html"><link title="Default generator initialization" rel="Section" href="#1_Defaultgeneratorinitialization">
+<link title="Manual seeding" rel="Section" href="#1_Manualseeding">
+<title>Nocrypto_entropy_unix</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Nocrypto.html" title="Nocrypto">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Nocrypto_entropy_lwt.html" title="Nocrypto_entropy_lwt">Next</a>
+</div>
+<h1>Module <a href="type_Nocrypto_entropy_unix.html">Nocrypto_entropy_unix</a></h1>
+
+<pre><span class="keyword">module</span> Nocrypto_entropy_unix: <code class="code">sig</code> <a href="Nocrypto_entropy_unix.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<b>RNG</b> seeding on <b>Unix</b>.
+<p>
+
+    Calling <a href="Nocrypto_entropy_unix.html#VALinitialize">initialize</a> is enough to bring the RNG into a working
+    state.
+<p>
+
+    <code class="code">initialize</code> is idempotent as long as the default generator is unchanged.
+    It is harmless to call it several times.
+<p>
+
+    If you are using <b>lwt</b>, conside using <a href="Nocrypto_entropy_lwt.html"><code class="code">Nocrypto_entropy_lwt</code></a> as this
+    module allows for continuous reseeding.
+<p>
+
+    Unless you want to recover from an unlikely case of missing system RNG, the
+    recommended way to prime the RNG is to invoke <code class="code">initialize</code> at the module
+    level:
+<p>
+
+<pre class="codepre"><code class="code">let () = Nocrypto_entropy_unix.initialize () </code></pre><br>
+</div>
+<hr width="100%">
+<br>
+<h1 id="1_Defaultgeneratorinitialization">Default generator initialization</h1><br>
+
+<pre><span id="VALinitialize"><span class="keyword">val</span> initialize</span> : <code class="type">unit -> unit</code></pre><div class="info ">
+Seeds the current defalt generator from the system RNG device if it is
+    currently unseeded.
+<p>
+
+    This is the closest thing to <code class="code">Random.self_init</code> and is a good way to prime
+    the RNG.<br>
+</div>
+<br>
+<h1 id="1_Manualseeding">Manual seeding</h1><br>
+
+<pre><span id="VALsys_rng"><span class="keyword">val</span> sys_rng</span> : <code class="type">string</code></pre><div class="info ">
+Detected system RNG device.<br>
+</div>
+
+<pre><span id="VALreseed"><span class="keyword">val</span> reseed</span> : <code class="type">?bytes:int -> ?device:string -> <a href="Nocrypto.Rng.html#TYPEg">Nocrypto.Rng.g</a> -> unit</code></pre><div class="info ">
+<code class="code">reseed ~bytes ~g</code> mixes in <code class="code">bytes</code> bytes from the system RNG into the
+    generator <code class="code">g</code>.
+<p>
+
+    <code class="code">bytes</code> default to a small value reasonable for periodic reseeding.
+<p>
+
+    <code class="code">device</code> defaults to <a href="Nocrypto_entropy_unix.html#VALsys_rng">sys_rng</a>.<br>
+</div>
+</body></html>

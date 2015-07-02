@@ -1,0 +1,28 @@
+<html><head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_xen" rel="Chapter" href="Nocrypto_entropy_xen.html"><title>Nocrypto.Uncommon.Cs</title>
+</head>
+<body>
+<code class="code"><span class="keyword">sig</span><br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;empty&nbsp;:&nbsp;<span class="constructor">Cstruct</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;null&nbsp;:&nbsp;<span class="constructor">Cstruct</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;bool<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;(&nbsp;&lt;+&gt;&nbsp;)&nbsp;:&nbsp;<span class="constructor">Cstruct</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Cstruct</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Cstruct</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;concat&nbsp;:&nbsp;<span class="constructor">Cstruct</span>.t&nbsp;list&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Cstruct</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;equal&nbsp;:&nbsp;?mask:bool&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Cstruct</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Cstruct</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;bool<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;xor_into&nbsp;:&nbsp;<span class="constructor">Cstruct</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Cstruct</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;xor&nbsp;:&nbsp;<span class="constructor">Cstruct</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Cstruct</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Cstruct</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;create_with&nbsp;:&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Cstruct</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;of_hex&nbsp;:&nbsp;string&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Cstruct</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;(&nbsp;<span class="keyword">lsl</span>&nbsp;)&nbsp;:&nbsp;<span class="constructor">Cstruct</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Cstruct</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;(&nbsp;<span class="keyword">lsr</span>&nbsp;)&nbsp;:&nbsp;<span class="constructor">Cstruct</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Cstruct</span>.t<br>
+<span class="keyword">end</span></code></body></html>
