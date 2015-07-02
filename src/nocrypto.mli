@@ -1,5 +1,16 @@
+(** {b Nocrypto}: for when you're sick of crypto.
 
-(** {b Nocrypto}: for when you're sick of crypto. *)
+    A compact crypto library.
+
+    The overarching API principle is simply mapping inputs to outputs, wherever
+    feasible.
+
+    Similar algorithms in the same class (like {{!Hash}hashes} or
+    {{!Cipher_block}block ciphers}) are presented as distinct modules sharing
+    the same signature.
+
+    {{!Rng}Randomness} is treated as an ambient effect.
+*)
 
 (*
  * Doc note: Sexplib conversions are noted explicitly instead of using
@@ -245,10 +256,10 @@ module Cipher_block : sig
       val block_size : int
 
       val next_iv : iv:Cstruct.t -> Cstruct.t -> Cstruct.t
-      (** [next_iv iv msg] for a [msg] and an [iv] it was transformed with gives
-          the iv to use to transform the next message, for protocols which perform
-          inter-message chaining. It is either the last block of [msg] or [iv] if
-          [msg] is too short. *)
+      (** [next_iv iv ciphertext] for a [ciphertext] and an [iv] it was computed
+          with is the iv to use to encrypt the next message, for protocols
+          which perform inter-message chaining. It is either the last block of
+          [ciphertext] or [iv] if [msg] is too short. *)
 
       val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
       val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
@@ -372,7 +383,7 @@ end
 
   The module type of generators, {{!S.Generator}S.Generator}, together with a
   facility to convert such modules into actual generators ({{!g}g}), and
-  functions that operate on this generic representation.
+  functions that operate on this representation.
 
   A global [g] instance, implemented by {{!Rng.Generators.Fortuna}Fortuna}.
   This is the default generator, used when one is not explicitly supplied.
@@ -406,10 +417,10 @@ end
 {[let p = Rng.prime ~msb:2 17]}
 
   Fisher-Yates shuffle:
-{[let f4 ~g arr =
+{[let f4 ?g arr =
   let n = Array.length arr in
   arr |> Array.iter @@ fun i ->
-    let j = Rng.Int.gen_r ~g i n in
+    let j = Rng.Int.gen_r ?g i n in
     let (a, b) = (arr.(i), arr.(j)) in
     arr.(i) <- b ; arr.(j) <- a ]}
 
