@@ -866,7 +866,7 @@ module Dh : sig
 
       {e [Sexplib] convertible}. *)
 
-  type secret = { x : Z.t }
+  type secret = private { x : Z.t }
   (** A private secret.
 
       {e [Sexplib] convertible.} *)
