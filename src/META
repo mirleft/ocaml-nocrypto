@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: 259a7fa8c26c60a9e5d60b99211583b5)
-version = "0.4.0"
+# DO NOT EDIT (digest: b5cf55ecc365afaaf8a0a365a2c36856)
+version = "0.5.0"
 description = "Simple crypto for the modern age"
 requires = "cstruct zarith sexplib"
 archive(byte) = "nocrypto.cma"
@@ -10,7 +10,7 @@ archive(native, plugin) = "nocrypto.cmxs"
 xen_linkopts = "-lnocrypto_xen_stubs"
 exists_if = "nocrypto.cma"
 package "xen" (
- version = "0.4.0"
+ version = "0.5.0"
  description = "Simple crypto for the modern age"
  requires = "nocrypto lwt mirage-entropy-xen"
  archive(byte) = "nocrypto_xen.cma"
@@ -21,7 +21,7 @@ package "xen" (
 )
 
 package "unix" (
- version = "0.4.0"
+ version = "0.5.0"
  description = "Simple crypto for the modern age"
  requires = "nocrypto unix bytes"
  archive(byte) = "nocrypto_unix.cma"
@@ -32,7 +32,7 @@ package "unix" (
 )
 
 package "lwt" (
- version = "0.4.0"
+ version = "0.5.0"
  description = "Simple crypto for the modern age"
  requires = "nocrypto nocrypto.unix lwt.unix cstruct.lwt"
  archive(byte) = "nocrypto_lwt.cma"
