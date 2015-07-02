@@ -1,4 +1,4 @@
-0.5.0 (trunk):
+0.5.0 (2015-07-02):
 * support for AES-NI and SSE2
 * support RSA-OAEP and RSA-PSS
 * drop ctypes for internal C calls
