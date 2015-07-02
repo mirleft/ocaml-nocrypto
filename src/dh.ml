@@ -25,7 +25,7 @@ let exp_size bits =
   try snd @@ List.find (fun (g, _) -> g >= bits) exp_equivalent
   with Not_found -> exp_equivalent_max
 
-let apparent_bit_size { p; _ } = Numeric.Z.bits p
+let modulus_size { p; _ } = Numeric.Z.bits p
 
 (*
  * Current thinking:
@@ -37,26 +37,26 @@ let apparent_bit_size { p; _ } = Numeric.Z.bits p
 let bad_public_key { p; gg; _ } ggx =
   ggx <= Z.one || ggx >= Z.(pred p) || ggx = gg
 
-let public_of_secret ({ p; gg; _ } as group) x =
+let key_of_secret_z ({ p; gg; _ } as group) x =
   match Z.(powm gg x p) with
   | ggx when bad_public_key group ggx
         -> raise Invalid_public_key
   | ggx -> ({ x }, Numeric.Z.to_cstruct_be ggx)
 
-let secret_of_cstruct group ~s =
-  public_of_secret group (Numeric.Z.of_cstruct_be s)
+let key_of_secret group ~s =
+  key_of_secret_z group (Numeric.Z.of_cstruct_be s)
 
 (* XXX
  * - slightly weird distribution when bits > |q|
  * - exponentiation time
  *)
-let rec gen_secret ?g ?bits ({ p; q; _ } as group) =
+let rec gen_key ?g ?bits ({ p; q; _ } as group) =
   let pb = Numeric.Z.bits p in
   let s  = Rng.Z.gen_bits ?g ~msb:1 @@ min
             (match bits with Some b -> b | _ -> exp_size pb)
             (Option.v_map ~def:pb ~f:Numeric.Z.bits q) in
-  try public_of_secret group s
-  with Invalid_public_key -> gen_secret ?g group
+  try key_of_secret_z group s
+  with Invalid_public_key -> gen_key ?g group
 
 (* No time-masking. Does it matter in case of ephemeral DH??  *)
 let shared ({ p; _ } as group) { x } cs =

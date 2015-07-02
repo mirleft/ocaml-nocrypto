@@ -871,16 +871,16 @@ module Dh : sig
 
       {e [Sexplib] convertible.} *)
 
-  val apparent_bit_size : group -> int
-  (** Bit size of the modulus (not the subgroup order, which might not be known). *)
+  val modulus_size : group -> int
+  (** Bit size of the modulus. *)
 
-  val secret_of_cstruct : group -> s:Cstruct.t -> secret * Cstruct.t
-  (** [secret_of_cstruct group s] generates {! secret } and the public key, using
-      [s] as secret.
-      @raise Invalid_public_key if the secret is degenerate. *)
+  val key_of_secret : group -> s:Cstruct.t -> secret * Cstruct.t
+  (** [key_of_secret group s] is the {!secret} and the corresponding public
+      key which use [s] as the secret exponent.
+      @raise Invalid_public_key if [s] is degenerate. *)
 
-  val gen_secret : ?g:Rng.g -> ?bits:int -> group -> secret * Cstruct.t
-  (** Generate a random {!secret} and the corresponding public message.
+  val gen_key : ?g:Rng.g -> ?bits:int -> group -> secret * Cstruct.t
+  (** Generate a random {!secret} and the corresponding public key.
       [bits] is the exact bit-size of {!secret} and defaults to a value
       dependent on the {!group}'s [p]. *)
 
