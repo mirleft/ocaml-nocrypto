@@ -6,7 +6,6 @@
  * `with sexp` because the syntax extension interacts badly with ocamldoc.
  *)
 
-
 (** {1 Utilities} *)
 
 module Base64 : sig
@@ -372,8 +371,8 @@ end
   There are several parts of this module:
 
   The module type of generators, {{!S.Generator}S.Generator}, together with a
-  facility to convert such modules into generators that can be used uniformly,
-  {{!g}g}, and functions that operate on this generic representation.
+  facility to convert such modules into actual generators ({{!g}g}), and
+  functions that operate on this generic representation.
 
   A global [g] instance, implemented by {{!Rng.Generators.Fortuna}Fortuna}.
   This is the default generator, used when one is not explicitly supplied.
@@ -441,7 +440,8 @@ end
   unpredictability.
 
   The recommended way to use these functions is either to accept an optional
-  generator and pass it down, or to ignore the generator alltogether.
+  generator and pass it down, or to ignore the generator altogether, as
+  illustrated in the examples above.
 
 *)
 module Rng : sig
@@ -572,8 +572,8 @@ module Rng : sig
   (**/**)
 
   (* The following functions expose the seeding interface. They are meant to
-   * connect the RNG with entropy-providing libraries. A client application
-   * should not use them directly. *)
+   * connect the RNG with entropy-providing libraries and subject to change.
+   * Client applications should not use them directly. *)
 
   val reseed     : ?g:g -> Cstruct.t -> unit
   val accumulate : g option -> (source:int -> Cstruct.t -> unit) Uncommon.one
@@ -628,6 +628,7 @@ module Rsa : sig
   (** Raised if the key is too small to transform the given message, i.e. if the
       numerical interpretation of the (potentially padded) message is not
       smaller than the modulus.
+
       It is additionally raised if the message is [0] and the mode does not
       involve padding. *)
 
