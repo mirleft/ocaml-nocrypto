@@ -27,7 +27,7 @@ Flag unix
   Default:     true
 
 Flag modernity
-  Description: Use CPU extensions
+  Description: Use CPU extensions (SSE2, AES-NI)
   Default:     true
 
 Flag benchmarks
