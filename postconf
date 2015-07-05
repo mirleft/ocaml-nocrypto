@@ -6,3 +6,10 @@ XEN_CFLAGS="disabled"
 grep -q '^xen="true"' setup.data && XEN_CFLAGS="$(pkg-config --static mirage-xen --cflags)"
 
 echo "XEN_CFLAGS=\"${XEN_CFLAGS}\"" >> setup.data
+
+if grep -q '^modernity="true"' setup.data; then
+  CPUDETECT=$(mktemp)
+  cc src/native/cpudetect_static.c -o ${CPUDETECT} || exit 1
+  ${CPUDETECT} || echo "modernity=\"false\"" >> setup.data
+  rm -f ${CPUDETECT}
+fi
