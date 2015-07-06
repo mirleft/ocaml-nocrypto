@@ -8,7 +8,7 @@ grep -q '^xen="true"' setup.data && XEN_CFLAGS="$(pkg-config --static mirage-xen
 echo "XEN_CFLAGS=\"${XEN_CFLAGS}\"" >> setup.data
 
 if grep -q '^modernity="true"' setup.data; then
-  CPUDETECT=$(mktemp)
+  CPUDETECT=$(mktemp -t nocryptoXXX)
   cc src/native/cpudetect_static.c -o ${CPUDETECT} || exit 1
   ${CPUDETECT} || echo "modernity=\"false\"" >> setup.data
   rm -f ${CPUDETECT}
