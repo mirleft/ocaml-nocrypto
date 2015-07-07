@@ -1,4 +1,4 @@
-(** {b Nocrypto}: for when you're sick of crypto.
+(** [Nocrypto]: for when you're sick of crypto.
 
     A compact crypto library.
 

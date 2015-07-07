@@ -9,6 +9,7 @@ Homepage:     https://github.com/mirleft/ocaml-nocrypto
 Plugins:      META (0.4), DevFiles (0.4)
 BuildTools:   ocamlbuild
 PostConfCommand: ./postconf
+AlphaFeatures:   ocamlbuild_more_args
 Description:
   A simple cryptographic library.
 Categories: http://org:mirage
@@ -152,12 +153,13 @@ Document api
   Title:              Documentation and API reference
   Type:               ocamlbuild (0.3)
   BuildTools+:        ocamldoc
-  XOcamlbuildPath:    doc
-  XOcamlbuildModules: src/Nocrypto,
+  XOCamlbuildPath:    doc
+  XOCamlbuildModules: src/Nocrypto,
                       unix/Nocrypto_entropy_unix,
                       lwt/Nocrypto_entropy_lwt,
                       xen/Nocrypto_entropy_xen
   Install:            false
+  XOCamlbuildExtraArgs: -docflags -colorize-code,-charset,utf-8
 
 SourceRepository trunk
   Type:       git
