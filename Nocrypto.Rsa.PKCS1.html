@@ -2,7 +2,7 @@
 <html>
 <head>
 <link rel="stylesheet" href="style.css" type="text/css">
-<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
 <link rel="Start" href="index.html">
 <link rel="next" href="Nocrypto.Rsa.OAEP.html">
 <link rel="Up" href="Nocrypto.Rsa.html">
@@ -22,7 +22,7 @@
 </div>
 <h1>Module <a href="type_Nocrypto.Rsa.PKCS1.html">Nocrypto.Rsa.PKCS1</a></h1>
 
-<pre><span class="keyword">module</span> PKCS1: <code class="code">sig</code> <a href="Nocrypto.Rsa.PKCS1.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<pre><span class="keyword">module</span> PKCS1: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rsa.PKCS1.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
 <b>PKCS v1.5</b>-padded operations, as defined by <b>PKCS #1 v1.5</b>.
 <p>
 
@@ -38,8 +38,8 @@
 </div>
 
 <pre><span id="VALsig_decode"><span class="keyword">val</span> sig_decode</span> : <code class="type">key:<a href="Nocrypto.Rsa.html#TYPEpub">Nocrypto.Rsa.pub</a> -> Cstruct.t -> Cstruct.t option</code></pre><div class="info ">
-<code class="code">sig_decode key signature</code> is either <code class="code">Some message</code> if the <code class="code">signature</code>
-        was produced with the given <code class="code">key</code> as per sign, or <code class="code">None</code><br>
+<code class="code">sig_decode key signature</code> is either <code class="code"><span class="constructor">Some</span> message</code> if the <code class="code">signature</code>
+        was produced with the given <code class="code">key</code> as per sign, or <code class="code"><span class="constructor">None</span></code><br>
 </div>
 
 <pre><span id="VALencrypt"><span class="keyword">val</span> encrypt</span> : <code class="type">?g:<a href="Nocrypto.Rng.html#TYPEg">Nocrypto.Rng.g</a> -> key:<a href="Nocrypto.Rsa.html#TYPEpub">Nocrypto.Rsa.pub</a> -> Cstruct.t -> Cstruct.t</code></pre><div class="info ">
@@ -49,8 +49,8 @@
 </div>
 
 <pre><span id="VALdecrypt"><span class="keyword">val</span> decrypt</span> : <code class="type">?mask:<a href="Nocrypto.Rsa.html#TYPEmask">Nocrypto.Rsa.mask</a> -><br>       key:<a href="Nocrypto.Rsa.html#TYPEpriv">Nocrypto.Rsa.priv</a> -> Cstruct.t -> Cstruct.t option</code></pre><div class="info ">
-<code class="code">decrypt mask key ciphertext</code> is <code class="code">Some message</code> if the <code class="code">ciphertext</code> was
-        produced by the corresponding <a href="Nocrypto.Rsa.PKCS1.html#VALencrypt">encrypt</a> operation, or <code class="code">None</code>
+<code class="code">decrypt mask key ciphertext</code> is <code class="code"><span class="constructor">Some</span> message</code> if the <code class="code">ciphertext</code> was
+        produced by the corresponding <a href="Nocrypto.Rsa.PKCS1.html#VALencrypt">encrypt</a> operation, or <code class="code"><span class="constructor">None</span></code>
         otherwise.<br>
 </div>
 </body></html>

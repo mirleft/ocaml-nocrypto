@@ -2,7 +2,7 @@
 <html>
 <head>
 <link rel="stylesheet" href="style.css" type="text/css">
-<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
 <link rel="Start" href="index.html">
 <link rel="previous" href="Nocrypto.Rsa.PKCS1.html">
 <link rel="next" href="Nocrypto.Rsa.PSS.html">
@@ -24,7 +24,7 @@
 </div>
 <h1>Functor <a href="type_Nocrypto.Rsa.OAEP.html">Nocrypto.Rsa.OAEP</a></h1>
 
-<pre><span class="keyword">module</span> OAEP: <div class="sig_block"><code class="code">functor (</code><code class="code">H</code><code class="code"> : </code><code class="type"><a href="Nocrypto.Hash.S.html">Nocrypto.Hash.S</a></code><code class="code">) -&gt; </code><code class="code">sig</code> <a href="Nocrypto.Rsa.OAEP.html">..</a> <code class="code">end</code></div></pre><div class="info module top">
+<pre><span class="keyword">module</span> OAEP: <div class="sig_block"><code class="code"><span class="keyword">functor</span> (</code><code class="code"><span class="constructor">H</span></code><code class="code"> : </code><code class="type"><a href="Nocrypto.Hash.S.html">Nocrypto.Hash.S</a></code><code class="code">) <span class="keywordsign">-&gt;</span> </code><code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rsa.OAEP.html">..</a> <code class="code"><span class="keyword">end</span></code></div></pre><div class="info module top">
 <b>OAEP</b>-padded encryption, as defined by <b>PKCS #1 v2.1</b>.
 <p>
 
@@ -58,8 +58,8 @@
 </div>
 
 <pre><span id="VALdecrypt"><span class="keyword">val</span> decrypt</span> : <code class="type">?mask:<a href="Nocrypto.Rsa.html#TYPEmask">Nocrypto.Rsa.mask</a> -><br>       ?label:Cstruct.t -> key:<a href="Nocrypto.Rsa.html#TYPEpriv">Nocrypto.Rsa.priv</a> -> Cstruct.t -> Cstruct.t option</code></pre><div class="info ">
-<code class="code">decrypt ~mask ~label ~key ciphertext</code> is <code class="code">Some message</code> if the
+<code class="code">decrypt ~mask ~label ~key ciphertext</code> is <code class="code"><span class="constructor">Some</span> message</code> if the
         <code class="code">ciphertext</code> was produced by the corresponding encrypt
-        operation, or <code class="code">None</code> otherwise.<br>
+        operation, or <code class="code"><span class="constructor">None</span></code> otherwise.<br>
 </div>
 </body></html>

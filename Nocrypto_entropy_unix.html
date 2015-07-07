@@ -2,7 +2,7 @@
 <html>
 <head>
 <link rel="stylesheet" href="style.css" type="text/css">
-<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
 <link rel="Start" href="index.html">
 <link rel="previous" href="Nocrypto.html">
 <link rel="next" href="Nocrypto_entropy_lwt.html">
@@ -26,7 +26,7 @@
 </div>
 <h1>Module <a href="type_Nocrypto_entropy_unix.html">Nocrypto_entropy_unix</a></h1>
 
-<pre><span class="keyword">module</span> Nocrypto_entropy_unix: <code class="code">sig</code> <a href="Nocrypto_entropy_unix.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<pre><span class="keyword">module</span> Nocrypto_entropy_unix: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto_entropy_unix.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
 <b>RNG</b> seeding on <b>Unix</b>.
 <p>
 
@@ -38,7 +38,7 @@
     It is harmless to call it several times.
 <p>
 
-    If you are using <b>lwt</b>, conside using <a href="Nocrypto_entropy_lwt.html"><code class="code">Nocrypto_entropy_lwt</code></a> as this
+    If you are using <b>lwt</b>, conside using <a href="Nocrypto_entropy_lwt.html"><code class="code"><span class="constructor">Nocrypto_entropy_lwt</span></code></a> as this
     module allows for continuous reseeding.
 <p>
 
@@ -47,7 +47,7 @@
     level:
 <p>
 
-<pre class="codepre"><code class="code">let () = Nocrypto_entropy_unix.initialize () </code></pre><br>
+<pre class="codepre"><code class="code"><span class="keyword">let</span>&nbsp;()&nbsp;=&nbsp;<span class="constructor">Nocrypto_entropy_unix</span>.initialize&nbsp;()&nbsp;</code></pre><br>
 </div>
 <hr width="100%">
 <br>
@@ -58,7 +58,7 @@ Seeds the current defalt generator from the system RNG device if it is
     currently unseeded.
 <p>
 
-    This is the closest thing to <code class="code">Random.self_init</code> and is a good way to prime
+    This is the closest thing to <code class="code"><span class="constructor">Random</span>.self_init</code> and is a good way to prime
     the RNG.<br>
 </div>
 <br>

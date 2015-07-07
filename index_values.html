@@ -1,7 +1,7 @@
 <html>
 <head>
 <link rel="stylesheet" href="style.css" type="text/css">
-<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
 <link rel="Start" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
@@ -119,7 +119,7 @@ Create a new, unseeded <a href="Nocrypto.Rng.S.Generator.html#TYPEg">g</a>.
 </td></tr>
 <tr><td><a href="Nocrypto.Rng.html#VALcreate">create</a> [<a href="Nocrypto.Rng.html">Nocrypto.Rng</a>]</td>
 <td><div class="info">
-<code class="code">create module</code> uses a module conforming to the <a href="Nocrypto.Rng.S.Generator.html">Generator</a>
+<code class="code">create <span class="keyword">module</span></code> uses a module conforming to the <a href="Nocrypto.Rng.S.Generator.html">Generator</a>
       signature to instantiate the generic generator <a href="Nocrypto.Rng.html#TYPEg">g</a>.
 </div>
 </td></tr>
@@ -132,15 +132,15 @@ Create a new, unseeded <a href="Nocrypto.Rng.S.Generator.html#TYPEg">g</a>.
 <td></td></tr>
 <tr><td><a href="Nocrypto.Rsa.OAEP.html#VALdecrypt">decrypt</a> [<a href="Nocrypto.Rsa.OAEP.html">Nocrypto.Rsa.OAEP</a>]</td>
 <td><div class="info">
-<code class="code">decrypt ~mask ~label ~key ciphertext</code> is <code class="code">Some message</code> if the
+<code class="code">decrypt ~mask ~label ~key ciphertext</code> is <code class="code"><span class="constructor">Some</span> message</code> if the
         <code class="code">ciphertext</code> was produced by the corresponding encrypt
-        operation, or <code class="code">None</code> otherwise.
+        operation, or <code class="code"><span class="constructor">None</span></code> otherwise.
 </div>
 </td></tr>
 <tr><td><a href="Nocrypto.Rsa.PKCS1.html#VALdecrypt">decrypt</a> [<a href="Nocrypto.Rsa.PKCS1.html">Nocrypto.Rsa.PKCS1</a>]</td>
 <td><div class="info">
-<code class="code">decrypt mask key ciphertext</code> is <code class="code">Some message</code> if the <code class="code">ciphertext</code> was
-        produced by the corresponding <a href="Nocrypto.Rsa.PKCS1.html#VALencrypt">encrypt</a> operation, or <code class="code">None</code>
+<code class="code">decrypt mask key ciphertext</code> is <code class="code"><span class="constructor">Some</span> message</code> if the <code class="code">ciphertext</code> was
+        produced by the corresponding <a href="Nocrypto.Rsa.PKCS1.html#VALencrypt">encrypt</a> operation, or <code class="code"><span class="constructor">None</span></code>
         otherwise.
 </div>
 </td></tr>
@@ -257,12 +257,12 @@ Hash the input, updating the state.
 </td></tr>
 <tr><td><a href="Nocrypto.Dh.html#VALgen_group">gen_group</a> [<a href="Nocrypto.Dh.html">Nocrypto.Dh</a>]</td>
 <td><div class="info">
-<code class="code">gen_group bits</code> generates a random <a href="Nocrypto.Dh.html#TYPEgroup"><code class="code">Nocrypto.Dh.group</code></a> with modulus size <code class="code">bits</code>.
+<code class="code">gen_group bits</code> generates a random <a href="Nocrypto.Dh.html#TYPEgroup"><code class="code"><span class="constructor">Nocrypto</span>.<span class="constructor">Dh</span>.group</code></a> with modulus size <code class="code">bits</code>.
 </div>
 </td></tr>
 <tr><td><a href="Nocrypto.Dh.html#VALgen_key">gen_key</a> [<a href="Nocrypto.Dh.html">Nocrypto.Dh</a>]</td>
 <td><div class="info">
-Generate a random <a href="Nocrypto.Dh.html#TYPEsecret"><code class="code">Nocrypto.Dh.secret</code></a> and the corresponding public key.
+Generate a random <a href="Nocrypto.Dh.html#TYPEsecret"><code class="code"><span class="constructor">Nocrypto</span>.<span class="constructor">Dh</span>.secret</code></a> and the corresponding public key.
 </div>
 </td></tr>
 <tr><td><a href="Nocrypto.Rng.S.N.html#VALgen_r">gen_r</a> [<a href="Nocrypto.Rng.S.N.html">Nocrypto.Rng.S.N</a>]</td>
@@ -347,7 +347,7 @@ Starts seeding the current default generator and stops the previous seeding
 <tr><td><a href="Nocrypto_entropy_lwt.html#VALinitialize">initialize</a> [<a href="Nocrypto_entropy_lwt.html">Nocrypto_entropy_lwt</a>]</td>
 <td><div class="info">
 Immediately seeds the current defalt generator using
-    <a href="Nocrypto_entropy_unix.html#VALinitialize"><code class="code">Nocrypto_entropy_unix.initialize</code></a>.
+    <a href="Nocrypto_entropy_unix.html#VALinitialize"><code class="code"><span class="constructor">Nocrypto_entropy_unix</span>.initialize</code></a>.
 </div>
 </td></tr>
 <tr><td><a href="Nocrypto_entropy_unix.html#VALinitialize">initialize</a> [<a href="Nocrypto_entropy_unix.html">Nocrypto_entropy_unix</a>]</td>
@@ -365,7 +365,7 @@ Seeds the current defalt generator from the system RNG device if it is
 <td></td></tr>
 <tr><td><a href="Nocrypto.Dh.html#VALkey_of_secret">key_of_secret</a> [<a href="Nocrypto.Dh.html">Nocrypto.Dh</a>]</td>
 <td><div class="info">
-<code class="code">key_of_secret group s</code> is the <a href="Nocrypto.Dh.html#TYPEsecret"><code class="code">Nocrypto.Dh.secret</code></a> and the corresponding public
+<code class="code">key_of_secret group s</code> is the <a href="Nocrypto.Dh.html#TYPEsecret"><code class="code"><span class="constructor">Nocrypto</span>.<span class="constructor">Dh</span>.secret</code></a> and the corresponding public
       key which use <code class="code">s</code> as the secret exponent.
 </div>
 </td></tr>
@@ -523,20 +523,20 @@ Extract the public component from a private key.
 </td></tr>
 <tr><td><a href="Nocrypto.Rng.S.Generator.html#VALseeded">seeded</a> [<a href="Nocrypto.Rng.S.Generator.html">Nocrypto.Rng.S.Generator</a>]</td>
 <td><div class="info">
-<code class="code">seeded ~g</code> is <code class="code">true</code> iff operations won't throw
+<code class="code">seeded ~g</code> is <code class="code"><span class="keyword">true</span></code> iff operations won't throw
           <a href="Nocrypto.Rng.html#EXCEPTIONUnseeded_generator">Unseeded_generator</a>.
 </div>
 </td></tr>
 <tr><td><a href="Nocrypto.Dh.html#VALshared">shared</a> [<a href="Nocrypto.Dh.html">Nocrypto.Dh</a>]</td>
 <td><div class="info">
 <code class="code">shared group secret message</code> is the shared key, given a group, a previously
-      generated <a href="Nocrypto.Dh.html#TYPEsecret"><code class="code">Nocrypto.Dh.secret</code></a> and the other party's public message.
+      generated <a href="Nocrypto.Dh.html#TYPEsecret"><code class="code"><span class="constructor">Nocrypto</span>.<span class="constructor">Dh</span>.secret</code></a> and the other party's public message.
 </div>
 </td></tr>
 <tr><td><a href="Nocrypto.Rsa.PKCS1.html#VALsig_decode">sig_decode</a> [<a href="Nocrypto.Rsa.PKCS1.html">Nocrypto.Rsa.PKCS1</a>]</td>
 <td><div class="info">
-<code class="code">sig_decode key signature</code> is either <code class="code">Some message</code> if the <code class="code">signature</code>
-        was produced with the given <code class="code">key</code> as per sign, or <code class="code">None</code>
+<code class="code">sig_decode key signature</code> is either <code class="code"><span class="constructor">Some</span> message</code> if the <code class="code">signature</code>
+        was produced with the given <code class="code">key</code> as per sign, or <code class="code"><span class="constructor">None</span></code>
 </div>
 </td></tr>
 <tr><td><a href="Nocrypto.Rsa.PKCS1.html#VALsig_encode">sig_encode</a> [<a href="Nocrypto.Rsa.PKCS1.html">Nocrypto.Rsa.PKCS1</a>]</td>
@@ -547,7 +547,7 @@ Extract the public component from a private key.
 </td></tr>
 <tr><td><a href="Nocrypto.Dsa.html#VALsign">sign</a> [<a href="Nocrypto.Dsa.html">Nocrypto.Dsa</a>]</td>
 <td><div class="info">
-<code class="code">sign mask k fips key digest</code> is the signature, a pair of <code class="code">Cstruct.t</code>s
+<code class="code">sign mask k fips key digest</code> is the signature, a pair of <code class="code"><span class="constructor">Cstruct</span>.t</code>s
       representing <code class="code">r</code> and <code class="code">s</code> in big-endian.
 </div>
 </td></tr>
@@ -559,7 +559,7 @@ Extract the public component from a private key.
 </td></tr>
 <tr><td><a href="Nocrypto_entropy_xen.html#VALsources">sources</a> [<a href="Nocrypto_entropy_xen.html">Nocrypto_entropy_xen</a>]</td>
 <td><div class="info">
-<code class="code">Entropy_xen.source</code>s set up with the last <a href="Nocrypto_entropy_xen.html#VALinitialize">initialize</a>.
+<code class="code"><span class="constructor">Entropy_xen</span>.source</code>s set up with the last <a href="Nocrypto_entropy_xen.html#VALinitialize">initialize</a>.
 </div>
 </td></tr>
 <tr><td><a href="Nocrypto_entropy_lwt.html#VALstop">stop</a> [<a href="Nocrypto_entropy_lwt.html">Nocrypto_entropy_lwt</a>]</td>

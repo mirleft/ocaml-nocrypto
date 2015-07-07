@@ -2,7 +2,7 @@
 <html>
 <head>
 <link rel="stylesheet" href="style.css" type="text/css">
-<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
 <link rel="Start" href="index.html">
 <link rel="previous" href="Nocrypto.Rng.html">
 <link rel="next" href="Nocrypto.Dsa.html">
@@ -26,7 +26,7 @@
 </div>
 <h1>Module <a href="type_Nocrypto.Rsa.html">Nocrypto.Rsa</a></h1>
 
-<pre><span class="keyword">module</span> Rsa: <code class="code">sig</code> <a href="Nocrypto.Rsa.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<pre><span class="keyword">module</span> Rsa: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rsa.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
 <b>RSA</b> public-key cryptography.
 <p>
 
@@ -81,7 +81,7 @@ Modulus<br>
 Public key.
 <p>
 
-      <em><code class="code">Sexplib</code> convertible</em>.<br>
+      <em><code class="code"><span class="constructor">Sexplib</span></code> convertible</em>.<br>
 </div>
 
 
@@ -142,7 +142,7 @@ Prime factor <code class="code">q</code><br>
 <td align="left" valign="top" >
 <code><span id="TYPEELTpriv.dp">dp</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
-<code class="code">d mod (p-1)</code><br>
+<code class="code">d <span class="keyword">mod</span> (p-1)</code><br>
 </div>
 </td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
@@ -152,7 +152,7 @@ Prime factor <code class="code">q</code><br>
 <td align="left" valign="top" >
 <code><span id="TYPEELTpriv.dq">dq</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
-<code class="code">d mod (q-1)</code><br>
+<code class="code">d <span class="keyword">mod</span> (q-1)</code><br>
 </div>
 </td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
@@ -162,7 +162,7 @@ Prime factor <code class="code">q</code><br>
 <td align="left" valign="top" >
 <code><span id="TYPEELTpriv.q'">q'</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
-<code class="code">q^(-1) mod p</code><br>
+<code class="code">q^(-1) <span class="keyword">mod</span> p</code><br>
 </div>
 </td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr></table>
@@ -172,7 +172,7 @@ Prime factor <code class="code">q</code><br>
 Private key (two-factor version).
 <p>
 
-      <em><code class="code">Sexplib</code> convertible</em>.<br>
+      <em><code class="code"><span class="constructor">Sexplib</span></code> convertible</em>.<br>
 </div>
 
 
@@ -217,15 +217,15 @@ Extract the public component from a private key.<br>
 <br>
 <h1 id="1_PKCS1paddedmodes">PKCS#1 padded modes</h1><br>
 
-<pre><span class="keyword">module</span> <a href="Nocrypto.Rsa.PKCS1.html">PKCS1</a>: <code class="code">sig</code> <a href="Nocrypto.Rsa.PKCS1.html">..</a> <code class="code">end</code></pre><div class="info">
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rsa.PKCS1.html">PKCS1</a>: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rsa.PKCS1.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
 <b>PKCS v1.5</b>-padded operations, as defined by <b>PKCS #1 v1.5</b>.
 </div>
 
-<pre><span class="keyword">module</span> <a href="Nocrypto.Rsa.OAEP.html">OAEP</a>: <div class="sig_block"><code class="code">functor (</code><code class="code">H</code><code class="code"> : </code><code class="type"><a href="Nocrypto.Hash.S.html">Nocrypto.Hash.S</a></code><code class="code">) -&gt; </code><code class="code">sig</code> <a href="Nocrypto.Rsa.OAEP.html">..</a> <code class="code">end</code></div></pre><div class="info">
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rsa.OAEP.html">OAEP</a>: <div class="sig_block"><code class="code"><span class="keyword">functor</span> (</code><code class="code"><span class="constructor">H</span></code><code class="code"> : </code><code class="type"><a href="Nocrypto.Hash.S.html">Nocrypto.Hash.S</a></code><code class="code">) <span class="keywordsign">-&gt;</span> </code><code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rsa.OAEP.html">..</a> <code class="code"><span class="keyword">end</span></code></div></pre><div class="info">
 <b>OAEP</b>-padded encryption, as defined by <b>PKCS #1 v2.1</b>.
 </div>
 
-<pre><span class="keyword">module</span> <a href="Nocrypto.Rsa.PSS.html">PSS</a>: <div class="sig_block"><code class="code">functor (</code><code class="code">H</code><code class="code"> : </code><code class="type"><a href="Nocrypto.Hash.S.html">Nocrypto.Hash.S</a></code><code class="code">) -&gt; </code><code class="code">sig</code> <a href="Nocrypto.Rsa.PSS.html">..</a> <code class="code">end</code></div></pre><div class="info">
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rsa.PSS.html">PSS</a>: <div class="sig_block"><code class="code"><span class="keyword">functor</span> (</code><code class="code"><span class="constructor">H</span></code><code class="code"> : </code><code class="type"><a href="Nocrypto.Hash.S.html">Nocrypto.Hash.S</a></code><code class="code">) <span class="keywordsign">-&gt;</span> </code><code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rsa.PSS.html">..</a> <code class="code"><span class="keyword">end</span></code></div></pre><div class="info">
 <b>PSS</b>-based signing, as defined by <b>PKCS #1 v2.1</b>.
 </div>
 </body></html>

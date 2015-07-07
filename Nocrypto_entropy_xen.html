@@ -2,7 +2,7 @@
 <html>
 <head>
 <link rel="stylesheet" href="style.css" type="text/css">
-<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
 <link rel="Start" href="index.html">
 <link rel="previous" href="Nocrypto_entropy_lwt.html">
 <link rel="Up" href="index.html">
@@ -24,7 +24,7 @@
 &nbsp;</div>
 <h1>Module <a href="type_Nocrypto_entropy_xen.html">Nocrypto_entropy_xen</a></h1>
 
-<pre><span class="keyword">module</span> Nocrypto_entropy_xen: <code class="code">sig</code> <a href="Nocrypto_entropy_xen.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<pre><span class="keyword">module</span> Nocrypto_entropy_xen: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto_entropy_xen.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
 <b>RNG</b> seeding on <b>Mirage/Xen</b>.
 <p>
 
@@ -48,7 +48,7 @@ Starts seeding the current default generator and stops the previous seeding
 <h1 id="1_InterfacetoMirageEntropy">Interface to Mirage Entropy</h1><br>
 
 <pre><span id="VALsources"><span class="keyword">val</span> sources</span> : <code class="type">unit -> Entropy_xen.source list option</code></pre><div class="info ">
-<code class="code">Entropy_xen.source</code>s set up with the last <a href="Nocrypto_entropy_xen.html#VALinitialize">initialize</a>.<br>
+<code class="code"><span class="constructor">Entropy_xen</span>.source</code>s set up with the last <a href="Nocrypto_entropy_xen.html#VALinitialize">initialize</a>.<br>
 </div>
 
 <pre><span id="VALattach"><span class="keyword">val</span> attach</span> : <code class="type">Entropy_xen.t -> <a href="Nocrypto.Rng.html#TYPEg">Nocrypto.Rng.g</a> -> Entropy_xen.token Lwt.t</code></pre><div class="info ">

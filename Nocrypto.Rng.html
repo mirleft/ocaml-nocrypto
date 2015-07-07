@@ -2,7 +2,7 @@
 <html>
 <head>
 <link rel="stylesheet" href="style.css" type="text/css">
-<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
 <link rel="Start" href="index.html">
 <link rel="previous" href="Nocrypto.Cipher_stream.html">
 <link rel="next" href="Nocrypto.Rsa.html">
@@ -27,7 +27,7 @@
 </div>
 <h1>Module <a href="type_Nocrypto.Rng.html">Nocrypto.Rng</a></h1>
 
-<pre><span class="keyword">module</span> Rng: <code class="code">sig</code> <a href="Nocrypto.Rng.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<pre><span class="keyword">module</span> Rng: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rng.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
 Secure random number generation.
 <p>
 
@@ -46,7 +46,7 @@ Secure random number generation.
   Module type of utility-modules with a suite of functions for generating a
   particular numeric type (<a href="Nocrypto.Rng.S.N.html">S.N</a>), a functor to produce such modules from
   a ground numeric type (<a href="Nocrypto.Rng.N_gen.html">N_gen</a>), and instances for <code class="code">int</code>, <code class="code">int32</code>,
-  <code class="code">int64</code> and <code class="code">Z.t</code>.
+  <code class="code">int64</code> and <code class="code"><span class="constructor">Z</span>.t</code>.
 <p>
 
   Several specialized functions for e.g. primes.
@@ -55,36 +55,36 @@ Secure random number generation.
   <h1 id="1_Examples">Examples</h1>
 <p>
 
-  Generating a random 13-byte <code class="code">Cstruct.t</code>:
-<pre class="codepre"><code class="code">let cs = Rng.generate 13</code></pre>
+  Generating a random 13-byte <code class="code"><span class="constructor">Cstruct</span>.t</code>:
+<pre class="codepre"><code class="code"><span class="keyword">let</span>&nbsp;cs&nbsp;=&nbsp;<span class="constructor">Rng</span>.generate&nbsp;13</code></pre>
 <p>
 
-  Generating a list of <code class="code">Cstruct.t</code>s, passing down an optional <a href="Nocrypto.Rng.html#TYPEg">generator</a>:
-<pre class="codepre"><code class="code">let rec f1 ?g ~n i =
-  if i &lt; 1 then [] else Rng.generate ?g n :: f1 ?g ~n (i - 1)</code></pre>
+  Generating a list of <code class="code"><span class="constructor">Cstruct</span>.t</code>s, passing down an optional <a href="Nocrypto.Rng.html#TYPEg">generator</a>:
+<pre class="codepre"><code class="code"><span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;f1&nbsp;?g&nbsp;~n&nbsp;i&nbsp;=<br>
+&nbsp;&nbsp;<span class="keyword">if</span>&nbsp;i&nbsp;&lt;&nbsp;1&nbsp;<span class="keyword">then</span>&nbsp;[]&nbsp;<span class="keyword">else</span>&nbsp;<span class="constructor">Rng</span>.generate&nbsp;?g&nbsp;n&nbsp;::&nbsp;f1&nbsp;?g&nbsp;~n&nbsp;(i&nbsp;-&nbsp;1)</code></pre>
 <p>
 
-  Generating a <code class="code">Z.t</code> smaller than <code class="code">10</code> and an <code class="code">int64</code> in the range <code class="code">[3, 7]</code>:
-<pre class="codepre"><code class="code">let f2 ?g () = Rng.(Z.gen ?g ~$10, Int64.gen_r 3L 8L)</code></pre>
+  Generating a <code class="code"><span class="constructor">Z</span>.t</code> smaller than <code class="code">10</code> and an <code class="code">int64</code> in the range <code class="code">[3, 7]</code>:
+<pre class="codepre"><code class="code"><span class="keyword">let</span>&nbsp;f2&nbsp;?g&nbsp;()&nbsp;=&nbsp;<span class="constructor">Rng</span>.(<span class="constructor">Z</span>.gen&nbsp;?g&nbsp;<span class="keywordsign">~$</span>10,&nbsp;<span class="constructor">Int64</span>.gen_r&nbsp;3<span class="constructor">L</span>&nbsp;8<span class="constructor">L</span>)</code></pre>
 <p>
 
   Creating a local Fortuna instance and using it as a key-derivation function:
-<pre class="codepre"><code class="code">let f3 secret =
-  let g = Rng.(create ~seed:secret (module Generators.Fortuna)) in
-  Rng.generate ~g 32</code></pre>
+<pre class="codepre"><code class="code"><span class="keyword">let</span>&nbsp;f3&nbsp;secret&nbsp;=<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;g&nbsp;=&nbsp;<span class="constructor">Rng</span>.(create&nbsp;~seed:secret&nbsp;(<span class="keyword">module</span>&nbsp;<span class="constructor">Generators</span>.<span class="constructor">Fortuna</span>))&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="constructor">Rng</span>.generate&nbsp;~g&nbsp;32</code></pre>
 <p>
 
   Generating a 17-bit prime with two leading bits set:
-<pre class="codepre"><code class="code">let p = Rng.prime ~msb:2 17</code></pre>
+<pre class="codepre"><code class="code"><span class="keyword">let</span>&nbsp;p&nbsp;=&nbsp;<span class="constructor">Rng</span>.prime&nbsp;~msb:2&nbsp;17</code></pre>
 <p>
 
   Fisher-Yates shuffle:
-<pre class="codepre"><code class="code">let f4 ?g arr =
-  let n = Array.length arr in
-  arr |&gt; Array.iter @@ fun i -&gt;
-    let j = Rng.Int.gen_r ?g i n in
-    let (a, b) = (arr.(i), arr.(j)) in
-    arr.(i) &lt;- b ; arr.(j) &lt;- a </code></pre>
+<pre class="codepre"><code class="code"><span class="keyword">let</span>&nbsp;f4&nbsp;?g&nbsp;arr&nbsp;=<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;n&nbsp;=&nbsp;<span class="constructor">Array</span>.length&nbsp;arr&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;arr&nbsp;|&gt;&nbsp;<span class="constructor">Array</span>.iter&nbsp;@@&nbsp;<span class="keyword">fun</span>&nbsp;i&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;j&nbsp;=&nbsp;<span class="constructor">Rng</span>.<span class="constructor">Int</span>.gen_r&nbsp;?g&nbsp;i&nbsp;n&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(a,&nbsp;b)&nbsp;=&nbsp;(arr.(i),&nbsp;arr.(j))&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;arr.(i)&nbsp;&lt;-&nbsp;b&nbsp;;&nbsp;arr.(j)&nbsp;&lt;-&nbsp;a&nbsp;</code></pre>
 <p>
 
   <h1 id="1_Usagenotes">Usage notes</h1>
@@ -136,16 +136,16 @@ A generator with its state.<br>
 Thrown when using an uninitialized <a href="Nocrypto.Rng.html#TYPEg">generator</a>.<br>
 </div>
 
-<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.S.html">S</a>: <code class="code">sig</code> <a href="Nocrypto.Rng.S.html">..</a> <code class="code">end</code></pre><div class="info">
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.S.html">S</a>: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rng.S.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
 Module signatures.
 </div>
 
-<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.Generators.html">Generators</a>: <code class="code">sig</code> <a href="Nocrypto.Rng.Generators.html">..</a> <code class="code">end</code></pre><div class="info">
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.Generators.html">Generators</a>: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rng.Generators.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
 Ready-to-use RNG algorithms.
 </div>
 
 <pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">?g:'a -><br>       ?seed:Cstruct.t -><br>       ?strict:bool -><br>       (module Nocrypto.Rng.S.Generator with type g = 'a) -> <a href="Nocrypto.Rng.html#TYPEg">g</a></code></pre><div class="info ">
-<code class="code">create module</code> uses a module conforming to the <a href="Nocrypto.Rng.S.Generator.html">Generator</a>
+<code class="code">create <span class="keyword">module</span></code> uses a module conforming to the <a href="Nocrypto.Rng.S.Generator.html">Generator</a>
       signature to instantiate the generic generator <a href="Nocrypto.Rng.html#TYPEg">g</a>.
 <p>
 
@@ -183,7 +183,7 @@ Invoke <a href="Nocrypto.Rng.S.Generator.html#VALgenerate">generate</a> on <code
 <br>
 <h1 id="1_Generationofcommonnumerictypes">Generation of common numeric types</h1><br>
 
-<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.N_gen.html">N_gen</a>: <div class="sig_block"><code class="code">functor (</code><code class="code">N</code><code class="code"> : </code><code class="type"><a href="Nocrypto.Numeric.S.html">Nocrypto.Numeric.S</a></code><code class="code">) -&gt; </code><code class="type"><a href="Nocrypto.Rng.S.N.html">S.N</a></code><code class="type">  with type t = N.t</code></div></pre><div class="info">
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.N_gen.html">N_gen</a>: <div class="sig_block"><code class="code"><span class="keyword">functor</span> (</code><code class="code"><span class="constructor">N</span></code><code class="code"> : </code><code class="type"><a href="Nocrypto.Numeric.S.html">Nocrypto.Numeric.S</a></code><code class="code">) <span class="keywordsign">-&gt;</span> </code><code class="type"><a href="Nocrypto.Rng.S.N.html">S.N</a></code><code class="type">  with type t = N.t</code></div></pre><div class="info">
 Creates a suite of generating functions over a numeric type.
 </div>
 
