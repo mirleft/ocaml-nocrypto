@@ -2,11 +2,14 @@
 
 export PKG_CONFIG_PATH="$(opam config var prefix)/lib/pkgconfig"
 
+# Bridge through $XEN_CFLAGS from the environment into Oasis' world.
+#
 XEN_CFLAGS="disabled"
 grep -q '^xen="true"' setup.data && XEN_CFLAGS="$(pkg-config --static mirage-xen --cflags)"
-
 echo "XEN_CFLAGS=\"${XEN_CFLAGS}\"" >> setup.data
 
+# Kill CPU acceleration if requested but unsupported by the current host.
+#
 if grep -q '^modernity="true"' setup.data; then
   CPUDETECT=$(mktemp -t nocryptoXXX)
   cc src/native/cpudetect_static.c -o ${CPUDETECT} || exit 1
