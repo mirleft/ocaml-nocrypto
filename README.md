@@ -44,5 +44,19 @@ switch=$(opam config var switch)
 echo 'nocrypto-inhibit-modernity: true' >> ~/.opam/${switch}/config/global-config.config
 ```
 
+#### Opam woes
+
+Opam dies:
+
+```
+[ERROR] nocrypto-inhibit-modernity is not a valid variable.
+[WARNING] Invalid variable nocrypto-inhibit-modernity in filter
+[ERROR] 'nocrypto-inhibit-modernity' has type string, but a env element of type bool was expected.
+[ERROR] The compilation of nocrypto.XXX failed.
+```
+
+Either upgrade opam, or set the variable, as above.
+
+
 [docs]: http://mirleft.github.io/ocaml-nocrypto
 [nocrypto-mli]: https://github.com/mirleft/ocaml-nocrypto/blob/master/src/nocrypto.mli
