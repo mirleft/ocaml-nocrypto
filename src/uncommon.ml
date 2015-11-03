@@ -116,17 +116,15 @@ module Cs = struct
     let n1 = len cs1 and n2 = len cs2 in
     go true 0 (imin n1 n2) && n1 = n2
 
-  let rec find_uint8 ?(mask=false) ?(off=0) ~f cs =
-    let f' x = ignore (f x) ; false in
-    let rec go i = function
-      | 0 -> None
+  let ct_find_uint8 ?(off=0) ~f cs =
+    let rec go acc i = function
+      | 0 -> acc
       | n ->
-          match f (get_uint8 cs i) with
-          | false -> go (succ i) (pred n)
-          | true  ->
-              if mask then ignore (find_uint8 ~off:(succ i) ~f:f' cs) ;
-              Some i in
-    go off (len cs - off)
+          let acc = match (acc, f (get_uint8 cs i)) with
+            | (None, true) -> Some i
+            | _            -> acc in
+          go acc (succ i) (pred n) in
+    go None off (len cs - off)
 
   let clone ?(off = 0) ?len cs =
     let len = match len with None -> cs.len - off | Some x -> x in

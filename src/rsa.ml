@@ -83,8 +83,6 @@ let rec generate ?g ?(e = Z.(~$0x10001)) bits =
 
 
 
-let mask = true
-
 let b = Cs.b
 
 let (bx00, bx01) = (b 0x00, b 0x01)
@@ -116,7 +114,7 @@ module PKCS1 = struct
 
   let unpad ~mark ~is_pad cs =
     let f = not &. is_pad in
-    let i = Cs.find_uint8 ~mask ~off:2 ~f cs |> Option.value ~def:2
+    let i = Cs.ct_find_uint8 ~off:2 ~f cs |> Option.value ~def:2
     in
     let c1 = get_uint8 cs 0 = 0x00
     and c2 = get_uint8 cs 1 = mark
@@ -194,8 +192,7 @@ module OAEP (H : Hash.S) = struct
   let eme_oaep_decode ?(label = Cs.empty) msg =
     let (b0, ms, mdb) = Cs.split3 msg 1 hlen in
     let db = MGF.mask ~seed:(MGF.mask ~seed:mdb ms) mdb in
-    let i  = Cs.find_uint8 ~mask ~off:hlen ~f:((<>) 0x00) db
-             |> Option.value ~def:0
+    let i  = Cs.ct_find_uint8 ~off:hlen ~f:((<>) 0x00) db |> Option.value ~def:0
     in
     let c1 = Cs.ct_eq (sub db 0 hlen) H.(digest label)
     and c2 = get_uint8 b0 0 = 0x00
@@ -251,7 +248,7 @@ module PSS (H: Hash.S) = struct
     set_uint8 db 0 (get_uint8 db 0 land b0mask emlen) ;
     let salt = shift db (len db - slen) in
     let h'   = H.digestv [ Cs.zeros 8 ; H.digest msg ; salt ]
-    and i    = Cs.find_uint8 ~mask ~f:((<>) 0x00) db |> Option.value ~def:0
+    and i    = Cs.ct_find_uint8 ~f:((<>) 0x00) db |> Option.value ~def:0
     in
     let c1 = lnot (b0mask emlen) land get_uint8 mdb 0 = 0x00
     and c2 = i = em.len - hlen - slen - 2
