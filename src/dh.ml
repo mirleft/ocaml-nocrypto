@@ -19,7 +19,7 @@ type secret = { x : Z.t } with sexp
 let exp_equivalent = [
   (1024, 180); (2048, 225); (3072, 275); (4096, 325); (6144, 375); (8192, 400)
 ]
-and exp_equivalent_max = 425
+and exp_equivalent_max = 512
 
 let exp_size bits =
   try snd @@ List.find (fun (g, _) -> g >= bits) exp_equivalent
