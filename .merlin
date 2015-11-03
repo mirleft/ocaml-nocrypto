@@ -3,9 +3,6 @@ S unix
 S lwt
 S xen
 
-B _build/src
-B _build/unix
-B _build/lwt
-B _build/xen
+B _build/**
 
 PKG cstruct zarith sexplib

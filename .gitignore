@@ -8,4 +8,6 @@ setup.log
 *.byte
 *.docdir
 
+*.prof
+
 gmon.out
