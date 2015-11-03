@@ -75,7 +75,7 @@ Library nocrypto
   ByteOpt:         -w A-4-33-40-41-42-43-34-44
   CCOpt:           --std=c99 -Wall -Wextra -Werror -O3
   if flag(modernity) && architecture(amd64)
-    CCOpt+: -msse2 -maes
+    CCOpt+: -DACCELERATE -msse2 -maes
 
 Library nocrypto_unix
   Path:          unix/
@@ -119,7 +119,7 @@ Library nocrypto_xen
   XMETARequires:   nocrypto, lwt, mirage-entropy-xen
   CCOpt:           --std=c99 -Wall -Wextra -Werror -O3 -DNDEBUG $XEN_CFLAGS
   if flag(modernity) && architecture(amd64)
-    CCOpt+: -msse2 -maes
+    CCOpt+: -DACCELERATE -msse2 -maes
 
 Library testlib
   Path:         tests/
