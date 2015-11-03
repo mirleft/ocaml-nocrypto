@@ -23,11 +23,11 @@ let sample arr =
 
 let assert_cs_equal ?pp_diff ?msg =
   assert_equal
-    ~cmp:Cs.equal
+    ~cmp:Cstruct.equal
     ~printer:hex_of_cs
     ?pp_diff
     ?msg
 
 let assert_cs_not_equal ~msg cs1 cs2 =
-  if Cs.equal cs1 cs2 then
+  if Cstruct.equal cs1 cs2 then
     assert_failure @@ msg ^ "\n" ^ hex_of_cs cs1

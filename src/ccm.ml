@@ -165,6 +165,6 @@ let decryption_verification ~cipher ~key ~nonce ~maclen ?adata data =
     let cdata, t = crypto_core ~cipher ~mode:Decrypt ~key ~nonce ~maclen ?adata (Cstruct.sub data 0 pclen) in
     let t' = Cs.clone (Cstruct.sub data pclen maclen) in
     crypto_t t' nonce cipher key ;
-    match Cs.equal t' t with
+    match Cstruct.equal t' t with
     | true  -> Some cdata
     | false -> None
