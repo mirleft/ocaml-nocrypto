@@ -61,7 +61,8 @@ module Uncommon : sig
     val (<+>) : Cstruct.t -> Cstruct.t -> Cstruct.t
     val concat : Cstruct.t list -> Cstruct.t
 
-    val equal : ?mask:bool -> Cstruct.t -> Cstruct.t -> bool
+    val ct_eq : Cstruct.t -> Cstruct.t -> bool
+    (** Constant-Time [Cstruct.t] equality. *)
 
     val xor_into : Cstruct.t -> Cstruct.t -> int -> unit
     val xor      : Cstruct.t -> Cstruct.t -> Cstruct.t

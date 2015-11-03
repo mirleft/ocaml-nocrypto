@@ -197,7 +197,7 @@ module OAEP (H : Hash.S) = struct
     let i  = Cs.find_uint8 ~mask ~off:hlen ~f:((<>) 0x00) db
              |> Option.value ~def:0
     in
-    let c1 = Cs.equal ~mask (sub db 0 hlen) H.(digest label)
+    let c1 = Cs.ct_eq (sub db 0 hlen) H.(digest label)
     and c2 = get_uint8 b0 0 = 0x00
     and c3 = get_uint8 db i = 0x01 in
     if c1 && c2 && c3 then
@@ -257,7 +257,7 @@ module PSS (H: Hash.S) = struct
     and c2 = i = em.len - hlen - slen - 2
     and c3 = get_uint8 db  i = 0x01
     and c4 = get_uint8 bxx 0 = 0xbc
-    and c5 = Cs.equal ~mask h h' in
+    and c5 = Cs.ct_eq h h' in
     c1 && c2 && c3 && c4 && c5
 
   let min_key_bits slen = 8 * (hlen + slen + 1) + 2
