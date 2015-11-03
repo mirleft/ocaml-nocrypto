@@ -1,6 +1,6 @@
 #include "../nocrypto.h"
 
-#if defined (NC_AES_NI)
+#if defined (__nc_AES_NI__)
 
 /* xmm: [3, 2, 1, 0] */
 #define _S_3333 0xff
@@ -368,4 +368,4 @@ CAMLprim value caml_nc_aes_mode (__unit ()) { return Val_int (1); }
 __define_bc_7 (caml_nc_aes_enc)
 __define_bc_7 (caml_nc_aes_dec)
 
-#endif /* NC_AES_NI */
+#endif /* __nc_AES_NI__ */

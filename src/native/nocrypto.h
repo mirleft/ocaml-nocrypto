@@ -11,14 +11,18 @@
  */
 #include "hash/bitfn.h"
 
-#if ( defined (__i386__) || defined (__x86_64__) )
+#if defined (__x86_64__) && defined (ACCELERATE)
 #include <x86intrin.h>
 #endif
 
-#if ( defined (__i386__) || defined (__x86_64__) ) && defined (__AES__)
-#define NC_AES_NI
+#if defined (__x86_64__) && defined (ACCELERATE) && defined (__SSE2__)
+#define __nc_SSE2__
+#endif
+
+#if defined (__x86_64__) && defined (ACCELERATE) && defined (__AES__)
+#define __nc_AES_NI__
 #else
-#define NC_AES_GENERIC
+#define __nc_AES_GENERIC__
 #endif
 
 #ifndef __unused

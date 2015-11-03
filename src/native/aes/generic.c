@@ -6,7 +6,7 @@
 
 #include "../nocrypto.h"
 
-#if defined (NC_AES_GENERIC)
+#if defined (__nc_AES_GENERIC__)
 
 #define KEYLENGTH(keybits) ((keybits)/8)
 #define RKLENGTH(keybits)  ((keybits)/8+28)
@@ -1274,4 +1274,4 @@ CAMLprim value caml_nc_aes_mode (__unit ()) { return Val_int (0); }
 __define_bc_7 (caml_nc_aes_enc)
 __define_bc_7 (caml_nc_aes_dec)
 
-#endif /* NC_AES_GENERIC */
+#endif /* __nc_AES_GENERIC__ */
