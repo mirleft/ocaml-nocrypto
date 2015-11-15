@@ -11,8 +11,8 @@ echo "XEN_CFLAGS=\"${XEN_CFLAGS}\"" >> setup.data
 # Kill CPU acceleration if requested but unsupported by the current host.
 #
 if grep -q '^modernity="true"' setup.data; then
-  CPUDETECT=$(mktemp -t nocryptoXXXXXX)
-  cc src/native/cpudetect_static.c -o ${CPUDETECT} || exit 1
-  ${CPUDETECT} || echo "modernity=\"false\"" >> setup.data
+  CPUDETECT=$(mktemp -t nocrypto.XXXXXX)
+  ( cc src/native/cpudetect_static.c -o ${CPUDETECT} > /dev/null 2>&1 \
+      && ${CPUDETECT} ) || echo "modernity=\"false\"" >> setup.data
   rm -f ${CPUDETECT}
 fi

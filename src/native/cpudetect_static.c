@@ -2,6 +2,9 @@
 
 #if defined (__i386__) || defined (__x86_64__)
 
+/* This is meant to break the build if the compiler is too old. */
+#include <x86intrin.h>
+
 #include <cpuid.h>
 
 #define __x86__
