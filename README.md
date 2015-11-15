@@ -36,27 +36,11 @@ compiled the library with acceleration, but you are using it on a machine that d
 
 `./configure --enable-modernity` enables non-portable code if the build machine supports it.
 
-It defaults to `enable`, but the `opam` file disables it if global opam variable
-`nocrypto-inhibit-modernity` is `true`. You can do something like:
+The flag defaults to `enable`.
 
-```
-switch=$(opam config var switch)
-echo 'nocrypto-inhibit-modernity: true' >> ~/.opam/${switch}/config/global-config.config
-```
-
-#### Opam woes
-
-Opam dies:
-
-```
-[ERROR] nocrypto-inhibit-modernity is not a valid variable.
-[WARNING] Invalid variable nocrypto-inhibit-modernity in filter
-[ERROR] 'nocrypto-inhibit-modernity' has type string, but a env element of type bool was expected.
-[ERROR] The compilation of nocrypto.XXX failed.
-```
-
-Either upgrade opam, or set the variable, as above.
-
+A second way to disable this feature is by exporting `$NOCRYPTO_NO_ACCEL`
+environment variable during build. This is desirable, for example, when building
+via `opam`.
 
 [docs]: http://mirleft.github.io/ocaml-nocrypto
 [nocrypto-mli]: https://github.com/mirleft/ocaml-nocrypto/blob/master/src/nocrypto.mli

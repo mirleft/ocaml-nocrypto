@@ -8,7 +8,6 @@ license:      "BSD2"
 
 build: [
   [ "./configure" "--prefix" prefix
-     "--disable-modernity" {nocrypto-inhibit-modernity}
      "--%{lwt:enable}%-lwt"
      "--%{mirage-xen+mirage-entropy-xen:enable}%-xen" ]
   [ make ]

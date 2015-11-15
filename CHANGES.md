@@ -1,3 +1,8 @@
+(trunk):
+* Avoid including intrinsics-related headers if SSE/AES-NI is disabled
+* Replace opam variable `nocrypto-inhibit-modernity` with `$NOCRYPTO_NO_ACCEL`
+* Remove cstruct equality
+
 0.5.1 (2015-07-07):
 * Disable AES-NI if not supported in the `./configure` step.
 * Support the global opam variable `nocrypto-inhibit-modernity`.

@@ -8,11 +8,18 @@ XEN_CFLAGS="disabled"
 grep -q '^xen="true"' setup.data && XEN_CFLAGS="$(pkg-config --static mirage-xen --cflags)"
 echo "XEN_CFLAGS=\"${XEN_CFLAGS}\"" >> setup.data
 
-# Kill CPU acceleration if requested but unsupported by the current host.
+# Kill CPU acceleration if requested in ./configure, but:
+# * unsupported by the current host CPU;
+# * unsupported by the current toolchain; or
+# * disabled via NOCRYPTO_NO_ACCEL env var.
 #
-if grep -q '^modernity="true"' setup.data; then
+function test_platform {
   CPUDETECT=$(mktemp -t nocrypto.XXXXXX)
-  ( cc src/native/cpudetect_static.c -o ${CPUDETECT} > /dev/null 2>&1 \
-      && ${CPUDETECT} ) || echo "modernity=\"false\"" >> setup.data
+  (cc src/native/cpudetect_static.c -o ${CPUDETECT} > /dev/null 2>&1 && ${CPUDETECT})
+  ok=$?
   rm -f ${CPUDETECT}
+  return $ok
+}
+if grep -q '^modernity="true"' setup.data; then
+  [[ -z $NOCRYPTO_NO_ACCEL ]] && test_platform || echo "modernity=\"false\"" >> setup.data
 fi
