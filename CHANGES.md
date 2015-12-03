@@ -1,4 +1,4 @@
-(trunk):
+0.5.2 (2015-12-03):
 * Avoid including intrinsics-related headers if SSE/AES-NI is disabled
 * Replace opam variable `nocrypto-inhibit-modernity` with `$NOCRYPTO_NO_ACCEL`
 * Remove cstruct equality
