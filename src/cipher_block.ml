@@ -306,7 +306,7 @@ module Modes2 = struct
 
     module CTR = CTR_of (C)
 
-    assert (C.block = 16)
+    let _ = assert (C.block = 16)
 
     type result = { message : Cstruct.t ; tag : Cstruct.t }
 
