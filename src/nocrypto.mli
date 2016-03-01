@@ -14,7 +14,8 @@
 
 (*
  * Doc note: Sexplib conversions are noted explicitly instead of using
- * `with sexp` because the syntax extension interacts badly with ocamldoc.
+ * `[@@deriving sexp]` because the syntax extension interacts badly with
+ * ocamldoc.
  *)
 
 (** {1 Utilities} *)
@@ -30,6 +31,7 @@ end
 
 
 (**/**)
+
 (** A treasure-trove of random utilities.
 
     This is largely an internal API used in related sub-libraries or tests. As
@@ -94,6 +96,7 @@ module Uncommon : sig
   (** Safe acquire-use-release combinator. *)
 
 end
+
 (**/**)
 
 
@@ -387,101 +390,71 @@ module Cipher_stream : sig
 end
 
 
-(** {1 Random numbers} *)
+(** {1 Randomness} *)
 
 (** Secure random number generation.
 
-  There are several parts of this module:
+    There are several parts of this module:
 
-  The module type of generators, {{!S.Generator}S.Generator}, together with a
-  facility to convert such modules into actual generators ({{!g}g}), and
-  functions that operate on this representation.
-
-  A global [g] instance, implemented by {{!Rng.Generators.Fortuna}Fortuna}.
-  This is the default generator, used when one is not explicitly supplied.
-
-  Module type of utility-modules with a suite of functions for generating a
-  particular numeric type ({{!S.N}S.N}), a functor to produce such modules from
-  a ground numeric type ({{!N_gen}N_gen}), and instances for [int], [int32],
-  [int64] and [Z.t].
-
-  Several specialized functions for e.g. primes.
-
-
-  {1 Examples}
-
-  Generating a random 13-byte {!Cstruct.t}:
-{[let cs = Rng.generate 13]}
-
-  Generating a list of {!Cstruct.t}s, passing down an optional {{!g}generator}:
-{[let rec f1 ?g ~n i =
-  if i < 1 then [] else Rng.generate ?g n :: f1 ?g ~n (i - 1)]}
-
-  Generating a [Z.t] smaller than [10] and an [int64] in the range [\[3, 7\]]:
-{[let f2 ?g () = Rng.(Z.gen ?g ~$10, Int64.gen_r 3L 8L)]}
-
-  Creating a local Fortuna instance and using it as a key-derivation function:
-{[let f3 secret =
-  let g = Rng.(create ~seed:secret (module Generators.Fortuna)) in
-  Rng.generate ~g 32]}
-
-  Generating a 17-bit prime with two leading bits set:
-{[let p = Rng.prime ~msb:2 17]}
-
-  Fisher-Yates shuffle:
-{[let f4 ?g arr =
-  let n = Array.length arr in
-  arr |> Array.iter @@ fun i ->
-    let j = Rng.Int.gen_r ?g i n in
-    let (a, b) = (arr.(i), arr.(j)) in
-    arr.(i) <- b ; arr.(j) <- a ]}
-
-
-  {1 Usage notes}
-
-  The RNGs here are merely the deterministic part of a full random number
-  generation suite. For proper operation, they need to be seeded with a
-  high-quality entropy source.
-
-  Suitable entropy sources are provided by sub-libraries
-  {{!Nocrypto_entropy_unix}nocrypto.unix}, {{!Nocrypto_entropy_lwt}nocrypto.lwt}
-  and {{!Nocrypto_entropy_xen}nocrypto.xen}. Although this module exposes a more
-  fine-grained interface, allowing manual seeding of generators, this is intended
-  either for implementing entropy-harvesting modules, or very specialized
-  purposes. Users of this library should almost certainly use one of the above
-  entropy libraries, and avoid manually managing the generator seeding.
-
-  Similarly, although it is possible to swap the default generator and gain
-  control over the random stream, this is also intended for specialized
-  applications such as testing or similar scenarios where the RNG needs to be
-  fully deterministic, or as a component of deterministic algorithms which
-  internally rely on pseudorandom streams.
-
-  In the general case, users should not maintain their local instances of
-  {{!g}g}. All of the generators in a process have to compete for entropy, and
-  it is likely that the overall result will have lower effective
-  unpredictability.
-
-  The recommended way to use these functions is either to accept an optional
-  generator and pass it down, or to ignore the generator altogether, as
-  illustrated in the examples above.
-
+    {ul
+    {- The {{!Rng.S.Generator}signature} of generator modules, together with a
+       facility to convert such modules into actual {{!g}generators}, and
+       functions that operate on this representation.}
+    {- A global generator instance, implemented by
+       {{!Rng.Generators.Fortuna}Fortuna}.  This is the default generator, used
+       when one is not explicitly supplied.}
+    {- The {{!S.N}signature} of modules for randomly generating a particular
+       numeric type, a {{!Rng.Make_N}functor} to produce them, and instances for
+       {{!Rng.Int}[int]}, {{!Rng.Int32}[int32]}, {{!Rng.Int64}[int64]}, and
+       {{!Rng.Z}[Z.t]}.}
+    {- Several specialized functions for e.g. primes.}}
 *)
 module Rng : sig
 
-  (** {1 Core interface} *)
+  (** {1 Usage notes} *)
+
+  (** {b TL;DR} Don't forget to seed; don't maintain your own [g].
+
+      The RNGs here are merely the deterministic part of a full random number
+      generation suite. For proper operation, they need to be seeded with a
+      high-quality entropy source.
+
+      Suitable entropy sources are provided by sub-libraries
+      {{!Nocrypto_entropy_unix}nocrypto.unix}, {{!Nocrypto_entropy_lwt}nocrypto.lwt}
+      and {{!Nocrypto_entropy_xen}nocrypto.xen}. Although this module exposes a more
+      fine-grained interface, allowing manual seeding of generators, this is intended
+      either for implementing entropy-harvesting modules, or very specialized
+      purposes. Users of this library should almost certainly use one of the above
+      entropy libraries, and avoid manually managing the generator seeding.
+
+      Similarly, although it is possible to swap the default generator and gain
+      control over the random stream, this is also intended for specialized
+      applications such as testing or similar scenarios where the RNG needs to be
+      fully deterministic, or as a component of deterministic algorithms which
+      internally rely on pseudorandom streams.
+
+      In the general case, users should not maintain their local instances of
+      {{!g}g}. All of the generators in a process have to compete for entropy, and
+      it is likely that the overall result will have lower effective
+      unpredictability.
+
+      The recommended way to use these functions is either to accept an optional
+      generator and pass it down, or to ignore the generator altogether, as
+      illustrated in the {{!rng_examples}examples}.
+  *)
+
+  (** {1 Interface} *)
 
   type g
-  (** A generator with its state. *)
+  (** A generator (PRNG) with its state. *)
 
   exception Unseeded_generator
   (** Thrown when using an uninitialized {{!g}generator}. *)
 
-
   (** Module signatures. *)
   module S : sig
 
-    (** A single randomness-generating algorithm. *)
+    (** A single PRNG algorithm. *)
     module type Generator = sig
 
       type g
@@ -520,7 +493,7 @@ module Rng : sig
 
     end
 
-    (** A suite of functions for generating numbers of a particular type. *)
+    (** Typed generation of a particular numeric type. *)
     module type N = sig
 
       type t
@@ -543,7 +516,6 @@ module Rng : sig
     end
 
   end
-
 
   (** Ready-to-use RNG algorithms. *)
   module Generators : sig
@@ -580,7 +552,7 @@ module Rng : sig
       explicitly supplied one.
 
       Swapping the [generator] is a way to subvert the random-generation process
-      e.g. to make it fully deterministic. It is not meant for general use.
+      e.g. to make it fully deterministic.
 
       [generator] defaults to {{!Generators.Fortuna}Fortuna}. *)
 
@@ -606,7 +578,7 @@ module Rng : sig
 
   (** {1 Generation of common numeric types} *)
 
-  module N_gen (N : Numeric.S) : S.N with type t = N.t
+  module Make_N (N : Numeric.S) : S.N with type t = N.t
   (** Creates a suite of generating functions over a numeric type. *)
 
   module Int   : S.N with type t = int
@@ -628,6 +600,35 @@ module Rng : sig
   (** [safe_prime ~g bits] gives a prime pair [(g, p)] such that [p = 2g + 1]
       and [p] has [bits] significant bits. *)
 
+  (** {1:rng_examples Examples}
+
+      Generating a random 13-byte {!Cstruct.t}:
+{[let cs = Rng.generate 13]}
+
+      Generating a list of {!Cstruct.t}s, passing down an optional
+      {{!g}generator}:
+{[let rec f1 ?g ~n i =
+  if i < 1 then [] else Rng.generate ?g n :: f1 ?g ~n (i - 1)]}
+
+      Generating a [Z.t] smaller than [10] and an [int64] in the range [\[3, 7\]]:
+{[let f2 ?g () = Rng.(Z.gen ?g ~$10, Int64.gen_r 3L 8L)]}
+
+      Creating a local Fortuna instance and using it as a key-derivation function:
+{[let f3 secret =
+  let g = Rng.(create ~seed:secret (module Generators.Fortuna)) in
+  Rng.generate ~g 32]}
+
+      Generating a 17-bit prime with two leading bits set:
+{[let p = Rng.prime ~msb:2 17]}
+
+      Fisher-Yates shuffle:
+{[let f4 ?g arr =
+  let n = Array.length arr in
+  arr |> Array.iter @@ fun i ->
+    let j = Rng.Int.gen_r ?g i n in
+    let (a, b) = (arr.(i), arr.(j)) in
+    arr.(i) <- b ; arr.(j) <- a ]}
+      *)
 end
 
 
@@ -641,7 +642,6 @@ Messages are checked not to exceed the key size, and this is signalled via
 exceptions.
 
 Private-key operations are optionally protected through RSA blinding.
-
 *)
 module Rsa : sig
 

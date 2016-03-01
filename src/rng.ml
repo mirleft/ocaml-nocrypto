@@ -70,7 +70,7 @@ let strict g =
 
 
 
-module N_gen (N : Numeric.S) = struct
+module Make_N (N : Numeric.S) = struct
 
   type t = N.t
 
@@ -101,10 +101,10 @@ module N_gen (N : Numeric.S) = struct
 
 end
 
-module Int   = N_gen (Numeric.Int  )
-module Int32 = N_gen (Numeric.Int32)
-module Int64 = N_gen (Numeric.Int64)
-module ZN    = N_gen (Numeric.Z    )
+module Int   = Make_N (Numeric.Int  )
+module Int32 = Make_N (Numeric.Int32)
+module Int64 = Make_N (Numeric.Int64)
+module ZN    = Make_N (Numeric.Z    )
 
 
 (* Invalid combinations of ~bits and ~msb will loop forever, but there is no
