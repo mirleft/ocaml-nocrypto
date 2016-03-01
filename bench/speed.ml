@@ -72,7 +72,7 @@ let benchmarks = [
 
   bm "aes-128-ctr" (fun name ->
     let key = AES.CTR.of_secret (Rng.generate 16)
-    and ctr = Cs.create_with 16 0x00 in
+    and ctr = Cs.create 16 in
     throughput name (fun cs -> AES.CTR.encrypt ~key ~ctr cs)) ;
 
   bm "aes-128-gcm" (fun name ->

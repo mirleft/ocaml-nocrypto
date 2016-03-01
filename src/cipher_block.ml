@@ -310,7 +310,7 @@ module Modes2 = struct
 
     type result = { message : Cstruct.t ; tag : Cstruct.t }
 
-    let z = Cs.zeros 16
+    let z = Cs.create 16
 
     type key = {
       key  : C.ekey ;

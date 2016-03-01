@@ -83,7 +83,8 @@ let rec generate ?g ?(e = Z.(~$0x10001)) bits =
 
 
 
-let b = Cs.b
+let b   = Cs.b
+let cat = Cstruct.concat
 
 let (bx00, bx01) = (b 0x00, b 0x01)
 
@@ -110,11 +111,11 @@ module PKCS1 = struct
 
   let pad ~mark ~padding k msg =
     let pad = padding (k - len msg - 3) in
-    Cs.concat [ bx00 ; b mark ; pad ; bx00 ; msg ]
+    cat [ bx00 ; b mark ; pad ; bx00 ; msg ]
 
   let unpad ~mark ~is_pad cs =
     let f = not &. is_pad in
-    let i = Cs.ct_find_uint8 ~off:2 ~f cs |> Option.value ~def:2
+    let i = Cs.ct_find_uint8 ~off:2 ~f cs |> Option.get ~def:2
     in
     let c1 = get_uint8 cs 0 = 0x00
     and c2 = get_uint8 cs 1 = mark
@@ -124,7 +125,7 @@ module PKCS1 = struct
       Some (sub cs (i + 1) (len cs - i - 1))
     else None
 
-  let pad_01    = pad ~mark:0x01 ~padding:(fun n -> Cs.create_with n 0xff)
+  let pad_01    = pad ~mark:0x01 ~padding:(Cs.create ~init:0xff)
   let pad_02 ?g = pad ~mark:0x02 ~padding:(generate_with ?g ~f:((<>) 0x00))
 
   let unpad_01 = unpad ~mark:0x01 ~is_pad:((=) 0xff)
@@ -163,7 +164,7 @@ module MGF1 (H : Hash.S) = struct
   (* Assumes len < 2^32 * H.digest_size. *)
   let mgf ~seed len =
     let rec go acc c = function
-      | 0 -> sub (Cs.concat (List.rev acc)) 0 len
+      | 0 -> sub (cat (List.rev acc)) 0 len
       | n -> go (H.digestv [ seed ; repr c ] :: acc) Int32.(succ c) (pred n) in
     go [] 0l (cdiv len H.digest_size)
 
@@ -183,16 +184,16 @@ module OAEP (H : Hash.S) = struct
 
   let eme_oaep_encode ?g ?(label = Cs.empty) k msg =
     let seed  = Rng.generate ?g hlen
-    and pad   = Cs.zeros (max_msg_bytes k - len msg) in
-    let db    = Cs.concat [ H.digest label ; pad ; bx01 ; msg ] in
+    and pad   = Cs.create (max_msg_bytes k - len msg) in
+    let db    = cat [ H.digest label ; pad ; bx01 ; msg ] in
     let mdb   = MGF.mask ~seed db in
     let mseed = MGF.mask ~seed:mdb seed in
-    Cs.concat [ bx00 ; mseed ; mdb ]
+    cat [ bx00 ; mseed ; mdb ]
 
   let eme_oaep_decode ?(label = Cs.empty) msg =
     let (b0, ms, mdb) = Cs.split3 msg 1 hlen in
     let db = MGF.mask ~seed:(MGF.mask ~seed:mdb ms) mdb in
-    let i  = Cs.ct_find_uint8 ~off:hlen ~f:((<>) 0x00) db |> Option.value ~def:0
+    let i  = Cs.ct_find_uint8 ~off:hlen ~f:((<>) 0x00) db |> Option.get ~def:0
     in
     let c1 = Cs.ct_eq (sub db 0 hlen) H.(digest label)
     and c2 = get_uint8 b0 0 = 0x00
@@ -236,19 +237,19 @@ module PSS (H: Hash.S) = struct
   let emsa_pss_encode ?g slen emlen msg =
     let n    = bytes emlen
     and salt = Rng.generate ?g slen in
-    let h    = H.digestv [ Cs.zeros 8 ; H.digest msg ; salt ] in
-    let db   = Cs.concat [ Cs.zeros (n - slen - hlen - 2) ; bx01 ; salt ] in
+    let h    = H.digestv [ Cs.create 8 ; H.digest msg ; salt ] in
+    let db   = cat [ Cs.create (n - slen - hlen - 2) ; bx01 ; salt ] in
     let mdb  = MGF.mask ~seed:h db in
     set_uint8 mdb 0 @@ get_uint8 mdb 0 land b0mask emlen ;
-    Cs.concat [ mdb ; h ; bxbc ]
+    cat [ mdb ; h ; bxbc ]
 
   let emsa_pss_verify slen emlen em msg =
     let (mdb, h, bxx) = Cs.split3 em (em.len - hlen - 1) hlen in
     let db   = MGF.mask ~seed:h mdb in
     set_uint8 db 0 (get_uint8 db 0 land b0mask emlen) ;
     let salt = shift db (len db - slen) in
-    let h'   = H.digestv [ Cs.zeros 8 ; H.digest msg ; salt ]
-    and i    = Cs.ct_find_uint8 ~f:((<>) 0x00) db |> Option.value ~def:0
+    let h'   = H.digestv [ Cs.create 8 ; H.digest msg ; salt ]
+    and i    = Cs.ct_find_uint8 ~f:((<>) 0x00) db |> Option.get ~def:0
     in
     let c1 = lnot (b0mask emlen) land get_uint8 mdb 0 = 0x00
     and c2 = i = em.len - hlen - slen - 2

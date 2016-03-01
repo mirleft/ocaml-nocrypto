@@ -122,7 +122,7 @@ let ghash ~h cs =
 
 let padding cs =
   let p_len n = (16 - (n mod 16)) mod 16 in
-  Cs.create_with (p_len (len cs)) 0
+  Cs.create (p_len (len cs))
 
 let nbits cs = Int64.of_int (len cs * 8)
 
@@ -130,9 +130,9 @@ let gcm ~encrypt ~mode ~iv ~hkey ?(adata=Cs.empty) data =
 
   (* XXX limit blocks; overflows at 32 bits. *)
   let j0 = match len iv with
-    | 12 -> Cs.concat [ iv; Cs.of_int32s [1l] ]
+    | 12 -> Cstruct.concat [ iv; Cs.of_int32s [1l] ]
     | _  -> ghash ~h:hkey @@
-            Cs.concat [ iv; padding iv; Cs.of_int64s [0L; nbits iv] ] in
+            Cstruct.concat [ iv; padding iv; Cs.of_int64s [0L; nbits iv] ] in
 
   let data' = encrypt ~ctr:(incr32 j0) data in
 
@@ -140,11 +140,11 @@ let gcm ~encrypt ~mode ~iv ~hkey ?(adata=Cs.empty) data =
     | `Encrypt -> data'
     | `Decrypt -> data in
 
-  let s = ghash ~h:hkey @@
-          Cs.concat [ adata ; padding adata
-                    ; cdata ; padding cdata
-                    ; Cs.of_int64s [ nbits adata ; nbits cdata  ] ]
-  in
+  let s = ghash ~h:hkey @@ Cstruct.concat [
+      adata ; padding adata
+    ; cdata ; padding cdata
+    ; Cs.of_int64s [ nbits adata ; nbits cdata  ]
+  ] in
   let t = encrypt ~ctr:j0 s in
 
   (data', t)

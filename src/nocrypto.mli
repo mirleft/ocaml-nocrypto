@@ -19,6 +19,9 @@
 
 (** {1 Utilities} *)
 
+(** Base64 conversion.
+
+    It is here only temporary, until we find it a proper home. *)
 module Base64 : sig
   val encode : Cstruct.t -> Cstruct.t
   val decode : Cstruct.t -> Cstruct.t
@@ -26,9 +29,11 @@ module Base64 : sig
 end
 
 
+(**/**)
 (** A treasure-trove of random utilities.
 
-    This is largely an internal API and prone to breakage. *)
+    This is largely an internal API used in related sub-libraries or tests. As
+    such, it is prone to breakage. *)
 module Uncommon : sig
 
   (** ['a one] is just an ['a].
@@ -49,17 +54,20 @@ module Uncommon : sig
   module Option : sig
     val v_map : def:'b -> f:('a -> 'b) -> 'a option -> 'b
     val map   : f:('a -> 'b) -> 'a option -> 'b option
-    val value : def:'a -> 'a option -> 'a
+    val get   : def:'a -> 'a option -> 'a
   end
 
   (** Addons to {!Cstruct}. *)
   module Cs : sig
 
     val empty : Cstruct.t
+    (** [empty] is an empty [Cstruct]. *)
+
     val null  : Cstruct.t -> bool
+    (** [null cs] tests whether [len cs = 0]. *)
 
     val (<+>) : Cstruct.t -> Cstruct.t -> Cstruct.t
-    val concat : Cstruct.t list -> Cstruct.t
+    (** [<+>] is an alias for [Cstruct.append]. *)
 
     val ct_eq : Cstruct.t -> Cstruct.t -> bool
     (** Constant-Time [Cstruct.t] equality. *)
@@ -67,12 +75,14 @@ module Uncommon : sig
     val xor_into : Cstruct.t -> Cstruct.t -> int -> unit
     val xor      : Cstruct.t -> Cstruct.t -> Cstruct.t
 
-    val create_with : int -> int -> Cstruct.t
+    (** {2 Private utilities} *)
 
-    val of_hex : string -> Cstruct.t
+    val create : ?init:int -> int -> Cstruct.t
 
     val (lsl) : Cstruct.t -> int -> Cstruct.t
     val (lsr) : Cstruct.t -> int -> Cstruct.t
+
+    val of_hex : string -> Cstruct.t
   end
 
   (** Addons to {!Array}. *)
@@ -84,6 +94,7 @@ module Uncommon : sig
   (** Safe acquire-use-release combinator. *)
 
 end
+(**/**)
 
 
 (** Numeric utilities. *)

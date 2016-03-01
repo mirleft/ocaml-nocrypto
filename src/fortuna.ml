@@ -16,8 +16,8 @@ type g =
   }
 
 let create () =
-  let k = Cs.zeros 32 in
-  { ctr    = Cs.zeros block
+  let k = Cs.create 32 in
+  { ctr    = Cs.create block
   ; secret = k
   ; key    = AES_CTR.of_secret k
   ; trap   = None
@@ -60,7 +60,7 @@ let generate ~g bytes =
         let n' = imin n 0x10000 in
         generate_rekey ~g n' :: chunk (n - n')
   in
-  Cs.concat @@ chunk bytes
+  Cstruct.concat @@ chunk bytes
 
 
 module Accumulator = struct

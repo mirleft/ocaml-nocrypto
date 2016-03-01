@@ -113,7 +113,7 @@ let ctr_offsets (m : (module Cipher_block.S.CTR)) =
   let module C = (val m) in
   "offsets" >:: fun _ ->
     let key = C.of_secret @@ Rng.generate C.key_sizes.(0) in
-    let ctr = Cs.create_with C.block_size 0x00 in
+    let ctr = Cs.create C.block_size in
     for i = 0 to 128 do
       let s1 = C.stream ~key ~ctr ~off:i (C.block_size + 1)
       and s2 = C.stream ~key ~ctr ~off:(i + 1) (C.block_size + 1) in
@@ -123,8 +123,8 @@ let ctr_offsets (m : (module Cipher_block.S.CTR)) =
     done ;
     let xs = range 0 100 |> List.map (fun _ -> Rng.generate 3) in
     assert_cs_equal ~msg:"shifted stitches"
-      (C.encrypt ~key ~ctr Cs.(concat xs))
-      (Cs.concat (xs |> List.mapi @@ fun i cs ->
+      (C.encrypt ~key ~ctr Cstruct.(concat xs))
+      (Cstruct.concat (xs |> List.mapi @@ fun i cs ->
         C.encrypt ~key ~ctr ~off:(i * 3) cs))
 
 let xor_selftest n =

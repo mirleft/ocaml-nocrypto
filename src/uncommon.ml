@@ -2,8 +2,6 @@
 
 type 'a one = One of 'a
 
-type ('a, 'b) either = Left of 'a | Right of 'b
-
 
 let cdiv (x : int) (y : int) =
   if x > 0 && y > 0 then (x + y - 1) / y
@@ -34,14 +32,13 @@ end
 
 module Option = struct
 
-  let get a = function None -> a | Some b -> b
   let getf a = function None -> a () | Some b -> b
 
   let v_map ~def ~f = function
     | Some x -> f x
     | None   -> def
 
-  let value ~def = function
+  let get ~def = function
     | Some x -> x
     | None   -> def
 
@@ -89,19 +86,6 @@ module Cs = struct
 
   let (<+>) = append
 
-  let concat = function
-    | []   -> create 0
-    | [cs] -> cs
-    | css  ->
-        let result = create (lenv css) in
-        let _ = List.fold_left
-          (fun off cs ->
-            let n = len cs in
-            blit cs 0 result off n ;
-            off + n
-          ) 0 css in
-        result
-
   let ct_eq cs1 cs2 =
     let rec go ok i = function
       | n when n >= 8 ->
@@ -141,8 +125,8 @@ module Cs = struct
     let cs  = clone ~len cs2 in
     ( xor_into cs1 cs len ; cs )
 
-  let create_with n x =
-    let cs = create n in ( memset cs x ; cs )
+  let create ?(init=0x00) n =
+    let cs = create n in ( memset cs init ; cs )
 
   let set_msb bits cs =
     if bits > 0 then
@@ -154,8 +138,6 @@ module Cs = struct
         | i ->
             set_uint8 cs i 0xff ; go (width - 8) (succ i) in
       go bits 0
-
-  let zeros n = create_with n 0x00
 
   let split2 cs l =
     (sub cs 0 l, sub cs l (len cs - l))
@@ -282,7 +264,7 @@ module Boot = struct
 end
 
 let bracket ~init ~fini f =
-  let a   = init () in
-  let res = try Right (f a) with exn -> Left exn in
-  fini a ;
-  match res with Right b -> b | Left exn -> raise exn
+  let a = init () in
+  match f a with
+  | exception exn -> fini a; raise exn
+  | res           -> fini a; res

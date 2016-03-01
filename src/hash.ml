@@ -63,8 +63,8 @@ module Hash_of (F : Foreign) (D : Desc) = struct
 
   include Core (F) (D)
 
-  let opad = create_with block_size 0x5c
-  let ipad = create_with block_size 0x36
+  let opad = create ~init:0x5c block_size
+  let ipad = create ~init:0x36 block_size
 
   let rec norm key =
     match compare (Cstruct.len key) block_size with
