@@ -111,7 +111,7 @@ module SHAd256 = struct
 end
 
 
-type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] with sexp
+type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] [@@deriving sexp]
 
 let digest = function
   | `MD5    -> MD5.digest
