@@ -69,7 +69,7 @@ Library nocrypto
                    native/aes/aesni.c,
                    native/des/generic.c,
                    native/des/generic.h
-  BuildDepends:    cstruct (>= 1.6.0), zarith, sexplib.syntax, type_conv
+  BuildDepends:    cstruct (>= 1.6.0), zarith, ppx_sexp_conv, sexplib
   XMETARequires:   cstruct, zarith, sexplib
   XMETAExtraLines: xen_linkopts = "-lnocrypto_xen_stubs"
   ByteOpt:         -w A-4-33-40-41-42-43-34-44

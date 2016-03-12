@@ -7,9 +7,9 @@ type group = {
   p  : Z.t        ;  (* The prime modulus *)
   gg : Z.t        ;  (* Group generator *)
   q  : Z.t option ;  (* `gg`'s order, maybe *)
-} with sexp
+} [@@deriving sexp]
 
-type secret = { x : Z.t } with sexp
+type secret = { x : Z.t } [@@deriving sexp]
 
 (*
  * Estimates of equivalent-strength exponent sizes for the moduli sizes.
