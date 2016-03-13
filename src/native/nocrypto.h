@@ -1,5 +1,4 @@
-#if !defined (H__NOCRYPTO)
-#define H__NOCRYPTO
+#pragma once
 
 #include <stdint.h>
 #include <caml/mlvalues.h>
@@ -48,5 +47,3 @@ typedef unsigned long u_long;
 
 #define __define_bc_7(f) \
   CAMLprim value f ## _bc (value *v, int __unused(c) ) { return f(v[0], v[1], v[2], v[3], v[4], v[5], v[6]); }
-
-#endif /* H__NOCRYPTO */

@@ -22,8 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef BITFN_H
-#define BITFN_H
+#pragma once
 #include <stdint.h>
 
 #ifndef NO_INLINE_ASM
@@ -234,5 +233,3 @@ static inline void array_copy64(uint64_t *d, uint64_t *s, uint32_t nb)
 #else
 # error "endian not supported"
 #endif
-
-#endif /* !BITFN_H */

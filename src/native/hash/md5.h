@@ -21,8 +21,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef CRYPTOHASH_MD5_H
-#define CRYPTOHASH_MD5_H
+#pragma once
 
 #include <stdint.h>
 
@@ -39,5 +38,3 @@ struct md5_ctx
 void nc_md5_init(struct md5_ctx *ctx);
 void nc_md5_update(struct md5_ctx *ctx, uint8_t *data, uint32_t len);
 void nc_md5_finalize(struct md5_ctx *ctx, uint8_t *out);
-
-#endif

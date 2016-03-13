@@ -22,8 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CRYPTOHASH_SHA256_H
-#define CRYPTOHASH_SHA256_H
+#pragma once
 
 #include <stdint.h>
 
@@ -49,5 +48,3 @@ void nc_sha224_finalize(struct sha224_ctx *ctx, uint8_t *out);
 void nc_sha256_init(struct sha256_ctx *ctx);
 void nc_sha256_update(struct sha256_ctx *ctx, uint8_t *data, uint32_t len);
 void nc_sha256_finalize(struct sha256_ctx *ctx, uint8_t *out);
-
-#endif
