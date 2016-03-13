@@ -22,7 +22,10 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#ifndef __sun
+# pragma once
+#endif
+
 #include <stdint.h>
 
 #ifndef NO_INLINE_ASM

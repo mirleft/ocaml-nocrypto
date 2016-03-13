@@ -27,6 +27,10 @@
 #include "bitfn.h"
 #include "md5.h"
 
+// Oracle Solaris Studio does not support `#pragma once`, so this is \
+     a work-around:
+#pragma hdrstop
+
 void nc_md5_init(struct md5_ctx *ctx)
 {
 	memset(ctx, 0, sizeof(*ctx));

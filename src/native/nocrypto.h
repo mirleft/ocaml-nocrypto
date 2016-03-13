@@ -1,4 +1,6 @@
-#pragma once
+#ifndef __sun
+# pragma once
+#endif
 
 #include <stdint.h>
 #include <caml/mlvalues.h>
