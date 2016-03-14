@@ -1,5 +1,9 @@
 #include "../nocrypto.h"
 
+// Oracle Solaris Studio does not support `#pragma once`, so this is \
+     a work-around:
+#pragma hdrstop
+
 #if defined (__nc_AES_NI__)
 
 /* xmm: [3, 2, 1, 0] */

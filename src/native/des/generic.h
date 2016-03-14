@@ -9,7 +9,10 @@
  * Copyright (c) 1988,1989,1990,1991,1992 by Richard Outerbridge
  *	(GEnie : OUTER; CIS : [71755,204])
  */
-#pragma once
+
+#ifdef __sun
+# pragma once
+#endif
 
 #define D2_DES		/* include double-length support */
 #define D3_DES		/* include triple-length support */

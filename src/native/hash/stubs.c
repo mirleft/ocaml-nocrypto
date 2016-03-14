@@ -5,6 +5,10 @@
 #include "sha256.h"
 #include "sha512.h"
 
+// Oracle Solaris Studio does not support `#pragma once`, so this is \
+     a work-around:
+#pragma hdrstop
+
 #define __define_hash(name, upper)                                           \
                                                                              \
   CAMLprim value                                                             \

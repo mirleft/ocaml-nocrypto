@@ -6,6 +6,10 @@
 
 #include "../nocrypto.h"
 
+// Oracle Solaris Studio does not support `#pragma once`, so this is \
+     a work-around:
+#pragma hdrstop
+
 #if defined (__nc_AES_GENERIC__)
 
 #define KEYLENGTH(keybits) ((keybits)/8)

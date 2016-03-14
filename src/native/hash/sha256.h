@@ -22,7 +22,9 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#ifdef __sun
+# pragma once
+#endif
 
 #include <stdint.h>
 
