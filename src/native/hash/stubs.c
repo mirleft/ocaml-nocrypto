@@ -5,9 +5,12 @@
 #include "sha256.h"
 #include "sha512.h"
 
-// Oracle Solaris Studio does not support `#pragma once`, so this is \
-     a work-around:
-#pragma hdrstop
+// Oracle Solaris Studio does not support `#pragma once`, so this is
+//  a work-around. Unfortunately `hdrstop` is not supported by gcc,
+//  so we need an if-guard around it:
+#ifdef __sun
+# pragma hdrstop
+#endif
 
 #define __define_hash(name, upper)                                           \
                                                                              \
