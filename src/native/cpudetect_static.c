@@ -19,6 +19,10 @@
 
 #endif
 
+// Oracle Solaris Studio does not support `#pragma once`, so this is \
+     a work-around:
+#pragma hdrstop
+
 static int features () {
 #if defined (__x86__)
 

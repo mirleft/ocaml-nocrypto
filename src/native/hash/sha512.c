@@ -26,6 +26,13 @@
 #include "bitfn.h"
 #include "sha512.h"
 
+// Oracle Solaris Studio does not support `#pragma once`, so this is 
+//  a work-around. Unfortunately `hdrstop` is not supported by gcc, 
+//  so we need an if-guard around it:
+#ifdef __sun
+# pragma hdrstop
+#endif
+
 void nc_sha384_init(struct sha512_ctx *ctx)
 {
 	memset(ctx, 0, sizeof(*ctx));

@@ -21,8 +21,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef CRYPTOHASH_SHA1_H
-#define CRYPTOHASH_SHA1_H
+#ifdef __sun
+# pragma once
+#endif
 
 #include <stdint.h>
 
@@ -39,5 +40,3 @@ struct sha1_ctx
 void nc_sha1_init(struct sha1_ctx *ctx);
 void nc_sha1_update(struct sha1_ctx *ctx, uint8_t *data, uint32_t len);
 void nc_sha1_finalize(struct sha1_ctx *ctx, uint8_t *out);
-
-#endif

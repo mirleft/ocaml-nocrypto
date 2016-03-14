@@ -21,8 +21,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef CRYPTOHASH_SHA512_H
-#define CRYPTOHASH_SHA512_H
+
+#ifdef __sun
+# pragma once
+#endif
 
 #include <stdint.h>
 
@@ -50,5 +52,3 @@ void nc_sha512_update(struct sha512_ctx *ctx, uint8_t *data, uint32_t len);
 void nc_sha512_finalize(struct sha512_ctx *ctx, uint8_t *out);
 
 void nc_sha512_init_t(struct sha512_ctx *ctx, int t);
-
-#endif
