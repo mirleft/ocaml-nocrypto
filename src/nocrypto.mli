@@ -133,9 +133,10 @@ module Numeric : sig
     val to_int   : t -> int
     val to_int32 : t -> int32
     val to_int64 : t -> int64
-    val to_string : t -> string
 
     val bit_bound : t -> int
+
+    val pp_print : Format.formatter -> t -> unit
 
     val bits            : t -> int
     val of_cstruct_be   : ?bits:int -> Cstruct.t -> t

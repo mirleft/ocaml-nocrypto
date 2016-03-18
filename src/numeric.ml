@@ -21,8 +21,8 @@ module type S_core = sig
   val to_int   : t -> int
   val to_int32 : t -> int32
   val to_int64 : t -> int64
-  val to_string : t -> string
   val bit_bound : t -> int
+  val pp_print : Format.formatter -> t -> unit
 end
 
 module type S = sig
@@ -52,7 +52,7 @@ module Int_core = struct
   let to_int    = id
   let to_int32  = Int32.of_int
   let to_int64  = Int64.of_int
-  let to_string = string_of_int
+  let pp_print = Format.pp_print_int
 end
 
 module Int32_core = struct
@@ -69,6 +69,7 @@ module Int32_core = struct
   let of_int64 = Int64.to_int32
   let to_int32 = id
   let to_int64 = Int64.of_int32
+  let pp_print f x = Format.pp_print_string f (to_string x)
 end
 
 module Int64_core = struct
@@ -83,6 +84,7 @@ module Int64_core = struct
   let (-)    = sub
   let of_int64 = id
   let to_int64 = id
+  let pp_print f x = Format.pp_print_string f (to_string x)
 end
 
 module Z_core = struct
