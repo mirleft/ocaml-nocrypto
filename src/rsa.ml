@@ -68,9 +68,9 @@ and decrypt ?(mask=`Yes) ~key = reformat (priv_bits key) (decrypt_z ~mask ~key)
 
 let rec generate ?g ?(e = Z.(~$0x10001)) bits =
   if bits < 10 then
-    invalid_arg "Rsa.generate: requested key size < 10 bits";
+    Raise.invalid "Rsa.generate: requested key size (%d) < 10 bits" bits;
   if Numeric.(Z.bits e >= bits || not (pseudoprime e)) || e < Z.three then
-    invalid_arg "Rsa.generate: e invalid or too small" ;
+    Raise.invalid "Rsa.generate: e invalid or too small";
 
   let (pb, qb) = (bits / 2, bits - bits / 2) in
   let (p, q)   = Rng.(prime ?g ~msb:2 pb, prime ?g ~msb:2 qb) in

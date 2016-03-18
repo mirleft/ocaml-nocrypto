@@ -38,6 +38,6 @@ module Make (H : Hash.S) = struct
     Cstruct.sub cs 0 bytes
 
   (* XXX *)
-  let accumulate ~g:_ = invalid_arg "implement Hmac_drgb.accumulate..."
+  let accumulate ~g:_ = Raise.invalid "Implement Hmac_drgb.accumulate..."
 
 end

@@ -97,7 +97,7 @@ module Repr (N : S_core) = struct
 
   (* If there was only, like, an instruction doing `ceil (log2 n)`... *)
   let bits i =
-    if i < N.zero then invalid_arg "bits: negative number" ;
+    if i < N.zero then Raise.invalid "Numeric.Repr.bits: negative argument" ;
 
     let rec scan acc bound = function
       | i when i = N.zero -> acc

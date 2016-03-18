@@ -75,7 +75,7 @@ module Make_N (N : Numeric.S) = struct
   type t = N.t
 
   let gen ?g n =
-    if n < N.one then invalid_arg "Rng.gen: non-positive bound" ;
+    if n < N.one then Raise.invalid "Rng.gen: non-positive bound" ;
 
     let bs     = block g in
     let bits   = N.(bits (pred n)) in

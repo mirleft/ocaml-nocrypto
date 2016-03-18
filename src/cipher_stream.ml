@@ -1,3 +1,4 @@
+open Uncommon
 
 module type S = sig
   type key
@@ -15,7 +16,7 @@ module ARC4 = struct
 
   let of_secret cs =
     let len = Cstruct.len cs in
-    ( if len < 1 || len > 256 then invalid_arg "ARC4: invalid key length" );
+    ( if len < 1 || len > 256 then Raise.invalid "ARC4: invalid key length" );
     let s = Array.init 256 (fun x -> x) in
     let rec loop j = function
       | 256 -> ()
