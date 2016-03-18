@@ -30,7 +30,10 @@ end
 
 module Option = struct
 
-  let getf a = function None -> a () | Some b -> b
+  let getf a b = function None -> a b | Some x -> x
+
+  let (>>=) a fb = match a with Some x -> fb x | _ -> None
+  let (>>|) a f = match a with Some x -> Some (f x) | _ -> None
 
   let v_map ~def ~f = function
     | Some x -> f x

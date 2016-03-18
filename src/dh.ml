@@ -52,18 +52,18 @@ let key_of_secret group ~s =
  *)
 let rec gen_key ?g ?bits ({ p; q; _ } as group) =
   let pb = Numeric.Z.bits p in
-  let s  = Rng.Z.gen_bits ?g ~msb:1 @@ min
-            (match bits with Some b -> b | _ -> exp_size pb)
-            (Option.v_map ~def:pb ~f:Numeric.Z.bits q) in
+  let s = Option.(
+    min (getf exp_size pb bits)
+        (q >>| Numeric.Z.bits |> get ~def:pb))
+    |> Rng.Z.gen_bits ?g ~msb:1 in
   try key_of_secret_z group s
   with Invalid_public_key -> gen_key ?g group
 
 (* No time-masking. Does it matter in case of ephemeral DH??  *)
 let shared ({ p; _ } as group) { x } cs =
   match Numeric.Z.of_cstruct_be cs with
-  | ggy when bad_public_key group ggy
-        -> raise Invalid_public_key
-  | ggy -> Numeric.Z.to_cstruct_be (Z.powm ggy x p)
+  | ggy when bad_public_key group ggy -> None
+  | ggy -> Some (Numeric.Z.to_cstruct_be (Z.powm ggy x p))
 
 (* Finds a safe prime with [p = 2q + 1] and [2^q = 1 mod p]. *)
 let rec gen_group ?g bits =

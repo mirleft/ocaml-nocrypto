@@ -1,11 +1,12 @@
 0.5.3 (???):
-* Move from Camlp4 to PPX
+* Move from Camlp4 to PPX.
 * Tweaks the supporting Cstruct module's API.
+* Dh.shared returns option instead of throwing if the public message is degenerate.
 
 0.5.2 (2015-12-03):
-* Avoid including intrinsics-related headers if SSE/AES-NI is disabled
-* Replace opam variable `nocrypto-inhibit-modernity` with `$NOCRYPTO_NO_ACCEL`
-* Remove cstruct equality
+* Avoid including intrinsics-related headers if SSE/AES-NI is disabled.
+* Replace opam variable `nocrypto-inhibit-modernity` with `$NOCRYPTO_NO_ACCEL`.
+* Remove cstruct equality.
 
 0.5.1 (2015-07-07):
 * Disable AES-NI if not supported in the `./configure` step.

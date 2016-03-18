@@ -229,7 +229,11 @@ let dh_selftest ~bits n =
     let sh1 = Dh.shared p s1 m2
     and sh2 = Dh.shared p s2 m1 in
 
-    assert_cs_equal ~msg:"shared secret" sh1 sh2
+    assert_equal
+      ~cmp:(eq_opt Cstruct.equal)
+      ~printer:(show_opt hex_of_cs)
+      ~msg:"shared secret"
+      sh1 sh2
 
 
 let dh_shared_0 =
@@ -274,10 +278,12 @@ let dh_shared_0 =
          dc e3 3b c7 cc 1d 19 95 d9 fe 6a 5c a7 57 46 dd
          84 69 0c 45 37 2e 1f 52 96 05 d7 e5 01 9a c8"
     in
-    let grp     = Dh.Group.oakley_5 in
-    let shared' = Dh.(shared grp (fst (key_of_secret grp x)) gy) in
+    let grp = Dh.Group.oakley_5 in
 
-    assert_cs_equal ~msg:"shared secret is not good" shared shared'
+    match Dh.(shared grp (fst (key_of_secret grp x)) gy) with
+    | None -> assert_failure "degenerate shared secret"
+    | Some shared' ->
+        assert_cs_equal ~msg:"shared secret" shared shared'
 
 
 (* Xor *)

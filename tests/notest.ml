@@ -18,6 +18,13 @@ let rec range a b =
 let rec times ~n f a =
   if n > 0 then ( ignore (f a) ; times ~n:(pred n) f a )
 
+let show_opt show = function
+  | Some x -> "(Some " ^ show x ^ ")" | _ -> "None"
+
+let eq_opt eq a b = match (a, b) with
+  | (Some x, Some y) -> eq x y
+  | _                -> false
+
 let sample arr =
   let ix = Rng.Int.gen Array.(length arr) in arr.(ix)
 

@@ -909,16 +909,17 @@ module Dh : sig
       [bits] is the exact bit-size of {!secret} and defaults to a value
       dependent on the {!group}'s [p]. *)
 
-  val shared : group -> secret -> Cstruct.t -> Cstruct.t
-  (** [shared group secret message] is the shared key, given a group, a previously
-      generated {!secret} and the other party's public message.
-      @raise Invalid_public_key if the public message is degenerate.  *)
+  val shared : group -> secret -> Cstruct.t -> Cstruct.t option
+  (** [shared group secret message] is [Some key], the shared key, given a
+      group, a previously generated {!secret} and the other party's public
+      message. It is [None] if [message] is degenerate. *)
 
   val gen_group : ?g:Rng.g -> int -> group
   (** [gen_group bits] generates a random {!group} with modulus size [bits].
       Uses a safe prime [p = 2q + 1] (with [q] prime) for the modulus and [2]
       for the generator, such that [2^q = 1 mod p].
       Runtime is on the order of minute for 1024 bits.
+
       @raise Invalid_argument if [bits] is ridiculously small.  *)
 
   (** A small catalog of standardized {!group}s. *)
