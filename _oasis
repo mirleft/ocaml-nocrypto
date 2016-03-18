@@ -1,6 +1,6 @@
 OASISFormat:     0.4
 Name:            nocrypto
-Version:         0.5.2
+Version:         0.5.3
 Synopsis:        Simple crypto for the modern age
 Authors:         David Kaloper <david@numm.org>
 Maintainers:     David Kaloper <david@numm.org>
@@ -8,7 +8,7 @@ License:         BSD-2-clause
 Homepage:        https://github.com/mirleft/ocaml-nocrypto
 Plugins:         META (0.4)
 BuildTools:      ocamlbuild
-OCamlVersion:    >= 4.01.0
+OCamlVersion:    >= 4.02.0
 PostConfCommand: ./postconf
 AlphaFeatures:   ocamlbuild_more_args
 Categories:      http://org:mirage
