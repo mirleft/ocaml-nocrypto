@@ -1,9 +1,8 @@
 open OUnit2
 
 open Notest
-
 open Nocrypto
-open Nocrypto.Uncommon
+open Uncommon
 
 (*
 # CAVS 11.2
@@ -2378,3 +2377,4 @@ let dsa_suite =
 
   List.mapi (fun i f -> "RFC6979 DSA 1024 " ^ string_of_int i >:: f) rfc6979_dsa_1024 @
   List.mapi (fun i f -> "RFC6979 DSA 2048 " ^ string_of_int i >:: f) rfc6979_dsa_2048
+
