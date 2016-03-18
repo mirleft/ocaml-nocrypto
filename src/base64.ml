@@ -73,9 +73,8 @@ let decode cs =
         emit a b c d j ;
         match pad with 0 -> dec (j + 3) (i + 4) | _ -> pad
   in
-  try
-    let pad = dec 0 0 in sub cs' 0 (n' - pad)
-  with Invalid_argument _ | Not_found -> invalid_arg "base64"
+  try let pad = dec 0 0 in Some (sub cs' 0 (n' - pad))
+  with Invalid_argument _ | Not_found -> None
 
 
 let is_base64_char c =

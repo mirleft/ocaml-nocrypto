@@ -2,6 +2,7 @@
 * Move from Camlp4 to PPX.
 * Tweaks the supporting Cstruct module's API.
 * Dh.shared returns option instead of throwing if the public message is degenerate.
+* Base64.decode returns option instead of throwing
 
 0.5.2 (2015-12-03):
 * Avoid including intrinsics-related headers if SSE/AES-NI is disabled.
