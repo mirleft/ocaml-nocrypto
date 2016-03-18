@@ -1,0 +1,12 @@
+open Ocamlbuild_plugin;;
+
+dispatch @@ MyOCamlbuildBase.dispatch_combine [
+  begin function
+    | After_rules ->
+        copy_rule "xen_cstubs: copy generated source to xen directory"
+          "src/native/%"
+          "xen/native/%"
+    | _ -> ()
+  end;
+  dispatch_default
+]

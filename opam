@@ -17,6 +17,7 @@ remove:  [ "ocamlfind" "remove" "nocrypto" ]
 
 depends: [
   "ocamlfind" {build}
+  "oasis" {build}
   "cstruct" {>= "1.6.0"}
   "zarith"
   "type_conv"

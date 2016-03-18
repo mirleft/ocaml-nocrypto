@@ -1,19 +1,19 @@
-OASISFormat:  0.4
-Name:         nocrypto
-Version:      0.5.1
-Synopsis:     Simple crypto for the modern age
-Authors:      David Kaloper <david@numm.org>
-Maintainers:  David Kaloper <david@numm.org>
-License:      FreeBSD
-Homepage:     https://github.com/mirleft/ocaml-nocrypto
-Plugins:      META (0.4), DevFiles (0.4)
-BuildTools:   ocamlbuild
+OASISFormat:     0.4
+Name:            nocrypto
+Version:         0.5.2
+Synopsis:        Simple crypto for the modern age
+Authors:         David Kaloper <david@numm.org>
+Maintainers:     David Kaloper <david@numm.org>
+License:         BSD-2-clause
+Homepage:        https://github.com/mirleft/ocaml-nocrypto
+Plugins:         META (0.4)
+BuildTools:      ocamlbuild
+OCamlVersion:    >= 4.01.0
 PostConfCommand: ./postconf
 AlphaFeatures:   ocamlbuild_more_args
+Categories:      http://org:mirage
 Description:
   A simple cryptographic library.
-Categories: http://org:mirage
-OCamlVersion: >= 4.01.0
 
 Flag xen
   Description: Build Xen support
