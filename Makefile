@@ -37,7 +37,10 @@ configure: setup.ml
 
 setup.ml: _oasis
 	oasis setup
-	cat _tags.local >> _tags
-	cat myocamlbuild.ml.local >> myocamlbuild.ml
+	@if [ -e _tags.extra ]; then cat _tags.extra >> _tags; fi
+	@if [ -e _tags.local ]; then cat _tags.local >> _tags; fi
+	@if [ -e myocamlbuild.ml.extra ]; then cat myocamlbuild.ml.extra >> myocamlbuild.ml; fi
+	@if [ -e myocamlbuild.ml.local ]; then cat myocamlbuild.ml.local >> myocamlbuild.ml; fi
+
 
 .PHONY: build doc test all install uninstall reinstall clean distclean configure
