@@ -1,6 +1,8 @@
-0.5.3 (???):
+(trunk):
+
+0.5.3 (2016-03-21):
 * Move from Camlp4 to PPX.
-* Tweaks the supporting Cstruct module's API.
+* Tweaked the supporting Cstruct module's API.
 * Dh.shared returns option instead of throwing if the public message is degenerate.
 * Base64.decode returns option instead of throwing
 
