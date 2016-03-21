@@ -148,14 +148,14 @@ module Cs = struct
     (sub cs 0 l1, sub cs l1 l2, sub cs l12 (len cs - l12))
 
   let rpad cs size x =
-    let l = len cs and cs' = create size in
+    let l = len cs and cs' = Cstruct.create size in
     if size < l then Raise.invalid "Uncommon.Cs.rpad: size < len";
     blit cs 0 cs' 0 l ;
     memset (sub cs' l (size - l)) x ;
     cs'
 
   let lpad cs size x =
-    let l = len cs and cs' = create size in
+    let l = len cs and cs' = Cstruct.create size in
     if size < l then Raise.invalid "Uncommon.Cs.lpad: size < len";
     blit cs 0 cs' (size - l) l ;
     memset (sub cs' 0 (size - l)) x ;
@@ -163,7 +163,7 @@ module Cs = struct
 
   let of_bytes, of_int32s, of_int64s =
     let aux k set xs =
-      let cs = create @@ List.length xs * k in
+      let cs = Cstruct.create @@ List.length xs * k in
       List.iteri (fun i x -> set cs (i * k) x) xs;
       cs
     in
