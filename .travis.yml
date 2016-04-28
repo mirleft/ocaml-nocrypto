@@ -2,7 +2,7 @@ language: c
 install: wget https://raw.githubusercontent.com/ocaml/ocaml-travisci-skeleton/master/.travis-opam.sh
 script: bash -ex .travis-opam.sh
 env:
-  - PACKAGE="nocrypto" OCAML_VERSION=latest DEPOPTS=lwt
-  - PACKAGE="nocrypto" UPDATE_GCC_BINUTILS=1 OCAML_VERSION=latest DEPOPTS=mirage-xen
+  - PACKAGE="nocrypto" OCAML_VERSION=4.02 DEPOPTS=lwt
+  - PACKAGE="nocrypto" UPDATE_GCC_BINUTILS=1 OCAML_VERSION=4.02 DEPOPTS=mirage-xen
 notifications:
   email: false
