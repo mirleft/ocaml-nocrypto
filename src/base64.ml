@@ -71,7 +71,10 @@ let decode cs =
             | Not_found when x = padding && pad = 1 -> (0, 2) in
 
         emit a b c d j ;
-        match pad with 0 -> dec (j + 3) (i + 4) | _ -> pad
+        match pad with
+        | 0 -> dec (j + 3) (i + 4)
+        | _ when i + 4 <> n -> raise Not_found
+        | _ -> pad
   in
   try let pad = dec 0 0 in Some (sub cs' 0 (n' - pad))
   with Invalid_argument _ | Not_found -> None
