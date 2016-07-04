@@ -8,6 +8,10 @@ XEN_CFLAGS="disabled"
 grep -q '^xen="true"' setup.data && XEN_CFLAGS="$(pkg-config --static mirage-xen --cflags)"
 echo "XEN_CFLAGS=\"${XEN_CFLAGS}\"" >> setup.data
 
+FREESTANDING_CFLAGS="disabled"
+grep -q '^solo5="true"' setup.data && FREESTANDING_CFLAGS="$(pkg-config ocaml-freestanding --cflags)"
+echo "FREESTANDING_CFLAGS=\"${FREESTANDING_CFLAGS}\"" >> setup.data
+
 # Kill CPU acceleration if requested in ./configure, but:
 # * unsupported by the current host CPU;
 # * unsupported by the current toolchain; or
