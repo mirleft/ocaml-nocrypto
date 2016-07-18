@@ -49,6 +49,4 @@ void nc_sha512_init(struct sha512_ctx *ctx);
 void nc_sha512_update(struct sha512_ctx *ctx, uint8_t *data, uint32_t len);
 void nc_sha512_finalize(struct sha512_ctx *ctx, uint8_t *out);
 
-void nc_sha512_init_t(struct sha512_ctx *ctx, int t);
-
 #endif
