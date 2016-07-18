@@ -24,4 +24,4 @@ let initialize () =
     | None                 -> E.connect () >>= reg
 
 let sources () =
-  Option.map ~f:(fun { e; _ } -> Entropy_xen.sources e) !active
+  Option.map ~f:(fun { e; _ } -> E.sources e) !active
