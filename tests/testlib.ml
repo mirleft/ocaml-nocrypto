@@ -142,6 +142,16 @@ let xor_selftest n =
     assert_cs_equal ~msg:"invert" a a1 ;
     assert_cs_equal ~msg:"commut" a1 a2
 
+let b64_selftest n =
+  "selftest" >:: times ~n @@ fun _ ->
+    let n   = Rng.Int.gen 1024 in
+    let x   = Rng.generate n in
+
+    let enc = Base64.encode x in
+    match Base64.decode enc with
+    | Some dec -> assert_cs_equal ~msg:"b64 mismatch" dec x
+    | None -> assert_failure "couldn't decode b64"
+
 
 let gen_rsa ~bits =
   let e     = Z.(if bits < 24 then ~$3 else ~$0x10001) in
@@ -302,6 +312,48 @@ let xor_cases =
 
     "00", "00 01 02", "00" ;
   ]
+
+(* B64 *)
+
+let b64_enc_cases =
+  cases_of (f1_eq ~msg:"b64" Base64.encode) [
+    "66 6f 6f", "5a 6d 39 76" ;
+    "66 6f 6f 6f", "5a 6d 39 76 62 77 3d 3d" ;
+    "66 6f 6f 6f 6f", "5a 6d 39 76 62 32 38 3d" ;
+    "66 6f 6f 6f 6f 6f", "5a 6d 39 76 62 32 39 76" ;
+  ]
+
+
+let f1_opt_eq ?msg f (a, b) _ =
+  let maybe = function None -> None | Some h -> Some (Cs.of_hex h) in
+  let (a, b) = Cs.of_hex a, maybe b in
+  let eq_opt eq a b = match (a, b) with
+    | (Some x, Some y) -> eq x y
+    | (None  , None  ) -> true
+    | _                -> false
+  in
+  assert_equal
+    ~cmp:(eq_opt Cstruct.equal)
+    ~printer:(show_opt hex_of_cs)
+    ?msg (f a) b
+
+let b64_dec_cases =
+  cases_of (f1_opt_eq ~msg:"b64" Base64.decode) [
+    "00 5a 6d 39 76", None ;
+    "5a 6d 39 76", Some "66 6f 6f" ;
+    "5a 6d 39 76 76", None ;
+    "5a 6d 39 76 76 76", None ;
+    "5a 6d 39 76 76 76 76", None ;
+    "5a 6d 39 76 00", None ;
+    "5a 6d 39 76 62 77 3d 3d", Some "66 6f 6f 6f" ;
+    "5a 6d 39 76 62 77 3d 3d 00", None ;
+    "5a 6d 39 76 62 77 3d 3d 00 01", None ;
+    "5a 6d 39 76 62 77 3d 3d 00 01 02", None ;
+    "5a 6d 39 76 62 77 3d 3d 00 01 02 03", None ;
+    "5a 6d 39 76 62 32 38 3d", Some "66 6f 6f 6f 6f" ;
+    "5a 6d 39 76 62 32 39 76", Some "66 6f 6f 6f 6f 6f" ;
+  ]
+
 
 let f1_blk_eq ?msg ?(n=1) f (x, y) _ =
   let (x, y) = Cs.(of_hex x, of_hex y) in
@@ -877,6 +929,8 @@ let suite =
     ] ;
 
     "XOR" >::: [ xor_selftest 300 ; "example" >::: xor_cases ];
+
+    "B64" >::: [ b64_selftest 300 ; "encoding" >::: b64_enc_cases ; "decoding" >::: b64_dec_cases ];
 
     "MD5" >::: md5_cases ;
 
