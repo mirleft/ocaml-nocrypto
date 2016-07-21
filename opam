@@ -32,6 +32,7 @@ depopts: [
 ]
 
 conflicts: [
+  "mirage" {<"3.0.0"}
   "mirage-xen" {<"2.2.0"}
   "mirage-entropy-xen" {<"0.3.0"}
 ]
