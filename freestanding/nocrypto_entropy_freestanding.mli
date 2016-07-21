@@ -1,4 +1,4 @@
-(** {b RNG} seeding on {b Mirage/Xen}.
+(** {b RNG} seeding on {b Mirage/freestanding}.
 
     Calling {{!initialize}initialize} should be enough to get a seeded RNG.
 

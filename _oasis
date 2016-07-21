@@ -98,7 +98,7 @@ Library nocrypto_xen
   Findlibparent:   nocrypto
   Findlibname:     xen
   Build$:          flag(xen)
-  Modules:         Nocrypto_entropy_xen
+  Modules:         Nocrypto_entropy_freestanding
   CSources:        native/nocrypto.h,
                    native/misc.c,
                    native/hash/stubs.c,
@@ -157,7 +157,7 @@ Document api
   XOCamlbuildModules: src/Nocrypto,
                       unix/Nocrypto_entropy_unix,
                       lwt/Nocrypto_entropy_lwt,
-                      xen/Nocrypto_entropy_xen
+                      freestanding/Nocrypto_entropy_freestanding
   Install:            false
   XOCamlbuildExtraArgs: -docflags -colorize-code,-charset,utf-8
 
