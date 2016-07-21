@@ -1,5 +1,9 @@
 (** {b RNG} seeding on {b Mirage}.
 
+    This module provides RNG seeding from Mirage entropy sources, typically
+    originating from within the unikernel itself. On Unix,
+    {!Nocrypto_entropy_lwt} should be used in preference.
+
     Calling {{!initialize}initialize} should be enough to get a seeded RNG.
 
     It is the responsibility of the Mirage platform to set up entropy harvesting

@@ -1,5 +1,8 @@
 (** {b RNG} seeding on {b Unix}.
 
+    This module provides one-shot RNG seeding from the Unix kernel RNG,
+    typically {[/dev/urandom]}.
+
     Calling {{!initialize}initialize} is enough to bring the RNG into a working
     state.
 

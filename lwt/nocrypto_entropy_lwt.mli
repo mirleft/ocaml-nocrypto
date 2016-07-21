@@ -1,5 +1,8 @@
 (** {b RNG} seeding on {b Lwt/Unix}.
 
+    This module provides RNG seeding from the Unix kernel RNG, typically
+    {[/dev/urandom]}. It uses {!Lwt} for periodic background reseeding.
+
     Calling {{!initialize}initialize} is enough to bring the RNG into a working
     state. In addition, a background task is set up to periodically reseed the
     RNG.
