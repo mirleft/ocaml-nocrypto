@@ -3,5 +3,5 @@
 src/Nocrypto
 unix/Nocrypto_entropy_unix
 lwt/Nocrypto_entropy_lwt
-xen/Nocrypto_entropy_xen
+freestanding/Nocrypto_entropy_freestanding
 # OASIS_STOP

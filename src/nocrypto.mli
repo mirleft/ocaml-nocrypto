@@ -423,7 +423,7 @@ module Rng : sig
 
       Suitable entropy sources are provided by sub-libraries
       {{!Nocrypto_entropy_unix}nocrypto.unix}, {{!Nocrypto_entropy_lwt}nocrypto.lwt}
-      and {{!Nocrypto_entropy_xen}nocrypto.xen}. Although this module exposes a more
+      and {{!Nocrypto_entropy_freestanding}nocrypto.xen}. Although this module exposes a more
       fine-grained interface, allowing manual seeding of generators, this is intended
       either for implementing entropy-harvesting modules, or very specialized
       purposes. Users of this library should almost certainly use one of the above
