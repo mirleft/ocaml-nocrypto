@@ -98,7 +98,7 @@ Library nocrypto_xen
   Findlibparent:   nocrypto
   Findlibname:     xen
   Build$:          flag(xen)
-  Modules:         Nocrypto_entropy_xen
+  Modules:         Nocrypto_entropy_mirage
   CSources:        native/nocrypto.h,
                    native/misc.c,
                    native/hash/stubs.c,
