@@ -3,7 +3,7 @@ open Lwt
 open Nocrypto
 open Uncommon
 
-module E = Entropy_xen
+module E = Entropy
 
 type t = { e : E.t ; token : E.token ; g : Rng.g }
 
