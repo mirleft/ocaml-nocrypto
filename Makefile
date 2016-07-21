@@ -27,7 +27,7 @@ clean: setup.ml
 distclean: setup.ml
 	$(SETUP) -distclean $(DISTCLEANFLAGS)
 	rm -f myocamlbuild.ml setup.ml _tags
-	rm -f */META */*.mllib */*.mldylib */*.clib
+	rm -f */META */*.mllib */*.mldylib */*.clib */api.odocl
 
 setup.data: setup.ml
 	$(SETUP) -configure $(CONFIGUREFLAGS)
