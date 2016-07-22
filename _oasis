@@ -147,6 +147,7 @@ Library nocrypto_solo5
                    native/aes/aesni.c,
                    native/des/generic.c,
                    native/des/generic.h
+  XMETAExtraLines: freestanding_linkopts = "-lnocrypto_solo5_stubs"
   CCOpt:           --std=c99 -Wall -Wextra -Werror -O3 -DNDEBUG $FREESTANDING_CFLAGS
   if flag(modernity) && architecture(amd64)
     CCOpt+: -DACCELERATE -msse2 -maes
