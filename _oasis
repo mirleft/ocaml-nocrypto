@@ -97,19 +97,13 @@ Library nocrypto_lwt
   Modules:       Nocrypto_entropy_lwt
   BuildDepends:  nocrypto, nocrypto.unix, lwt.unix, cstruct.lwt
 
-Library nocrypto_mirage
-  Path:            mirage/
-  Findlibparent:   nocrypto
-  Findlibname:     mirage
-  Build$:          flag(xen) || flag(solo5)
-  Modules:         Nocrypto_entropy_mirage
-  BuildDepends:    nocrypto, lwt, mirage-entropy-xen
-
 Library nocrypto_xen
   Path:            xen/
   Findlibparent:   nocrypto
   Findlibname:     xen
   Build$:          flag(xen)
+  Modules:         Nocrypto_entropy_mirage
+  BuildDepends:    nocrypto, lwt, mirage-entropy-xen
   CSources:        native/nocrypto.h,
                    native/misc.c,
                    native/hash/stubs.c,
@@ -135,6 +129,8 @@ Library nocrypto_solo5
   Findlibparent:   nocrypto
   Findlibname:     solo5
   Build$:          flag(solo5)
+  Modules:         Nocrypto_entropy_mirage
+  BuildDepends:    nocrypto, lwt, mirage-entropy-solo5
   CSources:        native/nocrypto.h,
                    native/misc.c,
                    native/hash/stubs.c,
