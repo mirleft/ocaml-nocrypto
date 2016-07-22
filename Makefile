@@ -36,6 +36,7 @@ configure: setup.ml
 	$(SETUP) -configure $(CONFIGUREFLAGS)
 
 setup.ml: _oasis
+	@mkdir -p xen
 	oasis setup
 	@if [ -e _tags.extra ]; then cat _tags.extra >> _tags; fi
 	@if [ -e _tags.local ]; then cat _tags.local >> _tags; fi
