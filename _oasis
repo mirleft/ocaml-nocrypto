@@ -76,6 +76,7 @@ Library nocrypto
   BuildDepends:    cstruct (>= 1.6.0), zarith, sexplib, ppx_sexp_conv
   XMETARequires:   cstruct, zarith, sexplib
   XMETAExtraLines: xen_linkopts = "-lnocrypto_xen_stubs"
+                   freestanding_linkopts = "-lnocrypto_solo5_stubs"
   ByteOpt:         -w A-4-29-33-40-41-42-43-34-44
   CCOpt:           --std=c99 -Wall -Wextra -Werror -O3
   if flag(modernity) && architecture(amd64)
@@ -103,7 +104,7 @@ Library nocrypto_mirage
   Findlibname:     mirage
   Build$:          flag(xen) || flag(solo5)
   Modules:         Nocrypto_entropy_mirage
-  BuildDepends:    nocrypto, lwt, mirage-entropy-xen
+  BuildDepends:    nocrypto, lwt, mirage-entropy
 
 Library nocrypto_xen
   Path:            xen/

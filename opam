@@ -9,8 +9,8 @@ license:      "BSD2"
 build: [
   [ "./configure" "--prefix" prefix
      "--%{lwt:enable}%-lwt"
-     "--%{mirage-xen+mirage-entropy-xen:enable}%-xen"
-     "--%{mirage-solo5+mirage-entropy-solo5:enable}%-solo5" ]
+     "--%{mirage-xen+mirage-entropy:enable}%-xen"
+     "--%{mirage-solo5+mirage-entropy:enable}%-solo5" ]
   [ make ]
 ]
 install: [ make "install" ]
@@ -24,8 +24,8 @@ depends: [
   "cstruct" {>= "1.6.0"}
   "zarith"
   "sexplib"
-  ("mirage-no-xen" | ("mirage-xen" & "mirage-entropy-xen" & "zarith-xen"))
-  ("mirage-no-solo5" | ("mirage-solo5" & "mirage-entropy-solo5" & "zarith-freestanding"))
+  ("mirage-no-xen" | ("mirage-xen" & "mirage-entropy" & "zarith-xen"))
+  ("mirage-no-solo5" | ("mirage-solo5" & "mirage-entropy" & "zarith-freestanding"))
   "ounit" {test}
 ]
 
@@ -35,7 +35,6 @@ depopts: [
 
 conflicts: [
   "mirage-xen" {<"2.2.0"}
-  "mirage-entropy-xen" {<"0.3.0"}
 ]
 
 build-test: [
