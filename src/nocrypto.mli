@@ -631,6 +631,9 @@ module Rng : sig
     let (a, b) = (arr.(i), arr.(j)) in
     arr.(i) <- b ; arr.(j) <- a ]}
       *)
+
+  type buffer = Cstruct.t
+  (** Type definition to satisfy MirageOS RANDOM signature *)
 end
 
 
