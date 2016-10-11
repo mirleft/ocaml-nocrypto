@@ -1,0 +1,9 @@
+native/misc.o
+native/hash/stubs.o
+native/hash/md5.o
+native/hash/sha1.o
+native/hash/sha256.o
+native/hash/sha512.o
+native/aes/generic.o
+native/aes/aesni.o
+native/des/generic.o

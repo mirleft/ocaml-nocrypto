@@ -1,0 +1,25 @@
+true: color(always)
+true: bin_annot, safe_string
+true: warn(A-4-29-33-40-41-42-43-34-44-48)
+true: package(bytes), package(cstruct)
+
+<src>: include
+<src/*.ml{,i}>: package(zarith), package(sexplib), package(ppx_sexp_conv)
+<src/*.cm{x,o}> and not <src/nocrypto.cmx>: for-pack(Nocrypto)
+<src/*.cm{,x}a>: link_stubs(src/libnocrypto_stubs)
+
+<unix>: include
+<unix/*.ml{,i}>: package(unix), package(bytes)
+
+<lwt>: include
+<lwt/*.ml{,i}>: package(lwt.unix), package(cstruct.lwt)
+
+<mirage>: include
+<mirage/*.ml{,i}>: package(lwt), package(mirage-entropy)
+
+<**/*.c>: ccopt(--std=c99 -Wall -Wextra -O3)
+
+<bench/*>: use_nocrypto, package(zarith), package(cstruct.unix)
+<tests/*>: use_nocrypto, package(zarith), package(oUnit)
+
+<rondom>: -traverse

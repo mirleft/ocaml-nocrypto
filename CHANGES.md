@@ -1,4 +1,6 @@
-(trunk):
+0.5.4 (??):
+* Solo5 support.
+* Moved the build to `topkg`.
 
 0.5.3 (2016-03-21):
 * Move from Camlp4 to PPX.

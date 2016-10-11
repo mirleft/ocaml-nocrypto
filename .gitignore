@@ -1,25 +1,12 @@
-rondom
-
-_tags
-myocamlbuild.ml
-setup.ml
-*/META
-*/*.mllib
-*/*.mldylib
-*/*.clib
-*/api.odocl
-
-_tags.local
-myocamlbuild.ml.local
-
 _build
-setup.data
-setup.log
-
+*.install
 *.native
 *.byte
-*.docdir
 
-*.prof
+*~
+\.\#*
+\#*#
 
 gmon.out
+*.prof
+rondom
