@@ -20,7 +20,7 @@ let read_cs fd n =
   let buf = Bytes.create n in
   let k   = Unix.read fd buf 0 n in
   let cs  = Cstruct.create k in
-  Cstruct.blit_from_string buf 0 cs 0 k ;
+  Cstruct.blit_from_bytes buf 0 cs 0 k ;
   cs
 
 let reseed ?(bytes = a_little) ?(device = sys_rng) g =
