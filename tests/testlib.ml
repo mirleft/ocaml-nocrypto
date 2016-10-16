@@ -261,7 +261,7 @@ let dh_shared_0 =
          a5 23 69 38 7e ec b5 fc 4b 89 42 c4 32 fa e5 58
          6f 39 5d a7 4e cd b5 da dc 1e 52 fe a4 33 72 c1
          82 48 8a 5b c1 44 bc 60 9b 38 5b 80 5f 44 14 93"
-    and x = Cs.of_hex
+    and s = Cs.of_hex
         "f9 47 87 95 d2 a1 6d d1 7c c8 a9 c0 71 28 a2 82
          71 95 7e 79 87 0b fc 34 a2 42 ec 42 ac cc 42 81
          7b f6 c4 f5 80 a9 70 e3 35 93 9b a3 21 81 a4 e3
@@ -290,7 +290,7 @@ let dh_shared_0 =
     in
     let grp = Dh.Group.oakley_5 in
 
-    match Dh.(shared grp (fst (key_of_secret grp x)) gy) with
+    match Dh.(shared grp (fst (key_of_secret grp ~s)) gy) with
     | None -> assert_failure "degenerate shared secret"
     | Some shared' ->
         assert_cs_equal ~msg:"shared secret" shared shared'
@@ -877,16 +877,16 @@ let suite =
     ];
 
     "RNG extraction" >::: [
-      random_n_selftest "int" Fc.Rng.int 1000 [
+      random_n_selftest ~typ:"int" Fc.Rng.int 1000 [
         (1, 2); (0, 129); (7, 136); (0, 536870913);
       ] ;
-      random_n_selftest "int32" Fc.Rng.int32 1000 [
+      random_n_selftest ~typ:"int32" Fc.Rng.int32 1000 [
         (7l, 136l); (0l, 536870913l);
       ] ;
-      random_n_selftest "int64" Fc.Rng.int64 1000 [
+      random_n_selftest ~typ:"int64" Fc.Rng.int64 1000 [
         (7L, 136L); (0L, 536870913L); (0L, 2305843009213693953L);
       ] ;
-      random_n_selftest "Z" Fc.Rng.z 1000 [
+      random_n_selftest ~typ:"Z" Fc.Rng.z 1000 [
         Z.(of_int 7, of_int 135);
         Z.(of_int 0, of_int 536870913);
         Z.(of_int 0, of_int64 2305843009213693953L)

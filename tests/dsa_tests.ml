@@ -2182,7 +2182,7 @@ let sha512_n256_cases2 =
 
 let private_key ~p ~q ~g ~x ~y = priv_of_hex ~p ~q ~gg:g ~x ~y
 
-let test_rfc6979 ~priv:({ Dsa.q; x } as priv) ~msg ~hash ~k ~r ~s  _ =
+let test_rfc6979 ~priv ~msg ~hash ~k ~r ~s  _ =
   let h1 = Hash.digest hash msg in
   let k' =
     let module H = (val (Hash.module_of hash)) in
