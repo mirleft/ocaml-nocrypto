@@ -156,3 +156,5 @@ module Generators = struct
   end
 
 end
+
+type buffer = Cstruct.t
