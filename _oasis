@@ -97,19 +97,13 @@ Library nocrypto_lwt
   Modules:       Nocrypto_entropy_lwt
   BuildDepends:  nocrypto, nocrypto.unix, lwt.unix, cstruct.lwt
 
-Library nocrypto_mirage
-  Path:            mirage/
-  Findlibparent:   nocrypto
-  Findlibname:     mirage
-  Build$:          flag(xen) || flag(solo5)
-  Modules:         Nocrypto_entropy_mirage
-  BuildDepends:    nocrypto, lwt, mirage-entropy-xen
-
 Library nocrypto_xen
   Path:            xen/
   Findlibparent:   nocrypto
   Findlibname:     xen
   Build$:          flag(xen)
+  Modules:         Nocrypto_entropy_mirage
+  BuildDepends:    nocrypto, lwt, mirage-entropy-xen
   CSources:        native/nocrypto.h,
                    native/misc.c,
                    native/hash/stubs.c,
@@ -135,6 +129,8 @@ Library nocrypto_solo5
   Findlibparent:   nocrypto
   Findlibname:     solo5
   Build$:          flag(solo5)
+  Modules:         Nocrypto_entropy_mirage
+  BuildDepends:    nocrypto, lwt, mirage-entropy-solo5
   CSources:        native/nocrypto.h,
                    native/misc.c,
                    native/hash/stubs.c,
@@ -151,6 +147,7 @@ Library nocrypto_solo5
                    native/aes/aesni.c,
                    native/des/generic.c,
                    native/des/generic.h
+  XMETAExtraLines: freestanding_linkopts = "-lnocrypto_solo5_stubs"
   CCOpt:           --std=c99 -Wall -Wextra -Werror -O3 -DNDEBUG $FREESTANDING_CFLAGS
   if flag(modernity) && architecture(amd64)
     CCOpt+: -DACCELERATE -msse2 -maes
