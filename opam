@@ -2,46 +2,35 @@ opam-version: "1.2"
 homepage:     "https://github.com/mirleft/ocaml-nocrypto"
 dev-repo:     "https://github.com/mirleft/ocaml-nocrypto.git"
 bug-reports:  "https://github.com/mirleft/ocaml-nocrypto/issues"
-author:       "David Kaloper <david@numm.org>"
+authors:      ["David Kaloper <david@numm.org>"]
 maintainer:   "David Kaloper <david@numm.org>"
 license:      "BSD2"
+tags:          [ "org:mirage" ]
+available:     [ ocaml-version >= "4.02.0" ]
 
-build: [
-  [ "./configure" "--prefix" prefix
-     "--%{lwt:enable}%-lwt"
-     "--%{mirage-xen+mirage-entropy-xen:enable}%-xen"
-     "--%{mirage-solo5+mirage-entropy-solo5:enable}%-solo5" ]
-  [ make ]
-]
-install: [ make "install" ]
-remove:  [ "ocamlfind" "remove" "nocrypto" ]
+build: [ "ocaml" "pkg/pkg.ml" "build"
+                 "--pinned" "%{pinned}%"
+                 "--with-lwt" "%{lwt:installed}%"
+                 "--xen" "%{mirage-xen:installed}%"
+                 "--freestanding" "%{ocaml-freestanding:installed}%" ]
+
+build-test: [ "ocaml" "pkg/pkg.ml" "test" ]
 
 depends: [
   "ocamlfind" {build}
   "ocamlbuild" {build}
-  "oasis" {build}
+  "topkg" {build}
   "ppx_sexp_conv" {build}
+  "cpuid" {build}
+  "ocb-stubblr" {build}
+  "ounit" {test}
   "cstruct" {>= "1.6.0"}
   "zarith"
   "sexplib"
-  ("mirage-no-xen" | ("mirage-xen" & "mirage-entropy-xen" & "zarith-xen"))
-  ("mirage-no-solo5" | ("mirage-solo5" & "mirage-entropy-solo5" & "zarith-freestanding"))
-  "ounit" {test}
+  ("mirage-no-xen" | ("mirage-xen" & "mirage-entropy" & "zarith-xen"))
+  ("mirage-no-solo5" | ("mirage-solo5" & "mirage-entropy" & "zarith-freestanding"))
 ]
 
-depopts: [
-  "lwt"
-]
+depopts: [ "lwt" ]
+conflicts: [ "mirage-xen" {<"2.2.0"} ]
 
-conflicts: [
-  "mirage-xen" {<"2.2.0"}
-  "mirage-entropy-xen" {<"0.3.0"}
-]
-
-build-test: [
-  [ "./configure" "--%{ounit:enable}%-tests" ]
-  [ make "test" ]
-]
-
-tags: [ "org:mirage" ]
-available: [ ocaml-version >= "4.02.0" ]

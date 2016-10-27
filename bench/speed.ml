@@ -9,7 +9,7 @@ module Time = struct
 
   let time ~n f a =
     let t1 = Sys.time () in
-    for i = 1 to n do ignore (f a) done ;
+    for _ = 1 to n do ignore (f a) done ;
     let t2 = Sys.time () in
     (t2 -. t1)
 
