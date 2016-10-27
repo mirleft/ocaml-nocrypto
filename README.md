@@ -52,9 +52,8 @@ are using it on a machine that does not support it.
 
 `pkg/pkg.ml build --accelerate true` force-enables non-portable code.
 
-Another way to specify the flags is not the `NOCRYPTO_ACCELERATE` environment
-variable. When `--accelerate` is not specified, it maches the capabilities of
-the build machine.
+The flag can also be set via the `NOCRYPTO_ACCELERATE` environment variable. If
+unset, it maches the capabilities of the build machine.
 
 [docs]: http://mirleft.github.io/ocaml-nocrypto
 [nocrypto-mli]: https://github.com/mirleft/ocaml-nocrypto/blob/master/src/nocrypto.mli
