@@ -8,17 +8,20 @@ license:      "ISC"
 tags:          [ "org:mirage" ]
 available:     [ ocaml-version >= "4.02.0" ]
 
-build: [ "ocaml" "pkg/pkg.ml" "build"
-                 "--pinned" "%{pinned}%"
-                 "--with-lwt" "%{lwt:installed}%"
-                 "--xen" "%{mirage-xen:installed}%"
-                 "--freestanding" "%{ocaml-freestanding:installed}%" ]
+build: ["ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%"
+                "--with-lwt" "%{lwt:installed}%"
+                "--xen" "%{mirage-xen:installed}%"
+                "--freestanding" "%{ocaml-freestanding:installed}%"]
 
-build-test: [ "ocaml" "pkg/pkg.ml" "test" ]
+build-test: [
+  ["ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%"
+           "--tests" "true"
+           "--with-lwt" "false"]
+  ["ocaml" "pkg/pkg.ml" "test"]]
 
 depends: [
   "ocamlfind" {build}
-  "ocamlbuild" {build}
+  "ocamlbuild"
   "topkg" {build}
   "ppx_sexp_conv" {build}
   "cpuid" {build}

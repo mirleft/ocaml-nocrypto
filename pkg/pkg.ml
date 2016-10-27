@@ -10,7 +10,7 @@ let cpudetect () =
   match Cpuid.supports [`SSE2; `AES] with Ok r -> Ok r | Error _ -> Ok false
 
 let unix = Conf.with_pkg ~default:true "unix"
-let lwt  = Conf.with_pkg ~default:true "lwt"
+let lwt  = Conf.with_pkg ~default:false "lwt"
 let xen  = Conf.(key "xen" bool ~absent:false
                  ~doc:"Build Mirage/Xen support.")
 let fs   = Conf.(key "freestanding" bool ~absent:false
