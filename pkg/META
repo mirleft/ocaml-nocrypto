@@ -1,4 +1,4 @@
-version = "%%VERSION%%"
+version = "%%VERSION_NUM%%"
 description = "Simple crypto for the modern age"
 requires = "cstruct zarith sexplib"
 archive(byte) = "nocrypto.cma"
@@ -10,7 +10,7 @@ freestanding_linkopts = "-lnocrypto_stubs+mirage-freestanding"
 exists_if = "nocrypto.cma"
 
 package "unix" (
- version = "%%VERSION%%"
+ version = "%%VERSION_NUM%%"
  description = "Simple crypto for the modern age"
  requires = "nocrypto unix bytes"
  archive(byte) = "nocrypto_unix.cma"
@@ -21,7 +21,7 @@ package "unix" (
 )
 
 package "lwt" (
- version = "%%VERSION%%"
+ version = "%%VERSION_NUM%%"
  description = "Simple crypto for the modern age"
  requires = "nocrypto nocrypto.unix lwt.unix cstruct.lwt"
  archive(byte) = "nocrypto_lwt.cma"
@@ -32,7 +32,7 @@ package "lwt" (
 )
 
 package "mirage" (
- version = "%%VERSION%%"
+ version = "%%VERSION_NUM%%"
  description = "Simple crypto for the modern age"
  requires = "nocrypto lwt mirage-entropy"
  archive(byte) = "nocrypto_mirage.cma"
