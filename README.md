@@ -14,7 +14,7 @@ pkg/pkg.ml build
   --with-unix BOOL
   --with-lwt BOOL
   --xen BOOL
-  --freestanding BOOL`
+  --freestanding BOOL
 
 pkg/pkg.ml test
 ```

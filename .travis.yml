@@ -4,7 +4,7 @@ script: bash -ex .travis-opam.sh
 env:
   global:
     - PACKAGE="nocrypto"
-    - PINS="depext:0.9.1 cpuid:git://github.com/pqwy/cpuid.git ocb-stubblr:git://github.com/pqwy/ocb-stubblr.git mirage-os-shim:git://github.com/pqwy/mirage-os-shim.git mirage-unix:git://github.com/mirage/mirage-platform.git mirage-xen:git://github.com/mirage/mirage-platform.git"
+    - PINS="depext:0.9.1 mirage-os-shim:git://github.com/pqwy/mirage-os-shim.git mirage-unix:git://github.com/mirage/mirage-platform.git mirage-xen:git://github.com/mirage/mirage-platform.git"
     - UPDATE_GCC_BINUTILS=1
   matrix:
     - OCAML_VERSION=4.02
@@ -13,5 +13,6 @@ env:
     - OCAML_VERSION=4.03
     - OCAML_VERSION=4.03 DEPOPTS=lwt
     - OCAML_VERSION=4.03 DEPOPTS=mirage-xen TESTS=false
+    # - OCAML_VERSION=4.04
 notifications:
   email: false

@@ -21,7 +21,7 @@ depends: [
   "cpuid" {build}
   "ocb-stubblr" {build}
   "ounit" {test}
-  "cstruct" {>= "1.6.0"}
+  "cstruct"
   "zarith"
   "sexplib"
   ("mirage-no-xen" | ("mirage-xen" & "mirage-entropy" & "zarith-xen"))
@@ -29,5 +29,10 @@ depends: [
 ]
 
 depopts: [ "lwt" ]
-conflicts: [ "mirage-xen" {<"2.2.0"} ]
+conflicts: [
+  "topkg" {<"0.8.0"}
+  "ocb-stubblr" {<"0.1.0"}
+  "cstruct" {<"2.3.0"}
+  "mirage-xen" {<"2.2.0"}
+]
 

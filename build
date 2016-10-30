@@ -5,4 +5,5 @@ function has { opam config var "${1}:installed"; }
 topkg build -- \
   --with-lwt $(has 'lwt') \
   --xen $(has 'mirage-xen') \
-  --freestanding $(has 'ocaml-freestanding')
+  --freestanding $(has 'ocaml-freestanding') \
+  $@
