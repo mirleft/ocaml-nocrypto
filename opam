@@ -2,6 +2,7 @@ opam-version: "1.2"
 homepage:     "https://github.com/mirleft/ocaml-nocrypto"
 dev-repo:     "https://github.com/mirleft/ocaml-nocrypto.git"
 bug-reports:  "https://github.com/mirleft/ocaml-nocrypto/issues"
+doc:          "https://mirleft.github.io/ocaml-nocrypto/doc"
 authors:      ["David Kaloper <david@numm.org>"]
 maintainer:   "David Kaloper <david@numm.org>"
 license:      "ISC"
@@ -15,12 +16,12 @@ build: ["ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "false"
 
 depends: [
   "ocamlfind" {build}
-  "ocamlbuild"
+  "ocamlbuild" {build}
   "topkg" {build}
-  "ppx_sexp_conv" {build}
   "cpuid" {build}
   "ocb-stubblr" {build}
-  "ounit" {test}
+  "ppx_sexp_conv" {build}
+  "oUnit" {test}
   "cstruct"
   "zarith"
   "sexplib"

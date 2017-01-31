@@ -23,12 +23,19 @@ let accelerate = Conf.(discovered_key "accelerate" bool
 
 let tags = [(accelerate, "accelerate")]
 
+let opams =
+  let build = ["ocb-stubblr"; "cpuid"]
+  and hacks = [ "zarith-xen"; "mirage-xen"; "mirage-no-xen";
+                "zarith-freestanding"; "mirage-solo5"; "mirage-no-solo5" ]
+  in [Pkg.opam_file "opam" ~lint_deps_excluding:(Some (build @ hacks))]
+
 let cmd c os files =
   OS.Cmd.run Cmd.(build_cmd c os %% Pkg.ocb_bool_tags c tags %% of_list files)
 
+let build = Pkg.build ~cmd ()
+
 let () =
-  let build = Pkg.(build ~cmd ()) in
-  Pkg.describe "nocrypto" ~build @@ fun c ->
+  Pkg.describe "nocrypto" ~build ~opams @@ fun c ->
     let unix = Conf.value c unix in
     let lwt  = Conf.value c lwt && unix
     and xen  = Conf.value c xen
