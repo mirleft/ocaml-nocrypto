@@ -1,0 +1,217 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Nocrypto.Cipher_stream.html">
+<link rel="next" href="Nocrypto.Rsa.html">
+<link rel="Up" href="Nocrypto.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_mirage" rel="Chapter" href="Nocrypto_entropy_mirage.html"><link title="Usage notes" rel="Section" href="#1_Usagenotes">
+<link title="Interface" rel="Section" href="#1_Interface">
+<link title="Generation of common numeric types" rel="Section" href="#1_Generationofcommonnumerictypes">
+<link title="Specialized generation" rel="Section" href="#1_Specializedgeneration">
+<link title="Examples" rel="Section" href="#rng_examples">
+<title>Nocrypto.Rng</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Nocrypto.Cipher_stream.html" title="Nocrypto.Cipher_stream">Previous</a>
+&nbsp;<a class="up" href="Nocrypto.html" title="Nocrypto">Up</a>
+&nbsp;<a class="post" href="Nocrypto.Rsa.html" title="Nocrypto.Rsa">Next</a>
+</div>
+<h1>Module <a href="type_Nocrypto.Rng.html">Nocrypto.Rng</a></h1>
+
+<pre><span class="keyword">module</span> Rng: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rng.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
+Secure random number generation.
+<p>
+
+    There are several parts of this module:
+<p>
+
+    <ul>
+<li>The <a href="Nocrypto.Rng.S.Generator.html">signature</a> of generator modules, together with a
+       facility to convert such modules into actual <a href="Nocrypto.Rng.html#TYPEg">generators</a>, and
+       functions that operate on this representation.</li>
+<li>A global generator instance, implemented by
+       <a href="Nocrypto.Rng.Generators.Fortuna.html">Fortuna</a>.  This is the default generator, used
+       when one is not explicitly supplied.</li>
+<li>The <a href="Nocrypto.Rng.S.N.html">signature</a> of modules for randomly generating a particular
+       numeric type, a <a href="Nocrypto.Rng.Make_N.html">functor</a> to produce them, and instances for
+       <a href="Nocrypto.Rng.Int.html"><code class="code">int</code></a>, <a href="Nocrypto.Rng.Int32.html"><code class="code">int32</code></a>, <a href="Nocrypto.Rng.Int64.html"><code class="code">int64</code></a>, and
+       <a href="Nocrypto.Rng.Z.html"><code class="code"><span class="constructor">Z</span>.t</code></a>.</li>
+<li>Several specialized functions for e.g. primes.</li>
+</ul>
+<br>
+</div>
+<hr width="100%">
+<br>
+<h1 id="1_Usagenotes">Usage notes</h1><br>
+<br>
+<b>TL;DR</b> Don't forget to seed; don't maintain your own <code class="code">g</code>.
+<p>
+
+      The RNGs here are merely the deterministic part of a full random number
+      generation suite. For proper operation, they need to be seeded with a
+      high-quality entropy source.
+<p>
+
+      Suitable entropy sources are provided by sub-libraries
+      <a href="Nocrypto_entropy_unix.html">nocrypto.unix</a>, <a href="Nocrypto_entropy_lwt.html">nocrypto.lwt</a>
+      and <a href="Nocrypto_entropy_mirage.html">nocrypto.xen</a>. Although this module exposes a more
+      fine-grained interface, allowing manual seeding of generators, this is intended
+      either for implementing entropy-harvesting modules, or very specialized
+      purposes. Users of this library should almost certainly use one of the above
+      entropy libraries, and avoid manually managing the generator seeding.
+<p>
+
+      Similarly, although it is possible to swap the default generator and gain
+      control over the random stream, this is also intended for specialized
+      applications such as testing or similar scenarios where the RNG needs to be
+      fully deterministic, or as a component of deterministic algorithms which
+      internally rely on pseudorandom streams.
+<p>
+
+      In the general case, users should not maintain their local instances of
+      <a href="Nocrypto.Rng.html#TYPEg">g</a>. All of the generators in a process have to compete for entropy, and
+      it is likely that the overall result will have lower effective
+      unpredictability.
+<p>
+
+      The recommended way to use these functions is either to accept an optional
+      generator and pass it down, or to ignore the generator altogether, as
+      illustrated in the <a href="Nocrypto.Rng.html#rng_examples">examples</a>.<br>
+<br>
+<h1 id="1_Interface">Interface</h1><br>
+
+<pre><span id="TYPEg"><span class="keyword">type</span> <code class="type"></code>g</span> </pre>
+<div class="info ">
+A generator (PRNG) with its state.<br>
+</div>
+
+
+<pre><span id="EXCEPTIONUnseeded_generator"><span class="keyword">exception</span> Unseeded_generator</span></pre>
+<div class="info ">
+Thrown when using an uninitialized <a href="Nocrypto.Rng.html#TYPEg">generator</a>.<br>
+</div>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.S.html">S</a>: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rng.S.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Module signatures.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.Generators.html">Generators</a>: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rng.Generators.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Ready-to-use RNG algorithms.
+</div>
+
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">?g:'a -><br>       ?seed:Cstruct.t -><br>       ?strict:bool -><br>       (module Nocrypto.Rng.S.Generator with type g = 'a) -> <a href="Nocrypto.Rng.html#TYPEg">g</a></code></pre><div class="info ">
+<code class="code">create&nbsp;<span class="keyword">module</span></code> uses a module conforming to the <a href="Nocrypto.Rng.S.Generator.html">Generator</a>
+      signature to instantiate the generic generator <a href="Nocrypto.Rng.html#TYPEg">g</a>.
+<p>
+
+      <code class="code">g</code> is the state to use, otherwise a fresh one is created.
+<p>
+
+      <code class="code">seed</code> can be provided to immediately reseed the generator with.
+<p>
+
+      <code class="code">strict</code> puts the generator into a more standards-conformant, but slighty
+      slower mode. Useful if the outputs need to match published test-vectors.<br>
+</div>
+
+<pre><span id="VALgenerator"><span class="keyword">val</span> generator</span> : <code class="type"><a href="Nocrypto.Rng.html#TYPEg">g</a> Pervasives.ref</code></pre><div class="info ">
+Default generator. Functions in this module use this generator when not
+      explicitly supplied one.
+<p>
+
+      Swapping the <code class="code">generator</code> is a way to subvert the random-generation process
+      e.g. to make it fully deterministic.
+<p>
+
+      <code class="code">generator</code> defaults to <a href="Nocrypto.Rng.Generators.Fortuna.html">Fortuna</a>.<br>
+</div>
+
+<pre><span id="VALgenerate"><span class="keyword">val</span> generate</span> : <code class="type">?g:<a href="Nocrypto.Rng.html#TYPEg">g</a> -> int -> Cstruct.t</code></pre><div class="info ">
+Invoke <a href="Nocrypto.Rng.S.Generator.html#VALgenerate">generate</a> on <code class="code">g</code> or
+      <a href="Nocrypto.Rng.html#VALgenerator">default generator</a>.<br>
+</div>
+
+<pre><span id="VALblock"><span class="keyword">val</span> block</span> : <code class="type"><a href="Nocrypto.Rng.html#TYPEg">g</a> option -> int</code></pre><div class="info ">
+<a href="Nocrypto.Rng.S.Generator.html#VALblock">Block</a> size of <code class="code">g</code> or
+      <a href="Nocrypto.Rng.html#VALgenerator">default generator</a>.<br>
+</div>
+<br>
+<h1 id="1_Generationofcommonnumerictypes">Generation of common numeric types</h1><br>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.Make_N.html">Make_N</a>: <div class="sig_block"><code class="code"><span class="keyword">functor</span>&nbsp;(</code><code class="code"><span class="constructor">N</span></code><code class="code">&nbsp;:&nbsp;</code><code class="type"><a href="Nocrypto.Numeric.S.html">Nocrypto.Numeric.S</a></code><code class="code">)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;</code><code class="type"><a href="Nocrypto.Rng.S.N.html">S.N</a></code><code class="type">  with type t = N.t</code></div></pre><div class="info">
+Creates a suite of generating functions over a numeric type.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.Int.html">Int</a>: <code class="type"><a href="Nocrypto.Rng.S.N.html">S.N</a></code><code class="type">  with type t = int</code></pre>
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.Int32.html">Int32</a>: <code class="type"><a href="Nocrypto.Rng.S.N.html">S.N</a></code><code class="type">  with type t = int32</code></pre>
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.Int64.html">Int64</a>: <code class="type"><a href="Nocrypto.Rng.S.N.html">S.N</a></code><code class="type">  with type t = int64</code></pre>
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.Z.html">Z</a>: <code class="type"><a href="Nocrypto.Rng.S.N.html">S.N</a></code><code class="type">  with type t = Z.t</code></pre><br>
+<h1 id="1_Specializedgeneration">Specialized generation</h1><br>
+
+<pre><span id="VALprime"><span class="keyword">val</span> prime</span> : <code class="type">?g:<a href="Nocrypto.Rng.html#TYPEg">g</a> -> ?msb:int -> int -> Z.t</code></pre><div class="info ">
+<code class="code">prime&nbsp;~g&nbsp;~msb&nbsp;bits</code> generates a prime smaller than <code class="code">2^bits</code>, with <code class="code">msb</code>
+      most significant bits set.
+<p>
+
+      <code class="code">prime&nbsp;~g&nbsp;~msb:1&nbsp;bits</code> (the default) yields a prime in the interval
+      <code class="code">[2^(bits&nbsp;-&nbsp;1),&nbsp;2^bits&nbsp;-&nbsp;1]</code>.<br>
+</div>
+
+<pre><span id="VALsafe_prime"><span class="keyword">val</span> safe_prime</span> : <code class="type">?g:<a href="Nocrypto.Rng.html#TYPEg">g</a> -> int -> Z.t * Z.t</code></pre><div class="info ">
+<code class="code">safe_prime&nbsp;~g&nbsp;bits</code> gives a prime pair <code class="code">(g,&nbsp;p)</code> such that <code class="code">p&nbsp;=&nbsp;2g&nbsp;+&nbsp;1</code>
+      and <code class="code">p</code> has <code class="code">bits</code> significant bits.<br>
+</div>
+<br>
+<h1 id="rng_examples">Examples</h1>
+<p>
+
+      Generating a random 13-byte <code class="code"><span class="constructor">Cstruct</span>.t</code>:
+<pre class="codepre"><code class="code"><span class="keyword">let</span> cs = <span class="constructor">Rng</span>.generate 13</code></pre>
+<p>
+
+      Generating a list of <code class="code"><span class="constructor">Cstruct</span>.t</code>s, passing down an optional
+      <a href="Nocrypto.Rng.html#TYPEg">generator</a>:
+<pre class="codepre"><code class="code"><span class="keyword">let</span> <span class="keyword">rec</span> f1 ?g ~n i =
+  <span class="keyword">if</span> i &lt; 1 <span class="keyword">then</span> [] <span class="keyword">else</span> <span class="constructor">Rng</span>.generate ?g n :: f1 ?g ~n (i - 1)</code></pre>
+<p>
+
+      Generating a <code class="code"><span class="constructor">Z</span>.t</code> smaller than <code class="code">10</code> and an <code class="code">int64</code> in the range <code class="code">[3,&nbsp;7]</code>:
+<pre class="codepre"><code class="code"><span class="keyword">let</span> f2 ?g () = <span class="constructor">Rng</span>.(<span class="constructor">Z</span>.gen ?g <span class="keywordsign">~$</span>10, <span class="constructor">Int64</span>.gen_r 3<span class="constructor">L</span> 8<span class="constructor">L</span>)</code></pre>
+<p>
+
+      Creating a local Fortuna instance and using it as a key-derivation function:
+<pre class="codepre"><code class="code"><span class="keyword">let</span> f3 secret =
+  <span class="keyword">let</span> g = <span class="constructor">Rng</span>.(create ~seed:secret (<span class="keyword">module</span> <span class="constructor">Generators</span>.<span class="constructor">Fortuna</span>)) <span class="keyword">in</span>
+  <span class="constructor">Rng</span>.generate ~g 32</code></pre>
+<p>
+
+      Generating a 17-bit prime with two leading bits set:
+<pre class="codepre"><code class="code"><span class="keyword">let</span> p = <span class="constructor">Rng</span>.prime ~msb:2 17</code></pre>
+<p>
+
+      Fisher-Yates shuffle:
+<pre class="codepre"><code class="code"><span class="keyword">let</span> f4 ?g arr =
+  <span class="keyword">let</span> n = <span class="constructor">Array</span>.length arr <span class="keyword">in</span>
+  arr |&gt; <span class="constructor">Array</span>.iter @@ <span class="keyword">fun</span> i <span class="keywordsign">-&gt;</span>
+    <span class="keyword">let</span> j = <span class="constructor">Rng</span>.<span class="constructor">Int</span>.gen_r ?g i n <span class="keyword">in</span>
+    <span class="keyword">let</span> (a, b) = (arr.(i), arr.(j)) <span class="keyword">in</span>
+    arr.(i) &lt;- b ; arr.(j) &lt;- a </code></pre><br>
+
+<pre><span id="TYPEbuffer"><span class="keyword">type</span> <code class="type"></code>buffer</span> = <code class="type">Cstruct.t</code> </pre>
+<div class="info ">
+Type definition to satisfy MirageOS RANDOM signature<br>
+</div>
+
+</body></html>

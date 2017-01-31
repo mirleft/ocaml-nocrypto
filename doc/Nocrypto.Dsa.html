@@ -1,0 +1,195 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Nocrypto.Rsa.html">
+<link rel="next" href="Nocrypto.Dh.html">
+<link rel="Up" href="Nocrypto.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_mirage" rel="Chapter" href="Nocrypto_entropy_mirage.html"><link title="DSA signature algorithm" rel="Section" href="#1_DSAsignaturealgorithm">
+<title>Nocrypto.Dsa</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Nocrypto.Rsa.html" title="Nocrypto.Rsa">Previous</a>
+&nbsp;<a class="up" href="Nocrypto.html" title="Nocrypto">Up</a>
+&nbsp;<a class="post" href="Nocrypto.Dh.html" title="Nocrypto.Dh">Next</a>
+</div>
+<h1>Module <a href="type_Nocrypto.Dsa.html">Nocrypto.Dsa</a></h1>
+
+<pre><span class="keyword">module</span> Dsa: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Dsa.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
+<b>DSA</b> digital signature algorithm.<br>
+</div>
+<hr width="100%">
+<br>
+<h1 id="1_DSAsignaturealgorithm">DSA signature algorithm</h1><br>
+
+<pre><code><span id="TYPEpriv"><span class="keyword">type</span> <code class="type"></code>priv</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpriv.p">p</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+Modulus<br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpriv.q">q</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+Subgroup order<br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpriv.gg">gg</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+Group Generator<br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpriv.x">x</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+Private key proper<br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpriv.y">y</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+Public component<br>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr></table>
+}
+
+<div class="info ">
+Private key. <code class="code">p</code>, <code class="code">q</code> and <code class="code">gg</code> comprise <i>domain parameters</i>.
+<p>
+
+      <em><code class="code"><span class="constructor">Sexplib</span></code> convertible</em>.<br>
+</div>
+
+
+<pre><code><span id="TYPEpub"><span class="keyword">type</span> <code class="type"></code>pub</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpub.p">p</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpub.q">q</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpub.gg">gg</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpub.y">y</span>&nbsp;: <code class="type">Z.t</code>;</code></td>
+
+</tr></table>
+}
+
+<div class="info ">
+Public key, a subset of <a href="Nocrypto.Dsa.html#TYPEpriv">private key</a>.
+<p>
+
+      <em><code class="code"><span class="constructor">Sexplib</span></code> convertible</em>.<br>
+</div>
+
+
+<pre><span id="TYPEkeysize"><span class="keyword">type</span> <code class="type"></code>keysize</span> = <code class="type">[ `Exactly of int * int | `Fips1024 | `Fips2048 | `Fips3072 ]</code> </pre>
+<div class="info ">
+Key size request. Three <em>Fips</em> variants refer to FIPS-standardized
+      L-values (<code class="code">p</code> size) and imply the corresponding N (<code class="code">q</code> size); The last
+      variants specifies L and N directly.<br>
+</div>
+
+
+<pre><span id="TYPEmask"><span class="keyword">type</span> <code class="type"></code>mask</span> = <code class="type">[ `No | `Yes | `Yes_with of <a href="Nocrypto.Rng.html#TYPEg">Nocrypto.Rng.g</a> ]</code> </pre>
+<div class="info ">
+Masking (cryptographic blinding) option.<br>
+</div>
+
+
+<pre><span id="VALpub_of_priv"><span class="keyword">val</span> pub_of_priv</span> : <code class="type"><a href="Nocrypto.Dsa.html#TYPEpriv">priv</a> -> <a href="Nocrypto.Dsa.html#TYPEpub">pub</a></code></pre><div class="info ">
+Extract the public component from a private key.<br>
+</div>
+
+<pre><span id="VALgenerate"><span class="keyword">val</span> generate</span> : <code class="type">?g:<a href="Nocrypto.Rng.html#TYPEg">Nocrypto.Rng.g</a> -> <a href="Nocrypto.Dsa.html#TYPEkeysize">keysize</a> -> <a href="Nocrypto.Dsa.html#TYPEpriv">priv</a></code></pre><div class="info ">
+<code class="code">generate&nbsp;g&nbsp;size</code> is a fresh <a href="Nocrypto.Dsa.html#TYPEpriv">private</a> key. The domain parameters
+      are derived using a modified FIPS.186-4 probabilistic process, but the
+      derivation can not be validated.<br>
+</div>
+
+<pre><span id="VALsign"><span class="keyword">val</span> sign</span> : <code class="type">?mask:<a href="Nocrypto.Dsa.html#TYPEmask">mask</a> -><br>       ?k:Z.t -> key:<a href="Nocrypto.Dsa.html#TYPEpriv">priv</a> -> Cstruct.t -> Cstruct.t * Cstruct.t</code></pre><div class="info ">
+<code class="code">sign&nbsp;mask&nbsp;k&nbsp;fips&nbsp;key&nbsp;digest</code> is the signature, a pair of <code class="code"><span class="constructor">Cstruct</span>.t</code>s
+      representing <code class="code">r</code> and <code class="code">s</code> in big-endian.
+<p>
+
+      <code class="code">digest</code> is the full digest of the actual message.
+<p>
+
+      <code class="code">k</code>, the random component, can either be provided, or is deterministically
+      derived as per RFC6979, using SHA256.<br>
+</div>
+
+<pre><span id="VALverify"><span class="keyword">val</span> verify</span> : <code class="type">key:<a href="Nocrypto.Dsa.html#TYPEpub">pub</a> -> Cstruct.t * Cstruct.t -> Cstruct.t -> bool</code></pre><div class="info ">
+<code class="code">verify&nbsp;fips&nbsp;key&nbsp;(r,&nbsp;s)&nbsp;digest</code> verifies that the pair <code class="code">(r,&nbsp;s)</code> is the signature
+      of <code class="code">digest</code>, the message digest, under the private counterpart to <code class="code">key</code>.<br>
+</div>
+
+<pre><span id="VALmassage"><span class="keyword">val</span> massage</span> : <code class="type">key:<a href="Nocrypto.Dsa.html#TYPEpub">pub</a> -> Cstruct.t -> Cstruct.t</code></pre><div class="info ">
+<code class="code">massage&nbsp;key&nbsp;digest</code> is the numeric value of <code class="code">digest</code> taken modulo <code class="code">q</code> and
+      represented in the leftmost <code class="code">bits(q)</code> bits of the result.
+<p>
+
+      Both FIPS.186-4 and RFC6979 specify that only the leftmost <code class="code">bits(q)</code> bits of
+      <code class="code">digest</code> are to be taken into account, but some implementations consider the
+      entire <code class="code">digest</code>. In cases where <a href="Nocrypto.Dsa.html#VALsign">sign</a> and <a href="Nocrypto.Dsa.html#VALverify">verify</a> seem
+      incompatible with a given implementation (esp. if <a href="Nocrypto.Dsa.html#VALsign">sign</a> produces
+      signatures with the <code class="code">s</code> component different from the other
+      implementation's), it might help to pre-process <code class="code">digest</code> using this
+      function (e.g. <code class="code">sign&nbsp;~key&nbsp;(massage&nbsp;~key:(pub_of_priv&nbsp;key)&nbsp;digest)</code>).<br>
+</div>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Dsa.K_gen.html">K_gen</a>: <div class="sig_block"><code class="code"><span class="keyword">functor</span>&nbsp;(</code><code class="code"><span class="constructor">H</span></code><code class="code">&nbsp;:&nbsp;</code><code class="type"><a href="Nocrypto.Hash.S.html">Nocrypto.Hash.S</a></code><code class="code">)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;</code><code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Dsa.K_gen.html">..</a> <code class="code"><span class="keyword">end</span></code></div></pre><div class="info">
+<code class="code"><span class="constructor">K_gen</span></code> can be instantiated over a hashing module to obtain an RFC6979
+      compliant <code class="code">k</code>-generator for that hash.
+</div>
+</body></html>

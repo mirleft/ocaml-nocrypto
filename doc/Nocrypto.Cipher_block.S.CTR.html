@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Nocrypto.Cipher_block.S.CBC.html">
+<link rel="next" href="Nocrypto.Cipher_block.S.GCM.html">
+<link rel="Up" href="Nocrypto.Cipher_block.S.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_mirage" rel="Chapter" href="Nocrypto_entropy_mirage.html"><title>Nocrypto.Cipher_block.S.CTR</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Nocrypto.Cipher_block.S.CBC.html" title="Nocrypto.Cipher_block.S.CBC">Previous</a>
+&nbsp;<a class="up" href="Nocrypto.Cipher_block.S.html" title="Nocrypto.Cipher_block.S">Up</a>
+&nbsp;<a class="post" href="Nocrypto.Cipher_block.S.GCM.html" title="Nocrypto.Cipher_block.S.GCM">Next</a>
+</div>
+<h1>Module type <a href="type_Nocrypto.Cipher_block.S.CTR.html">Nocrypto.Cipher_block.S.CTR</a></h1>
+
+<pre><span class="keyword">module type</span> CTR = <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Cipher_block.S.CTR.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info modtype top">
+<em>Counter</em> mode.<br>
+</div>
+<hr width="100%">
+
+<pre><span id="TYPEkey"><span class="keyword">type</span> <code class="type"></code>key</span> </pre>
+
+
+<pre><span id="VALof_secret"><span class="keyword">val</span> of_secret</span> : <code class="type">Cstruct.t -> <a href="Nocrypto.Cipher_block.S.CTR.html#TYPEkey">key</a></code></pre>
+<pre><span id="VALkey_sizes"><span class="keyword">val</span> key_sizes</span> : <code class="type">int array</code></pre>
+<pre><span id="VALblock_size"><span class="keyword">val</span> block_size</span> : <code class="type">int</code></pre>
+<pre><span id="VALstream"><span class="keyword">val</span> stream</span> : <code class="type">key:<a href="Nocrypto.Cipher_block.S.CTR.html#TYPEkey">key</a> -><br>       ctr:Cstruct.t -> ?off:int -> int -> Cstruct.t</code></pre><div class="info ">
+<code class="code">stream&nbsp;~key&nbsp;~ctr&nbsp;~off&nbsp;n</code> is the first <code class="code">n</code> bytes obtained by
+          encrypting and concatenating blocks <code class="code">c(0),&nbsp;c(1),&nbsp;...</code>, where <code class="code">c(0)</code> is
+          <code class="code">ctr</code>, and <code class="code">c(n&nbsp;+&nbsp;1)</code> is <code class="code">c(n)&nbsp;+&nbsp;1</code> interpreted in big-endian.
+<p>
+
+          If <code class="code">off</code> is greater than <code class="code">0</code> then the result is the last <code class="code">n</code> bytes of
+          an <code class="code">off&nbsp;+&nbsp;n</code> bytes long stream. Thus,
+          <code class="code">stream&nbsp;~key&nbsp;~ctr&nbsp;~off:0&nbsp;n&nbsp;<span class="keywordsign">||</span>&nbsp;stream&nbsp;~key&nbsp;~ctr&nbsp;~off:n&nbsp;n&nbsp;==<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stream&nbsp;~key&nbsp;~ctr&nbsp;~off:0&nbsp;(n*2)</code>.
+<p>
+
+          <code class="code">ctr</code> has to be block-sized, and <code class="code">off</code> and <code class="code">n</code> need to be
+          non-negative.<br>
+</div>
+
+<pre><span id="VALencrypt"><span class="keyword">val</span> encrypt</span> : <code class="type">key:<a href="Nocrypto.Cipher_block.S.CTR.html#TYPEkey">key</a> -><br>       ctr:Cstruct.t -> ?off:int -> Cstruct.t -> Cstruct.t</code></pre><div class="info ">
+<code class="code">encrypt&nbsp;~key&nbsp;~ctr&nbsp;~off&nbsp;msg</code> is
+          <code class="code">(stream&nbsp;~key&nbsp;~ctr&nbsp;~off&nbsp;(len&nbsp;msg))&nbsp;xor&nbsp;msg</code>.<br>
+</div>
+
+<pre><span id="VALdecrypt"><span class="keyword">val</span> decrypt</span> : <code class="type">key:<a href="Nocrypto.Cipher_block.S.CTR.html#TYPEkey">key</a> -><br>       ctr:Cstruct.t -> ?off:int -> Cstruct.t -> Cstruct.t</code></pre></body></html>

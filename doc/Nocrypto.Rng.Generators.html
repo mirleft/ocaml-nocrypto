@@ -1,0 +1,46 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Nocrypto.Rng.S.html">
+<link rel="next" href="Nocrypto.Rng.Make_N.html">
+<link rel="Up" href="Nocrypto.Rng.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_mirage" rel="Chapter" href="Nocrypto_entropy_mirage.html"><title>Nocrypto.Rng.Generators</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Nocrypto.Rng.S.html" title="Nocrypto.Rng.S">Previous</a>
+&nbsp;<a class="up" href="Nocrypto.Rng.html" title="Nocrypto.Rng">Up</a>
+&nbsp;<a class="post" href="Nocrypto.Rng.Make_N.html" title="Nocrypto.Rng.Make_N">Next</a>
+</div>
+<h1>Module <a href="type_Nocrypto.Rng.Generators.html">Nocrypto.Rng.Generators</a></h1>
+
+<pre><span class="keyword">module</span> Generators: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rng.Generators.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
+Ready-to-use RNG algorithms.<br>
+</div>
+<hr width="100%">
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.Generators.Fortuna.html">Fortuna</a>: <code class="type"><a href="Nocrypto.Rng.S.Generator.html">Nocrypto.Rng.S.Generator</a></code><code class="type"> </code></pre><div class="info">
+<b>Fortuna</b>, a CSPRNG <a href=" https://www.schneier.com/fortuna.html"> proposed</a>
+        by Schneier.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.Generators.Hmac_drgb.html">Hmac_drgb</a>: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rng.Generators.Hmac_drgb.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+<b>HMAC_DRBG</b>: A NIST-specified RNG based on HMAC construction over the
+        provided hash.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.Generators.Null.html">Null</a>: <code class="type"><a href="Nocrypto.Rng.S.Generator.html">Nocrypto.Rng.S.Generator</a></code><code class="type"> </code></pre><div class="info">
+No-op generator returning exactly the bytes it was seeded with.
+</div>
+</body></html>

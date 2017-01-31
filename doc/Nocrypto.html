@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="next" href="Nocrypto_entropy_unix.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_mirage" rel="Chapter" href="Nocrypto_entropy_mirage.html"><link title="Utilities" rel="Section" href="#1_Utilities">
+<link title="Hashing" rel="Section" href="#1_Hashing">
+<link title="Symmetric-key cryptography" rel="Section" href="#1_Symmetrickeycryptography">
+<link title="Randomness" rel="Section" href="#1_Randomness">
+<link title="Public-key cryptography" rel="Section" href="#1_Publickeycryptography">
+<title>Nocrypto</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Nocrypto_entropy_unix.html" title="Nocrypto_entropy_unix">Next</a>
+</div>
+<h1>Module <a href="type_Nocrypto.html">Nocrypto</a></h1>
+
+<pre><span class="keyword">module</span> Nocrypto: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
+Simpler crypto
+<p>
+
+    Nocrypto is a cryptographic library.
+<p>
+
+    The overarching API principle is simply mapping inputs to outputs, wherever
+    feasible.
+<p>
+
+    Similar algorithms in the same class (like <a href="Nocrypto.Hash.html">hashes</a> or
+    <a href="Nocrypto.Cipher_block.html">block ciphers</a>) are presented as distinct modules sharing
+    the same signature.
+<p>
+
+    <a href="Nocrypto.Rng.html">Randomness</a> is treated as an ambient effect.
+<p>
+
+    <em>v0.5.4-1-ga89c616 — <a href="https://github.com/mirleft/ocaml-nocrypto ">homepage</a></em><br>
+</div>
+<hr width="100%">
+<br>
+<h1 id="1_Utilities">Utilities</h1><br>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Base64.html">Base64</a>: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Base64.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Base64 conversion.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Numeric.html">Numeric</a>: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Numeric.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Numeric utilities.
+</div>
+<br>
+<h1 id="1_Hashing">Hashing</h1><br>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Hash.html">Hash</a>: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Hash.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Hashes.
+</div>
+<br>
+<h1 id="1_Symmetrickeycryptography">Symmetric-key cryptography</h1><br>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Cipher_block.html">Cipher_block</a>: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Cipher_block.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Block ciphers.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Cipher_stream.html">Cipher_stream</a>: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Cipher_stream.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Streaming ciphers.
+</div>
+<br>
+<h1 id="1_Randomness">Randomness</h1><br>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rng.html">Rng</a>: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rng.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Secure random number generation.
+</div>
+<br>
+<h1 id="1_Publickeycryptography">Public-key cryptography</h1><br>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Rsa.html">Rsa</a>: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Rsa.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+<b>RSA</b> public-key cryptography.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Dsa.html">Dsa</a>: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Dsa.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+<b>DSA</b> digital signature algorithm.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Dh.html">Dh</a>: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Dh.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Diffie-Hellman, MODP version.
+</div>
+</body></html>

@@ -1,0 +1,107 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Nocrypto_entropy_unix.html">
+<link rel="next" href="Nocrypto_entropy_mirage.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_mirage" rel="Chapter" href="Nocrypto_entropy_mirage.html"><link title="Default generator initialization" rel="Section" href="#1_Defaultgeneratorinitialization">
+<link title="Background seeding" rel="Section" href="#1_Backgroundseeding">
+<title>Nocrypto_entropy_lwt</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Nocrypto_entropy_unix.html" title="Nocrypto_entropy_unix">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Nocrypto_entropy_mirage.html" title="Nocrypto_entropy_mirage">Next</a>
+</div>
+<h1>Module <a href="type_Nocrypto_entropy_lwt.html">Nocrypto_entropy_lwt</a></h1>
+
+<pre><span class="keyword">module</span> Nocrypto_entropy_lwt: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto_entropy_lwt.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
+<b>RNG</b> seeding on <b>Lwt/Unix</b>.
+<p>
+
+    This module provides RNG seeding from the Unix kernel RNG, typically
+    <pre class="codepre"><code class="code">/dev/urandom</code></pre>. It uses <code class="code"><span class="constructor">Lwt</span></code> for periodic background reseeding.
+<p>
+
+    Calling <a href="Nocrypto_entropy_lwt.html#VALinitialize">initialize</a> is enough to bring the RNG into a working
+    state. In addition, a background task is set up to periodically reseed the
+    RNG.
+<p>
+
+    <code class="code">initialize</code> is idempotent as long as the default generator is unchanged.
+    It is harmless to call it several times.
+<p>
+
+    Note that <code class="code">initialize</code> returns a thread. While the reseeding task has only
+    been created once this thread completes, the initial seeding is done before
+    the function returns. Is is safe to use the RNG immediately after the
+    invocation.
+<p>
+
+    <h1 id="1_Usage">Usage</h1>
+<p>
+
+    Seed during module initialization, not waiting for the background seeding to
+    start:
+<pre class="codepre"><code class="code"><span class="keyword">let</span> _ = <span class="constructor">Nocrypto_entropy_lwt</span>.initialize () </code></pre>
+<p>
+
+    Seed just before the main function, not waiting for the background seeding
+    to start:
+<pre class="codepre"><code class="code"><span class="keyword">let</span> () =
+  ignore (<span class="constructor">Nocrypto_entropy_lwt</span>.initialize ());
+  <span class="constructor">Lwt_main</span>.run (main ()) </code></pre>
+<p>
+
+    Seed just before the main function, and wait for the background seeding to
+    start before proceeding:
+<pre class="codepre"><code class="code"><span class="keyword">let</span> () =
+  <span class="constructor">Lwt_main</span>.run (<span class="constructor">Nocrypto_entropy_lwt</span>.initialize () &gt;&gt;= main) </code></pre><br>
+</div>
+<hr width="100%">
+<br>
+<h1 id="1_Defaultgeneratorinitialization">Default generator initialization</h1><br>
+
+<pre><span id="VALinitialize"><span class="keyword">val</span> initialize</span> : <code class="type">unit -> unit Lwt.t</code></pre><div class="info ">
+Immediately seeds the current defalt generator using
+    <a href="Nocrypto_entropy_unix.html#VALinitialize"><code class="code"><span class="constructor">Nocrypto_entropy_unix</span>.initialize</code></a>. The initial seeding is finished before
+    the function returns.
+<p>
+
+    It then invokes <a href="Nocrypto_entropy_lwt.html#VALattach">attach</a>. Once the returned thread completes, a
+    background reseeding task has been attached to the defalt generator.<br>
+</div>
+<br>
+<h1 id="1_Backgroundseeding">Background seeding</h1><br>
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> </pre>
+<div class="info ">
+Represents background reseeding task.<br>
+</div>
+
+
+<pre><span id="VALattach"><span class="keyword">val</span> attach</span> : <code class="type">period:int -><br>       ?device:string -> <a href="Nocrypto.Rng.html#TYPEg">Nocrypto.Rng.g</a> -> <a href="Nocrypto_entropy_lwt.html#TYPEt">t</a> Lwt.t</code></pre><div class="info ">
+<code class="code">attach&nbsp;~period&nbsp;~device&nbsp;g</code> instruments the lwt event loop to mix in bytes
+    from <code class="code">device</code> into <code class="code">g</code> whenever external events cause the loop to wake up,
+    but no more often than once every <code class="code">period</code> seconds.
+<p>
+
+    <code class="code">device</code> defaults to <a href="Nocrypto_entropy_unix.html#VALsys_rng"><code class="code"><span class="constructor">Nocrypto_entropy_unix</span>.sys_rng</code></a>.<br>
+</div>
+
+<pre><span id="VALstop"><span class="keyword">val</span> stop</span> : <code class="type"><a href="Nocrypto_entropy_lwt.html#TYPEt">t</a> -> unit Lwt.t</code></pre><div class="info ">
+Stops the reseeding task associated with <code class="code">t</code>. Idempotent.<br>
+</div>
+</body></html>

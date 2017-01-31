@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Nocrypto.Rng.Int32.html">
+<link rel="next" href="Nocrypto.Rng.Z.html">
+<link rel="Up" href="Nocrypto.Rng.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_mirage" rel="Chapter" href="Nocrypto_entropy_mirage.html"><title>Nocrypto.Rng.Int64</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Nocrypto.Rng.Int32.html" title="Nocrypto.Rng.Int32">Previous</a>
+&nbsp;<a class="up" href="Nocrypto.Rng.html" title="Nocrypto.Rng">Up</a>
+&nbsp;<a class="post" href="Nocrypto.Rng.Z.html" title="Nocrypto.Rng.Z">Next</a>
+</div>
+<h1>Module <a href="type_Nocrypto.Rng.Int64.html">Nocrypto.Rng.Int64</a></h1>
+
+<pre><span class="keyword">module</span> Int64: <code class="type"><a href="Nocrypto.Rng.S.N.html">S.N</a></code><code class="type">  with type t = int64</code></pre><hr width="100%">
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> </pre>
+<div class="info ">
+The type of extracted values.<br>
+</div>
+
+
+<pre><span id="VALgen"><span class="keyword">val</span> gen</span> : <code class="type">?g:<a href="Nocrypto.Rng.html#TYPEg">Nocrypto.Rng.g</a> -> <a href="Nocrypto.Rng.S.N.html#TYPEt">t</a> -> <a href="Nocrypto.Rng.S.N.html#TYPEt">t</a></code></pre><div class="info ">
+<code class="code">gen&nbsp;~g&nbsp;n</code> picks a value in the interval <code class="code">[0,&nbsp;n&nbsp;-&nbsp;1]</code> uniformly at random.<br>
+</div>
+
+<pre><span id="VALgen_r"><span class="keyword">val</span> gen_r</span> : <code class="type">?g:<a href="Nocrypto.Rng.html#TYPEg">Nocrypto.Rng.g</a> -><br>       <a href="Nocrypto.Rng.S.N.html#TYPEt">t</a> -> <a href="Nocrypto.Rng.S.N.html#TYPEt">t</a> -> <a href="Nocrypto.Rng.S.N.html#TYPEt">t</a></code></pre><div class="info ">
+<code class="code">gen_r&nbsp;~g&nbsp;low&nbsp;high</code> picks a value from the interval <code class="code">[low,&nbsp;high&nbsp;-&nbsp;1]</code>
+          uniformly at random.<br>
+</div>
+
+<pre><span id="VALgen_bits"><span class="keyword">val</span> gen_bits</span> : <code class="type">?g:<a href="Nocrypto.Rng.html#TYPEg">Nocrypto.Rng.g</a> -> ?msb:int -> int -> <a href="Nocrypto.Rng.S.N.html#TYPEt">t</a></code></pre><div class="info ">
+<code class="code">gen_bits&nbsp;~g&nbsp;~msb&nbsp;n</code> picks a bit-string <code class="code">n</code> bits long, with <code class="code">msb</code> most
+          significant bits set, and interprets it as a <a href="Nocrypto.Rng.S.N.html#TYPEt">t</a> in big-endidan.
+          This yields a value in the interval
+          <code class="code">[2^(n-1)&nbsp;+&nbsp;...&nbsp;+&nbsp;2^(n-msb),&nbsp;2^n&nbsp;-&nbsp;1]</code>.
+<p>
+
+          <code class="code">msb</code> defaults to <code class="code">0</code> which reduces <code class="code">gen_bits&nbsp;k</code> to <code class="code">gen&nbsp;2^k</code>.<br>
+</div>
+</body></html>

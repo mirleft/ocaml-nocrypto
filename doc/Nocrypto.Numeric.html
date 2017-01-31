@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Nocrypto.Base64.html">
+<link rel="next" href="Nocrypto.Hash.html">
+<link rel="Up" href="Nocrypto.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_mirage" rel="Chapter" href="Nocrypto_entropy_mirage.html"><link title="Misc elementary number theory" rel="Section" href="#1_Miscelementarynumbertheory">
+<title>Nocrypto.Numeric</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Nocrypto.Base64.html" title="Nocrypto.Base64">Previous</a>
+&nbsp;<a class="up" href="Nocrypto.html" title="Nocrypto">Up</a>
+&nbsp;<a class="post" href="Nocrypto.Hash.html" title="Nocrypto.Hash">Next</a>
+</div>
+<h1>Module <a href="type_Nocrypto.Numeric.html">Nocrypto.Numeric</a></h1>
+
+<pre><span class="keyword">module</span> Numeric: <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Numeric.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
+Numeric utilities.<br>
+</div>
+<hr width="100%">
+
+<pre><span class="keyword">module type</span> <a href="Nocrypto.Numeric.S.html">S</a> = <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Numeric.S.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Augmented numeric type.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Nocrypto.Numeric.Int.html">Int</a>: <code class="type"><a href="Nocrypto.Numeric.S.html">S</a></code><code class="type">  with type t = int</code></pre>
+<pre><span class="keyword">module</span> <a href="Nocrypto.Numeric.Int32.html">Int32</a>: <code class="type"><a href="Nocrypto.Numeric.S.html">S</a></code><code class="type">  with type t = int32</code></pre>
+<pre><span class="keyword">module</span> <a href="Nocrypto.Numeric.Int64.html">Int64</a>: <code class="type"><a href="Nocrypto.Numeric.S.html">S</a></code><code class="type">  with type t = int64</code></pre>
+<pre><span class="keyword">module</span> <a href="Nocrypto.Numeric.Z.html">Z</a>: <code class="type"><a href="Nocrypto.Numeric.S.html">S</a></code><code class="type">  with type t = Z.t</code></pre><br>
+<h1 id="1_Miscelementarynumbertheory">Misc elementary number theory</h1><br>
+
+<pre><span id="VALpseudoprime"><span class="keyword">val</span> pseudoprime</span> : <code class="type">Z.t -> bool</code></pre><div class="info ">
+Miller-Rabin with sane rounds parameter.<br>
+</div>
+</body></html>

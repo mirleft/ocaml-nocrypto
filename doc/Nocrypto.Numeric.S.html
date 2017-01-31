@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="Up" href="Nocrypto.Numeric.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Nocrypto" rel="Chapter" href="Nocrypto.html">
+<link title="Nocrypto_entropy_unix" rel="Chapter" href="Nocrypto_entropy_unix.html">
+<link title="Nocrypto_entropy_lwt" rel="Chapter" href="Nocrypto_entropy_lwt.html">
+<link title="Nocrypto_entropy_mirage" rel="Chapter" href="Nocrypto_entropy_mirage.html"><title>Nocrypto.Numeric.S</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="Nocrypto.Numeric.html" title="Nocrypto.Numeric">Up</a>
+&nbsp;</div>
+<h1>Module type <a href="type_Nocrypto.Numeric.S.html">Nocrypto.Numeric.S</a></h1>
+
+<pre><span class="keyword">module type</span> S = <code class="code"><span class="keyword">sig</span></code> <a href="Nocrypto.Numeric.S.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info modtype top">
+Augmented numeric type.
+      Includes basic common numeric ops, range of conversions to and from
+      variously-sized int types, and a few basic function for representing such
+      numbers as <code class="code"><span class="constructor">Cstruct</span>.t</code>.<br>
+</div>
+<hr width="100%">
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> </pre>
+
+
+<pre><span id="VALzero"><span class="keyword">val</span> zero</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a></code></pre>
+<pre><span id="VALone"><span class="keyword">val</span> one</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a></code></pre>
+<pre><span id="VAL(lsr)"><span class="keyword">val</span> (lsr)</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> int -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a></code></pre>
+<pre><span id="VAL(lsl)"><span class="keyword">val</span> (lsl)</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> int -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a></code></pre>
+<pre><span id="VAL(land)"><span class="keyword">val</span> (land)</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a></code></pre>
+<pre><span id="VAL(lor)"><span class="keyword">val</span> (lor)</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a></code></pre>
+<pre><span id="VAL(lxor)"><span class="keyword">val</span> (lxor)</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a></code></pre>
+<pre><span id="VAL(+)"><span class="keyword">val</span> (+)</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a></code></pre>
+<pre><span id="VAL(-)"><span class="keyword">val</span> (-)</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a></code></pre>
+<pre><span id="VALsucc"><span class="keyword">val</span> succ</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a></code></pre>
+<pre><span id="VALpred"><span class="keyword">val</span> pred</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a></code></pre>
+<pre><span id="VALof_int"><span class="keyword">val</span> of_int</span> : <code class="type">int -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a></code></pre>
+<pre><span id="VALof_int32"><span class="keyword">val</span> of_int32</span> : <code class="type">int32 -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a></code></pre>
+<pre><span id="VALof_int64"><span class="keyword">val</span> of_int64</span> : <code class="type">int64 -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a></code></pre>
+<pre><span id="VALto_int"><span class="keyword">val</span> to_int</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> int</code></pre>
+<pre><span id="VALto_int32"><span class="keyword">val</span> to_int32</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> int32</code></pre>
+<pre><span id="VALto_int64"><span class="keyword">val</span> to_int64</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> int64</code></pre>
+<pre><span id="VALbit_bound"><span class="keyword">val</span> bit_bound</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> int</code></pre>
+<pre><span id="VALpp_print"><span class="keyword">val</span> pp_print</span> : <code class="type">Format.formatter -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> unit</code></pre>
+<pre><span id="VALbits"><span class="keyword">val</span> bits</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> int</code></pre>
+<pre><span id="VALof_cstruct_be"><span class="keyword">val</span> of_cstruct_be</span> : <code class="type">?bits:int -> Cstruct.t -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a></code></pre>
+<pre><span id="VALto_cstruct_be"><span class="keyword">val</span> to_cstruct_be</span> : <code class="type">?size:int -> <a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> Cstruct.t</code></pre>
+<pre><span id="VALinto_cstruct_be"><span class="keyword">val</span> into_cstruct_be</span> : <code class="type"><a href="Nocrypto.Numeric.S.html#TYPEt">t</a> -> Cstruct.t -> unit</code></pre></body></html>
