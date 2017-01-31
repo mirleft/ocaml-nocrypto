@@ -14,11 +14,12 @@ delegating to AES-NI.
 [Interface][nocrypto-mli] is documented. Also [online][doc].
 
 [nocrypto-mli]: https://github.com/mirleft/ocaml-nocrypto/blob/master/src/nocrypto.mli
-[doc]: http://mirleft.github.io/ocaml-nocrypto
+[doc]: http://mirleft.github.io/ocaml-nocrypto/doc
 
 ## Build
 
-```./pkg/pkg.ml build
+```bash
+./pkg/pkg.ml build
   --with-unix BOOL
   --with-lwt BOOL
   --xen BOOL

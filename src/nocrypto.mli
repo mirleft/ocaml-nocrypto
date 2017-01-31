@@ -1,6 +1,6 @@
-(** [Nocrypto]: for when you're sick of crypto.
+(** Simpler crypto
 
-    A compact crypto library.
+    Nocrypto is a cryptographic library.
 
     The overarching API principle is simply mapping inputs to outputs, wherever
     feasible.
@@ -10,7 +10,8 @@
     the same signature.
 
     {{!Rng}Randomness} is treated as an ambient effect.
-*)
+
+    {e %%VERSION%% — {{:%%PKG_HOMEPAGE%% }homepage}} *)
 
 (*
  * Doc note: Sexplib conversions are noted explicitly instead of using
@@ -224,7 +225,7 @@ end
 (** {1 Symmetric-key cryptography} *)
 
 (** Block ciphers.
- 
+
     Each algorithm, and each mode of operation, is contained in its own separate
     module. *)
 module Cipher_block : sig

@@ -21,7 +21,7 @@ depends: [
   "cpuid" {build}
   "ocb-stubblr" {build}
   "ppx_sexp_conv" {build}
-  "oUnit" {test}
+  "ounit" {test}
   "cstruct"
   "zarith"
   "sexplib"
