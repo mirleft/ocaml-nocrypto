@@ -118,8 +118,7 @@ module Counter = struct
   let add8 cs i x =
     BE.(set_uint64 cs i (Int64.add x (get_uint64 cs i)))
 
-  (* FIXME: overflow: higher order bits. *)
-  let add16 cs i x = add8 cs (i + 8) x
+  let add16 cs i x = Native.add16be cs.buffer i x
 
 end
 

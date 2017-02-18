@@ -79,5 +79,6 @@ external xor_into : buffer -> off -> buffer -> off -> size -> unit = "caml_nc_xo
 
 external count8be  : buffer -> off -> buffer -> off -> size -> unit = "caml_nc_count_8_be" [@@noalloc]
 external count16be : buffer -> off -> buffer -> off -> size -> unit = "caml_nc_count_16_be" [@@noalloc]
+external add16be : buffer -> off -> int64 -> unit = "caml_nc_add_16_be" [@@noalloc]
 
 external blit : buffer -> off -> buffer -> off -> size -> unit = "caml_blit_bigstring_to_bigstring" [@@noalloc]
