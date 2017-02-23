@@ -213,7 +213,9 @@ module Hash : sig
       {e [Sexplib] convertible}. *)
 
   val digest      : [< hash ] -> Cstruct.t -> Cstruct.t
+  val digestv     : [< hash ] -> Cstruct.t list -> Cstruct.t
   val mac         : [< hash ] -> key:Cstruct.t -> Cstruct.t -> Cstruct.t
+  val macv        : [< hash ] -> key:Cstruct.t -> Cstruct.t list -> Cstruct.t
   val digest_size : [< hash ] -> int
   val module_of   : [< hash ] -> (module S)
 

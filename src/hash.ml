@@ -117,30 +117,6 @@ end
 type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]
 [@@deriving sexp]
 
-let digest = function
-  | `MD5    -> MD5.digest
-  | `SHA1   -> SHA1.digest
-  | `SHA224 -> SHA224.digest
-  | `SHA256 -> SHA256.digest
-  | `SHA384 -> SHA384.digest
-  | `SHA512 -> SHA512.digest
-
-let mac = function
-  | `MD5    -> MD5.hmac
-  | `SHA1   -> SHA1.hmac
-  | `SHA224 -> SHA224.hmac
-  | `SHA256 -> SHA256.hmac
-  | `SHA384 -> SHA384.hmac
-  | `SHA512 -> SHA512.hmac
-
-let digest_size = function
-  | `MD5    -> MD5.digest_size
-  | `SHA1   -> SHA1.digest_size
-  | `SHA224 -> SHA224.digest_size
-  | `SHA256 -> SHA256.digest_size
-  | `SHA384 -> SHA384.digest_size
-  | `SHA512 -> SHA512.digest_size
-
 let module_of = function
   | `MD5    -> (module MD5    : S)
   | `SHA1   -> (module SHA1   : S)
@@ -148,3 +124,9 @@ let module_of = function
   | `SHA256 -> (module SHA256 : S)
   | `SHA384 -> (module SHA384 : S)
   | `SHA512 -> (module SHA512 : S)
+
+let digest hash      = let module H = (val (module_of hash)) in H.digest
+let digestv hash     = let module H = (val (module_of hash)) in H.digestv
+let mac hash         = let module H = (val (module_of hash)) in H.hmac
+let macv hash        = let module H = (val (module_of hash)) in H.hmacv
+let digest_size hash = let module H = (val (module_of hash)) in H.digest_size
