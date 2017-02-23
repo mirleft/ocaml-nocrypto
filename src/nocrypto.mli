@@ -193,6 +193,11 @@ module Hash : sig
     (** [hmac ~key bytes] is authentication code for [bytes] under the secret
         [key], generated using the standard HMAC construction over this hash
         algorithm. *)
+
+    val hmacv : key:Cstruct.t -> Cstruct.t list -> Cstruct.t
+    (** [hmac ~key bytesv] is authentication code for [bytesv] under the secret
+        [key], generated using the standard HMAC construction over this hash
+        algorithm. *)
   end
 
   module MD5     : S
