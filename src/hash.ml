@@ -12,7 +12,8 @@ module type S = sig
 
   val digest  : Cstruct.t      -> Cstruct.t
   val digestv : Cstruct.t list -> Cstruct.t
-  val hmac    : key:Cstruct.t -> Cstruct.t -> Cstruct.t
+  val hmac    : key:Cstruct.t -> Cstruct.t      -> Cstruct.t
+  val hmacv   : key:Cstruct.t -> Cstruct.t list -> Cstruct.t
 end
 
 module type Foreign = sig
@@ -72,11 +73,13 @@ module Hash_of (F : Foreign) (D : Desc) = struct
     | -1 -> rpad key block_size 0
     |  _ -> key
 
-  let hmac ~key message =
+  let hmacv ~key messages =
     let key = norm key in
     let outer = xor key opad
     and inner = xor key ipad in
-    digestv [ outer ; digestv [ inner ; message ] ]
+    digestv [ outer ; digestv (inner :: messages) ]
+
+  let hmac ~key message = hmacv ~key [message]
 end
 
 module MD5 = Hash_of (Native.MD5) ( struct

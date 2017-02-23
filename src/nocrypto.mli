@@ -187,12 +187,15 @@ module Hash : sig
     (** Compute the digest. *)
 
     val digestv : Cstruct.t list -> Cstruct.t
-    (** Compute the digest. *)
+    (** See {{!digest}[digest]}. *)
 
     val hmac : key:Cstruct.t -> Cstruct.t -> Cstruct.t
     (** [hmac ~key bytes] is authentication code for [bytes] under the secret
         [key], generated using the standard HMAC construction over this hash
         algorithm. *)
+
+    val hmacv : key:Cstruct.t -> Cstruct.t list -> Cstruct.t
+    (** See {{!hmac}[hmac]}. *)
   end
 
   module MD5     : S
