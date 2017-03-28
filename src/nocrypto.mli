@@ -13,12 +13,6 @@
 
     {e %%VERSION%% — {{:%%PKG_HOMEPAGE%% }homepage}} *)
 
-(*
- * Doc note: Sexplib conversions are noted explicitly instead of using
- * `[@@deriving sexp]` because the syntax extension interacts badly with
- * ocamldoc.
- *)
-
 (** {1 Utilities} *)
 
 (** Base64 conversion.
@@ -208,9 +202,7 @@ module Hash : sig
   (** {1 Short-hand functions} *)
 
   type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]
-  (** Hashing algorithm.
-
-      {e [Sexplib] convertible}. *)
+  (** Hashing algorithm. *)
 
   val digest      : [< hash ] -> Cstruct.t -> Cstruct.t
   val digestv     : [< hash ] -> Cstruct.t list -> Cstruct.t
@@ -218,11 +210,6 @@ module Hash : sig
   val macv        : [< hash ] -> key:Cstruct.t -> Cstruct.t list -> Cstruct.t
   val digest_size : [< hash ] -> int
   val module_of   : [< hash ] -> (module S)
-
-  (**/**)
-  val hash_of_sexp : Sexplib.Sexp.t -> hash
-  val sexp_of_hash : hash -> Sexplib.Sexp.t
-  (**/**)
 
 end
 
@@ -670,9 +657,7 @@ module Rsa : sig
     e : Z.t ; (** Public exponent *)
     n : Z.t ; (** Modulus *)
   }
-  (** Public key.
-
-      {e [Sexplib] convertible}. *)
+  (** Public key. *)
 
   type priv = {
     e  : Z.t ; (** Public exponent *)
@@ -684,9 +669,7 @@ module Rsa : sig
     dq : Z.t ; (** [d mod (q-1)] *)
     q' : Z.t ; (** [q^(-1) mod p] *)
   }
-  (** Private key (two-factor version).
-
-      {e [Sexplib] convertible}. *)
+  (** Private key (two-factor version). *)
 
   type mask = [ `No | `Yes | `Yes_with of Rng.g ]
   (** Masking (cryptographic blinding) option. *)
@@ -785,14 +768,6 @@ module Rsa : sig
         valid {b PSS} signature of the [message] under the given [key]. *)
   end
 
-  (**/**)
-  val pub_of_sexp : Sexplib.Sexp.t -> pub
-  val sexp_of_pub : pub -> Sexplib.Sexp.t
-
-  val priv_of_sexp : Sexplib.Sexp.t -> priv
-  val sexp_of_priv : priv -> Sexplib.Sexp.t
-  (**/**)
-
 end
 
 
@@ -808,9 +783,7 @@ module Dsa : sig
     x  : Z.t ; (** Private key proper *)
     y  : Z.t ; (** Public component *)
   }
-  (** Private key. [p], [q] and [gg] comprise {i domain parameters}.
-
-      {e [Sexplib] convertible}. *)
+  (** Private key. [p], [q] and [gg] comprise {i domain parameters}. *)
 
   type pub  = {
     p  : Z.t ;
@@ -818,9 +791,7 @@ module Dsa : sig
     gg : Z.t ;
     y  : Z.t ;
   }
-  (** Public key, a subset of {{!priv}private key}.
-
-      {e [Sexplib] convertible}. *)
+  (** Public key, a subset of {{!priv}private key}. *)
 
   type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `Exactly of int * int ]
   (** Key size request. Three {e Fips} variants refer to FIPS-standardized
@@ -872,14 +843,6 @@ module Dsa : sig
         message digest to a [k] suitable for seeding the signing process. *)
   end
 
-  (**/**)
-  val pub_of_sexp : Sexplib.Sexp.t -> pub
-  val sexp_of_pub : pub -> Sexplib.Sexp.t
-
-  val priv_of_sexp : Sexplib.Sexp.t -> priv
-  val sexp_of_priv : priv -> Sexplib.Sexp.t
-  (**/**)
-
 end
 
 
@@ -897,14 +860,10 @@ module Dh : sig
     gg : Z.t ;        (** generator *)
     q  : Z.t option ; (** subgroup order; potentially unknown *)
   }
-  (** A DH group.
-
-      {e [Sexplib] convertible}. *)
+  (** A DH group. *)
 
   type secret = private { x : Z.t }
-  (** A private secret.
-
-      {e [Sexplib] convertible.} *)
+  (** A private secret. *)
 
   val modulus_size : group -> int
   (** Bit size of the modulus. *)
@@ -964,13 +923,5 @@ module Dh : sig
     val ffdhe8192 : group
 
   end
-
-  (**/**)
-  val group_of_sexp : Sexplib.Sexp.t -> group
-  val sexp_of_group : group -> Sexplib.Sexp.t
-
-  val secret_of_sexp : Sexplib.Sexp.t -> secret
-  val sexp_of_secret : secret -> Sexplib.Sexp.t
-  (**/**)
 
 end

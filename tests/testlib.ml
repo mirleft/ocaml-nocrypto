@@ -156,11 +156,10 @@ let b64_selftest n =
 let gen_rsa ~bits =
   let e     = Z.(if bits < 24 then ~$3 else ~$0x10001) in
   let key   = Rsa.(generate ~e bits) in
-  let key_s = Sexplib.Sexp.to_string_hum Rsa.(sexp_of_priv key) in
   assert_equal
-    ~msg:Printf.(sprintf "key size not %d bits:\n%s" bits key_s)
+    ~msg:Printf.(sprintf "key size not %d bits" bits)
     bits Rsa.(priv_bits key);
-  (key, key_s)
+  key
 
 
 let rsa_selftest ~bits n =
@@ -172,12 +171,12 @@ let rsa_selftest ~bits n =
       Cstruct.(set_uint8 cs 1 @@ max 1 (get_uint8 cs 1)) ;
       cs in
 
-    let (key, key_s) = gen_rsa ~bits in
+    let key = gen_rsa ~bits in
     let enc = Rsa.(encrypt ~key:(pub_of_priv key) msg) in
     let dec = Rsa.(decrypt ~key enc) in
 
     assert_cs_equal
-      ~msg:Printf.(sprintf "failed decryption with:\n%s" key_s)
+      ~msg:Printf.(sprintf "failed decryption")
       msg dec
 
 let show_key_size key =
@@ -190,7 +189,7 @@ let pkcs_message_for_bits bits =
 
 let rsa_pkcs1_sign_selftest ~bits n =
   "selftest" >:: times ~n @@ fun _ ->
-    let (key, _) = gen_rsa ~bits
+    let key = gen_rsa ~bits
     and msg      = pkcs_message_for_bits bits in
     let sgn      = Rsa.PKCS1.sig_encode ~key msg in
     match Rsa.(PKCS1.sig_decode ~key:(pub_of_priv key) sgn) with
@@ -200,7 +199,7 @@ let rsa_pkcs1_sign_selftest ~bits n =
 
 let rsa_pkcs1_encrypt_selftest ~bits n =
   "selftest" >:: times ~n @@ fun _ ->
-    let (key, _) = gen_rsa ~bits
+    let key = gen_rsa ~bits
     and msg      = pkcs_message_for_bits bits in
     let enc      = Rsa.(PKCS1.encrypt ~key:(pub_of_priv key) msg) in
     match Rsa.PKCS1.decrypt ~key enc with
@@ -211,7 +210,7 @@ let rsa_pkcs1_encrypt_selftest ~bits n =
 let rsa_oaep_encrypt_selftest ~bits n =
   let module Oaep_sha1 = Rsa.OAEP (Hash.SHA1) in
   "selftest" >:: times ~n @@ fun _ ->
-    let (key, _) = gen_rsa ~bits
+    let key = gen_rsa ~bits
     and msg      = Rng.generate (cdiv bits 8 - 2 * Hash.SHA1.digest_size - 2) in
     let enc      = Oaep_sha1.encrypt ~key:(Rsa.pub_of_priv key) msg in
     match Oaep_sha1.decrypt ~key enc with
@@ -221,7 +220,7 @@ let rsa_oaep_encrypt_selftest ~bits n =
 let rsa_pss_sign_selftest ~bits n =
   let module Pss_sha1 = Rsa.PSS (Hash.SHA1) in
   "selftest" >:: times ~n @@ fun _ ->
-    let (key, _)  = gen_rsa ~bits
+    let key  = gen_rsa ~bits
     and msg       = Rng.generate (cdiv bits 8 - 2 * Hash.SHA1.digest_size - 2) in
     let signature = Pss_sha1.sign ~key msg in
     let ok        = Pss_sha1.verify ~key:(Rsa.pub_of_priv key) ~signature msg in
