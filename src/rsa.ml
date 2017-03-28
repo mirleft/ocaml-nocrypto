@@ -1,14 +1,13 @@
-open Sexplib.Conv
 open Uncommon
 
 exception Insufficient_key
 
-type pub  = { e : Z.t ; n : Z.t } [@@deriving sexp]
+type pub  = { e : Z.t ; n : Z.t }
 
 type priv = {
   e : Z.t ; d : Z.t ; n  : Z.t ;
   p : Z.t ; q : Z.t ; dp : Z.t ; dq : Z.t ; q' : Z.t
-} [@@deriving sexp]
+}
 
 type mask = [ `No | `Yes | `Yes_with of Rng.g ]
 

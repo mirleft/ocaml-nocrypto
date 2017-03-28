@@ -4,7 +4,7 @@ true: warn(A-4-29-33-40-41-42-43-34-44-48)
 true: package(bytes), package(cstruct)
 
 <src>: include
-<src/*.ml{,i}>: package(zarith), package(sexplib), package(ppx_sexp_conv)
+<src/*.ml{,i}>: package(zarith)
 <src/*.cm{x,o}> and not <src/nocrypto.cmx>: for-pack(Nocrypto)
 <src/*.cm{,x}a>: link_stubs(src/libnocrypto_stubs)
 
