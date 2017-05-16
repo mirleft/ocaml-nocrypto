@@ -727,6 +727,42 @@ module Rsa : sig
       Keys must have a minimum of [11 + len(message)] bytes. *)
   module PKCS1 : sig
 
+    module type S = sig
+      (* RFC3477-compliant RSASSA-PKCS1-v1_5-SIGN and RSASSA-PKCS1-v1_5-VERIFY
+         operating with PKCS1 (type 1)-padded signatures *)
+
+      type t
+      (** An initialized hash state that enables signing or verifying large
+        messages that may not fit in memory through the use of [feed t chunk]. *)
+
+      val minimum_key_bits : int
+      (** The minimum size of keys that can work with this signature type *)
+
+      val feed : t -> Cstruct.t -> unit
+      (** [feed t data] updates the internal state [t] with [data] *)
+
+      val sign_t : ?mask:mask -> key:priv -> t -> Cstruct.t
+      (** [sign key t] is the PKCS1-padded (type 1) digest [t]
+          signed by the [key]. *)
+
+      val sign : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
+      (** [sign key msg] is the PKCS1-padded (type 1) hash of [msg]
+          signed by the [key]. *)
+
+      val verify_t : key:pub -> t -> Cstruct.t -> bool
+      (** [verify_t key t signature] verifies that signed PKCS1 (type 1) message *)
+
+      val verify : key:pub -> msg:Cstruct.t -> Cstruct.t -> bool
+      (** [verify key msg signature] verifies that [signature] is a signature on [msg] signed with the private part of [key] *)
+    end
+
+    module MD5 : S
+    module SHA1 : S
+    module SHA224 : S
+    module SHA256 : S
+    module SHA384 : S
+    module SHA512 : S
+
     val sig_encode : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
     (** [sig_encode mask key message] is the PKCS1-padded (type 1) [message]
         signed by the [key]. Note that this operation performs only the padding

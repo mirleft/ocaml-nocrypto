@@ -197,6 +197,18 @@ let rsa_pkcs1_sign_selftest ~bits n =
     | None     -> assert_failure ("unpad failure " ^ show_key_size key)
     | Some dec -> assert_cs_equal msg dec
                     ~msg:("recovery failure " ^ show_key_size key)
+    ;
+    let module P = Rsa.PKCS1.SHA512 in
+    let signop = fun () -> P.sign ~key msg in
+    if bits < P.minimum_key_bits then
+      assert_raises ~msg:("fails to reject keys of size " ^(string_of_int bits)^ " below min size " ^ (string_of_int P.minimum_key_bits)) Rsa.Insufficient_key signop
+    else
+    match signop () with
+    | exception Rsa.Insufficient_key -> assert_failure ("Unexpected Insufficient_key raised: " ^ show_key_size key)
+    | sgn_sha512 ->
+    assert_bool ("verification failure (SHA512) " ^ show_key_size key)
+    Rsa.(P.verify ~key:(pub_of_priv key) ~msg sgn_sha512)
+
 
 let rsa_pkcs1_encrypt_selftest ~bits n =
   "selftest" >:: times ~n @@ fun _ ->
@@ -907,7 +919,11 @@ let suite =
 
     "RSA-PKCS1-SIGN" >::: [
       rsa_pkcs1_sign_selftest ~bits:111 100 ;
-      rsa_pkcs1_sign_selftest ~bits:512 10 ;
+      rsa_pkcs1_sign_selftest ~bits:256 10 ;
+      rsa_pkcs1_sign_selftest ~bits:744 5 ;
+      rsa_pkcs1_sign_selftest ~bits:745 10 ;
+      rsa_pkcs1_sign_selftest ~bits:751 10 ;
+      rsa_pkcs1_sign_selftest ~bits:752 10 ;
     ] ;
 
     "RSA-OAEP(SHA1)-ENC" >::: [
