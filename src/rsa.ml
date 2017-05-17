@@ -95,7 +95,6 @@ module PKCS1 = struct
 
   open Cstruct
 
-
   (* XXX Generalize this into `Rng.samplev` or something. *)
   let generate_with ?g ~f n =
     let cs = create n
@@ -145,38 +144,45 @@ module PKCS1 = struct
     type t
     val minimum_key_bits : int
     val feed : t -> Cstruct.t -> unit
+    val sign_cs : ?mask:mask -> key:priv -> digest:Cstruct.t -> Cstruct.t
     val sign_t : ?mask:mask -> key:priv -> t -> Cstruct.t
     val sign : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
+    val verify_cs : key:pub -> digest:Cstruct.t -> Cstruct.t -> bool
     val verify_t : key:pub -> t -> Cstruct.t -> bool
     val verify : key:pub -> msg:Cstruct.t -> Cstruct.t -> bool
   end
 
   module Make(Parameters : (sig val asn_stub : Cstruct.t module H : Hash.S end)) : S = struct
     type t = Parameters.H.t
-
     (* see [val padded] above, don't understand how the rounding down stuff works, but oh well: *)
     let minimum_key_bits = (8 * Parameters.H.digest_size) + (8 * min_pad) + (8 * Cstruct.len Parameters.asn_stub) - 7
 
     let feed = Parameters.H.feed
 
-    let sign_t ?mask ~key state =
+    let sign_cs ?mask ~key ~digest =
       (* padded does step 4-5 of EMSA-PKCS1-v1_5-ENCODE below: *)
-      let digest = Parameters.H.get state in
       padded pad_01 (decrypt ?mask ~key) (priv_bits key) Cstruct.(append Parameters.asn_stub digest)
+
+    let sign_t ?mask ~key state =
+      let digest = Parameters.H.get state in
+      sign_cs ?mask ~key ~digest
 
     let sign ?mask ~key msg =
       let state = Parameters.H.init () in
       let () = Parameters.H.feed state msg in
       sign_t ?mask ~key state
 
-    let verify_t ~key state signature =
+    let verify_cs ~key ~digest signature =
       match
         unpadded unpad_01 (encrypt ~key) (pub_bits key) signature
       with
       | None -> false
       | Some untrusted_digest ->
-          let target = Cstruct.append Parameters.asn_stub Parameters.H.(get state) in
+          let target = Cstruct.append Parameters.asn_stub digest in
           Cstruct.equal target untrusted_digest
+
+    let verify_t ~key state signature =
+      verify_cs ~key ~digest:(Parameters.H.get state) signature
 
     let verify ~key ~msg signature =
       let state = Parameters.H.init () in
@@ -192,7 +198,7 @@ module PKCS1 = struct
      You can verify with something like (ignoring the last Hash.S.digest_size bytes):
      X509.Encoding.pkcs1_digest_info_to_cstruct (`SHA256, Hash.SHA256.(digest Cstruct.(of_string "b")))
   *)
-  module MD5 = Make (struct module H = Hash.SHA1
+  module MD5 = Make (struct module H = Hash.MD5
                       let asn_stub = Cstruct.of_string "\x30\x20\x30\x0c\x06\x08\x2a\x86\x48\x86\xf7\x0d\x02\x05\x05\x00\x04\x10"
                       end)
 

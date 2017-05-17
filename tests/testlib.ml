@@ -209,6 +209,32 @@ let rsa_pkcs1_sign_selftest ~bits n =
     assert_bool ("verification failure (SHA512) " ^ show_key_size key)
     Rsa.(P.verify ~key:(pub_of_priv key) ~msg sgn_sha512)
 
+let rsa_pkcs1_sign_cases () =
+  (* generated with the python-crypto module:
+     from Crypto.Hash import SHA
+     from Crypto.PublicKey import RSA
+     from Crypto.Signature import PKCS1_v1_5
+     msg = 'Hello world'
+     print 'let msg = Cstruct.of_string "'+msg+'" in\n'
+     hash = SHA.new(msg)
+     key = RSA.generate(1024)
+     def to_z(n):
+       return 'Z.(of_string_base 16 "' + hex(n)[2:-1] + '")'
+     print 'let key = Nocrypto.Rsa.priv_of_primes ~e:', to_z(key.e), '~p:', to_z(key.p), '~q:', to_z(key.q), ' in\n'
+     signature = PKCS1_v1_5.new(key).sign(hash)
+     print 'let sign = match Nocrypto.Base64.decode Cstruct.(of_string "'+signature.encode('base64').replace('\n','')+'") with Some x -> x in\n'
+     print 'Nocrypto.Rsa.PKCS1.SHA1.verify ~key:Rsa.(pub_of_priv key) ~msg sign;;'
+  *)
+  "cases" >:: times ~n:1 @@ fun _ ->
+  let msg = Cstruct.of_string "Hello world" in
+  let key = Nocrypto.Rsa.priv_of_primes ~e: Z.(of_string_base 16 "10001") ~p:Z.(of_string_base 16 "b6e019bbafab9aadef8a525d37141660f43fe7fb8a2a9cc9510fd6c419a2af40d2cc699d5a6b49b9775a01d89714ce348e1f0ee5c4394f5010ee144278e23401") ~q:Z.(of_string_base 16 "cfaa680f61633c35f38394c2204361c1ff64c52d166d1a7ab85186b5b2785e92ee420e87df3c353710332b096b29fa0de9115d4064fd8c5ab9637b6793173017")  in
+  match Nocrypto.Base64.decode Cstruct.(of_string "kNNHPAQkSTbn8j+UtCZkNirTTvedGiUhJlztd9pcvoBH0xpGyuAmA4xhwwNa4KxYYPHI+g48XiTT10QRR1tFKfT2OiQmC77aVVvoNABeObrdt5eZVKE9BBH76t758GiI3eJWYlKnwFRqjLQIXOJYJ6DrDU/I16Zg3KLuSShoaUE=") with
+  | None -> assert_failure "base64 decoding failed"
+  | Some python_signature ->
+  let our_signature = Nocrypto.Rsa.PKCS1.SHA1.sign ~key msg in
+  assert_bool "Verification failed (python-crypto, sha1, 1024-bit key)"
+  @@ Nocrypto.Rsa.PKCS1.SHA1.verify ~key:Rsa.(pub_of_priv key) ~msg python_signature
+  ; assert_cs_equal ~msg:"Our PKCS1 signature <> python-crypto's using the same parameters" python_signature our_signature
 
 let rsa_pkcs1_encrypt_selftest ~bits n =
   "selftest" >:: times ~n @@ fun _ ->
@@ -920,10 +946,11 @@ let suite =
     "RSA-PKCS1-SIGN" >::: [
       rsa_pkcs1_sign_selftest ~bits:111 100 ;
       rsa_pkcs1_sign_selftest ~bits:256 10 ;
-      rsa_pkcs1_sign_selftest ~bits:744 5 ;
+      rsa_pkcs1_sign_selftest ~bits:744 10 ;
       rsa_pkcs1_sign_selftest ~bits:745 10 ;
       rsa_pkcs1_sign_selftest ~bits:751 10 ;
       rsa_pkcs1_sign_selftest ~bits:752 10 ;
+      rsa_pkcs1_sign_cases () ;
     ] ;
 
     "RSA-OAEP(SHA1)-ENC" >::: [

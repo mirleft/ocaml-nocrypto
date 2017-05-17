@@ -741,19 +741,25 @@ module Rsa : sig
       val feed : t -> Cstruct.t -> unit
       (** [feed t data] updates the internal state [t] with [data] *)
 
+      val sign_cs : ?mask:mask -> key:priv -> digest:Cstruct.t -> Cstruct.t
+      (** [sign_cs key digest] is PKCS1-padded (type 1) signature on [digest] signed by the [key]. *)
+
       val sign_t : ?mask:mask -> key:priv -> t -> Cstruct.t
-      (** [sign key t] is the PKCS1-padded (type 1) digest [t]
+      (** [sign_t key t] is the PKCS1-padded (type 1) signature on [t]
           signed by the [key]. *)
 
       val sign : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
       (** [sign key msg] is the PKCS1-padded (type 1) hash of [msg]
           signed by the [key]. *)
 
+      val verify_cs : key:pub -> digest:Cstruct.t -> Cstruct.t -> bool
+      (** [verify_t key digest signature] verifies that [signature] is the PKCS1 (type 1) signature on the data hashed in [digest]*)
+
       val verify_t : key:pub -> t -> Cstruct.t -> bool
-      (** [verify_t key t signature] verifies that signed PKCS1 (type 1) message *)
+      (** [verify_t key t signature] verifies that [signature] is the PKCS1 (type 1) signature on the data hashed in [t] *)
 
       val verify : key:pub -> msg:Cstruct.t -> Cstruct.t -> bool
-      (** [verify key msg signature] verifies that [signature] is a signature on [msg] signed with the private part of [key] *)
+      (** [verify key msg signature] verifies that [signature] is a PKCS1 (type 1) signature on [msg] signed with the private part of [key] *)
     end
 
     module MD5 : S
