@@ -728,66 +728,77 @@ module Rsa : sig
   module PKCS1 : sig
 
     module type S = sig
-      (* RFC3477-compliant RSASSA-PKCS1-v1_5-SIGN and RSASSA-PKCS1-v1_5-VERIFY
-         operating with PKCS1 (type 1)-padded signatures *)
+      (** RFC3477-compliant RSASSA-PKCS1-v1_5-SIGN and RSASSA-PKCS1-v1_5-VERIFY
+          operating with PKCS1 (type 1)-padded signatures *)
 
       type t
       (** An initialized hash state that enables signing or verifying large
-        messages that may not fit in memory through the use of [feed t chunk]. *)
+        messages that may not fit in memory through the use of [feed t chunk].
+        Be aware that the [sign_t] and [verify_t] functions finalize the hash state, making it illegal to read out using [Hash.S.get], or to call the signing/verifying functions multiple times.
+       *)
 
       val minimum_key_bits : int
       (** The minimum size of keys that can work with this signature type *)
+
+      val init : unit -> t
+      (** [init ()] initializes a new hash state. It is an alias of Hash.S.init. *)
 
       val feed : t -> Cstruct.t -> unit
       (** [feed t data] updates the internal state [t] with [data] *)
 
       val sign_cs : ?mask:mask -> key:priv -> digest:Cstruct.t -> Cstruct.t
-      (** [sign_cs key digest] is PKCS1-padded (type 1) signature on [digest] signed by the [key]. *)
+      (** [sign_cs key digest] is the RSASSA-PKCS1-V1_5 signature on the [digest] signed by the [key].
+          NOTE: [digest] will be used directly as the hash of the message you are signing, without verification, as part of the EMSA-PKCS1-V1_5-encoding. Care must be taken when using this function; you should probably use [sign_t] if at all possible.
+          @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
       val sign_t : ?mask:mask -> key:priv -> t -> Cstruct.t
-      (** [sign_t key t] is the PKCS1-padded (type 1) signature on [t]
-          signed by the [key]. *)
+      (** [sign_t key t] is the RSASSA-PKCS1-V1_5 signature on [t] signed by the [key].
+          NOTE: [t] will be in an illegal state after signing, and must not be used again.
+          @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
       val sign : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
-      (** [sign key msg] is the PKCS1-padded (type 1) hash of [msg]
-          signed by the [key]. *)
+      (** [sign key msg] is the RSASSA-PKCS1-V1_5 signature on [msg] signed by the [key].
+          @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
       val verify_cs : key:pub -> digest:Cstruct.t -> Cstruct.t -> bool
-      (** [verify_t key digest signature] verifies that [signature] is the PKCS1 (type 1) signature on the data hashed in [digest]*)
+      (** [verify_cs key digest signature] verifies that [signature] is the RSASSA-PKCS1-V1_5 signature on the [digest].
+          NOTE: [digest] will be used directly as the hash of the message you are verifying, without verification, as part of the EMSA-PKCS1-V1_5-encoding. Care must be taken when using this function; you should probably use [verify_t] if at all possible. *)
 
       val verify_t : key:pub -> t -> Cstruct.t -> bool
-      (** [verify_t key t signature] verifies that [signature] is the PKCS1 (type 1) signature on the data hashed in [t] *)
+      (** [verify_t key t signature] verifies that [signature] is the RSASSA-PKCS1 V1_5 signature on the data hashed in [t], signed by [key].
+          NOTE: [t] will be in an illegal state after verifying, and must not be used again. *)
 
       val verify : key:pub -> msg:Cstruct.t -> Cstruct.t -> bool
-      (** [verify key msg signature] verifies that [signature] is a PKCS1 (type 1) signature on [msg] signed with the private part of [key] *)
+      (** [verify key msg signature] verifies that [signature] is the RSASSA-PKCS1 V1_5 signature on [msg], signed by [key]. *)
+
     end
 
-    module MD5 : S
-    module SHA1 : S
-    module SHA224 : S
-    module SHA256 : S
-    module SHA384 : S
-    module SHA512 : S
+    module Make : functor (H : Hash.S) ->
+                  functor (Parameter : sig val asn_stub : Cstruct.t end) ->
+                  S with type t = H.t
+    module MD5  : S with type t = Hash.MD5.t
+    module SHA1 : S with type t = Hash.SHA1.t
+    module SHA224 : S with type t = Hash.SHA224.t
+    module SHA256 : S with type t = Hash.SHA256.t
+    module SHA384 : S with type t = Hash.SHA384.t
+    module SHA512 : S with type t = Hash.SHA512.t
 
     val sig_encode : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
-    (** [sig_encode mask key message] is the PKCS1-padded (type 1) [message]
-        signed by the [key]. Note that this operation performs only the padding
-        and RSA transformation steps of the PKCS 1.5 signature.
+    (** [sig_encode mask key message] is almost the RSASSA-PKCS1-V1_5 signature by [key] on the digest passed as [message], with a caveat: This function is similar to PKCS1.S.sign_cs, but [sig_encode] does not prepend the ASN.1-DER-encoded hash algorithm structure to [message]. This can be used to implement the signing scheme used in older versions of SSL/TLS where the concatenation of two hashes are used instead.
         @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
     val sig_decode : key:pub -> Cstruct.t -> Cstruct.t option
     (** [sig_decode key signature] is either [Some message] if the [signature]
-        was produced with the given [key] as per {{!sign}sign}, or [None] *)
+        was produced with the given [key] as per {{!sig_decode}sig_decode}, or [None] *)
 
     val encrypt : ?g:Rng.g -> key:pub -> Cstruct.t -> Cstruct.t
-    (** [encrypt g key message] is a PKCS1-padded (type 2) and encrypted
-        [message].
+    (** [encrypt g key message] is RSAES-PKCS1-V1_5-ENCRYPT-transformed [message] encrypted to [key].
         @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
     val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
     (** [decrypt mask key ciphertext] is [Some message] if the [ciphertext] was
         produced by the corresponding {{!encrypt}encrypt} operation, or [None]
-        otherwise. *)
+        otherwise. This implements RSAES-PKCS1-V1_5-DECRYPT. *)
   end
 
   (** {b OAEP}-padded encryption, as defined by {b PKCS #1 v2.1}.

@@ -143,6 +143,7 @@ module PKCS1 = struct
   module type S = sig
     type t
     val minimum_key_bits : int
+    val init : unit -> t
     val feed : t -> Cstruct.t -> unit
     val sign_cs : ?mask:mask -> key:priv -> digest:Cstruct.t -> Cstruct.t
     val sign_t : ?mask:mask -> key:priv -> t -> Cstruct.t
@@ -152,24 +153,33 @@ module PKCS1 = struct
     val verify : key:pub -> msg:Cstruct.t -> Cstruct.t -> bool
   end
 
-  module Make(Parameters : (sig val asn_stub : Cstruct.t module H : Hash.S end)) : S = struct
-    type t = Parameters.H.t
-    (* see [val padded] above, don't understand how the rounding down stuff works, but oh well: *)
-    let minimum_key_bits = (8 * Parameters.H.digest_size) + (8 * min_pad) + (8 * Cstruct.len Parameters.asn_stub) - 7
+  module Make (H:Hash.S) (Parameter : sig val asn_stub : Cstruct.t end)
+    : S with type t = H.t = struct
 
-    let feed = Parameters.H.feed
+    open Parameter
+    type t = H.t
+
+    let minimum_key_bits =
+      (* TODO see [val padded] above, don't understand how the rounding down stuff works, but oh well: *)
+      (8 * H.digest_size) + (8 * min_pad) + (8 * Cstruct.len asn_stub) - 7
+
+    let init = H.init
+    let feed = H.feed
 
     let sign_cs ?mask ~key ~digest =
       (* padded does step 4-5 of EMSA-PKCS1-v1_5-ENCODE below: *)
-      padded pad_01 (decrypt ?mask ~key) (priv_bits key) Cstruct.(append Parameters.asn_stub digest)
+      if priv_bits key < minimum_key_bits
+      then raise Insufficient_key ;
+      padded pad_01 (decrypt ?mask ~key) (priv_bits key)
+        Cstruct.(append asn_stub digest)
 
     let sign_t ?mask ~key state =
-      let digest = Parameters.H.get state in
-      sign_cs ?mask ~key ~digest
+      (* TODO use H.dup from https://github.com/mirleft/ocaml-nocrypto/pull/125 *)
+      sign_cs ?mask ~key ~digest:(H.get state)
 
     let sign ?mask ~key msg =
-      let state = Parameters.H.init () in
-      let () = Parameters.H.feed state msg in
+      let state = init () in
+      let () = feed state msg in
       sign_t ?mask ~key state
 
     let verify_cs ~key ~digest signature =
@@ -178,15 +188,16 @@ module PKCS1 = struct
       with
       | None -> false
       | Some untrusted_digest ->
-          let target = Cstruct.append Parameters.asn_stub digest in
+          let target = Cstruct.append asn_stub digest in
           Cstruct.equal target untrusted_digest
 
     let verify_t ~key state signature =
-      verify_cs ~key ~digest:(Parameters.H.get state) signature
+      (* TODO use H.dup from https://github.com/mirleft/ocaml-nocrypto/pull/125 *)
+      verify_cs ~key ~digest:(H.get state) signature
 
     let verify ~key ~msg signature =
-      let state = Parameters.H.init () in
-      let () = Parameters.H.feed state msg in
+      let state = init () in
+      let () = feed state msg in
       verify_t ~key state signature
 
   end
@@ -198,29 +209,27 @@ module PKCS1 = struct
      You can verify with something like (ignoring the last Hash.S.digest_size bytes):
      X509.Encoding.pkcs1_digest_info_to_cstruct (`SHA256, Hash.SHA256.(digest Cstruct.(of_string "b")))
   *)
-  module MD5 = Make (struct module H = Hash.MD5
-                      let asn_stub = Cstruct.of_string "\x30\x20\x30\x0c\x06\x08\x2a\x86\x48\x86\xf7\x0d\x02\x05\x05\x00\x04\x10"
-                      end)
+  module MD5 = Make (Hash.MD5)(struct
+    let asn_stub = Cstruct.of_string "\x30\x20\x30\x0c\x06\x08\x2a\x86\x48\x86\xf7\x0d\x02\x05\x05\x00\x04\x10" end)
 
-  module SHA1 = Make (struct module H = Hash.SHA1
-                      let asn_stub = Cstruct.of_string "\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14"
-                      end)
+  module SHA1 = Make (Hash.SHA1)(struct
+    let asn_stub = Cstruct.of_string "\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14" end)
 
-  module SHA224 = Make (struct module H = Hash.SHA1
-                      let asn_stub = Cstruct.of_string "\x30\x2d\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x04\x05\x00\x04\x1c"
-                      end)
+  module SHA224 = Make (Hash.SHA224)(struct
+    let asn_stub = Cstruct.of_string "\x30\x2d\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x04\x05\x00\x04\x1c" end)
 
-  module SHA384 = Make (struct module H = Hash.SHA1
-                      let asn_stub = Cstruct.of_string "\x30\x41\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x02\x05\x00\x04\x30"
-                      end)
+  module SHA384 = Make (Hash.SHA384)(struct
+    let asn_stub = Cstruct.of_string "\x30\x41\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x02\x05\x00\x04\x30" end)
 
-  module SHA256 = Make (struct module H = Hash.SHA256
-                      let asn_stub = Cstruct.of_string "\x30\x31\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20"
-                      end)
+  module SHA256 = Make (Hash.SHA256)(struct
+    let asn_stub = Cstruct.of_string "\x30\x31\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20" end)
 
-  module SHA512 = Make (struct module H = Hash.SHA512
-                      let asn_stub = Cstruct.of_string "\x30\x51\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x03\x05\x00\x04\x40"
-                      end)
+  module SHA512 = Make (Hash.SHA512)(struct
+    let asn_stub = Cstruct.of_string "\x30\x51\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x03\x05\x00\x04\x40" end)
+
+  (* SHA512/256 (currently not in Nocrypto.Hash.): module SHA512_256 = Make(Hash.SHA512_256)(struct
+let asn_stub = "31\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x06\x05\x00\x04\x20" end)
+*)
 
   let sig_encode ?mask ~key msg =
     padded pad_01 (decrypt ?mask ~key) (priv_bits key) msg
