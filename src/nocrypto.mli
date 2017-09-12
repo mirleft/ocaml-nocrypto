@@ -177,6 +177,9 @@ module Hash : sig
     val init : unit -> t
     (** Create a new hash state. *)
 
+    val dup : t -> t
+    (** Create a deep copy of a hash state. *)
+
     val feed : t -> Cstruct.t -> unit
     (** Hash the input, updating the state. *)
 
