@@ -733,9 +733,7 @@ module Rsa : sig
 
       type t
       (** An initialized hash state that enables signing or verifying large
-        messages that may not fit in memory through the use of [feed t chunk].
-        Be aware that the [sign_t] and [verify_t] functions finalize the hash state, making it illegal to read out using [Hash.S.get], or to call the signing/verifying functions multiple times.
-       *)
+        messages that may not fit in memory through the use of [feed t chunk].*)
 
       val minimum_key_bits : int
       (** The minimum size of keys that can work with this signature type *)
@@ -753,7 +751,7 @@ module Rsa : sig
 
       val sign_t : ?mask:mask -> key:priv -> t -> Cstruct.t
       (** [sign_t key t] is the RSASSA-PKCS1-V1_5 signature on [t] signed by the [key].
-          NOTE: [t] will be in an illegal state after signing, and must not be used again.
+          NOTE: [t] will still be in a legal state since Hash.S.dup is used to copy the state.
           @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
       val sign : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
@@ -766,7 +764,7 @@ module Rsa : sig
 
       val verify_t : key:pub -> t -> Cstruct.t -> bool
       (** [verify_t key t signature] verifies that [signature] is the RSASSA-PKCS1 V1_5 signature on the data hashed in [t], signed by [key].
-          NOTE: [t] will be in an illegal state after verifying, and must not be used again. *)
+          NOTE: [t] will still be in a legal state since Hash.S.dup is used to copy the state. *)
 
       val verify : key:pub -> msg:Cstruct.t -> Cstruct.t -> bool
       (** [verify key msg signature] verifies that [signature] is the RSASSA-PKCS1 V1_5 signature on [msg], signed by [key]. *)

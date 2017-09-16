@@ -174,8 +174,7 @@ module PKCS1 = struct
         Cstruct.(append asn_stub digest)
 
     let sign_t ?mask ~key state =
-      (* TODO use H.dup from https://github.com/mirleft/ocaml-nocrypto/pull/125 *)
-      sign_cs ?mask ~key ~digest:(H.get state)
+      sign_cs ?mask ~key ~digest:(H.dup state |> H.get)
 
     let sign ?mask ~key msg =
       let state = init () in
@@ -192,8 +191,7 @@ module PKCS1 = struct
           Cstruct.equal target untrusted_digest
 
     let verify_t ~key state signature =
-      (* TODO use H.dup from https://github.com/mirleft/ocaml-nocrypto/pull/125 *)
-      verify_cs ~key ~digest:(H.get state) signature
+      verify_cs ~key ~digest:(H.dup state |> H.get) signature
 
     let verify ~key ~msg signature =
       let state = init () in
