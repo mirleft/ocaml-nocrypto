@@ -166,6 +166,8 @@ end
     Each hash algorithm is contained in its own separate module. *)
 module Hash : sig
 
+  type digest = Cstruct.t
+
   (** A single hash algorithm. *)
   module type S = sig
 
@@ -180,21 +182,21 @@ module Hash : sig
     val feed : t -> Cstruct.t -> unit
     (** Hash the input, updating the state. *)
 
-    val get : t -> Cstruct.t
+    val get : t -> digest
     (** Extract the digest; state becomes invalid. *)
 
-    val digest  : Cstruct.t -> Cstruct.t
+    val digest  : Cstruct.t -> digest
     (** Compute the digest. *)
 
-    val digestv : Cstruct.t list -> Cstruct.t
+    val digestv : Cstruct.t list -> digest
     (** See {{!digest}[digest]}. *)
 
-    val hmac : key:Cstruct.t -> Cstruct.t -> Cstruct.t
+    val hmac : key:Cstruct.t -> Cstruct.t -> digest
     (** [hmac ~key bytes] is authentication code for [bytes] under the secret
         [key], generated using the standard HMAC construction over this hash
         algorithm. *)
 
-    val hmacv : key:Cstruct.t -> Cstruct.t list -> Cstruct.t
+    val hmacv : key:Cstruct.t -> Cstruct.t list -> digest
     (** See {{!hmac}[hmac]}. *)
   end
 
@@ -212,10 +214,10 @@ module Hash : sig
 
       {e [Sexplib] convertible}. *)
 
-  val digest      : [< hash ] -> Cstruct.t -> Cstruct.t
-  val digestv     : [< hash ] -> Cstruct.t list -> Cstruct.t
-  val mac         : [< hash ] -> key:Cstruct.t -> Cstruct.t -> Cstruct.t
-  val macv        : [< hash ] -> key:Cstruct.t -> Cstruct.t list -> Cstruct.t
+  val digest      : [< hash ] -> Cstruct.t -> digest
+  val digestv     : [< hash ] -> Cstruct.t list -> digest
+  val mac         : [< hash ] -> key:Cstruct.t -> Cstruct.t -> digest
+  val macv        : [< hash ] -> key:Cstruct.t -> Cstruct.t list -> digest
   val digest_size : [< hash ] -> int
   val module_of   : [< hash ] -> (module S)
 

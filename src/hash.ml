@@ -1,5 +1,7 @@
 open Uncommon
 
+type digest = Cstruct.t
+
 module type S = sig
 
   type t
@@ -10,10 +12,10 @@ module type S = sig
   val feed : t    -> Cstruct.t -> unit
   val get  : t    -> Cstruct.t
 
-  val digest  : Cstruct.t      -> Cstruct.t
-  val digestv : Cstruct.t list -> Cstruct.t
-  val hmac    : key:Cstruct.t -> Cstruct.t      -> Cstruct.t
-  val hmacv   : key:Cstruct.t -> Cstruct.t list -> Cstruct.t
+  val digest  : Cstruct.t      -> digest
+  val digestv : Cstruct.t list -> digest
+  val hmac    : key:Cstruct.t -> Cstruct.t      -> digest
+  val hmacv   : key:Cstruct.t -> Cstruct.t list -> digest
 end
 
 module type Foreign = sig
