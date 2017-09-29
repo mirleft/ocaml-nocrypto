@@ -6,12 +6,11 @@ let buffer = Array1.create char c_layout
 
 type buffer = (char, int8_unsigned_elt, c_layout) Array1.t
 
-(* Readability. *)
 type off    = int
 type size   = int
 type secret = buffer
 type key    = buffer
-type ctx    = buffer
+type ctx    = bytes
 
 
 module AES = struct

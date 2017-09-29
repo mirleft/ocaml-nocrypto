@@ -22,9 +22,9 @@ module type Foreign = sig
 
   open Native
 
-  val init     : buffer -> unit
-  val update   : buffer -> buffer -> int -> int -> unit
-  val finalize : buffer -> buffer -> int -> unit
+  val init     : ctx -> unit
+  val update   : ctx -> buffer -> int -> int -> unit
+  val finalize : ctx -> buffer -> int -> unit
   val ctx_size : unit -> int
 end
 
@@ -35,14 +35,14 @@ end
 
 module Core (F : Foreign) (D : Desc) = struct
 
-  type t = Native.buffer
+  type t = Native.ctx
 
   let block_size  = D.block_size
   and digest_size = D.digest_size
   and ctx_size    = F.ctx_size ()
 
   let init () =
-    let t = Native.buffer ctx_size in
+    let t = Bytes.create ctx_size in
     ( F.init t ; t )
 
   let feed t { Cstruct.buffer ; off ; len } =
