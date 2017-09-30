@@ -168,7 +168,8 @@ module MGF1 (H : Hash.S) = struct
   let mgf ~seed len =
     let rec go acc c = function
       | 0 -> sub (cat (List.rev acc)) 0 len
-      | n -> go (H.digestv [ seed ; repr c ] :: acc) Int32.(succ c) (pred n) in
+      | n -> let h = H.digesti (iter2 seed (repr c)) in
+             go (h :: acc) Int32.(succ c) (pred n) in
     go [] 0l (cdiv len H.digest_size)
 
   let mask ~seed cs = Cs.xor (mgf ~seed (len cs)) cs
@@ -237,10 +238,14 @@ module PSS (H: Hash.S) = struct
 
   let b0mask embits = 0xff lsr ((8 - embits mod 8) mod 8)
 
+  let zero_8 = Cs.create 8
+
+  let digest ~salt msg = H.digesti @@ iter3 zero_8 (H.digest msg) salt
+
   let emsa_pss_encode ?g slen emlen msg =
     let n    = bytes emlen
     and salt = Rng.generate ?g slen in
-    let h    = H.digestv [ Cs.create 8 ; H.digest msg ; salt ] in
+    let h    = digest ~salt msg in
     let db   = cat [ Cs.create (n - slen - hlen - 2) ; bx01 ; salt ] in
     let mdb  = MGF.mask ~seed:h db in
     set_uint8 mdb 0 @@ get_uint8 mdb 0 land b0mask emlen ;
@@ -251,7 +256,7 @@ module PSS (H: Hash.S) = struct
     let db   = MGF.mask ~seed:h mdb in
     set_uint8 db 0 (get_uint8 db 0 land b0mask emlen) ;
     let salt = shift db (len db - slen) in
-    let h'   = H.digestv [ Cs.create 8 ; H.digest msg ; salt ]
+    let h'   = digest ~salt msg
     and i    = Cs.ct_find_uint8 ~f:((<>) 0x00) db |> Option.get ~def:0
     in
     let c1 = lnot (b0mask emlen) land get_uint8 mdb 0 = 0x00

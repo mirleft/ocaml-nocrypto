@@ -25,6 +25,8 @@ module Fc = struct
   end
 end
 
+let iter_list xs f = List.iter f xs
+
 let bits64 x =
   Bytes.init 64 @@ fun i ->
     let o = 63 - i in
@@ -358,18 +360,18 @@ let b64_dec_cases =
 let f1_blk_eq ?msg ?(n=1) f (x, y) _ =
   let (x, y) = Cs.(of_hex x, of_hex y) in
   let xs     = blocks_of_cs n x in
-  assert_cs_equal ?msg (f xs) y
+  assert_cs_equal ?msg (f (iter_list xs)) y
 
 let hash_cases (m : (module Hash.S)) ~hash =
   let module H = ( val m ) in
   [ "digest"  >::: cases_of (f1_eq H.digest) hash ;
-    "digestv" >::: cases_of (f1_blk_eq H.digestv) hash ;
+    "digesti" >::: cases_of (f1_blk_eq H.digesti) hash ;
   ]
 
 let hash_cases_mac (m : (module Hash.S)) ~hash ~mac =
   let module H = ( val m ) in
   [ "digest"  >::: cases_of (f1_eq H.digest) hash ;
-    "digestv" >::: cases_of (f1_blk_eq H.digestv) hash ;
+    "digesti" >::: cases_of (f1_blk_eq H.digesti) hash ;
     "hmac"    >::: cases_of (f2_eq (fun key -> H.hmac ~key)) mac ;
   ]
 

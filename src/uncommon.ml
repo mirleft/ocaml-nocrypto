@@ -2,7 +2,6 @@
 
 type 'a one = One of 'a
 
-
 let cdiv (x : int) (y : int) =
   if x > 0 && y > 0 then (x + y - 1) / y
   else if x < 0 && y < 0 then (x + y + 1) / y
@@ -51,6 +50,12 @@ module Option = struct
     | Some x -> ignore (f x)
     | None   -> ()
 end
+
+type 'a iter = ('a -> unit) -> unit
+
+let iter1 a     f = f a
+let iter2 a b   f = f a; f b
+let iter3 a b c f = f a; f b; f c
 
 let string_fold ~f ~z str =
   let st = ref z in

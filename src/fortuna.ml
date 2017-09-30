@@ -34,12 +34,12 @@ let set_key ~g sec =
   g.secret <- sec ;
   g.key    <- AES_CTR.of_secret sec
 
-let reseedv ~g css =
-  set_key ~g @@ SHAd256.digestv (g.secret :: css) ;
-  ignore (Counter.incr16 g.ctr 0) ;
+let reseedi ~g iter =
+  set_key ~g @@ SHAd256.digesti (fun f -> f g.secret; iter f);
+  Counter.incr16 g.ctr 0 |> ignore;
   g.seeded <- true
 
-let reseed ~g cs = reseedv ~g [cs]
+let reseed ~g cs = reseedi ~g (iter1 cs)
 
 let generate_rekey ~g bytes =
   let b  = cdiv bytes block + 2 in
@@ -70,35 +70,24 @@ module Accumulator = struct
   }
 
   let create ~g = {
-    pools = Array.init 32 (fun _ -> SHAd256.init ()) ;
+    pools = Array.make 32 SHAd256.empty ;
     count = 0 ;
     gen   = g
   }
 
   let fire acc =
-    let r   = acc.count + 1 in
-    let ent =
-      let rec collect = function
-        | 32 -> []
-        | i  ->
-            match r land (1 lsl i - 1) with
-            | 0 ->
-                let h = acc.pools.(i) in
-                acc.pools.(i) <- SHAd256.init () ;
-                SHAd256.get h :: collect (succ i)
-            | _ -> collect (succ i)
-      in
-      collect 0
-    in
-    acc.count <- r ;
-    reseedv ~g: acc.gen ent
+    acc.count <- acc.count + 1;
+    reseedi ~g:acc.gen @@ fun add ->
+      for i = 0 to 31 do
+        if acc.count land (1 lsl i - 1) = 0 then
+          (SHAd256.get acc.pools.(i) |> add; acc.pools.(i) <- SHAd256.empty)
+      done
 
   let add ~acc ~source ~pool data =
     let pool   = pool land 0x1f
     and source = source land 0xff in
-    let h = acc.pools.(pool) in
-    SHAd256.feed h (Cs.of_bytes [ source ; Cstruct.len data ]) ;
-    SHAd256.feed h data ;
+    let header = Cs.of_bytes [ source ; Cstruct.len data ] in
+    acc.pools.(pool) <- SHAd256.feedi acc.pools.(pool) (iter2 header data);
     (* XXX This is clobbered on multi-pool. *)
     acc.gen.trap <- Some (fun () -> fire acc)
 end
