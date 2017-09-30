@@ -168,35 +168,71 @@ module Hash : sig
 
   type digest = Cstruct.t
 
+  type 'a iter = ('a -> unit) -> unit
+  (** A general (inner) iterator. It applies the provided function to a
+      collection of elements.
+
+      For instance:
+
+      {ul
+      {- [let iter_k    : 'a      -> 'a iter = fun x f -> f x]}
+      {- [let iter_pair : 'a * 'a -> 'a iter = fun (x, y) f = f x; f y]}
+      {- [let iter_list : 'a list -> 'a iter = fun xs f -> List.iter f xs]}} *)
+
+
   (** A single hash algorithm. *)
   module type S = sig
 
-    type t (** Hash state. *)
-
     val digest_size : int
-    (** Size of hash results, in bytes. *)
+    (** Size of digests (in bytes). *)
 
-    val init : unit -> t
-    (** Create a new hash state. *)
+    (** {1 Core operations} *)
 
-    val feed : t -> Cstruct.t -> unit
-    (** Hash the input, updating the state. *)
+    type t
+    (** Represents a running hash computation in a way suitable for appending
+        inputs. *)
+
+    val empty : t
+    (** [empty] is the hash of the empty string. *)
+
+    val feed : t -> Cstruct.t -> t
+    (** [feed t msg] adds the information in [msg] to [t].
+
+        [feed] is analogous to appending:
+        [feed (feed t msg1) msg2 = feed t (append msg1 msg2)]. *)
 
     val get : t -> digest
-    (** Extract the digest; state becomes invalid. *)
+    (** [get t] is the digest corresponding to [t]. *)
 
-    val digest  : Cstruct.t -> digest
-    (** Compute the digest. *)
+    (** {1 All-in-one}
 
-    val digestv : Cstruct.t list -> digest
-    (** See {{!digest}[digest]}. *)
+        Functions that operate on data stored in a single chunk. *)
+
+    val digest : Cstruct.t -> digest
+    (** [digest msg] is the digest of [msg].
+
+        [digest msg = get (feed empty msg)] *)
 
     val hmac : key:Cstruct.t -> Cstruct.t -> digest
-    (** [hmac ~key bytes] is authentication code for [bytes] under the secret
-        [key], generated using the standard HMAC construction over this hash
-        algorithm. *)
+    (** [hmac ~key bytes] is the authentication code for [bytes] under the
+        secret [key], generated using the standard HMAC construction over this
+        hash algorithm. *)
 
-    val hmacv : key:Cstruct.t -> Cstruct.t list -> digest
+    (** {1 Functions over iterators}
+
+        Functions that operate on arbitrary {{!iter}iterators}. They can serve
+        as a basis for other, more specialized aggregate hashing operations.
+
+        These functions are a little faster than using {{!feed}[feed]} directly. *)
+
+    val feedi : t -> Cstruct.t iter -> t
+    (** [feedi t iter =
+  (let r = ref t in iter (fun msg -> r := feed !r msg); !r)] *)
+
+    val digesti : Cstruct.t iter -> digest
+    (** [digesti iter = feedi empty iter |> get] *)
+
+    val hmaci : key:Cstruct.t -> Cstruct.t iter -> digest
     (** See {{!hmac}[hmac]}. *)
   end
 
@@ -215,9 +251,9 @@ module Hash : sig
       {e [Sexplib] convertible}. *)
 
   val digest      : [< hash ] -> Cstruct.t -> digest
-  val digestv     : [< hash ] -> Cstruct.t list -> digest
+  val digesti     : [< hash ] -> Cstruct.t iter -> digest
   val mac         : [< hash ] -> key:Cstruct.t -> Cstruct.t -> digest
-  val macv        : [< hash ] -> key:Cstruct.t -> Cstruct.t list -> digest
+  val maci        : [< hash ] -> key:Cstruct.t -> Cstruct.t iter -> digest
   val digest_size : [< hash ] -> int
   val module_of   : [< hash ] -> (module S)
 

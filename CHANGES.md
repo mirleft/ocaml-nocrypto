@@ -1,3 +1,15 @@
+## (trunk)
+
+* Change of the hashing interface, `Hash.S` (**Breaking**):
+  - `t` is now immutable;
+  - `feed` and `get` are therefore referentially transparent; and
+  - `digestv` was replaced by `digesti`.
+  Old behavior of `feed` and `get` can be replicated by wrapping a `t` in a
+  reference cell. `digestv` can be obtained by combining `digesti` with
+  `List.iter`.
+* `Rsa.well_formed` can test if a triplet `(e, p, q)` looks enough like a key to
+  be safe to use.
+
 ## v0.5.4 2017-01-31:
 * Relicense from BSD2 to ISC.
 * Support MirageOS 3.0.

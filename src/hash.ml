@@ -2,20 +2,24 @@ open Uncommon
 
 type digest = Cstruct.t
 
-module type S = sig
+type 'a iter = 'a Uncommon.iter
 
-  type t
+module type S = sig
 
   val digest_size : int
 
-  val init : unit -> t
-  val feed : t    -> Cstruct.t -> unit
-  val get  : t    -> Cstruct.t
+  type t
 
-  val digest  : Cstruct.t      -> digest
-  val digestv : Cstruct.t list -> digest
-  val hmac    : key:Cstruct.t -> Cstruct.t      -> digest
-  val hmacv   : key:Cstruct.t -> Cstruct.t list -> digest
+  val empty : t
+  val feed  : t -> Cstruct.t -> t
+  val get   : t -> Cstruct.t
+
+  val digest  : Cstruct.t -> digest
+  val hmac    : key:Cstruct.t -> Cstruct.t -> digest
+
+  val feedi   : t -> Cstruct.t iter -> t
+  val digesti : Cstruct.t iter -> digest
+  val hmaci   : key:Cstruct.t -> Cstruct.t iter -> digest
 end
 
 module type Foreign = sig
@@ -41,23 +45,29 @@ module Core (F : Foreign) (D : Desc) = struct
   and digest_size = D.digest_size
   and ctx_size    = F.ctx_size ()
 
-  let init () =
-    let t = Bytes.create ctx_size in
-    ( F.init t ; t )
+  let empty = Bytes.create ctx_size
 
-  let feed t { Cstruct.buffer ; off ; len } =
+  let _ = F.init empty
+
+  let update t { Cstruct.buffer ; off ; len } =
     F.update t buffer off len
 
-  let get t =
+  let finalize t =
     let res = Cstruct.create digest_size in
     F.finalize t res.Cstruct.buffer res.Cstruct.off ;
     res
 
-  let digest cs =
-    let t = init () in ( feed t cs ; get t )
+  let dup = Bytes.copy
 
-  let digestv css =
-    let t = init () in ( List.iter (feed t) css ; get t )
+  let get t = dup t |> finalize
+
+  let feed t cs = let t = dup t in (update t cs ; t)
+
+  let feedi t iter = let t = dup t in (iter (update t) ; t)
+
+  let digest cs = feed empty cs |> finalize
+
+  let digesti iter = feedi empty iter |> finalize
 end
 
 module Hash_of (F : Foreign) (D : Desc) = struct
@@ -75,13 +85,14 @@ module Hash_of (F : Foreign) (D : Desc) = struct
     | -1 -> rpad key block_size 0
     |  _ -> key
 
-  let hmacv ~key messages =
+  let hmaci ~key iter =
     let key = norm key in
     let outer = xor key opad
     and inner = xor key ipad in
-    digestv [ outer ; digestv (inner :: messages) ]
+    let rest = digesti (fun f -> f inner; iter f) in
+    digesti (fun f -> f outer; f rest)
 
-  let hmac ~key message = hmacv ~key [message]
+  let hmac ~key message = hmaci ~key (fun f -> f message)
 end
 
 module MD5 = Hash_of (Native.MD5) ( struct
@@ -109,10 +120,12 @@ module SHA512 = Hash_of (Native.SHA512) ( struct
 end )
 
 module SHAd256 = struct
-  include SHA256
-  let get    = SHA256.(digest &. get)
-  let digest = SHA256.(digest &. digest)
-  let digestv css = let s = init () in ( List.iter (feed s) css ; get s )
+  type t = SHA256.t
+  let empty     = SHA256.empty
+  let get t     = SHA256.(get t |> digest)
+  let digest x  = SHA256.(digest x |> digest)
+  let digesti i = SHA256.(digesti i |> digest)
+  let feedi     = SHA256.feedi
 end
 
 
@@ -128,7 +141,7 @@ let module_of = function
   | `SHA512 -> (module SHA512 : S)
 
 let digest hash      = let module H = (val (module_of hash)) in H.digest
-let digestv hash     = let module H = (val (module_of hash)) in H.digestv
+let digesti hash     = let module H = (val (module_of hash)) in H.digesti
 let mac hash         = let module H = (val (module_of hash)) in H.hmac
-let macv hash        = let module H = (val (module_of hash)) in H.hmacv
+let maci hash        = let module H = (val (module_of hash)) in H.hmaci
 let digest_size hash = let module H = (val (module_of hash)) in H.digest_size
