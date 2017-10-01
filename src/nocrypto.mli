@@ -652,11 +652,17 @@ Keys are taken to be trusted material, and their properties are not checked.
 Messages are checked not to exceed the key size, and this is signalled via
 exceptions.
 
-Private-key operations are optionally protected through RSA blinding.
-*)
+Private-key operations are optionally protected through RSA blinding. *)
 module Rsa : sig
 
-  (** {1 RSA public-key encryption} *)
+  (** {1 Keys}
+
+      {b Warning} The behavior of functions in this module is undefined if the
+      key material is not numerically well-formed. It is the responsibility of
+      the client to ensure the trustworthiness of keys.
+
+      The two anchoring points provided are {{!generate}[generate]} and
+      {{!well_formed}[well_formed]}. *)
 
   exception Insufficient_key
   (** Raised if the key is too small to transform the given message, i.e. if the
@@ -670,26 +676,30 @@ module Rsa : sig
     e : Z.t ; (** Public exponent *)
     n : Z.t ; (** Modulus *)
   }
-  (** Public key.
+  (** The public portion of the key.
 
       {e [Sexplib] convertible}. *)
 
   type priv = {
     e  : Z.t ; (** Public exponent *)
     d  : Z.t ; (** Private exponent *)
-    n  : Z.t ; (** Modulus *)
+    n  : Z.t ; (** Modulus ([p q])*)
     p  : Z.t ; (** Prime factor [p] *)
     q  : Z.t ; (** Prime factor [q] *)
     dp : Z.t ; (** [d mod (p-1)] *)
     dq : Z.t ; (** [d mod (q-1)] *)
     q' : Z.t ; (** [q^(-1) mod p] *)
   }
-  (** Private key (two-factor version).
+  (** Full private key (two-factor version).
+
+      {b Note} The key layout assumes that [p > q], which affects the quantity
+      [q'] (sometimes called [u]), and the computation of the private transform.
+      Some systems assume otherwise. When using keys produced by a system that
+      computes [u = p^(-1) mod q], either exchange [p] with [q] and [dp] with
+      [dq], or re-generate the full private key using
+      {{!priv_of_primes}[priv_of_primes]}.
 
       {e [Sexplib] convertible}. *)
-
-  type mask = [ `No | `Yes | `Yes_with of Rng.g ]
-  (** Masking (cryptographic blinding) option. *)
 
   val pub_bits : pub -> int
   (** Bit-size of a public key. *)
@@ -698,8 +708,14 @@ module Rsa : sig
   (** Bit-size of a private key. *)
 
   val priv_of_primes : e:Z.t -> p:Z.t -> q:Z.t -> priv
-  (** [priv_of_primes e p q] creates {{!priv}priv} from a minimal description:
-      the public exponent and the two primes. *)
+  (** [priv_pr_primes ~e ~p ~q] is the {{!priv}private key} derived from the
+      minimal description [(e, p, q)].
+
+      The triple is not checked for well-formedness.
+
+      [p] is assumed to be the smaller factor. While the key will function
+      correctly in either case, derived quantities will be different. See
+      {{!priv} private keys}. *)
 
   val pub_of_priv : priv -> pub
   (** Extract the public component from a private key. *)
@@ -722,18 +738,44 @@ module Rsa : sig
       numerically well-formed, however. Carefully consider which sources of keys
       to trust. *)
 
+  (** {1 The RSA transformation} *)
+
+  type mask = [ `No | `Yes | `Yes_with of Rng.g ]
+  (** Masking (cryptographic blinding) mode for the RSA transform with the
+      private key. Masking does not change the result, but it does change the
+      timing profile of the operation.
+
+      {ul
+      {- [`No] disables masking. It is slightly faster but it {b exposes the
+         private key to timing-based attacks}.}
+      {- [`Yes] uses random masking with the global RNG instance. This is
+         the sane option.}
+      {- [`Yes_with g] uses random masking with the generator [g].}} *)
+
   val encrypt : key:pub  -> Cstruct.t -> Cstruct.t
   (** [encrypt key message] is the encrypted [message].
+
       @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
   val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
-  (** [decrypt mask key ciphertext] is the decrypted [ciphertext], left-padded
+  (** [decrypt ~mask key ciphertext] is the decrypted [ciphertext], left-padded
       with [0x00] up to [key] size.
+
+      [~mask] defaults to [`Yes].
+
       @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
+  (** {1 Key generation} *)
+
   val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
-  (** [generate g e bits] is a new {{!priv}priv}. [e] defaults to [2^16+1].
-      @raise Invalid_argument if [e] is bad or [bits] is too small. *)
+  (** [generate g e bits] is a new {{!priv}private key}. The new key is
+      guaranteed to be {{!well_formed}well formed}.
+
+      [e] defaults to [2^16+1].
+
+      @raise Invalid_argument if [e] is not prime [3 <= e < 2^bits],
+             or [bits] is ridiculously small. *)
+
 
   (** {1 PKCS#1 padded modes} *)
 
