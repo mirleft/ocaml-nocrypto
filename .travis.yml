@@ -4,20 +4,18 @@ script: bash -ex .travis-opam.sh
 env:
   global:
     - PACKAGE="nocrypto"
-    - PINS="depext:0.9.1 mirage-os-shim:git://github.com/pqwy/mirage-os-shim.git mirage-unix:git://github.com/mirage/mirage-platform.git mirage-xen:git://github.com/mirage/mirage-platform.git"
     - UPDATE_GCC_BINUTILS=1
   matrix:
     - OCAML_VERSION=4.02
-    - OCAML_VERSION=4.02 DEPOPTS=lwt
-    - OCAML_VERSION=4.02 DEPOPTS=mirage-xen TESTS=false
+    - OCAML_VERSION=4.02 DEPOPTS="lwt cstruct-lwt"
+    - OCAML_VERSION=4.02 DEPOPTS="mirage-entropy" TESTS=false
     - OCAML_VERSION=4.03
-    - OCAML_VERSION=4.03 DEPOPTS=lwt
-    - OCAML_VERSION=4.03 DEPOPTS=mirage-xen TESTS=false
+    - OCAML_VERSION=4.03 DEPOPTS="lwt cstruct-lwt"
     - OCAML_VERSION=4.04
-    - OCAML_VERSION=4.04 DEPOPTS=lwt
-    - OCAML_VERSION=4.04 DEPOPTS=mirage-xen TESTS=false
+    - OCAML_VERSION=4.04 DEPOPTS="lwt cstruct-lwt"
+    - OCAML_VERSION=4.04 DEPOPTS="mirage-xen" TESTS=false
     - OCAML_VERSION=4.05
-    - OCAML_VERSION=4.05 DEPOPTS=lwt
-    - OCAML_VERSION=4.05 DEPOPTS=mirage-xen TESTS=false
+    - OCAML_VERSION=4.05 DEPOPTS="lwt cstruct-lwt"
+    - OCAML_VERSION=4.05 DEPOPTS="mirage-solo5 mirage-entropy" TESTS=false
 notifications:
   email: false

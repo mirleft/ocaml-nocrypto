@@ -23,7 +23,7 @@ package "unix" (
 package "lwt" (
  version = "%%VERSION_NUM%%"
  description = "Simple crypto for the modern age"
- requires = "nocrypto nocrypto.unix lwt.unix cstruct.lwt"
+ requires = "nocrypto nocrypto.unix lwt.unix cstruct-lwt"
  archive(byte) = "nocrypto_lwt.cma"
  archive(native) = "nocrypto_lwt.cmxa"
  plugin(byte) = "nocrypto_lwt.cma"

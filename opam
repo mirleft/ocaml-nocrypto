@@ -10,9 +10,9 @@ tags:          [ "org:mirage" ]
 available:     [ ocaml-version >= "4.02.0" ]
 
 build: ["ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "false"
-                "--with-lwt" "%{lwt:installed}%"
+                "--with-lwt" "%{lwt+cstruct-lwt:installed}%"
                 "--xen" "%{mirage-xen:installed}%"
-                "--mirage" "%{mirage-entropy:installed}%"
+                "--mirage" "%{mirage-entropy+lwt:installed}%"
                 "--freestanding" "%{mirage-solo5:installed}%"]
 
 depends: [
@@ -24,16 +24,18 @@ depends: [
   "ppx_deriving" {build}
   "ppx_sexp_conv" {build}
   "ounit" {test}
-  "cstruct" {>="2.4.0"}
-  "cstruct-lwt"
+  "cstruct" {>="3.0.0"}
   "zarith"
-  "lwt"
   "sexplib"
   ("mirage-no-xen" | ("mirage-xen" & "zarith-xen"))
   ("mirage-no-solo5" | ("mirage-solo5" & "zarith-freestanding"))
 ]
 
-depopts: ["mirage-entropy"]
+depopts: [
+  "mirage-entropy"
+  "cstruct-lwt"
+  "lwt"
+]
 
 conflicts: [
   "topkg" {<"0.8.0"}
