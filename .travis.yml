@@ -8,9 +8,9 @@ env:
   matrix:
     - OCAML_VERSION=4.02
     - OCAML_VERSION=4.02 DEPOPTS="lwt cstruct-lwt"
-    - OCAML_VERSION=4.02 DEPOPTS="mirage-entropy" TESTS=false
     - OCAML_VERSION=4.03
     - OCAML_VERSION=4.03 DEPOPTS="lwt cstruct-lwt"
+    - OCAML_VERSION=4.03 DEPOPTS="mirage-entropy" TESTS=false
     - OCAML_VERSION=4.04
     - OCAML_VERSION=4.04 DEPOPTS="lwt cstruct-lwt"
     - OCAML_VERSION=4.04 DEPOPTS="mirage-xen" TESTS=false
