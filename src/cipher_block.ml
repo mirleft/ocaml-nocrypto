@@ -284,7 +284,7 @@ module Modes2 = struct
 
     let stream ~key ~ctr ?off n =
       if ctr.len <> block then
-        Raise.invalid "CTR: counter not %d bytes" ctr.len ;
+        Raise.invalid "CTR: counter not %d bytes" block ;
       if n < 0 then
         Raise.invalid "CTR: negative size (%d)" n ;
       match off with
