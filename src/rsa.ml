@@ -1,6 +1,8 @@
 open Sexplib.Conv
 open Uncommon
 
+let rprime a b = Z.(gcd a b = one)
+
 exception Insufficient_key
 
 type pub  = { e : Z.t ; n : Z.t } [@@deriving sexp]
@@ -38,7 +40,7 @@ let decrypt_blinded_unsafe ?g ~key: ({ e; n; _} as key : priv) c =
 
   let rec nonce () =
     let x = Rng.Z.gen_r ?g Z.two n in
-    if Z.(gcd x n = one) then x else nonce () in
+    if rprime x n then x else nonce () in
 
   let r  = nonce () in
   let r' = Z.(invert r n) in
@@ -65,6 +67,10 @@ let reformat out f =
 let encrypt ~key              = reformat (pub_bits key)  (encrypt_z ~key)
 and decrypt ?(mask=`Yes) ~key = reformat (priv_bits key) (decrypt_z ~mask ~key)
 
+let well_formed ~e ~p ~q =
+  Z.three <= e && p <> q &&
+  Numeric.(pseudoprime e && pseudoprime p && pseudoprime q) &&
+  rprime e Z.(pred p) && rprime e Z.(pred q)
 
 let rec generate ?g ?(e = Z.(~$0x10001)) bits =
   if bits < 10 then
@@ -74,10 +80,7 @@ let rec generate ?g ?(e = Z.(~$0x10001)) bits =
 
   let (pb, qb) = (bits / 2, bits - bits / 2) in
   let (p, q)   = Rng.(prime ?g ~msb:2 pb, prime ?g ~msb:2 qb) in
-  let cond     = (p <> q) &&
-                 Z.(gcd e (pred p) = one) &&
-                 Z.(gcd e (pred q) = one) in
-  if cond then
+  if (p <> q) && rprime e Z.(pred p) && rprime e Z.(pred q) then
     priv_of_primes ~e ~p:(max p q) ~q:(min p q)
   else generate ?g ~e bits
 

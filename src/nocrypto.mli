@@ -704,6 +704,24 @@ module Rsa : sig
   val pub_of_priv : priv -> pub
   (** Extract the public component from a private key. *)
 
+  val well_formed : e:Z.t -> p:Z.t -> q:Z.t -> bool
+  (** [well_formed ~e ~p ~q] indicates whether the triplet [(e, p, q)] can be
+      used as an RSA key.
+
+      It can, if:
+      {ul
+      {- [3 <= e];}
+      {- [p != q];}
+      {- [e], [p] and [q] are all primes; and}
+      {- [e] is not a divisor of either [p - 1] or [q - 1].}}
+
+      These are sufficient conditions to ensure that the behavior of other
+      operations in this module is defined.
+
+      This will not help with maliciously crafted keys that are simply
+      numerically well-formed, however. Carefully consider which sources of keys
+      to trust. *)
+
   val encrypt : key:pub  -> Cstruct.t -> Cstruct.t
   (** [encrypt key message] is the encrypted [message].
       @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
