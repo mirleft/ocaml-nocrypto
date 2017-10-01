@@ -13,6 +13,11 @@ env:
     - OCAML_VERSION=4.03
     - OCAML_VERSION=4.03 DEPOPTS=lwt
     - OCAML_VERSION=4.03 DEPOPTS=mirage-xen TESTS=false
-    # - OCAML_VERSION=4.04
+    - OCAML_VERSION=4.04
+    - OCAML_VERSION=4.04 DEPOPTS=lwt
+    - OCAML_VERSION=4.04 DEPOPTS=mirage-xen TESTS=false
+    - OCAML_VERSION=4.05
+    - OCAML_VERSION=4.05 DEPOPTS=lwt
+    - OCAML_VERSION=4.05 DEPOPTS=mirage-xen TESTS=false
 notifications:
   email: false
