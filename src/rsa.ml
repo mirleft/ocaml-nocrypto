@@ -98,7 +98,6 @@ module PKCS1 = struct
 
   open Cstruct
 
-
   (* XXX Generalize this into `Rng.samplev` or something. *)
   let generate_with ?g ~f n =
     let cs = create n
@@ -143,6 +142,95 @@ module PKCS1 = struct
     if len msg = bytes keybits then
       try unpad (transform msg) with Insufficient_key -> None
     else None
+
+  module type S = sig
+    type t
+    val minimum_key_bits : int
+    val init : unit -> t
+    val feed : t -> Cstruct.t -> unit
+    val sign_cs : ?mask:mask -> key:priv -> digest:Cstruct.t -> Cstruct.t
+    val sign_t : ?mask:mask -> key:priv -> t -> Cstruct.t
+    val sign : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
+    val verify_cs : key:pub -> digest:Cstruct.t -> Cstruct.t -> bool
+    val verify_t : key:pub -> t -> Cstruct.t -> bool
+    val verify : key:pub -> msg:Cstruct.t -> Cstruct.t -> bool
+  end
+
+  module Make (H:Hash.S) (Parameter : sig val asn_stub : Cstruct.t end)
+    : S with type t = H.t = struct
+
+    open Parameter
+    type t = H.t
+
+    let minimum_key_bits =
+      (* TODO see [val padded] above, don't understand how the rounding down stuff works, but oh well: *)
+      (8 * H.digest_size) + (8 * min_pad) + (8 * Cstruct.len asn_stub) - 7
+
+    let init = H.init
+    let feed = H.feed
+
+    let sign_cs ?mask ~key ~digest =
+      (* padded does step 4-5 of EMSA-PKCS1-v1_5-ENCODE below: *)
+      if priv_bits key < minimum_key_bits
+      then raise Insufficient_key ;
+      padded pad_01 (decrypt ?mask ~key) (priv_bits key)
+        Cstruct.(append asn_stub digest)
+
+    let sign_t ?mask ~key state =
+      sign_cs ?mask ~key ~digest:(H.dup state |> H.get)
+
+    let sign ?mask ~key msg =
+      let state = init () in
+      let () = feed state msg in
+      sign_t ?mask ~key state
+
+    let verify_cs ~key ~digest signature =
+      match
+        unpadded unpad_01 (encrypt ~key) (pub_bits key) signature
+      with
+      | None -> false
+      | Some untrusted_digest ->
+          let target = Cstruct.append asn_stub digest in
+          Cstruct.equal target untrusted_digest
+
+    let verify_t ~key state signature =
+      verify_cs ~key ~digest:(H.dup state |> H.get) signature
+
+    let verify ~key ~msg signature =
+      let state = init () in
+      let () = feed state msg in
+      verify_t ~key state signature
+
+  end
+
+  (* to avoid an external dependency on the asn1 library, we hardcode
+     the ASN.1 DER represenation of the DigestInfo sequence specified in RFC 3447:
+       https://tools.ietf.org/html/rfc3447#appendix-C
+     see https://tools.ietf.org/html/rfc3447#page-43 for details.
+     You can verify with something like (ignoring the last Hash.S.digest_size bytes):
+     X509.Encoding.pkcs1_digest_info_to_cstruct (`SHA256, Hash.SHA256.(digest Cstruct.(of_string "b")))
+  *)
+  module MD5 = Make (Hash.MD5)(struct
+    let asn_stub = Cstruct.of_string "\x30\x20\x30\x0c\x06\x08\x2a\x86\x48\x86\xf7\x0d\x02\x05\x05\x00\x04\x10" end)
+
+  module SHA1 = Make (Hash.SHA1)(struct
+    let asn_stub = Cstruct.of_string "\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14" end)
+
+  module SHA224 = Make (Hash.SHA224)(struct
+    let asn_stub = Cstruct.of_string "\x30\x2d\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x04\x05\x00\x04\x1c" end)
+
+  module SHA384 = Make (Hash.SHA384)(struct
+    let asn_stub = Cstruct.of_string "\x30\x41\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x02\x05\x00\x04\x30" end)
+
+  module SHA256 = Make (Hash.SHA256)(struct
+    let asn_stub = Cstruct.of_string "\x30\x31\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20" end)
+
+  module SHA512 = Make (Hash.SHA512)(struct
+    let asn_stub = Cstruct.of_string "\x30\x51\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x03\x05\x00\x04\x40" end)
+
+  (* SHA512/256 (currently not in Nocrypto.Hash.): module SHA512_256 = Make(Hash.SHA512_256)(struct
+let asn_stub = "31\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x06\x05\x00\x04\x20" end)
+*)
 
   let sig_encode ?mask ~key msg =
     padded pad_01 (decrypt ?mask ~key) (priv_bits key) msg

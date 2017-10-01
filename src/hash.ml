@@ -7,6 +7,7 @@ module type S = sig
   val digest_size : int
 
   val init : unit -> t
+  val dup  : t    -> t
   val feed : t    -> Cstruct.t -> unit
   val get  : t    -> Cstruct.t
 
@@ -42,6 +43,11 @@ module Core (F : Foreign) (D : Desc) = struct
   let init () =
     let t = Native.buffer ctx_size in
     ( F.init t ; t )
+
+  let dup ctx =
+    let ctx' = Native.buffer ctx_size in
+    Bigarray.Array1.blit ctx ctx' ;
+    ctx'
 
   let feed t { Cstruct.buffer ; off ; len } =
     F.update t buffer off len
