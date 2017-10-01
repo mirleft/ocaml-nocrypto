@@ -15,6 +15,8 @@ let xen  = Conf.(key "xen" bool ~absent:false
                  ~doc:"Build Mirage/Xen support.")
 let fs   = Conf.(key "freestanding" bool ~absent:false
                  ~doc:"Build Mirage/Solo5 support.")
+let mir  = Conf.(key "mirage" bool ~absent:false
+                  ~doc:"Build Mirage support.")
 let accelerate = Conf.(discovered_key "accelerate" bool
   ~absent:cpudetect
   ~env:"NOCRYPTO_ACCELERATE"
@@ -40,11 +42,12 @@ let () =
     let lwt  = Conf.value c lwt && unix
     and xen  = Conf.value c xen
     and fs   = Conf.value c fs in
+    let mir  = Conf.value c mir in
     Ok [ Pkg.clib "src/libnocrypto_stubs.clib";
          Pkg.mllib "src/nocrypto.mllib";
          Pkg.mllib ~cond:unix "unix/nocrypto_unix.mllib";
          Pkg.mllib ~cond:lwt "lwt/nocrypto_lwt.mllib";
-         Pkg.mllib ~cond:(xen||fs) "mirage/nocrypto_mirage.mllib";
+         Pkg.mllib ~cond:mir "mirage/nocrypto_mirage.mllib";
          Pkg.test "tests/testrunner";
          Pkg.test ~run:false "bench/speed";
          mirage ~xen ~fs "src/libnocrypto_stubs.clib"; ]
