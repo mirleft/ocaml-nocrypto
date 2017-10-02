@@ -820,30 +820,55 @@ module Rsa : sig
 
   (** {1 PKCS#1 padded modes} *)
 
-  (** {b PKCS v1.5}-padded operations, as defined by {b PKCS #1 v1.5}.
+  (** {b PKCS v1.5} operations, as defined by {b PKCS #1 v1.5}.
 
-      Keys must have a minimum of [11 + len(message)] bytes. *)
+      The operations that only add the raw padding require keys of size
+      [11 + len(message)] bytes (rounded up), while size of keys required for
+      {{!sign}signing} varies with the hashing function. *)
   module PKCS1 : sig
-
-    val sig_encode : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
-    (** [sig_encode mask key message] is the PKCS1-padded (type 1) [message]
-        signed by the [key]. Note that this operation performs only the padding
-        and RSA transformation steps of the PKCS 1.5 signature.
-        @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
-
-    val sig_decode : key:pub -> Cstruct.t -> Cstruct.t option
-    (** [sig_decode key signature] is either [Some message] if the [signature]
-        was produced with the given [key] as per {{!sign}sign}, or [None] *)
 
     val encrypt : ?g:Rng.g -> key:pub -> Cstruct.t -> Cstruct.t
     (** [encrypt g key message] is a PKCS1-padded (type 2) and encrypted
         [message].
+
         @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
     val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
     (** [decrypt mask key ciphertext] is [Some message] if the [ciphertext] was
         produced by the corresponding {{!encrypt}encrypt} operation, or [None]
         otherwise. *)
+
+    val sig_encode : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
+    (** [sig_encode ?mask ~key message] is the PKCS1-padded (type 1) [message]
+        signed by the [key].
+
+        {b Note} This operation performs only the padding and RSA transformation
+        steps of the PKCS 1.5 signature. The full signature is implemented by
+        {{!sign}[sign]}.
+
+        @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
+
+    val sig_decode : key:pub -> Cstruct.t -> Cstruct.t option
+    (** [sig_decode key signature] is [Some message] when the [signature]
+        was produced with the given [key] as per {{!sig_encode}sig_encode}, or
+        [None] *)
+
+    val min_key : Hash.hash -> int
+    (** [min_key hash] is the minimum key size required by {{!sign}[sign]}. *)
+
+    val sign : ?mask:mask -> hash:Hash.hash -> key:priv -> Cstruct.t -> Cstruct.t
+    (** [sign ?mask ~hash ~key message] is the PKCS 1.5 signature of
+        [message], signed by the [key], using the hash function [hash]. This is
+        the full signature, with the ASN-encoded message digest as the payload.
+
+        @raise Insufficient_key *)
+
+    val verify : ?hash:Hash.hash -> key:pub -> signature:Cstruct.t -> Cstruct.t -> bool
+    (** [verify ?hash ~key ~signature message] checks that [signature] is the
+        PKCS 1.5 signature of the [message] under the given [key].
+
+        The hashing function is detected from the signature. If [hash] is given,
+        it must match the detected function. *)
   end
 
   (** {b OAEP}-padded encryption, as defined by {b PKCS #1 v2.1}.
@@ -877,8 +902,9 @@ module Rsa : sig
 
     val sign : ?g:Rng.g -> ?slen:int -> key:priv -> Cstruct.t -> Cstruct.t
     (** [sign ~g ~slen ~key message] the {p PSS}-padded digest of [message],
-        signed with the [key]. [slen] is the optional seed length and default to
-        the size of the underlying hash function.
+        signed with the [key]. [slen] is the optional seed length and defaults
+        to the size of the underlying hash function.
+
         @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
     val verify : ?slen:int -> key:pub -> signature:Cstruct.t -> Cstruct.t -> bool

@@ -131,8 +131,9 @@ module Cs = struct
     let cs  = clone ~len cs2 in
     ( xor_into cs1 cs len ; cs )
 
-  let create ?(init=0x00) n =
-    let cs = create n in ( memset cs init ; cs )
+  let create ?(init=0x00) n = let cs = create n in ( memset cs init ; cs )
+
+  let is_prefix cs0 cs = cs0.len <= cs.len && equal cs0 (sub cs 0 cs0.len)
 
   let set_msb bits cs =
     if bits > 0 then
