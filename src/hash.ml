@@ -132,13 +132,16 @@ end
 type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]
 [@@deriving sexp]
 
+let md5    = (module MD5    : S)
+and sha1   = (module SHA1   : S)
+and sha224 = (module SHA224 : S)
+and sha256 = (module SHA256 : S)
+and sha384 = (module SHA384 : S)
+and sha512 = (module SHA512 : S)
+
 let module_of = function
-  | `MD5    -> (module MD5    : S)
-  | `SHA1   -> (module SHA1   : S)
-  | `SHA224 -> (module SHA224 : S)
-  | `SHA256 -> (module SHA256 : S)
-  | `SHA384 -> (module SHA384 : S)
-  | `SHA512 -> (module SHA512 : S)
+  | `MD5    -> md5    | `SHA1   -> sha1   | `SHA224 -> sha224
+  | `SHA256 -> sha256 | `SHA384 -> sha384 | `SHA512 -> sha512
 
 let digest hash      = let module H = (val (module_of hash)) in H.digest
 let digesti hash     = let module H = (val (module_of hash)) in H.digesti
