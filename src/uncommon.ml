@@ -83,13 +83,6 @@ module Cs = struct
 
   let null cs = len cs = 0
 
-  let append cs1 cs2 =
-    let l1 = len cs1 and l2 = len cs2 in
-    let cs = create (l1 + l2) in
-    blit cs1 0 cs 0 l1 ;
-    blit cs2 0 cs l1 l2 ;
-    cs
-
   let (<+>) = append
 
   let ct_eq cs1 cs2 =
@@ -118,7 +111,7 @@ module Cs = struct
 
   let clone ?(off = 0) ?len cs =
     let len = match len with None -> cs.len - off | Some x -> x in
-    let cs' = create len in
+    let cs' = create_unsafe len in
     ( blit cs off cs' 0 len ; cs' )
 
   let xor_into src dst n =
@@ -132,7 +125,7 @@ module Cs = struct
     ( xor_into cs1 cs len ; cs )
 
   let create ?(init=0x00) n =
-    let cs = create n in ( memset cs init ; cs )
+    let cs = create_unsafe n in ( memset cs init ; cs )
 
   let set_msb bits cs =
     if bits > 0 then
@@ -153,14 +146,14 @@ module Cs = struct
     (sub cs 0 l1, sub cs l1 l2, sub cs l12 (len cs - l12))
 
   let rpad cs size x =
-    let l = len cs and cs' = Cstruct.create size in
+    let l = len cs and cs' = Cstruct.create_unsafe size in
     if size < l then Raise.invalid "Uncommon.Cs.rpad: size < len";
     blit cs 0 cs' 0 l ;
     memset (sub cs' l (size - l)) x ;
     cs'
 
   let lpad cs size x =
-    let l = len cs and cs' = Cstruct.create size in
+    let l = len cs and cs' = Cstruct.create_unsafe size in
     if size < l then Raise.invalid "Uncommon.Cs.lpad: size < len";
     blit cs 0 cs' (size - l) l ;
     memset (sub cs' 0 (size - l)) x ;
@@ -168,14 +161,14 @@ module Cs = struct
 
   let of_bytes, of_int32s, of_int64s =
     let aux k set xs =
-      let cs = Cstruct.create @@ List.length xs * k in
+      let cs = Cstruct.create_unsafe @@ List.length xs * k in
       List.iteri (fun i x -> set cs (i * k) x) xs;
       cs
     in
     (aux 1 set_uint8, aux 4 BE.set_uint32, aux 8 BE.set_uint64)
 
   let b x =
-    let cs = Cstruct.create 1 in ( set_uint8 cs 0 x ; cs )
+    let cs = Cstruct.create_unsafe 1 in ( set_uint8 cs 0 x ; cs )
 
   let rec shift_left_inplace cs = function
     | 0 -> ()
@@ -232,7 +225,7 @@ module Cs = struct
               match (acc, hexdigit char) with
               | (None  , x) -> (cs, i, Some (x lsl 4))
               | (Some y, x) -> set_uint8 cs i (x lor y) ; (cs, succ i, None))
-      ~z:(create (String.length str), 0, None)
+      ~z:(create_unsafe (String.length str), 0, None)
       str
     with
     | (_ , _, Some _) -> Raise.invalid "of_hex: dangling nibble"

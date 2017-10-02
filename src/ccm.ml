@@ -1,6 +1,6 @@
 open Uncommon
 
-let (<+>) = Cs.append
+let (<+>) = Cs.(<+>)
 
 let block_size = 16
 
