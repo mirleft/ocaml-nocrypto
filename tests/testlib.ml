@@ -225,9 +225,11 @@ let rsa_pss_sign_selftest ~bits n =
   "selftest" >:: times ~n @@ fun _ ->
     let (key, _)  = gen_rsa ~bits
     and msg       = Rng.generate (cdiv bits 8 - 2 * Hash.SHA1.digest_size - 2) in
-    let signature = Pss_sha1.sign ~key msg in
-    let ok        = Pss_sha1.verify ~key:(Rsa.pub_of_priv key) ~signature msg in
-    assert ok
+    let pkey      = Rsa.pub_of_priv key in
+    assert (Pss_sha1.verify ~key:pkey (`Message msg)
+            ~signature:(Pss_sha1.sign ~key (`Digest (Hash.SHA1.digest msg))));
+    assert (Pss_sha1.verify ~key:pkey (`Digest (Hash.SHA1.digest msg))
+            ~signature:(Pss_sha1.sign ~key (`Message msg)))
 
 let dh_selftest ~bits n =
 

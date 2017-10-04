@@ -85,12 +85,12 @@ let rec generate ?g ?(e = Z.(~$0x10001)) bits =
   else generate ?g ~e bits
 
 
+type 'a or_digest = 'a Hash.or_digest
 
 let b   = Cs.b
 let cat = Cstruct.concat
 
 let (bx00, bx01) = (b 0x00, b 0x01)
-
 
 module PKCS1 = struct
 
@@ -169,12 +169,12 @@ module PKCS1 = struct
   let detect msg = List.find_opt (fun (_, asn) -> Cs.is_prefix asn msg) asns
 
   let sign ?mask ~hash ~key msg =
-    sig_encode ?mask ~key Cs.(asn_of_hash hash <+> Hash.digest hash msg)
+    sig_encode ?mask ~key Cs.(asn_of_hash hash <+> Hash.digest_or ~hash msg)
 
   let verify ?hash ~key ~signature msg =
     let open Option in
     ( sig_decode ~key signature >>= fun cs -> detect cs >>| fun (h, asn) ->
-        h = get ~def:h hash && Cs.(ct_eq (asn <+> Hash.digest h msg)) cs )
+        h = get ~def:h hash && Cs.(ct_eq (asn <+> Hash.digest_or ~hash:h msg)) cs )
     |> get ~def:false
 
   let min_key hash = len (asn_of_hash hash) + Hash.digest_size hash + min_pad
@@ -182,27 +182,24 @@ end
 
 module MGF1 (H : Hash.S) = struct
 
-  open Cstruct
-
   let repr = Numeric.Int32.to_cstruct_be ~size:4
 
   (* Assumes len < 2^32 * H.digest_size. *)
   let mgf ~seed len =
     let rec go acc c = function
-      | 0 -> sub (cat (List.rev acc)) 0 len
+      | 0 -> Cstruct.sub (cat (List.rev acc)) 0 len
       | n -> let h = H.digesti (iter2 seed (repr c)) in
              go (h :: acc) Int32.(succ c) (pred n) in
     go [] 0l (cdiv len H.digest_size)
 
-  let mask ~seed cs = Cs.xor (mgf ~seed (len cs)) cs
-
+  let mask ~seed cs = Cs.xor (mgf ~seed (Cstruct.len cs)) cs
 end
 
 module OAEP (H : Hash.S) = struct
 
   open Cstruct
 
-  module MGF = MGF1(H)
+  module MGF = MGF1 (H)
 
   let hlen = H.digest_size
 
@@ -224,9 +221,7 @@ module OAEP (H : Hash.S) = struct
     let c1 = Cs.ct_eq (sub db 0 hlen) H.(digest label)
     and c2 = get_uint8 b0 0 = 0x00
     and c3 = get_uint8 db i = 0x01 in
-    if c1 && c2 && c3 then
-      Some (shift db (i + 1))
-    else None
+    if c1 && c2 && c3 then Some (shift db (i + 1)) else None
 
   let encrypt ?g ?label ~key msg =
     let k = bytes (pub_bits key) in
@@ -235,24 +230,23 @@ module OAEP (H : Hash.S) = struct
 
   let decrypt ?mask ?label ~key em =
     let k = bytes (priv_bits key) in
-    if len em <> k || max_msg_bytes k < 0 then None
-    else try
-      eme_oaep_decode ?label @@ decrypt ?mask ~key em
-    with Insufficient_key -> None
+    if len em <> k || max_msg_bytes k < 0 then None else
+      try eme_oaep_decode ?label @@ decrypt ?mask ~key em
+      with Insufficient_key -> None
 
   (* XXX Review rfc3447 7.1.2 and
    * http://archiv.infsec.ethz.ch/education/fs08/secsem/Manger01.pdf
    * again for timing properties. *)
 
   (* XXX expose seed for deterministic testing? *)
-
 end
 
 module PSS (H: Hash.S) = struct
 
   open Cstruct
 
-  module MGF = MGF1(H)
+  module MGF = MGF1 (H)
+  module H1  = Hash.Digest_or (H)
 
   let hlen = H.digest_size
 
@@ -262,7 +256,7 @@ module PSS (H: Hash.S) = struct
 
   let zero_8 = Cs.create 8
 
-  let digest ~salt msg = H.digesti @@ iter3 zero_8 (H.digest msg) salt
+  let digest ~salt msg = H.digesti @@ iter3 zero_8 (H1.digest_or msg) salt
 
   let emsa_pss_encode ?g slen emlen msg =
     let n    = bytes emlen

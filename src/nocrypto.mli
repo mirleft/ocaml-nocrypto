@@ -863,22 +863,31 @@ module Rsa : sig
         was produced with the given [key] as per {{!sig_encode}sig_encode}, or
         [None] *)
 
-    val min_key : Hash.hash -> int
+    open Hash
+
+    val min_key : hash -> int
     (** [min_key hash] is the minimum key size required by {{!sign}[sign]}. *)
 
-    val sign : ?mask:mask -> hash:Hash.hash -> key:priv -> Cstruct.t -> Cstruct.t
+    val sign : ?mask:mask -> hash:hash -> key:priv -> Cstruct.t or_digest -> Cstruct.t
     (** [sign ?mask ~hash ~key message] is the PKCS 1.5 signature of
         [message], signed by the [key], using the hash function [hash]. This is
         the full signature, with the ASN-encoded message digest as the payload.
 
-        @raise Insufficient_key *)
+        [message] is either the actual message, or its digest.
 
-    val verify : ?hash:Hash.hash -> key:pub -> signature:Cstruct.t -> Cstruct.t -> bool
+        @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key})
+        @raise Invalid_argument if message is a [`Digest] of the wrong size.  *)
+
+    val verify : ?hash:hash -> key:pub -> signature:Cstruct.t -> Cstruct.t or_digest -> bool
     (** [verify ?hash ~key ~signature message] checks that [signature] is the
         PKCS 1.5 signature of the [message] under the given [key].
 
+        [message] is either the actual message, or its digest.
+
         The hashing function is detected from the signature. If [hash] is given,
-        it must match the detected function. *)
+        it must match the detected function.
+
+        @raise Invalid_argument if message is a [`Digest] of the wrong size.  *)
   end
 
   (** {b OAEP}-padded encryption, as defined by {b PKCS #1 v2.1}.
@@ -910,16 +919,27 @@ module Rsa : sig
       hash length and [slen] is the seed length. *)
   module PSS (H: Hash.S) : sig
 
-    val sign : ?g:Rng.g -> ?slen:int -> key:priv -> Cstruct.t -> Cstruct.t
+    open Hash
+
+    val sign : ?g:Rng.g -> ?slen:int -> key:priv -> Cstruct.t or_digest -> Cstruct.t
     (** [sign ~g ~slen ~key message] the {p PSS}-padded digest of [message],
-        signed with the [key]. [slen] is the optional seed length and defaults
-        to the size of the underlying hash function.
+        signed with the [key].
 
-        @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
+        [slen] is the optional seed length and defaults to the size of the
+        underlying hash function.
 
-    val verify : ?slen:int -> key:pub -> signature:Cstruct.t -> Cstruct.t -> bool
+        [message] is either the actual message, or its digest.
+
+        @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key})
+        @raise Invalid_argument if message is a [`Digest] of the wrong size.  *)
+
+    val verify : ?slen:int -> key:pub -> signature:Cstruct.t -> Cstruct.t or_digest -> bool
     (** [verify ~slen ~key ~signature message] checks whether [signature] is a
-        valid {b PSS} signature of the [message] under the given [key]. *)
+        valid {b PSS} signature of the [message] under the given [key].
+
+        [message] is either the actual message, or its digest.
+
+        @raise Invalid_argument if message is a [`Digest] of the wrong size. *)
   end
 
   (**/**)
