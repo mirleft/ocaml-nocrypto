@@ -44,6 +44,11 @@ module Option = struct
     | None   -> ()
 end
 
+module List = struct
+  include List
+  let find_opt p xs = try Some (find p xs) with Not_found -> None
+end
+
 type 'a iter = ('a -> unit) -> unit
 
 let iter1 a     f = f a

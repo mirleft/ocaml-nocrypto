@@ -144,11 +144,11 @@ let module_of = function
   | `MD5    -> md5    | `SHA1   -> sha1   | `SHA224 -> sha224
   | `SHA256 -> sha256 | `SHA384 -> sha384 | `SHA512 -> sha512
 
-let digest hash      = let module H = (val module_of hash) in H.digest
-let digesti hash     = let module H = (val module_of hash) in H.digesti
-let mac hash         = let module H = (val module_of hash) in H.hmac
-let maci hash        = let module H = (val module_of hash) in H.hmaci
-let digest_size hash = let module H = (val module_of hash) in H.digest_size
+let digest hash      = let module H = (val (module_of hash)) in H.digest
+let digesti hash     = let module H = (val (module_of hash)) in H.digesti
+let mac hash         = let module H = (val (module_of hash)) in H.hmac
+let maci hash        = let module H = (val (module_of hash)) in H.hmaci
+let digest_size hash = let module H = (val (module_of hash)) in H.digest_size
 
 module Digest_or (H : S) = struct
   let digest_or = function
@@ -159,4 +159,5 @@ module Digest_or (H : S) = struct
           invalid_arg "(`Digest _): %d bytes, expecting %d" n m
 end
 
-let digest_or ~hash = let module H = Digest_or (val module_of hash) in H.digest_or
+let digest_or ~hash =
+  let module H = Digest_or (val (module_of hash)) in H.digest_or
