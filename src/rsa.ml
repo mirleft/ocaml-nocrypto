@@ -74,9 +74,9 @@ let well_formed ~e ~p ~q =
 
 let rec generate ?g ?(e = Z.(~$0x10001)) bits =
   if bits < 10 then
-    Raise.invalid "Rsa.generate: requested key size (%d) < 10 bits" bits;
+    invalid_arg "Rsa.generate: requested key size (%d) < 10 bits" bits;
   if Numeric.(Z.bits e >= bits || not (pseudoprime e)) || e < Z.three then
-    Raise.invalid "Rsa.generate: e invalid or too small";
+    invalid_arg "Rsa.generate: e: %a" Z.pp_print e;
 
   let (pb, qb) = (bits / 2, bits - bits / 2) in
   let (p, q)   = Rng.(prime ?g ~msb:2 pb, prime ?g ~msb:2 qb) in

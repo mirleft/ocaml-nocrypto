@@ -152,11 +152,11 @@ let digest_size hash = let module H = (val module_of hash) in H.digest_size
 
 module Digest_or (H : S) = struct
   let digest_or = function
-    | `Message msg -> H.digest msg
+    | `Message msg   -> H.digest msg
     | `Digest digest ->
-        if digest.Cstruct.len = H.digest_size then digest else
-          Raise.invalid "`Digest: wrong size for HASH"
+        let n = digest.Cstruct.len and m = H.digest_size in
+        if n = m then digest else
+          invalid_arg "(`Digest _): %d bytes, expecting %d" n m
 end
 
-let digest_or ~hash =
-  let module H = Digest_or (val module_of hash) in H.digest_or
+let digest_or ~hash = let module H = Digest_or (val module_of hash) in H.digest_or

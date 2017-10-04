@@ -2,6 +2,8 @@
 
 type 'a one = One of 'a
 
+let invalid_arg fmt = Format.kasprintf invalid_arg ("Nocrypto: " ^^ fmt)
+
 let cdiv (x : int) (y : int) =
   if x > 0 && y > 0 then (x + y - 1) / y
   else if x < 0 && y < 0 then (x + y + 1) / y
@@ -17,15 +19,6 @@ let id x = x
 
 let rec until p f =
   let r = f () in if p r then r else until p f
-
-module Raise = struct
-
-  open Printf
-
-  let tag = (^) "Nocrypto: "
-
-  let invalid fmt = Format.ksprintf invalid_arg ("Nocrypto: " ^^ fmt)
-end
 
 module Option = struct
 
@@ -123,7 +116,7 @@ module Cs = struct
 
   let xor_into src dst n =
     if n > imin (len src) (len dst) then
-      Raise.invalid "Uncommon.Cs.xor_into: buffers to small (need %d)" n
+      invalid_arg "Uncommon.Cs.xor_into: buffers to small (need %d)" n
     else Native.xor_into src.buffer src.off dst.buffer dst.off n
 
   let xor cs1 cs2 =
@@ -155,14 +148,14 @@ module Cs = struct
 
   let rpad cs size x =
     let l = len cs and cs' = Cstruct.create size in
-    if size < l then Raise.invalid "Uncommon.Cs.rpad: size < len";
+    if size < l then invalid_arg "Uncommon.Cs.rpad: size < len";
     blit cs 0 cs' 0 l ;
     memset (sub cs' l (size - l)) x ;
     cs'
 
   let lpad cs size x =
     let l = len cs and cs' = Cstruct.create size in
-    if size < l then Raise.invalid "Uncommon.Cs.lpad: size < len";
+    if size < l then invalid_arg "Uncommon.Cs.lpad: size < len";
     blit cs 0 cs' (size - l) l ;
     memset (sub cs' 0 (size - l)) x ;
     cs'
@@ -219,7 +212,7 @@ module Cs = struct
       | 'a' .. 'f' as x -> int_of_char x - 87
       | 'A' .. 'F' as x -> int_of_char x - 55
       | '0' .. '9' as x -> int_of_char x - 48
-      | x               -> Raise.invalid "of_hex: `%c'" x
+      | x               -> invalid_arg "of_hex: `%c'" x
     in
     let whitespace = function
       | ' ' | '\t' | '\r' | '\n' -> true
@@ -236,7 +229,7 @@ module Cs = struct
       ~z:(create (String.length str), 0, None)
       str
     with
-    | (_ , _, Some _) -> Raise.invalid "of_hex: dangling nibble"
+    | (_ , _, Some _) -> invalid_arg "of_hex: dangling nibble"
     | (cs, i, _     ) -> sub cs 0 i
 
 

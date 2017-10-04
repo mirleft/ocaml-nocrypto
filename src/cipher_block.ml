@@ -136,7 +136,7 @@ module Modes = struct
     let of_secret ~maclen sec =
       if Arr.mem maclen mac_sizes then
         (C.e_of_secret sec, maclen)
-      else Raise.invalid "CCM: Invalid MAC length"
+      else invalid_arg "CCM: MAC length %d" maclen
 
     let (key_sizes, block_size) = C.(key_sizes, block_size)
 
@@ -166,11 +166,13 @@ module Modes2 = struct
     let block_size = Core.block
 
     let encrypt_block ~key:key src dst =
-      if src.len < block_size || dst.len < block_size then Raise.invalid "xxx" ;
+      if src.len < block_size || dst.len < block_size then
+        invalid_arg "src len %d, dst len %d" src.len dst.len;
       Core.encrypt ~key ~blocks:1 src.buffer src.off dst.buffer dst.off
 
     let decrypt_block ~key:key src dst =
-      if src.len < block_size || dst.len < block_size then Raise.invalid "xxx" ;
+      if src.len < block_size || dst.len < block_size then
+        invalid_arg "src len %d, dst len %d" src.len dst.len;
       Core.decrypt ~key ~blocks:1 src.buffer src.off dst.buffer dst.off
   end
 
@@ -184,10 +186,9 @@ module Modes2 = struct
 
     let (encrypt, decrypt) =
       let ecb xform key src =
-        let n = len src in
-        if n mod block_size <> 0 then
-          Raise.invalid "ECB: argument not N * %d bytes" block_size ;
-        let dst = create @@ len src in
+        let n = src.len in
+        if n mod block_size <> 0 then invalid_arg "ECB: length %d" n;
+        let dst = create n in
         xform ~key ~blocks:(n / block_size) src.buffer src.off dst.buffer dst.off ;
         dst
       in
@@ -206,15 +207,14 @@ module Modes2 = struct
     let of_secret = Core.of_secret
 
     let bounds_check ~iv cs =
-      if len iv <> block then
-        Raise.invalid "CBC: iv is not %d bytes" block ;
-      if len cs mod block <> 0 then
-        Raise.invalid "CBC: argument is not N * %d bytes" block
+      if iv.len <> block then invalid_arg "CBC: IV length %d" iv.len;
+      if cs.len mod block <> 0 then
+        invalid_arg "CBC: argument length %d" cs.len
 
     let next_iv ~iv cs =
       bounds_check ~iv cs ;
-      if len cs > 0 then
-        sub cs (len cs - block_size) block_size
+      if cs.len > 0 then
+        sub cs (cs.len - block_size) block_size
       else iv
 
     let encrypt ~key:(key, _) ~iv src =
@@ -227,13 +227,13 @@ module Modes2 = struct
           Core.encrypt ~key ~blocks:1 dst dst_i dst dst_i ;
           loop dst dst_i (dst_i + block) (b - 1)
         end in
-      loop iv.buffer iv.off msg.off (len msg / block) ;
+      loop iv.buffer iv.off msg.off (msg.len / block) ;
       msg
 
     let decrypt ~key:(_, key) ~iv src =
       bounds_check ~iv src ;
-      let msg = create (len src)
-      and b   = len src / block in
+      let msg = create src.len
+      and b   = src.len / block in
       if b > 0 then begin
         Core.decrypt ~key ~blocks:b src.buffer src.off msg.buffer msg.off ;
         Native.xor_into iv.buffer iv.off msg.buffer msg.off block ;
@@ -254,7 +254,7 @@ module Modes2 = struct
         match block with
         | 16 -> (Native.count16be, Counter.add16)
         | 8  -> (Native.count8be, Counter.add8)
-        | n  -> Raise.invalid "CTR_of: bad block size (%d): not {8,16}" n
+        | n  -> invalid_arg "CTR_of: block size %d, need 8 or 16" n
     end
 
     type key = Core.ekey
@@ -283,14 +283,12 @@ module Modes2 = struct
       of_bigarray ~len:n ~off:shift buf
 
     let stream ~key ~ctr ?off n =
-      if ctr.len <> block then
-        Raise.invalid "CTR: counter not %d bytes" block ;
-      if n < 0 then
-        Raise.invalid "CTR: negative size (%d)" n ;
+      if ctr.len <> block then invalid_arg "CTR: counter length %d" ctr.len;
+      if n < 0 then invalid_arg "CTR: size %d" n;
       match off with
       | None               -> stream ~key ~ctr n
       | Some k when k >= 0 -> stream_shifted ~key ~ctr k n
-      | Some k             -> Raise.invalid "CTR: negative offset (%d)" k
+      | Some k             -> invalid_arg "CTR: offset %d" k
 
     let encrypt ~key ~ctr ?off src =
       let res = stream ~key ~ctr ?off src.len in
@@ -361,7 +359,7 @@ module AES = struct
       let rounds =
         match len with
         | 16|24|32 -> len / 4 + 6
-        | _        -> Raise.invalid "AES: invalid key size (%d)" len in
+        | _        -> invalid_arg "AES.of_secret: key length %d" len in
       let rk = Native.(buffer @@ AES.rk_s rounds) in
       init buffer off rk rounds ;
       (rk, rounds)
@@ -409,7 +407,7 @@ module DES = struct
 
     let gen_of_secret ~direction { Cstruct.buffer ; off ; len } =
       if len <> 24 then
-        Raise.invalid "DES: invalid key size (%d)" len ;
+        invalid_arg "DES.of_secret: key length %d" len ;
       let key = Native.buffer k_s in
       Native.DES.des3key buffer off direction ;
       Native.DES.cp3key key ;
