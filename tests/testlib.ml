@@ -190,7 +190,7 @@ let pkcs_message_for_bits bits =
   let size    = cdiv bits 8 - padding in
   assert (size >= 0) ; Rng.generate size
 
-let rsa_pkcs1_sign_selftest ~bits n =
+let rsa_pkcs1_encode_selftest ~bits n =
   "selftest" >:: times ~n @@ fun _ ->
     let (key, _) = gen_rsa ~bits
     and msg      = pkcs_message_for_bits bits in
@@ -199,6 +199,20 @@ let rsa_pkcs1_sign_selftest ~bits n =
     | None     -> assert_failure ("unpad failure " ^ show_key_size key)
     | Some dec -> assert_cs_equal msg dec
                     ~msg:("recovery failure " ^ show_key_size key)
+
+let rsa_pkcs1_sign_selftest n =
+  let open Hash.SHA1 in
+  "selftest" >:: times ~n @@ fun _ ->
+    let (key, _) = gen_rsa ~bits:(Rsa.PKCS1.min_key `SHA1)
+    and msg      = Rng.generate 47 in
+    let pkey     = Rsa.pub_of_priv key in
+    assert Rsa.PKCS1.(
+      verify ~key:pkey (`Message msg)
+        ~signature:(sign ~hash:`SHA1 ~key (`Digest (digest msg))) );
+    assert Rsa.PKCS1.(
+      verify ~key:pkey (`Digest (digest msg))
+        ~signature:(sign ~hash:`SHA1 ~key (`Message msg)) )
+
 
 let rsa_pkcs1_encrypt_selftest ~bits n =
   "selftest" >:: times ~n @@ fun _ ->
@@ -222,14 +236,17 @@ let rsa_oaep_encrypt_selftest ~bits n =
 
 let rsa_pss_sign_selftest ~bits n =
   let module Pss_sha1 = Rsa.PSS (Hash.SHA1) in
+  let open Hash.SHA1 in
   "selftest" >:: times ~n @@ fun _ ->
     let (key, _)  = gen_rsa ~bits
     and msg       = Rng.generate (cdiv bits 8 - 2 * Hash.SHA1.digest_size - 2) in
     let pkey      = Rsa.pub_of_priv key in
-    assert (Pss_sha1.verify ~key:pkey (`Message msg)
-            ~signature:(Pss_sha1.sign ~key (`Digest (Hash.SHA1.digest msg))));
-    assert (Pss_sha1.verify ~key:pkey (`Digest (Hash.SHA1.digest msg))
-            ~signature:(Pss_sha1.sign ~key (`Message msg)))
+    assert Pss_sha1.(
+      verify ~key:pkey (`Message msg)
+        ~signature:(sign ~key (`Digest (digest msg))) );
+    assert Pss_sha1.(
+      verify ~key:pkey (`Digest (digest msg))
+        ~signature:(Pss_sha1.sign ~key (`Message msg)) )
 
 let dh_selftest ~bits n =
 
@@ -910,8 +927,9 @@ let suite =
     ] ;
 
     "RSA-PKCS1-SIGN" >::: [
-      rsa_pkcs1_sign_selftest ~bits:111 100 ;
-      rsa_pkcs1_sign_selftest ~bits:512 10 ;
+      rsa_pkcs1_encode_selftest ~bits:111 100 ;
+      rsa_pkcs1_encode_selftest ~bits:512 10 ;
+      rsa_pkcs1_sign_selftest 10;
     ] ;
 
     "RSA-OAEP(SHA1)-ENC" >::: [
