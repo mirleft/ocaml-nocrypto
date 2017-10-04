@@ -41,11 +41,9 @@ module Core (F : Foreign) (D : Desc) = struct
 
   type t = Native.ctx
 
-  let block_size  = D.block_size
-  and digest_size = D.digest_size
-  and ctx_size    = F.ctx_size ()
+  include D
 
-  let empty = Bytes.create ctx_size
+  let empty = Bytes.create (F.ctx_size ())
 
   let _ = F.init empty
 
@@ -128,9 +126,10 @@ module SHAd256 = struct
   let feedi     = SHA256.feedi
 end
 
-
 type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]
 [@@deriving sexp]
+
+let hashes = [ `MD5; `SHA1; `SHA224; `SHA256; `SHA384; `SHA512 ]
 
 let md5    = (module MD5    : S)
 and sha1   = (module SHA1   : S)

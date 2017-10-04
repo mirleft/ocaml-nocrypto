@@ -163,7 +163,9 @@ end
 
 (** Hashes.
 
-    Each hash algorithm is contained in its own separate module. *)
+    Each algorithm is contained in its own {{!hashing_modules}module}, with
+    high-level operations accessible through {{!hashing_funs}functions} that
+    dispatch on {{!hash}code} value. *)
 module Hash : sig
 
   type digest = Cstruct.t
@@ -179,6 +181,7 @@ module Hash : sig
       {- [let iter_pair : 'a * 'a -> 'a iter = fun (x, y) f = f x; f y]}
       {- [let iter_list : 'a list -> 'a iter = fun xs f -> List.iter f xs]}} *)
 
+  (** {1:hashing_modules Hashing algorithms} *)
 
   (** A single hash algorithm. *)
   module type S = sig
@@ -218,7 +221,7 @@ module Hash : sig
         secret [key], generated using the standard HMAC construction over this
         hash algorithm. *)
 
-    (** {1 Functions over iterators}
+    (** {1:hashing_funs Functions over iterators}
 
         Functions that operate on arbitrary {{!iter}iterators}. They can serve
         as a basis for other, more specialized aggregate hashing operations.
@@ -243,7 +246,7 @@ module Hash : sig
   module SHA384  : S
   module SHA512  : S
 
-  (** {1 Short-hand functions} *)
+  (** {1 Constants-based interface} *)
 
   type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]
   (** Hashing algorithm.
