@@ -246,19 +246,29 @@ module Hash : sig
   module SHA384  : S
   module SHA512  : S
 
-  (** {1 Constants-based interface} *)
+  (** {1 Codes-based interface} *)
 
   type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]
-  (** Hashing algorithm.
+  (** Algorithm codes.
 
       {e [Sexplib] convertible}. *)
+
+  val module_of   : [< hash ] -> (module S)
+  (** [module_of hash] is the (first-class) module corresponding to the code
+      [hash].
+
+      This is the most convenient way to go from a code to a module. *)
 
   val digest      : [< hash ] -> Cstruct.t -> digest
   val digesti     : [< hash ] -> Cstruct.t iter -> digest
   val mac         : [< hash ] -> key:Cstruct.t -> Cstruct.t -> digest
   val maci        : [< hash ] -> key:Cstruct.t -> Cstruct.t iter -> digest
   val digest_size : [< hash ] -> int
-  val module_of   : [< hash ] -> (module S)
+
+  (** {1 Misc} *)
+
+  type 'a or_digest = [ `Message of 'a | `Digest of digest ]
+  (** Either an ['a] or its digest, according to some hash algorithm. *)
 
   (**/**)
   val hash_of_sexp : Sexplib.Sexp.t -> hash

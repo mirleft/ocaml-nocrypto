@@ -4,6 +4,8 @@ type digest = Cstruct.t
 
 type 'a iter = 'a Uncommon.iter
 
+type 'a or_digest = [ `Message of 'a | `Digest of digest ]
+
 module type S = sig
 
   val digest_size : int
@@ -142,8 +144,19 @@ let module_of = function
   | `MD5    -> md5    | `SHA1   -> sha1   | `SHA224 -> sha224
   | `SHA256 -> sha256 | `SHA384 -> sha384 | `SHA512 -> sha512
 
-let digest hash      = let module H = (val (module_of hash)) in H.digest
-let digesti hash     = let module H = (val (module_of hash)) in H.digesti
-let mac hash         = let module H = (val (module_of hash)) in H.hmac
-let maci hash        = let module H = (val (module_of hash)) in H.hmaci
-let digest_size hash = let module H = (val (module_of hash)) in H.digest_size
+let digest hash      = let module H = (val module_of hash) in H.digest
+let digesti hash     = let module H = (val module_of hash) in H.digesti
+let mac hash         = let module H = (val module_of hash) in H.hmac
+let maci hash        = let module H = (val module_of hash) in H.hmaci
+let digest_size hash = let module H = (val module_of hash) in H.digest_size
+
+module Digest_or (H : S) = struct
+  let digest_or = function
+    | `Message msg -> H.digest msg
+    | `Digest digest ->
+        if digest.Cstruct.len = H.digest_size then digest else
+          Raise.invalid "`Digest: wrong size for HASH"
+end
+
+let digest_or ~hash =
+  let module H = Digest_or (val module_of hash) in H.digest_or
