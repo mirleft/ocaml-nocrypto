@@ -2,7 +2,9 @@
 
 type 'a one = One of 'a
 
-let invalid_arg fmt = Format.kasprintf invalid_arg ("Nocrypto: " ^^ fmt)
+let invalid_arg fmt =
+  Format.(kfprintf (fun _ -> invalid_arg (flush_str_formatter ()))
+                   str_formatter ("Nocrypto: " ^^ fmt))
 
 let cdiv (x : int) (y : int) =
   if x > 0 && y > 0 then (x + y - 1) / y

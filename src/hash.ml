@@ -160,4 +160,6 @@ module Digest_or (H : S) = struct
 end
 
 let digest_or ~hash =
-  let module H = Digest_or (val (module_of hash)) in H.digest_or
+  let module H = (val (module_of hash)) in
+  let module D = Digest_or (H) in
+  D.digest_or
