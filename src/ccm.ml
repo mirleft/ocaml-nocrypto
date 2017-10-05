@@ -1,6 +1,6 @@
 open Uncommon
 
-let (<+>) = Cs.append
+let (<+>) = Cs.(<+>)
 
 let block_size = 16
 
@@ -157,7 +157,7 @@ let decryption_verification ~cipher ~key ~nonce ~maclen ?adata data =
   let () =
     let nsize = Cstruct.len nonce in
     if nsize < 7 || nsize > 13 then
-      invalid_arg "CCM: nonce size %d" nsize in
+      invalid_arg "CCM: nonce length %d" nsize in
   if Cstruct.len data <= maclen then
     None
   else
