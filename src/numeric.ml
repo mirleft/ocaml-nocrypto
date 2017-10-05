@@ -1,5 +1,7 @@
 open Uncommon
 
+type bits = int
+
 module Z_orig = Z
 
 module type S_core = sig

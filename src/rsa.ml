@@ -1,7 +1,7 @@
 open Sexplib.Conv
 open Uncommon
 
-let rprime a b = Z.(gcd a b = one)
+type bits = int
 
 exception Insufficient_key
 
@@ -13,6 +13,8 @@ type priv = {
 } [@@deriving sexp]
 
 type mask = [ `No | `Yes | `Yes_with of Rng.g ]
+
+let rprime a b = Z.(gcd a b = one)
 
 let priv_of_primes ~e ~p ~q =
   let n  = Z.(p * q)
@@ -177,7 +179,8 @@ module PKCS1 = struct
         h = get ~def:h hash && Cs.(ct_eq (asn <+> Hash.digest_or ~hash:h msg)) cs )
     |> get ~def:false
 
-  let min_key hash = len (asn_of_hash hash) + Hash.digest_size hash + min_pad
+  let min_key hash =
+    (len (asn_of_hash hash) + Hash.digest_size hash + min_pad - 1) * 8 + 1
 end
 
 module MGF1 (H : Hash.S) = struct

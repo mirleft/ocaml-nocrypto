@@ -1,6 +1,8 @@
 open Sexplib.Conv
 open Uncommon
 
+type bits = int
+
 exception Invalid_public_key
 
 type group = {

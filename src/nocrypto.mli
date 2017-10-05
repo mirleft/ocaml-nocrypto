@@ -105,6 +105,8 @@ end
 (** Numeric utilities. *)
 module Numeric : sig
 
+  type bits = int
+
   (** Augmented numeric type.
       Includes basic common numeric ops, range of conversions to and from
       variously-sized int types, and a few basic function for representing such
@@ -135,12 +137,12 @@ module Numeric : sig
     val to_int32 : t -> int32
     val to_int64 : t -> int64
 
-    val bit_bound : t -> int
+    val bit_bound : t -> bits
 
     val pp_print : Format.formatter -> t -> unit
 
-    val bits            : t -> int
-    val of_cstruct_be   : ?bits:int -> Cstruct.t -> t
+    val bits            : t -> bits
+    val of_cstruct_be   : ?bits:bits -> Cstruct.t -> t
     val to_cstruct_be   : ?size:int -> t -> Cstruct.t
     val into_cstruct_be : t -> Cstruct.t -> unit
 
@@ -502,6 +504,8 @@ module Rng : sig
       illustrated in the {{!rng_examples}examples}.
   *)
 
+  type bits = int
+
   (** {1 Interface} *)
 
   type g
@@ -549,7 +553,6 @@ module Rng : sig
       val seeded : g:g -> bool
       (** [seeded ~g] is [true] iff operations won't throw
           {{!Unseeded_generator}Unseeded_generator}. *)
-
     end
 
     (** Typed generation of a particular numeric type. *)
@@ -565,7 +568,7 @@ module Rng : sig
       (** [gen_r ~g low high] picks a value from the interval [\[low, high - 1\]]
           uniformly at random. *)
 
-      val gen_bits : ?g:g -> ?msb:int -> int -> t
+      val gen_bits : ?g:g -> ?msb:bits -> bits -> t
       (** [gen_bits ~g ~msb n] picks a bit-string [n] bits long, with [msb] most
           significant bits set, and interprets it as a {{!t}t} in big-endidan.
           This yields a value in the interval
@@ -591,7 +594,6 @@ module Rng : sig
 
     (** No-op generator returning exactly the bytes it was seeded with. *)
     module Null : S.Generator
-
   end
 
 
@@ -648,14 +650,14 @@ module Rng : sig
 
   (** {1 Specialized generation} *)
 
-  val prime : ?g:g -> ?msb:int -> int -> Z.t
+  val prime : ?g:g -> ?msb:bits -> bits -> Z.t
   (** [prime ~g ~msb bits] generates a prime smaller than [2^bits], with [msb]
       most significant bits set.
 
       [prime ~g ~msb:1 bits] (the default) yields a prime in the interval
       [\[2^(bits - 1), 2^bits - 1\]]. *)
 
-  val safe_prime : ?g:g -> int -> Z.t * Z.t
+  val safe_prime : ?g:g -> bits -> Z.t * Z.t
   (** [safe_prime ~g bits] gives a prime pair [(g, p)] such that [p = 2g + 1]
       and [p] has [bits] significant bits. *)
 
@@ -706,6 +708,8 @@ exceptions.
 Private-key operations are optionally protected through RSA blinding. *)
 module Rsa : sig
 
+  type bits = int
+
   (** {1 Keys}
 
       {b Warning} The behavior of functions in this module is undefined if the
@@ -752,10 +756,10 @@ module Rsa : sig
 
       {e [Sexplib] convertible}. *)
 
-  val pub_bits : pub -> int
+  val pub_bits : pub -> bits
   (** Bit-size of a public key. *)
 
-  val priv_bits : priv -> int
+  val priv_bits : priv -> bits
   (** Bit-size of a private key. *)
 
   val priv_of_primes : e:Z.t -> p:Z.t -> q:Z.t -> priv
@@ -818,7 +822,7 @@ module Rsa : sig
 
   (** {1 Key generation} *)
 
-  val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
+  val generate : ?g:Rng.g -> ?e:Z.t -> bits -> priv
   (** [generate g e bits] is a new {{!priv}private key}. The new key is
       guaranteed to be {{!well_formed}well formed}.
 
@@ -865,7 +869,7 @@ module Rsa : sig
 
     open Hash
 
-    val min_key : hash -> int
+    val min_key : hash -> bits
     (** [min_key hash] is the minimum key size required by {{!sign}[sign]}. *)
 
     val sign : ?mask:mask -> hash:hash -> key:priv -> Cstruct.t or_digest -> Cstruct.t
@@ -956,6 +960,8 @@ end
 (** {b DSA} digital signature algorithm. *)
 module Dsa : sig
 
+  type bits = int
+
   (** {1 DSA signature algorithm} *)
 
   type priv = {
@@ -979,7 +985,7 @@ module Dsa : sig
 
       {e [Sexplib] convertible}. *)
 
-  type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `Exactly of int * int ]
+  type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `Exactly of bits * bits ]
   (** Key size request. Three {e Fips} variants refer to FIPS-standardized
       L-values ([p] size) and imply the corresponding N ([q] size); The last
       variants specifies L and N directly. *)
@@ -1043,6 +1049,8 @@ end
 (** Diffie-Hellman, MODP version. *)
 module Dh : sig
 
+  type bits = int
+
   (** {1 Diffie-Hellman key exchange} *)
 
   exception Invalid_public_key
@@ -1063,7 +1071,7 @@ module Dh : sig
 
       {e [Sexplib] convertible.} *)
 
-  val modulus_size : group -> int
+  val modulus_size : group -> bits
   (** Bit size of the modulus. *)
 
   val key_of_secret : group -> s:Cstruct.t -> secret * Cstruct.t
@@ -1071,7 +1079,7 @@ module Dh : sig
       key which use [s] as the secret exponent.
       @raise Invalid_public_key if [s] is degenerate. *)
 
-  val gen_key : ?g:Rng.g -> ?bits:int -> group -> secret * Cstruct.t
+  val gen_key : ?g:Rng.g -> ?bits:bits -> group -> secret * Cstruct.t
   (** Generate a random {!secret} and the corresponding public key.
       [bits] is the exact bit-size of {!secret} and defaults to a value
       dependent on the {!group}'s [p]. *)
@@ -1081,7 +1089,7 @@ module Dh : sig
       group, a previously generated {!secret} and the other party's public
       message. It is [None] if [message] is degenerate. *)
 
-  val gen_group : ?g:Rng.g -> int -> group
+  val gen_group : ?g:Rng.g -> bits -> group
   (** [gen_group bits] generates a random {!group} with modulus size [bits].
       Uses a safe prime [p = 2q + 1] (with [q] prime) for the modulus and [2]
       for the generator, such that [2^q = 1 mod p].

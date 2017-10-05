@@ -1,8 +1,11 @@
 open Sexplib.Conv
 open Uncommon
 
+type bits = int
+
 type pub = { p : Z.t ; q : Z.t ; gg : Z.t ; y : Z.t }
 [@@deriving sexp]
+
 type priv = { p : Z.t ; q : Z.t ; gg : Z.t ; x : Z.t ; y : Z.t }
 [@@deriving sexp]
 
