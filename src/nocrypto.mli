@@ -89,11 +89,6 @@ module Uncommon : sig
     val of_hex : string -> Cstruct.t
   end
 
-  (** Addons to {!Array}. *)
-  module Arr : sig
-    val mem : 'a -> 'a array -> bool
-  end
-
   val bracket : init:(unit -> 'a) -> fini:('a -> unit) -> ('a -> 'b) -> 'b
   (** Safe acquire-use-release combinator. *)
 
@@ -104,6 +99,8 @@ end
 
 (** Numeric utilities. *)
 module Numeric : sig
+
+  type bits = int
 
   (** Augmented numeric type.
       Includes basic common numeric ops, range of conversions to and from
@@ -135,12 +132,12 @@ module Numeric : sig
     val to_int32 : t -> int32
     val to_int64 : t -> int64
 
-    val bit_bound : t -> int
+    val bit_bound : t -> bits
 
     val pp_print : Format.formatter -> t -> unit
 
-    val bits            : t -> int
-    val of_cstruct_be   : ?bits:int -> Cstruct.t -> t
+    val bits            : t -> bits
+    val of_cstruct_be   : ?bits:bits -> Cstruct.t -> t
     val to_cstruct_be   : ?size:int -> t -> Cstruct.t
     val into_cstruct_be : t -> Cstruct.t -> unit
 
@@ -163,7 +160,9 @@ end
 
 (** Hashes.
 
-    Each hash algorithm is contained in its own separate module. *)
+    Each algorithm is contained in its own {{!hashing_modules}module}, with
+    high-level operations accessible through {{!hashing_funs}functions} that
+    dispatch on {{!hash}code} value. *)
 module Hash : sig
 
   type digest = Cstruct.t
@@ -179,6 +178,7 @@ module Hash : sig
       {- [let iter_pair : 'a * 'a -> 'a iter = fun (x, y) f = f x; f y]}
       {- [let iter_list : 'a list -> 'a iter = fun xs f -> List.iter f xs]}} *)
 
+  (** {1:hashing_modules Hashing algorithms} *)
 
   (** A single hash algorithm. *)
   module type S = sig
@@ -218,7 +218,7 @@ module Hash : sig
         secret [key], generated using the standard HMAC construction over this
         hash algorithm. *)
 
-    (** {1 Functions over iterators}
+    (** {1:hashing_funs Functions over iterators}
 
         Functions that operate on arbitrary {{!iter}iterators}. They can serve
         as a basis for other, more specialized aggregate hashing operations.
@@ -243,19 +243,29 @@ module Hash : sig
   module SHA384  : S
   module SHA512  : S
 
-  (** {1 Short-hand functions} *)
+  (** {1 Codes-based interface} *)
 
   type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]
-  (** Hashing algorithm.
+  (** Algorithm codes.
 
       {e [Sexplib] convertible}. *)
+
+  val module_of   : [< hash ] -> (module S)
+  (** [module_of hash] is the (first-class) module corresponding to the code
+      [hash].
+
+      This is the most convenient way to go from a code to a module. *)
 
   val digest      : [< hash ] -> Cstruct.t -> digest
   val digesti     : [< hash ] -> Cstruct.t iter -> digest
   val mac         : [< hash ] -> key:Cstruct.t -> Cstruct.t -> digest
   val maci        : [< hash ] -> key:Cstruct.t -> Cstruct.t iter -> digest
   val digest_size : [< hash ] -> int
-  val module_of   : [< hash ] -> (module S)
+
+  (** {1 Misc} *)
+
+  type 'a or_digest = [ `Message of 'a | `Digest of digest ]
+  (** Either an ['a] or its digest, according to some hash algorithm. *)
 
   (**/**)
   val hash_of_sexp : Sexplib.Sexp.t -> hash
@@ -489,6 +499,8 @@ module Rng : sig
       illustrated in the {{!rng_examples}examples}.
   *)
 
+  type bits = int
+
   (** {1 Interface} *)
 
   type g
@@ -536,7 +548,6 @@ module Rng : sig
       val seeded : g:g -> bool
       (** [seeded ~g] is [true] iff operations won't throw
           {{!Unseeded_generator}Unseeded_generator}. *)
-
     end
 
     (** Typed generation of a particular numeric type. *)
@@ -552,7 +563,7 @@ module Rng : sig
       (** [gen_r ~g low high] picks a value from the interval [\[low, high - 1\]]
           uniformly at random. *)
 
-      val gen_bits : ?g:g -> ?msb:int -> int -> t
+      val gen_bits : ?g:g -> ?msb:bits -> bits -> t
       (** [gen_bits ~g ~msb n] picks a bit-string [n] bits long, with [msb] most
           significant bits set, and interprets it as a {{!t}t} in big-endidan.
           This yields a value in the interval
@@ -578,7 +589,6 @@ module Rng : sig
 
     (** No-op generator returning exactly the bytes it was seeded with. *)
     module Null : S.Generator
-
   end
 
 
@@ -635,14 +645,14 @@ module Rng : sig
 
   (** {1 Specialized generation} *)
 
-  val prime : ?g:g -> ?msb:int -> int -> Z.t
+  val prime : ?g:g -> ?msb:bits -> bits -> Z.t
   (** [prime ~g ~msb bits] generates a prime smaller than [2^bits], with [msb]
       most significant bits set.
 
       [prime ~g ~msb:1 bits] (the default) yields a prime in the interval
       [\[2^(bits - 1), 2^bits - 1\]]. *)
 
-  val safe_prime : ?g:g -> int -> Z.t * Z.t
+  val safe_prime : ?g:g -> bits -> Z.t * Z.t
   (** [safe_prime ~g bits] gives a prime pair [(g, p)] such that [p = 2g + 1]
       and [p] has [bits] significant bits. *)
 
@@ -693,6 +703,8 @@ exceptions.
 Private-key operations are optionally protected through RSA blinding. *)
 module Rsa : sig
 
+  type bits = int
+
   (** {1 Keys}
 
       {b Warning} The behavior of functions in this module is undefined if the
@@ -739,10 +751,10 @@ module Rsa : sig
 
       {e [Sexplib] convertible}. *)
 
-  val pub_bits : pub -> int
+  val pub_bits : pub -> bits
   (** Bit-size of a public key. *)
 
-  val priv_bits : priv -> int
+  val priv_bits : priv -> bits
   (** Bit-size of a private key. *)
 
   val priv_of_primes : e:Z.t -> p:Z.t -> q:Z.t -> priv
@@ -805,7 +817,7 @@ module Rsa : sig
 
   (** {1 Key generation} *)
 
-  val generate : ?g:Rng.g -> ?e:Z.t -> int -> priv
+  val generate : ?g:Rng.g -> ?e:Z.t -> bits -> priv
   (** [generate g e bits] is a new {{!priv}private key}. The new key is
       guaranteed to be {{!well_formed}well formed}.
 
@@ -817,30 +829,64 @@ module Rsa : sig
 
   (** {1 PKCS#1 padded modes} *)
 
-  (** {b PKCS v1.5}-padded operations, as defined by {b PKCS #1 v1.5}.
+  (** {b PKCS v1.5} operations, as defined by {b PKCS #1 v1.5}.
 
-      Keys must have a minimum of [11 + len(message)] bytes. *)
+      The operations that only add the raw padding require keys of size
+      [11 + len(message)] bytes (rounded up), while size of keys required for
+      {{!sign}signing} varies with the hashing function. *)
   module PKCS1 : sig
-
-    val sig_encode : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
-    (** [sig_encode mask key message] is the PKCS1-padded (type 1) [message]
-        signed by the [key]. Note that this operation performs only the padding
-        and RSA transformation steps of the PKCS 1.5 signature.
-        @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
-
-    val sig_decode : key:pub -> Cstruct.t -> Cstruct.t option
-    (** [sig_decode key signature] is either [Some message] if the [signature]
-        was produced with the given [key] as per {{!sign}sign}, or [None] *)
 
     val encrypt : ?g:Rng.g -> key:pub -> Cstruct.t -> Cstruct.t
     (** [encrypt g key message] is a PKCS1-padded (type 2) and encrypted
         [message].
+
         @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
     val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t option
     (** [decrypt mask key ciphertext] is [Some message] if the [ciphertext] was
         produced by the corresponding {{!encrypt}encrypt} operation, or [None]
         otherwise. *)
+
+    val sig_encode : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
+    (** [sig_encode ?mask ~key message] is the PKCS1-padded (type 1) [message]
+        signed by the [key].
+
+        {b Note} This operation performs only the padding and RSA transformation
+        steps of the PKCS 1.5 signature. The full signature is implemented by
+        {{!sign}[sign]}.
+
+        @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
+
+    val sig_decode : key:pub -> Cstruct.t -> Cstruct.t option
+    (** [sig_decode key signature] is [Some message] when the [signature]
+        was produced with the given [key] as per {{!sig_encode}sig_encode}, or
+        [None] *)
+
+    open Hash
+
+    val min_key : hash -> bits
+    (** [min_key hash] is the minimum key size required by {{!sign}[sign]}. *)
+
+    val sign : ?mask:mask -> hash:hash -> key:priv -> Cstruct.t or_digest -> Cstruct.t
+    (** [sign ?mask ~hash ~key message] is the PKCS 1.5 signature of
+        [message], signed by the [key], using the hash function [hash]. This is
+        the full signature, with the ASN-encoded message digest as the payload.
+
+        [message] is either the actual message, or its digest.
+
+        @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key})
+        @raise Invalid_argument if message is a [`Digest] of the wrong size.  *)
+
+    val verify : ?hash:hash -> key:pub -> signature:Cstruct.t -> Cstruct.t or_digest -> bool
+    (** [verify ?hash ~key ~signature message] checks that [signature] is the
+        PKCS 1.5 signature of the [message] under the given [key].
+
+        [message] is either the actual message, or its digest.
+
+        The hashing function is detected from the signature. If [hash] is given,
+        it must match the detected function.
+
+        @raise Invalid_argument if message is a [`Digest] of the wrong size.  *)
   end
 
   (** {b OAEP}-padded encryption, as defined by {b PKCS #1 v2.1}.
@@ -872,15 +918,27 @@ module Rsa : sig
       hash length and [slen] is the seed length. *)
   module PSS (H: Hash.S) : sig
 
-    val sign : ?g:Rng.g -> ?slen:int -> key:priv -> Cstruct.t -> Cstruct.t
-    (** [sign ~g ~slen ~key message] the {p PSS}-padded digest of [message],
-        signed with the [key]. [slen] is the optional seed length and default to
-        the size of the underlying hash function.
-        @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
+    open Hash
 
-    val verify : ?slen:int -> key:pub -> signature:Cstruct.t -> Cstruct.t -> bool
+    val sign : ?g:Rng.g -> ?slen:int -> key:priv -> Cstruct.t or_digest -> Cstruct.t
+    (** [sign ~g ~slen ~key message] the {p PSS}-padded digest of [message],
+        signed with the [key].
+
+        [slen] is the optional seed length and defaults to the size of the
+        underlying hash function.
+
+        [message] is either the actual message, or its digest.
+
+        @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key})
+        @raise Invalid_argument if message is a [`Digest] of the wrong size.  *)
+
+    val verify : ?slen:int -> key:pub -> signature:Cstruct.t -> Cstruct.t or_digest -> bool
     (** [verify ~slen ~key ~signature message] checks whether [signature] is a
-        valid {b PSS} signature of the [message] under the given [key]. *)
+        valid {b PSS} signature of the [message] under the given [key].
+
+        [message] is either the actual message, or its digest.
+
+        @raise Invalid_argument if message is a [`Digest] of the wrong size. *)
   end
 
   (**/**)
@@ -896,6 +954,8 @@ end
 
 (** {b DSA} digital signature algorithm. *)
 module Dsa : sig
+
+  type bits = int
 
   (** {1 DSA signature algorithm} *)
 
@@ -920,7 +980,7 @@ module Dsa : sig
 
       {e [Sexplib] convertible}. *)
 
-  type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `Exactly of int * int ]
+  type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `Exactly of bits * bits ]
   (** Key size request. Three {e Fips} variants refer to FIPS-standardized
       L-values ([p] size) and imply the corresponding N ([q] size); The last
       variants specifies L and N directly. *)
@@ -984,6 +1044,8 @@ end
 (** Diffie-Hellman, MODP version. *)
 module Dh : sig
 
+  type bits = int
+
   (** {1 Diffie-Hellman key exchange} *)
 
   exception Invalid_public_key
@@ -1004,7 +1066,7 @@ module Dh : sig
 
       {e [Sexplib] convertible.} *)
 
-  val modulus_size : group -> int
+  val modulus_size : group -> bits
   (** Bit size of the modulus. *)
 
   val key_of_secret : group -> s:Cstruct.t -> secret * Cstruct.t
@@ -1012,7 +1074,7 @@ module Dh : sig
       key which use [s] as the secret exponent.
       @raise Invalid_public_key if [s] is degenerate. *)
 
-  val gen_key : ?g:Rng.g -> ?bits:int -> group -> secret * Cstruct.t
+  val gen_key : ?g:Rng.g -> ?bits:bits -> group -> secret * Cstruct.t
   (** Generate a random {!secret} and the corresponding public key.
       [bits] is the exact bit-size of {!secret} and defaults to a value
       dependent on the {!group}'s [p]. *)
@@ -1022,7 +1084,7 @@ module Dh : sig
       group, a previously generated {!secret} and the other party's public
       message. It is [None] if [message] is degenerate. *)
 
-  val gen_group : ?g:Rng.g -> int -> group
+  val gen_group : ?g:Rng.g -> bits -> group
   (** [gen_group bits] generates a random {!group} with modulus size [bits].
       Uses a safe prime [p = 2q + 1] (with [q] prime) for the modulus and [2]
       for the generator, such that [2^q = 1 mod p].

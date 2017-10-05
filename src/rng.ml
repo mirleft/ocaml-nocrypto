@@ -1,44 +1,33 @@
 open Uncommon
 
+type bits = int
 
 exception Unseeded_generator = Boot.Unseeded_generator
-
 
 module S = struct
 
   module type Generator = sig
-
     type g
-
-    val block : int
-
-    val create   : unit -> g
-    val generate : g:g -> int -> Cstruct.t
-
+    val block      : int
+    val create     : unit -> g
+    val generate   : g:g -> int -> Cstruct.t
     val reseed     : g:g -> Cstruct.t -> unit
     val accumulate : g:g -> (source:int -> Cstruct.t -> unit) one
     val seeded     : g:g -> bool
   end
 
   type 'a generator = (module Generator with type g = 'a)
-
   type g = Generator : ('a * bool * 'a generator) -> g
 
-
   module type N = sig
-
     type t
-
     val gen      : ?g:g -> t -> t
     val gen_r    : ?g:g -> t -> t -> t
     val gen_bits : ?g:g -> ?msb:int -> int -> t
   end
-
 end
 
-
 type g = S.g
-
 
 let create (type a) ?g ?seed ?(strict=false) (m : a S.generator) =
   let module M = (val m) in
@@ -68,14 +57,12 @@ let block g =
 let strict g =
   let S.Generator (_, s, _) = get g in s
 
-
-
 module Make_N (N : Numeric.S) = struct
 
   type t = N.t
 
   let gen ?g n =
-    if n < N.one then Raise.invalid "Rng.gen: non-positive bound" ;
+    if n < N.one then invalid_arg "Rng.gen: non-positive: %a" N.pp_print n;
 
     let bs     = block g in
     let bits   = N.(bits (pred n)) in

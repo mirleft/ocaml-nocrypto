@@ -157,7 +157,7 @@ let decryption_verification ~cipher ~key ~nonce ~maclen ?adata data =
   let () =
     let nsize = Cstruct.len nonce in
     if nsize < 7 || nsize > 13 then
-      Raise.invalid "CCM: invalid nonce length" in
+      invalid_arg "CCM: nonce size %d" nsize in
   if Cstruct.len data <= maclen then
     None
   else

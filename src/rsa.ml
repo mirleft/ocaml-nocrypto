@@ -1,7 +1,7 @@
 open Sexplib.Conv
 open Uncommon
 
-let rprime a b = Z.(gcd a b = one)
+type bits = int
 
 exception Insufficient_key
 
@@ -13,6 +13,8 @@ type priv = {
 } [@@deriving sexp]
 
 type mask = [ `No | `Yes | `Yes_with of Rng.g ]
+
+let rprime a b = Z.(gcd a b = one)
 
 let priv_of_primes ~e ~p ~q =
   let n  = Z.(p * q)
@@ -74,9 +76,9 @@ let well_formed ~e ~p ~q =
 
 let rec generate ?g ?(e = Z.(~$0x10001)) bits =
   if bits < 10 then
-    Raise.invalid "Rsa.generate: requested key size (%d) < 10 bits" bits;
+    invalid_arg "Rsa.generate: requested key size (%d) < 10 bits" bits;
   if Numeric.(Z.bits e >= bits || not (pseudoprime e)) || e < Z.three then
-    Raise.invalid "Rsa.generate: e invalid or too small";
+    invalid_arg "Rsa.generate: e: %a" Z.pp_print e;
 
   let (pb, qb) = (bits / 2, bits - bits / 2) in
   let (p, q)   = Rng.(prime ?g ~msb:2 pb, prime ?g ~msb:2 qb) in
@@ -85,19 +87,18 @@ let rec generate ?g ?(e = Z.(~$0x10001)) bits =
   else generate ?g ~e bits
 
 
+type 'a or_digest = 'a Hash.or_digest
 
 let b   = Cs.b
 let cat = Cstruct.concat
 
 let (bx00, bx01) = (b 0x00, b 0x01)
 
-
 module PKCS1 = struct
 
   let min_pad = 8 + 3
 
   open Cstruct
-
 
   (* XXX Generalize this into `Rng.samplev` or something. *)
   let generate_with ?g ~f n =
@@ -156,31 +157,52 @@ module PKCS1 = struct
   let decrypt ?mask ~key msg =
     unpadded unpad_02 (decrypt ?mask ~key) (priv_bits key) msg
 
+  let asns = List.(combine Hash.hashes &. map of_string) [
+    "\x30\x20\x30\x0c\x06\x08\x2a\x86\x48\x86\xf7\x0d\x02\x05\x05\x00\x04\x10"     (* md5 *)
+  ; "\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14"                 (* sha1 *)
+  ; "\x30\x2d\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x04\x05\x00\x04\x1c" (* sha224 *)
+  ; "\x30\x41\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x02\x05\x00\x04\x30" (* sha256 *)
+  ; "\x30\x31\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20" (* sha384 *)
+  ; "\x30\x51\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x03\x05\x00\x04\x40" (* sha512 *)
+  ]
+
+  let asn_of_hash hash = try List.assoc hash asns with Not_found -> assert false
+
+  let detect msg = List.find_opt (fun (_, asn) -> Cs.is_prefix asn msg) asns
+
+  let sign ?mask ~hash ~key msg =
+    sig_encode ?mask ~key Cs.(asn_of_hash hash <+> Hash.digest_or ~hash msg)
+
+  let verify ?hash ~key ~signature msg =
+    let open Option in
+    ( sig_decode ~key signature >>= fun cs -> detect cs >>| fun (h, asn) ->
+        h = get ~def:h hash && Cs.(ct_eq (asn <+> Hash.digest_or ~hash:h msg)) cs )
+    |> get ~def:false
+
+  let min_key hash =
+    (len (asn_of_hash hash) + Hash.digest_size hash + min_pad - 1) * 8 + 1
 end
 
 module MGF1 (H : Hash.S) = struct
-
-  open Cstruct
 
   let repr = Numeric.Int32.to_cstruct_be ~size:4
 
   (* Assumes len < 2^32 * H.digest_size. *)
   let mgf ~seed len =
     let rec go acc c = function
-      | 0 -> sub (cat (List.rev acc)) 0 len
+      | 0 -> Cstruct.sub (cat (List.rev acc)) 0 len
       | n -> let h = H.digesti (iter2 seed (repr c)) in
              go (h :: acc) Int32.(succ c) (pred n) in
     go [] 0l (cdiv len H.digest_size)
 
-  let mask ~seed cs = Cs.xor (mgf ~seed (len cs)) cs
-
+  let mask ~seed cs = Cs.xor (mgf ~seed (Cstruct.len cs)) cs
 end
 
 module OAEP (H : Hash.S) = struct
 
   open Cstruct
 
-  module MGF = MGF1(H)
+  module MGF = MGF1 (H)
 
   let hlen = H.digest_size
 
@@ -202,9 +224,7 @@ module OAEP (H : Hash.S) = struct
     let c1 = Cs.ct_eq (sub db 0 hlen) H.(digest label)
     and c2 = get_uint8 b0 0 = 0x00
     and c3 = get_uint8 db i = 0x01 in
-    if c1 && c2 && c3 then
-      Some (shift db (i + 1))
-    else None
+    if c1 && c2 && c3 then Some (shift db (i + 1)) else None
 
   let encrypt ?g ?label ~key msg =
     let k = bytes (pub_bits key) in
@@ -213,24 +233,23 @@ module OAEP (H : Hash.S) = struct
 
   let decrypt ?mask ?label ~key em =
     let k = bytes (priv_bits key) in
-    if len em <> k || max_msg_bytes k < 0 then None
-    else try
-      eme_oaep_decode ?label @@ decrypt ?mask ~key em
-    with Insufficient_key -> None
+    if len em <> k || max_msg_bytes k < 0 then None else
+      try eme_oaep_decode ?label @@ decrypt ?mask ~key em
+      with Insufficient_key -> None
 
   (* XXX Review rfc3447 7.1.2 and
    * http://archiv.infsec.ethz.ch/education/fs08/secsem/Manger01.pdf
    * again for timing properties. *)
 
   (* XXX expose seed for deterministic testing? *)
-
 end
 
 module PSS (H: Hash.S) = struct
 
   open Cstruct
 
-  module MGF = MGF1(H)
+  module MGF = MGF1 (H)
+  module H1  = Hash.Digest_or (H)
 
   let hlen = H.digest_size
 
@@ -240,7 +259,7 @@ module PSS (H: Hash.S) = struct
 
   let zero_8 = Cs.create 8
 
-  let digest ~salt msg = H.digesti @@ iter3 zero_8 (H.digest msg) salt
+  let digest ~salt msg = H.digesti @@ iter3 zero_8 (H1.digest_or msg) salt
 
   let emsa_pss_encode ?g slen emlen msg =
     let n    = bytes emlen

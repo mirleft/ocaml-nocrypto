@@ -4,6 +4,8 @@ type digest = Cstruct.t
 
 type 'a iter = 'a Uncommon.iter
 
+type 'a or_digest = [ `Message of 'a | `Digest of digest ]
+
 module type S = sig
 
   val digest_size : int
@@ -41,11 +43,9 @@ module Core (F : Foreign) (D : Desc) = struct
 
   type t = Native.ctx
 
-  let block_size  = D.block_size
-  and digest_size = D.digest_size
-  and ctx_size    = F.ctx_size ()
+  include D
 
-  let empty = Bytes.create ctx_size
+  let empty = Bytes.create (F.ctx_size ())
 
   let _ = F.init empty
 
@@ -128,20 +128,38 @@ module SHAd256 = struct
   let feedi     = SHA256.feedi
 end
 
-
 type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]
 [@@deriving sexp]
 
+let hashes = [ `MD5; `SHA1; `SHA224; `SHA256; `SHA384; `SHA512 ]
+
+let md5    = (module MD5    : S)
+and sha1   = (module SHA1   : S)
+and sha224 = (module SHA224 : S)
+and sha256 = (module SHA256 : S)
+and sha384 = (module SHA384 : S)
+and sha512 = (module SHA512 : S)
+
 let module_of = function
-  | `MD5    -> (module MD5    : S)
-  | `SHA1   -> (module SHA1   : S)
-  | `SHA224 -> (module SHA224 : S)
-  | `SHA256 -> (module SHA256 : S)
-  | `SHA384 -> (module SHA384 : S)
-  | `SHA512 -> (module SHA512 : S)
+  | `MD5    -> md5    | `SHA1   -> sha1   | `SHA224 -> sha224
+  | `SHA256 -> sha256 | `SHA384 -> sha384 | `SHA512 -> sha512
 
 let digest hash      = let module H = (val (module_of hash)) in H.digest
 let digesti hash     = let module H = (val (module_of hash)) in H.digesti
 let mac hash         = let module H = (val (module_of hash)) in H.hmac
 let maci hash        = let module H = (val (module_of hash)) in H.hmaci
 let digest_size hash = let module H = (val (module_of hash)) in H.digest_size
+
+module Digest_or (H : S) = struct
+  let digest_or = function
+    | `Message msg   -> H.digest msg
+    | `Digest digest ->
+        let n = digest.Cstruct.len and m = H.digest_size in
+        if n = m then digest else
+          invalid_arg "(`Digest _): %d bytes, expecting %d" n m
+end
+
+let digest_or ~hash =
+  let module H = (val (module_of hash)) in
+  let module D = Digest_or (H) in
+  D.digest_or

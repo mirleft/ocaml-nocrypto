@@ -1,6 +1,8 @@
 open Sexplib.Conv
 open Uncommon
 
+type bits = int
+
 exception Invalid_public_key
 
 type group = {
@@ -67,7 +69,7 @@ let shared ({ p; _ } as group) { x } cs =
 
 (* Finds a safe prime with [p = 2q + 1] and [2^q = 1 mod p]. *)
 let rec gen_group ?g bits =
-  if bits < 8 then Raise.invalid "Dh.gen_group: group size (%d) < 8 bits" bits;
+  if bits < 8 then invalid_arg "Dh.gen_group: group size %d" bits;
   let gg     = Z.two
   and (q, p) = Rng.safe_prime ?g bits in
   if Z.(powm gg q p = one) then { p; gg; q = Some q } else gen_group ?g bits
