@@ -44,11 +44,6 @@ module Option = struct
     | None   -> ()
 end
 
-module List = struct
-  include List
-  let find_opt p xs = try Some (find p xs) with Not_found -> None
-end
-
 type 'a iter = ('a -> unit) -> unit
 
 let iter1 a     f = f a
@@ -250,13 +245,18 @@ module Cs = struct
 
 end
 
-module Arr = struct
-
+module Array = struct
+  include Array
   let mem x arr =
     let rec scan = function
       | -1 -> false
       | n  -> arr.(n) = x || scan (pred n) in
     scan (Array.length arr - 1)
+end
+
+module List = struct
+  include List
+  let find_opt p xs = try Some (find p xs) with Not_found -> None
 end
 
 (* Random stuff needed for other modules because deps. *)

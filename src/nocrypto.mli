@@ -89,11 +89,6 @@ module Uncommon : sig
     val of_hex : string -> Cstruct.t
   end
 
-  (** Addons to {!Array}. *)
-  module Arr : sig
-    val mem : 'a -> 'a array -> bool
-  end
-
   val bracket : init:(unit -> 'a) -> fini:('a -> unit) -> ('a -> 'b) -> 'b
   (** Safe acquire-use-release combinator. *)
 

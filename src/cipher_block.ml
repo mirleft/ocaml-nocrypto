@@ -134,7 +134,7 @@ module Modes = struct
     let mac_sizes = [| 4; 6; 8; 10; 12; 14; 16 |]
 
     let of_secret ~maclen sec =
-      if Arr.mem maclen mac_sizes then
+      if Array.mem maclen mac_sizes then
         (C.e_of_secret sec, maclen)
       else invalid_arg "CCM: MAC length %d" maclen
 
