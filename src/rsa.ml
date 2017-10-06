@@ -49,22 +49,20 @@ let decrypt_blinded_unsafe ?g ~key: ({ e; n; _} as key : priv) c =
   let x  = decrypt_unsafe ~key Z.(powm r e n * c mod n) in
   Z.(r' * x mod n)
 
-
 let (encrypt_z, decrypt_z) =
   let check_params n msg =
-    if msg < Z.one || n <= msg then raise Insufficient_key in
-  (fun ~(key : pub) msg ->
-    check_params key.n msg ;
-    encrypt_unsafe ~key msg),
-  (fun ?(mask = `Yes) ~(key : priv) msg ->
+    if msg < Z.two then invalid_arg "Rsa.encrypt: message: %a" Z.pp_print msg;
+    if n <= msg then raise Insufficient_key in
+  (fun ~(key : pub) msg -> check_params key.n msg ; encrypt_unsafe ~key msg),
+  (fun ~mask ~(key : priv) msg ->
     check_params key.n msg ;
     match mask with
     | `No         -> decrypt_unsafe            ~key msg
     | `Yes        -> decrypt_blinded_unsafe    ~key msg
     | `Yes_with g -> decrypt_blinded_unsafe ~g ~key msg )
 
-let reformat out f =
-  Numeric.Z.(to_cstruct_be ~size:(cdiv out 8) &. f &. of_cstruct_be ?bits:None)
+let reformat out f msg =
+  Numeric.Z.(of_cstruct_be msg |> f |> to_cstruct_be ~size:(bytes out))
 
 let encrypt ~key              = reformat (pub_bits key)  (encrypt_z ~key)
 and decrypt ?(mask=`Yes) ~key = reformat (priv_bits key) (decrypt_z ~mask ~key)
@@ -96,7 +94,7 @@ let (bx00, bx01) = (b 0x00, b 0x01)
 
 module PKCS1 = struct
 
-  let min_pad = 8 + 3
+  let min_pad = 8
 
   open Cstruct
 
@@ -114,17 +112,16 @@ module PKCS1 = struct
 
 
   let pad ~mark ~padding k msg =
-    let pad = padding (k - len msg - 3) in
+    let pad = padding (k - len msg - 3 |> max min_pad) in
     cat [ bx00 ; b mark ; pad ; bx00 ; msg ]
 
   let unpad ~mark ~is_pad cs =
     let f = not &. is_pad in
-    let i = Cs.ct_find_uint8 ~off:2 ~f cs |> Option.get ~def:2
-    in
+    let i = Cs.ct_find_uint8 ~off:2 ~f cs |> Option.get ~def:2 in
     let c1 = get_uint8 cs 0 = 0x00
     and c2 = get_uint8 cs 1 = mark
     and c3 = get_uint8 cs i = 0x00
-    and c4 = i + 1 >= min_pad in
+    and c4 = min_pad <= i - 2 in
     if c1 && c2 && c3 && c4 then
       Some (sub cs (i + 1) (len cs - i - 1))
     else None
@@ -136,9 +133,9 @@ module PKCS1 = struct
   let unpad_02 = unpad ~mark:0x02 ~is_pad:((<>) 0x00)
 
   let padded pad transform keybits msg =
-    let size = bytes keybits in
-    if size - len msg < min_pad then raise Insufficient_key ;
-    transform (pad size msg)
+    let n = bytes keybits in
+    let p = pad n msg in
+    if len p = n then transform p else raise Insufficient_key
 
   let unpadded unpad transform keybits msg =
     if len msg = bytes keybits then
@@ -180,7 +177,7 @@ module PKCS1 = struct
     |> get ~def:false
 
   let min_key hash =
-    (len (asn_of_hash hash) + Hash.digest_size hash + min_pad - 1) * 8 + 1
+    (len (asn_of_hash hash) + Hash.digest_size hash + min_pad + 2) * 8 + 1
 end
 
 module MGF1 (H : Hash.S) = struct

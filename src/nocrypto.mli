@@ -717,10 +717,7 @@ module Rsa : sig
   exception Insufficient_key
   (** Raised if the key is too small to transform the given message, i.e. if the
       numerical interpretation of the (potentially padded) message is not
-      smaller than the modulus.
-
-      It is additionally raised if the message is [0] and the mode does not
-      involve padding. *)
+      smaller than the modulus. *)
 
   type pub  = {
     e : Z.t ; (** Public exponent *)
@@ -805,7 +802,8 @@ module Rsa : sig
   val encrypt : key:pub  -> Cstruct.t -> Cstruct.t
   (** [encrypt key message] is the encrypted [message].
 
-      @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
+      @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key})
+      @raise Invalid_argument if [message] is [0x00] or [0x01]. *)
 
   val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
   (** [decrypt ~mask key ciphertext] is the decrypted [ciphertext], left-padded
@@ -831,9 +829,10 @@ module Rsa : sig
 
   (** {b PKCS v1.5} operations, as defined by {b PKCS #1 v1.5}.
 
-      The operations that only add the raw padding require keys of size
-      [11 + len(message)] bytes (rounded up), while size of keys required for
-      {{!sign}signing} varies with the hashing function. *)
+      For the operations that only add the raw padding, the key size must be at
+      least 11 bytes larger than the message. For full {{!sign}signing}, the
+      minimal key size varies according to the hash algorithm. In this case, the
+      key size is [priv_bits key / 8], rounded up. *)
   module PKCS1 : sig
 
     val encrypt : ?g:Rng.g -> key:pub -> Cstruct.t -> Cstruct.t

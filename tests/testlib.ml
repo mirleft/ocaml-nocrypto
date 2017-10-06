@@ -169,11 +169,11 @@ let rsa_selftest ~bits n =
   "selftest" >:: times ~n @@ fun _ ->
     let msg =
       let size = cdiv bits 8 in
-      let cs = Rng.generate size in
+      let cs = Rng.generate size
+      and i  = Rng.Int.gen_r 1 size in
       Cstruct.set_uint8 cs 0 0;
-      Cstruct.(set_uint8 cs 1 @@ max 1 (get_uint8 cs 1)) ;
+      Cstruct.(set_uint8 cs i (get_uint8 cs i lor 2));
       cs in
-
     let (key, key_s) = gen_rsa ~bits in
     let enc = Rsa.(encrypt ~key:(pub_of_priv key) msg) in
     let dec = Rsa.(decrypt ~key enc) in
@@ -206,10 +206,10 @@ let rsa_pkcs1_sign_selftest n =
     let (key, _) = gen_rsa ~bits:(Rsa.PKCS1.min_key `SHA1)
     and msg      = Rng.generate 47 in
     let pkey     = Rsa.pub_of_priv key in
-    assert Rsa.PKCS1.(
+    assert_bool "invert 1" Rsa.PKCS1.(
       verify ~key:pkey (`Message msg)
         ~signature:(sign ~hash:`SHA1 ~key (`Digest (digest msg))) );
-    assert Rsa.PKCS1.(
+    assert_bool "invert 2" Rsa.PKCS1.(
       verify ~key:pkey (`Digest (digest msg))
         ~signature:(sign ~hash:`SHA1 ~key (`Message msg)) )
 
@@ -241,10 +241,10 @@ let rsa_pss_sign_selftest ~bits n =
     let (key, _)  = gen_rsa ~bits
     and msg       = Rng.generate (cdiv bits 8 - 2 * Hash.SHA1.digest_size - 2) in
     let pkey      = Rsa.pub_of_priv key in
-    assert Pss_sha1.(
+    assert_bool "invert 1" Pss_sha1.(
       verify ~key:pkey (`Message msg)
         ~signature:(sign ~key (`Digest (digest msg))) );
-    assert Pss_sha1.(
+    assert_bool "invert 2" Pss_sha1.(
       verify ~key:pkey (`Digest (digest msg))
         ~signature:(Pss_sha1.sign ~key (`Message msg)) )
 
