@@ -106,10 +106,15 @@ module Numeric : sig
   type bits = int
 
   (** Augmented numeric type.
+
       Includes basic common numeric ops, range of conversions to and from
       variously-sized int types, and a few basic function for representing such
       numbers as {!Cstruct.t}. *)
   module type S = sig
+
+    (** {1 Base}
+
+        Type [t] with the basic bit-twiddling related operations. *)
 
     type t
 
@@ -128,6 +133,8 @@ module Numeric : sig
     val succ : t -> t
     val pred : t -> t
 
+    (** {1 Conversion} *)
+
     val of_int   : int -> t
     val of_int32 : int32 -> t
     val of_int64 : int64 -> t
@@ -135,15 +142,48 @@ module Numeric : sig
     val to_int32 : t -> int32
     val to_int64 : t -> int64
 
+    (** {1 External representation} *)
+
     val bit_bound : t -> bits
+    (** [bit_bound t] computes the upper bound of {{!bits}[bits]} quickly. *)
 
     val pp_print : Format.formatter -> t -> unit
+    (** [pp_print ppf t] pretty-prints [t] on [ppf]. *)
 
-    val bits            : t -> bits
-    val of_cstruct_be   : ?bits:bits -> Cstruct.t -> t
-    val to_cstruct_be   : ?size:int -> t -> Cstruct.t
+    val bits : t -> bits
+    (** [bits t] is the minimal number of bits needed to describe [t].
+
+        [(2^(bits t)) / 2 <= t < 2^(bits t)]. *)
+
+    val of_cstruct_be : ?bits:bits -> Cstruct.t -> t
+    (** [of_cstruct_be ~bits cs] interprets the bit pattern of [cs] as a
+        {{!t}[t]} in big-endian.
+
+        If [~bits] is not given, the operation considers the entire [cs],
+        otherwise the initial [min ~bits (bit-length cs)] bits of [cs].
+
+        Assuming [n] is the number of bits to extract, the [n]-bit in [cs] is
+        always the least significant bit of the result. Therefore:
+        {ul
+        {- if the bit size [k] of [t] is larger than [n], [k - n] most
+           significant bits in the result are [0]; and}
+        {- if [k] is smaller than [n], the result contains [k] last of the [n]
+           first bits of [cs].}} *)
+
+    val to_cstruct_be : ?size:int -> t -> Cstruct.t
+    (** [to_cstruct_be ~size t] is the big-endian representation of [t].
+
+        If [~size] is not given, it defaults to the minimal number of bytes
+        needed to represent [t], which is [bits t / 8] rounded up.
+
+        The least-significant bit of [t] is always the last bit in the result.
+        If the size is larger than needed, the output is padded with zero bits.
+        If it is smaller, the high bits in [t] are dropped. *)
+
     val into_cstruct_be : t -> Cstruct.t -> unit
-
+    (** [into_cstruct_be t cs] writes the big-endian representation of [t] into
+        [cs]. It behaves like {{!to_cstruct_be}[to_cstruct_be]}, with [~size]
+        spanning the entire [cs]. *)
   end
 
   module Int   : S with type t = int

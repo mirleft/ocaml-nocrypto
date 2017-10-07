@@ -23,7 +23,7 @@ module type S_core = sig
   val to_int   : t -> int
   val to_int32 : t -> int32
   val to_int64 : t -> int64
-  val bit_bound : t -> int
+  val bit_bound : t -> int (* XXX get rid of this from the interface *)
   val pp_print : Format.formatter -> t -> unit
 end
 
