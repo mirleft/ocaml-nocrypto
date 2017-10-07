@@ -35,9 +35,8 @@ module Make (H : Hash.S) = struct
     let (v, cs) = go [] g.k g.v (bytes // H.digest_size) in
     g.k <- H.hmac ~key:g.k Cs.(v <+> bx00);
     g.v <- H.hmac ~key:g.k v;
-    Cstruct.sub cs 0 bytes
+    Cstruct.sub cs 0 (imax 0 bytes)
 
   (* XXX *)
   let accumulate ~g:_ = invalid_arg "Implement Hmac_drgb.accumulate..."
-
 end

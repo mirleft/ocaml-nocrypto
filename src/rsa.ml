@@ -73,11 +73,8 @@ let well_formed ~e ~p ~q =
   rprime e Z.(pred p) && rprime e Z.(pred q)
 
 let rec generate ?g ?(e = Z.(~$0x10001)) bits =
-  if bits < 10 then
-    invalid_arg "Rsa.generate: requested key size (%d) < 10 bits" bits;
-  if Numeric.(Z.bits e >= bits || not (pseudoprime e)) || e < Z.three then
-    invalid_arg "Rsa.generate: e: %a" Z.pp_print e;
-
+  if e < Z.three || Numeric.(bits <= Z.bits e || not (pseudoprime e)) then
+    invalid_arg "Rsa.generate: e: %a, bits: %d" Z.pp_print e bits;
   let (pb, qb) = (bits / 2, bits - bits / 2) in
   let (p, q)   = Rng.(prime ?g ~msb:2 pb, prime ?g ~msb:2 qb) in
   if (p <> q) && rprime e Z.(pred p) && rprime e Z.(pred q) then
@@ -281,21 +278,21 @@ module PSS (H: Hash.S) = struct
     and c5 = Cs.ct_eq h h' in
     c1 && c2 && c3 && c4 && c5
 
-  let min_key_bits slen = 8 * (hlen + slen + 1) + 2
+  let sufficient_key ~slen kbits =
+    hlen + slen + 2 <= kbits / 8 (* 8 * (hlen + slen + 1) + 2 <= kbits *)
 
-  (* XXX RSA masking? *)
-  let sign ?g ?(slen = hlen) ~key msg =
+  let sign ?g ?mask ?(slen = hlen) ~key msg =
     let b = priv_bits key in
-    if b < min_key_bits slen then raise Insufficient_key
-    else decrypt ~mask:`No ~key @@ emsa_pss_encode ?g slen (b - 1) msg
+    if not (sufficient_key ~slen b) then raise Insufficient_key
+    else decrypt ?mask ~key @@ emsa_pss_encode ?g (imax 0 slen) (b - 1) msg
 
   let verify ?(slen = hlen) ~key ~signature msg =
     let b = pub_bits key
     and s = len signature in
-    s = b // 8 && b >= min_key_bits slen &&
+    s = b // 8 && sufficient_key ~slen b &&
     try
       let em = encrypt ~key signature in
-      emsa_pss_verify slen (b - 1) (shift em (s - (b - 1) // 8)) msg
+      emsa_pss_verify (imax 0 slen) (b - 1) (shift em (s - (b - 1) // 8)) msg
     with Insufficient_key -> false
 
 end

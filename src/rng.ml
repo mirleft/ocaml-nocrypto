@@ -31,7 +31,7 @@ type g = S.g
 
 let create (type a) ?g ?seed ?(strict=false) (m : a S.generator) =
   let module M = (val m) in
-  let g = Option.getf M.create () g in
+  let g = Option.get_or M.create () g in
   seed |> Option.cond ~f:(M.reseed ~g) ;
   S.Generator (g, strict, m)
 

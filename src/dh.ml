@@ -55,11 +55,10 @@ let key_of_secret group ~s =
 let rec gen_key ?g ?bits ({ p; q; _ } as group) =
   let pb = Numeric.Z.bits p in
   let s = Option.(
-    imin (getf exp_size pb bits)
+    imin (get_or exp_size pb bits)
          (q >>| Numeric.Z.bits |> get ~def:pb))
     |> Rng.Z.gen_bits ?g ~msb:1 in
-  try key_of_secret_z group s
-  with Invalid_public_key -> gen_key ?g group
+  try key_of_secret_z group s with Invalid_public_key -> gen_key ?g ?bits group
 
 (* No time-masking. Does it matter in case of ephemeral DH??  *)
 let shared ({ p; _ } as group) { x } cs =
@@ -69,9 +68,8 @@ let shared ({ p; _ } as group) { x } cs =
 
 (* Finds a safe prime with [p = 2q + 1] and [2^q = 1 mod p]. *)
 let rec gen_group ?g bits =
-  if bits < 8 then invalid_arg "Dh.gen_group: group size %d" bits;
   let gg     = Z.two
-  and (q, p) = Rng.safe_prime ?g bits in
+  and (q, p) = Rng.safe_prime ?g (imax bits 1) in
   if Z.(powm gg q p = one) then { p; gg; q = Some q } else gen_group ?g bits
 
 module Group = struct

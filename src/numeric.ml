@@ -102,7 +102,6 @@ module Repr (N : S_core) = struct
   (* If there was only, like, an instruction doing `ceil (log2 n)`... *)
   let bits i =
     if i < N.zero then invalid_arg "Numeric.Repr.bits: %a" N.pp_print i;
-
     let rec scan acc bound = function
       | i when i = N.zero -> acc
       | i when i = N.one  -> acc + 1
@@ -117,9 +116,7 @@ module Repr (N : S_core) = struct
   let of_cstruct_be ?bits cs =
     let open Cstruct in
     let open BE in
-
     let rec loop acc i = function
-
       | b when b >= 64 ->
           let x = get_uint64 cs i in
           let x = N.of_int64 Int64.(shift_right_logical x 8) in
@@ -137,8 +134,7 @@ module Repr (N : S_core) = struct
       | b when b > 0   ->
           let x = get_uint8 cs i and b' = 8 - b in
           N.(of_int x lsr b' + acc lsl b)
-      | _              -> acc
-    in
+      | _              -> acc in
     loop N.zero 0 @@ match bits with
       | None   -> Cstruct.len cs * 8
       | Some b -> imin b (Cstruct.len cs * 8)
@@ -169,8 +165,8 @@ module Repr (N : S_core) = struct
 
   let to_cstruct_be ?size n =
     let cs = Cstruct.create_unsafe @@ match size with
-              | Some s -> s
-              | None   -> bits n // 8 in
+      | Some s -> imax 0 s
+      | None   -> bits n // 8 in
     ( into_cstruct_be n cs ; cs )
 
 end

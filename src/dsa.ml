@@ -14,10 +14,12 @@ let pub_of_priv { p; q; gg; y; _ } = { p; q; gg; y }
 type keysize = [ `Fips1024 | `Fips2048 | `Fips3072 | `Exactly of int * int ]
 
 let expand_size = function
-  | `Fips1024  -> (1024, 160)
-  | `Fips2048  -> (2048, 256)
-  | `Fips3072  -> (3072, 256)
-  | `Exactly (l, n) -> (l, n)
+  | `Fips1024       -> (1024, 160)
+  | `Fips2048       -> (2048, 256)
+  | `Fips3072       -> (3072, 256)
+  | `Exactly (l, n) ->
+      if 3 <= l && 2 <= n then (l, n) else
+        invalid_arg "Dsa.generate: bits: `Exactly (%d, %d)" l n
 
 type mask = [ `No | `Yes | `Yes_with of Rng.g ]
 

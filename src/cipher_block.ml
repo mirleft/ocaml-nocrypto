@@ -284,11 +284,9 @@ module Modes2 = struct
 
     let stream ~key ~ctr ?off n =
       if ctr.len <> block then invalid_arg "CTR: counter length %d" ctr.len;
-      if n < 0 then invalid_arg "CTR: size %d" n;
       match off with
-      | None               -> stream ~key ~ctr n
-      | Some k when k >= 0 -> stream_shifted ~key ~ctr k n
-      | Some k             -> invalid_arg "CTR: offset %d" k
+      | Some k when k > 0 -> stream_shifted ~key ~ctr k (imax 0 n)
+      | _                 -> stream ~key ~ctr (imax 0 n)
 
     let encrypt ~key ~ctr ?off src =
       let res = stream ~key ~ctr ?off src.len in

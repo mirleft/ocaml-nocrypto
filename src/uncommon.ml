@@ -10,8 +10,6 @@ let (//) (x : int) (y : int) =
   if y < 1 then raise Division_by_zero else
     if x > 0 then 1 + ((x - 1) / y) else 0
 
-let align ~block n = cdiv n block * block
-
 let imin (a : int) b = if a < b then a else b
 let imax (a : int) b = if a < b then b else a
 
@@ -24,7 +22,7 @@ let rec until p f =
 
 module Option = struct
 
-  let getf a b = function None -> a b | Some x -> x
+  let get_or f x = function None -> f x | Some y -> y
 
   let (>>=) a fb = match a with Some x -> fb x | _ -> None
   let (>>|) a f = match a with Some x -> Some (f x) | _ -> None

@@ -95,7 +95,6 @@ module Uncommon : sig
 
   val bracket : init:(unit -> 'a) -> fini:('a -> unit) -> ('a -> 'b) -> 'b
   (** Safe acquire-use-release combinator. *)
-
 end
 
 (**/**)
@@ -290,7 +289,10 @@ module Cipher_block : sig
   (** Module types for various block cipher modes of operation. *)
   module S : sig
 
-    (** Raw block cipher in all its glory. *)
+    (** Raw block cipher in all its glory.
+
+        Make absolutely sure to check the arguments. Behavior is unspecified on
+        invalid inputs. *)
     module type Core = sig
 
       type ekey
@@ -359,14 +361,14 @@ module Cipher_block : sig
           [stream ~key ~ctr ~off:0 n || stream ~key ~ctr ~off:n n ==
            stream ~key ~ctr ~off:0 (n*2)].
 
-          [ctr] has to be block-sized, and [off] and [n] need to be
-          non-negative. *)
+          @raise Invalid_argument if [ctr] is not block-sized. *)
 
       val encrypt : key:key -> ctr:Cstruct.t -> ?off:int -> Cstruct.t -> Cstruct.t
       (** [encrypt ~key ~ctr ~off msg] is
           [(stream ~key ~ctr ~off (len msg)) xor msg]. *)
 
       val decrypt : key:key -> ctr:Cstruct.t -> ?off:int -> Cstruct.t -> Cstruct.t
+      (** [decrypt] is [encrypt] in CTR. *)
     end
 
     (** {e Galois/Counter Mode}. *)
@@ -825,8 +827,10 @@ module Rsa : sig
 
       [e] defaults to [2^16+1].
 
-      @raise Invalid_argument if [e] is not prime [3 <= e < 2^bits],
-             or [bits] is ridiculously small. *)
+      {b Note} This process might diverge if there are no keys for the given
+      bit size. This can happen when [bits] is extremely small.
+
+      @raise Invalid_argument if [e] is not prime [3 <= e < 2^bits]. *)
 
 
   (** {1 PKCS#1 padded modes} *)
@@ -923,9 +927,9 @@ module Rsa : sig
 
     open Hash
 
-    val sign : ?g:Rng.g -> ?slen:int -> key:priv -> Cstruct.t or_digest -> Cstruct.t
-    (** [sign ~g ~slen ~key message] the {p PSS}-padded digest of [message],
-        signed with the [key].
+    val sign : ?g:Rng.g -> ?mask:mask -> ?slen:int -> key:priv -> Cstruct.t or_digest -> Cstruct.t
+    (** [sign ~g ~mask ~slen ~key message] the {p PSS}-padded digest of
+        [message], signed with the [key].
 
         [slen] is the optional seed length and defaults to the size of the
         underlying hash function.
@@ -997,7 +1001,14 @@ module Dsa : sig
   val generate : ?g:Rng.g -> keysize -> priv
   (** [generate g size] is a fresh {{!priv}private} key. The domain parameters
       are derived using a modified FIPS.186-4 probabilistic process, but the
-      derivation can not be validated. *)
+      derivation can not be validated.
+
+      {b Note} The process might diverge if it is impossible to find parameters
+      with the given bit sizes. This happens when [n] gets too big for [l], if
+      the [size] was given as [`Exactly (l, n)].
+
+      @raise Invalid_argument if [size] is (`Exactly (l, n)), and either [l] or
+      [n] is ridiculously small. *)
 
   val sign : ?mask:mask -> ?k:Z.t -> key:priv -> Cstruct.t -> Cstruct.t * Cstruct.t
   (** [sign mask k fips key digest] is the signature, a pair of {!Cstruct.t}s
@@ -1080,7 +1091,9 @@ module Dh : sig
   val gen_key : ?g:Rng.g -> ?bits:bits -> group -> secret * Cstruct.t
   (** Generate a random {!secret} and the corresponding public key.
       [bits] is the exact bit-size of {!secret} and defaults to a value
-      dependent on the {!group}'s [p]. *)
+      dependent on the {!group}'s [p].
+
+      {b Note} The process might diverge when [bits] is extremely small. *)
 
   val shared : group -> secret -> Cstruct.t -> Cstruct.t option
   (** [shared group secret message] is [Some key], the shared key, given a
@@ -1093,7 +1106,8 @@ module Dh : sig
       for the generator, such that [2^q = 1 mod p].
       Runtime is on the order of minute for 1024 bits.
 
-      @raise Invalid_argument if [bits] is ridiculously small.  *)
+      {b Note} The process might diverge if there are no suitable groups. This
+      happens with extremely small [bits] values. *)
 
   (** A small catalog of standardized {!group}s. *)
   module Group : sig
