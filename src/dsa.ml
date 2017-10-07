@@ -60,7 +60,7 @@ module K_gen (H : Hash.S) = struct
     let module M = Rng.Generators.Hmac_drgb.Make (H) in (module M)
 
   let z_gen ~key:{ q; x; _ } z =
-    let repr = Numeric.Z.(to_cstruct_be ~size:(bytes (bits q))) in
+    let repr = Numeric.Z.(to_cstruct_be ~size:(bits q // 8)) in
     let g    = Rng.create ~strict:true drgb in
     Rng.reseed ~g Cs.(repr x <+> repr Z.(z mod q));
     Rng.Z.gen_r ~g Z.one q
@@ -93,7 +93,7 @@ let verify_z ~key:({ p; q; gg; y }: pub ) (r, s) z =
 
 let sign ?mask ?k ~(key : priv) digest =
   let bits   = Numeric.Z.bits key.q in
-  let size   = cdiv bits 8 in
+  let size   = bits // 8 in
   let (r, s) = sign_z ?mask ?k ~key (Numeric.Z.of_cstruct_be ~bits digest) in
   Numeric.Z.(to_cstruct_be ~size r, to_cstruct_be ~size s)
 

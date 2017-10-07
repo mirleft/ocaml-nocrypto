@@ -263,7 +263,7 @@ module Modes2 = struct
     let of_secret = Core.e_of_secret
 
     let stream ~key ~ctr n =
-      let blocks = cdiv n block in
+      let blocks = n // block in
       let buf    = Native.buffer (blocks * block) in
       Ctr.count ctr.buffer ctr.off buf 0 blocks ;
       Core.encrypt ~key ~blocks buf 0 buf 0 ;
@@ -274,7 +274,7 @@ module Modes2 = struct
 
     let stream_shifted ~key ~ctr off n =
       let shift  = off land bmask in
-      let blocks = cdiv (shift + n) block in
+      let blocks = (shift + n) // block in
       let buf    = Native.buffer (blocks * block) in
       Native.blit ctr.buffer ctr.off cbuf.buffer 0 block ;
       Ctr.add cbuf 0 (Int64.of_int (off / block)) ;

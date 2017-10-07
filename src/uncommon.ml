@@ -6,10 +6,9 @@ let invalid_arg fmt =
   Format.(kfprintf (fun _ -> invalid_arg (flush_str_formatter ()))
                    str_formatter ("Nocrypto: " ^^ fmt))
 
-let cdiv (x : int) (y : int) =
-  if x > 0 && y > 0 then (x + y - 1) / y
-  else if x < 0 && y < 0 then (x + y + 1) / y
-  else x / y
+let (//) (x : int) (y : int) =
+  if y < 1 then raise Division_by_zero else
+    if x > 0 then 1 + ((x - 1) / y) else 0
 
 let align ~block n = cdiv n block * block
 
@@ -55,8 +54,6 @@ let iter3 a b c f = f a; f b; f c
 let string_fold ~f ~z str =
   let st = ref z in
   ( String.iter (fun c -> st := f !st c) str  ; !st )
-
-let bytes bits = cdiv bits 8
 
 (* The Sexplib hack... *)
 module Z = struct

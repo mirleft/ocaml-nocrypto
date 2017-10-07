@@ -32,7 +32,7 @@ module Make (H : Hash.S) = struct
     let rec go acc k v = function
       | 0 -> (v, Cstruct.concat @@ List.rev acc)
       | i -> let v = H.hmac ~key:k v in go (v::acc) k v (pred i) in
-    let (v, cs) = go [] g.k g.v (cdiv bytes H.digest_size) in
+    let (v, cs) = go [] g.k g.v (bytes // H.digest_size) in
     g.k <- H.hmac ~key:g.k Cs.(v <+> bx00);
     g.v <- H.hmac ~key:g.k v;
     Cstruct.sub cs 0 bytes

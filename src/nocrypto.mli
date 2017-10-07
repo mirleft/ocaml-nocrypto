@@ -45,8 +45,12 @@ module Uncommon : sig
       "partial" application is worth holding onto. *)
   type 'a one = One of 'a
 
-  val cdiv : int -> int -> int
-  (** Ceiling division. [cdiv a b] == [ceil(a / b)] *)
+  val (//) : int -> int -> int
+  (** [x // y] is the ceiling division [ceil (x / y)].
+
+      [x // y] is [0] for any non-positive [x].
+
+      @raise Division_by_zero when [y < 1]. *)
 
   val (&.) : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c
   (** Function composition. *)

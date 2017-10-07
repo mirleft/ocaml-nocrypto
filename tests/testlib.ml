@@ -168,7 +168,7 @@ let gen_rsa ~bits =
 let rsa_selftest ~bits n =
   "selftest" >:: times ~n @@ fun _ ->
     let msg =
-      let size = cdiv bits 8 in
+      let size = bits // 8 in
       let cs = Rng.generate size
       and i  = Rng.Int.gen_r 1 size in
       Cstruct.set_uint8 cs 0 0;
@@ -187,7 +187,7 @@ let show_key_size key =
 
 let pkcs_message_for_bits bits =
   let padding = 12 in
-  let size    = cdiv bits 8 - padding in
+  let size    = bits // 8 - padding in
   assert (size >= 0) ; Rng.generate size
 
 let rsa_pkcs1_encode_selftest ~bits n =
@@ -228,7 +228,7 @@ let rsa_oaep_encrypt_selftest ~bits n =
   let module Oaep_sha1 = Rsa.OAEP (Hash.SHA1) in
   "selftest" >:: times ~n @@ fun _ ->
     let (key, _) = gen_rsa ~bits
-    and msg      = Rng.generate (cdiv bits 8 - 2 * Hash.SHA1.digest_size - 2) in
+    and msg      = Rng.generate (bits // 8 - 2 * Hash.SHA1.digest_size - 2) in
     let enc      = Oaep_sha1.encrypt ~key:(Rsa.pub_of_priv key) msg in
     match Oaep_sha1.decrypt ~key enc with
     | None     -> assert_failure "unpad failure"
@@ -239,7 +239,7 @@ let rsa_pss_sign_selftest ~bits n =
   let open Hash.SHA1 in
   "selftest" >:: times ~n @@ fun _ ->
     let (key, _)  = gen_rsa ~bits
-    and msg       = Rng.generate (cdiv bits 8 - 2 * Hash.SHA1.digest_size - 2) in
+    and msg       = Rng.generate (bits // 8 - 2 * Hash.SHA1.digest_size - 2) in
     let pkey      = Rsa.pub_of_priv key in
     assert_bool "invert 1" Pss_sha1.(
       verify ~key:pkey (`Message msg)
@@ -873,7 +873,7 @@ let ccm_cases =
          ~maclen: 8
   ]
 
-let int_safe_bytes = (cdiv Sys.word_size 8) - 1
+let int_safe_bytes = Sys.word_size // 8 - 1
 
 let suite =
 

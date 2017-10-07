@@ -18,7 +18,7 @@ let (emap, dmap) =
 let encode cs =
 
   let n   = len cs in
-  let n'  = cdiv n 3 * 4 in
+  let n'  = n // 3 * 4 in
   let cs' = create n' in
 
   let emit b1 b2 b3 i =

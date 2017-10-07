@@ -66,8 +66,8 @@ module Make_N (N : Numeric.S) = struct
 
     let bs     = block g in
     let bits   = N.(bits (pred n)) in
-    let octets = bytes bits in
-    let batch  = if strict g then octets else bs * cdiv (octets * 2) bs in
+    let octets = bits // 8 in
+    let batch  = if strict g then octets else 2 * octets // bs * bs in
 
     let rec attempt cs =
       if cs.Cstruct.len >= octets then
@@ -82,7 +82,7 @@ module Make_N (N : Numeric.S) = struct
     else N.(a + gen ?g (b - a))
 
   let gen_bits ?g ?(msb = 0) bits =
-    let res = generate ?g (bytes bits) in
+    let res = generate ?g (bits // 8) in
     Cs.set_msb msb res ;
     N.of_cstruct_be ~bits res
 

@@ -2190,7 +2190,7 @@ let test_rfc6979 ~priv ~msg ~hash ~k ~r ~s  _ =
     K.generate ~key:priv h1 in
   assert_cs_equal
     ~msg:"computed k" k
-    Numeric.Z.(to_cstruct_be ~size:(cdiv (bits priv.Dsa.q) 8) k') ;
+    Numeric.Z.(to_cstruct_be ~size:(bits priv.Dsa.q // 8) k') ;
   dsa_test ~priv ~msg ~k:k' ~r ~s ~hash ()
 
 

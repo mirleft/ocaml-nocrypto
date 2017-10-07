@@ -168,9 +168,9 @@ module Repr (N : S_core) = struct
     write n (len cs - 1)
 
   let to_cstruct_be ?size n =
-    let cs = Cstruct.create @@ match size with
+    let cs = Cstruct.create_unsafe @@ match size with
               | Some s -> s
-              | None   -> cdiv (bits n) 8 in
+              | None   -> bits n // 8 in
     ( into_cstruct_be n cs ; cs )
 
 end

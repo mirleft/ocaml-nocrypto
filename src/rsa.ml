@@ -62,7 +62,7 @@ let (encrypt_z, decrypt_z) =
     | `Yes_with g -> decrypt_blinded_unsafe ~g ~key msg )
 
 let reformat out f msg =
-  Numeric.Z.(of_cstruct_be msg |> f |> to_cstruct_be ~size:(bytes out))
+  Numeric.Z.(of_cstruct_be msg |> f |> to_cstruct_be ~size:(out // 8))
 
 let encrypt ~key              = reformat (pub_bits key)  (encrypt_z ~key)
 and decrypt ?(mask=`Yes) ~key = reformat (priv_bits key) (decrypt_z ~mask ~key)
@@ -101,7 +101,7 @@ module PKCS1 = struct
   (* XXX Generalize this into `Rng.samplev` or something. *)
   let generate_with ?g ~f n =
     let cs = create n
-    and k  = let b = Rng.block g in Rng.(b * cdiv n b) in
+    and k  = let b = Rng.block g in Rng.(n // b * b) in
     let rec go nonce i j =
       if i = n then cs else
       if j = k then go Rng.(generate ?g k) i 0 else
@@ -133,12 +133,12 @@ module PKCS1 = struct
   let unpad_02 = unpad ~mark:0x02 ~is_pad:((<>) 0x00)
 
   let padded pad transform keybits msg =
-    let n = bytes keybits in
+    let n = keybits // 8 in
     let p = pad n msg in
     if len p = n then transform p else raise Insufficient_key
 
   let unpadded unpad transform keybits msg =
-    if len msg = bytes keybits then
+    if len msg = keybits // 8 then
       try unpad (transform msg) with Insufficient_key -> None
     else None
 
@@ -190,7 +190,7 @@ module MGF1 (H : Hash.S) = struct
       | 0 -> Cstruct.sub (cat (List.rev acc)) 0 len
       | n -> let h = H.digesti (iter2 seed (repr c)) in
              go (h :: acc) Int32.(succ c) (pred n) in
-    go [] 0l (cdiv len H.digest_size)
+    go [] 0l (len // H.digest_size)
 
   let mask ~seed cs = Cs.xor (mgf ~seed (Cstruct.len cs)) cs
 end
@@ -224,12 +224,12 @@ module OAEP (H : Hash.S) = struct
     if c1 && c2 && c3 then Some (shift db (i + 1)) else None
 
   let encrypt ?g ?label ~key msg =
-    let k = bytes (pub_bits key) in
+    let k = pub_bits key // 8 in
     if len msg > max_msg_bytes k then raise Insufficient_key
     else encrypt ~key @@ eme_oaep_encode ?g ?label k msg
 
   let decrypt ?mask ?label ~key em =
-    let k = bytes (priv_bits key) in
+    let k = priv_bits key // 8 in
     if len em <> k || max_msg_bytes k < 0 then None else
       try eme_oaep_decode ?label @@ decrypt ?mask ~key em
       with Insufficient_key -> None
@@ -259,7 +259,7 @@ module PSS (H: Hash.S) = struct
   let digest ~salt msg = H.digesti @@ iter3 zero_8 (H1.digest_or msg) salt
 
   let emsa_pss_encode ?g slen emlen msg =
-    let n    = bytes emlen
+    let n    = emlen // 8
     and salt = Rng.generate ?g slen in
     let h    = digest ~salt msg in
     let db   = cat [ Cs.create (n - slen - hlen - 2) ; bx01 ; salt ] in
@@ -293,10 +293,10 @@ module PSS (H: Hash.S) = struct
   let verify ?(slen = hlen) ~key ~signature msg =
     let b = pub_bits key
     and s = len signature in
-    s = bytes b && b >= min_key_bits slen &&
+    s = b // 8 && b >= min_key_bits slen &&
     try
       let em = encrypt ~key signature in
-      emsa_pss_verify slen (b - 1) (shift em (s - bytes (b - 1))) msg
+      emsa_pss_verify slen (b - 1) (shift em (s - (b - 1) // 8)) msg
     with Insufficient_key -> false
 
 end

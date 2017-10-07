@@ -42,7 +42,7 @@ let reseedi ~g iter =
 let reseed ~g cs = reseedi ~g (iter1 cs)
 
 let generate_rekey ~g bytes =
-  let b  = cdiv bytes block + 2 in
+  let b  = bytes // block + 2 in
   let n  = b * block in
   let r  = AES_CTR.stream ~key:g.key ~ctr:g.ctr n in
   let r1 = Cstruct.sub r 0 bytes
