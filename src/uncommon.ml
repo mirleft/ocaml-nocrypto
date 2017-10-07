@@ -12,7 +12,8 @@ let (//) (x : int) (y : int) =
 
 let align ~block n = cdiv n block * block
 
-let imin (a : int) (b : int) = if a < b then a else b
+let imin (a : int) b = if a < b then a else b
+let imax (a : int) b = if a < b then b else a
 
 let (&.) f g = fun h -> f (g h)
 

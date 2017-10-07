@@ -110,9 +110,8 @@ module PKCS1 = struct
       | _          -> go nonce i (succ j) in
     go Rng.(generate ?g k) 0 0
 
-
   let pad ~mark ~padding k msg =
-    let pad = padding (k - len msg - 3 |> max min_pad) in
+    let pad = padding (k - len msg - 3 |> imax min_pad) in
     cat [ bx00 ; b mark ; pad ; bx00 ; msg ]
 
   let unpad ~mark ~is_pad cs =

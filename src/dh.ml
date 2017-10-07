@@ -55,8 +55,8 @@ let key_of_secret group ~s =
 let rec gen_key ?g ?bits ({ p; q; _ } as group) =
   let pb = Numeric.Z.bits p in
   let s = Option.(
-    min (getf exp_size pb bits)
-        (q >>| Numeric.Z.bits |> get ~def:pb))
+    imin (getf exp_size pb bits)
+         (q >>| Numeric.Z.bits |> get ~def:pb))
     |> Rng.Z.gen_bits ?g ~msb:1 in
   try key_of_secret_z group s
   with Invalid_public_key -> gen_key ?g group
