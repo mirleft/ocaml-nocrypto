@@ -48,6 +48,16 @@ static inline void nc_count_16_be (uint64_t *init, uint64_t *dst, size_t blocks)
   }
 }
 
+static inline void nc_add_16_be (uint64_t *init, uint64_t n) {
+  uint64_t h = be64_to_cpu (init[0]);
+  uint64_t l = be64_to_cpu (init[1]);
+  uint64_t nl = l + n;		/* let it wrap */
+
+  if (nl < l)
+	  h++;
+  init[0] = cpu_to_be64 (h);
+  init[1] = cpu_to_be64 (nl);
+}
 
 CAMLprim value
 caml_nc_xor_into (value b1, value off1, value b2, value off2, value n) {
@@ -68,5 +78,11 @@ caml_nc_count_16_be (value init, value off1, value dst, value off2, value blocks
   nc_count_16_be ( (uint64_t *) _ba_uint8_off (init, off1),
                    (uint64_t *) _ba_uint8_off (dst, off2),
                    Long_val (blocks) );
+  return Val_unit;
+}
+
+CAMLprim value
+caml_nc_add_16_be (value init, value off, value n) {
+  nc_add_16_be ( (uint64_t *) _ba_uint8_off (init, off), Int64_val(n));
   return Val_unit;
 }
