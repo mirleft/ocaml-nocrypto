@@ -27,25 +27,23 @@ end
 
 let iter_list xs f = List.iter f xs
 
+let random_is seed = Rng.create ~seed (module Rng.Generators.Null)
+
 let bits64 x =
   Bytes.init 64 @@ fun i ->
     let o = 63 - i in
     if Numeric.Int64.((x lsr o) land 1L = 1L) then '1' else '0'
 
-let bits   = bits64 &. Int64.of_int
-let bits32 = bits64 &. Int64.of_int32
-
+let vx = Cs.of_hex
+and vz = Z.of_string_base 16
 
 let f1_eq ?msg f (a, b) _ =
-  let (a, b) = Cs.(of_hex a, of_hex b) in
-  assert_cs_equal ?msg (f a) b
+  assert_cs_equal ?msg (f (vx a)) (vx b)
 
 let f1v_eq ?msg f (aa, b) _ =
-  let (aa, b) = Cs.(List.map of_hex aa, of_hex b) in
-  assert_cs_equal ?msg (f aa) b
+  assert_cs_equal ?msg (f (List.map vx aa)) (vx b)
 
-let f2_eq ?msg f (a, b, c) =
-  f1_eq ?msg (f Cs.(of_hex a)) (b, c)
+let f2_eq ?msg f (a, b, c) = f1_eq ?msg (f (vx a)) (b, c)
 
 let cases_of f =
   List.map @@ fun params -> test_case (f params)
@@ -225,12 +223,14 @@ let rsa_pkcs1_encrypt_selftest ~bits n =
                     ~msg:("recovery failure " ^ show_key_size key)
 
 let rsa_oaep_encrypt_selftest ~bits n =
-  let module Oaep_sha1 = Rsa.OAEP (Hash.SHA1) in
+  let hashes = [| `MD5; `SHA1; `SHA224; `SHA256 |] in
   "selftest" >:: times ~n @@ fun _ ->
+    let module H = (val (Hash.module_of (sample hashes))) in
+    let module OAEP = Rsa.OAEP (H) in
     let (key, _) = gen_rsa ~bits
-    and msg      = Rng.generate (bits // 8 - 2 * Hash.SHA1.digest_size - 2) in
-    let enc      = Oaep_sha1.encrypt ~key:(Rsa.pub_of_priv key) msg in
-    match Oaep_sha1.decrypt ~key enc with
+    and msg      = Rng.generate (bits // 8 - 2 * H.digest_size - 2) in
+    let enc      = OAEP.encrypt ~key:(Rsa.pub_of_priv key) msg in
+    match OAEP.decrypt ~key enc with
     | None     -> assert_failure "unpad failure"
     | Some dec -> assert_cs_equal msg dec ~msg:"recovery failure"
 
@@ -238,33 +238,32 @@ let rsa_pss_sign_selftest ~bits n =
   let module Pss_sha1 = Rsa.PSS (Hash.SHA1) in
   let open Hash.SHA1 in
   "selftest" >:: times ~n @@ fun _ ->
-    let (key, _)  = gen_rsa ~bits
-    and msg       = Rng.generate (bits // 8 - 2 * Hash.SHA1.digest_size - 2) in
-    let pkey      = Rsa.pub_of_priv key in
-    assert_bool "invert 1" Pss_sha1.(
-      verify ~key:pkey (`Message msg)
-        ~signature:(sign ~key (`Digest (digest msg))) );
-    assert_bool "invert 2" Pss_sha1.(
-      verify ~key:pkey (`Digest (digest msg))
-        ~signature:(Pss_sha1.sign ~key (`Message msg)) )
+    let (key, _) = gen_rsa ~bits
+    and msg      = Rng.generate 1024 in
+    let pkey     = Rsa.pub_of_priv key in
+    Pss_sha1.(verify ~key:pkey (`Message msg)
+                ~signature:(sign ~key (`Digest (digest msg))))
+      |> assert_bool "invert 1" ;
+    Pss_sha1.(verify ~key:pkey (`Digest (digest msg))
+               ~signature:(Pss_sha1.sign ~key (`Message msg)))
+      |> assert_bool "invert 2"
 
 let rsa_pkcs1_cases =
-  let v = Z.of_string_base 16 and u = Cs.of_hex in
-  let k ~n ~d ~e = (v n, v d, v e)
-  in
+  let k ~n ~d ~e = (vz n, vz d, vz e) in
+
   let case ~key:(n, d, e) ~hash ~msg ~sgn = test_case @@ fun _ ->
-    let msg = u msg and sgn = u sgn in
-    assert_cs_equal ~msg:"recomputing sig:" sgn
-      Rsa.(PKCS1.sign ~hash ~key:(priv_of_exp ~e ~d n) (`Message msg));
-    assert_bool "sig verification" @@
-      Rsa.(PKCS1.verify ~key:{e; n} ~signature:sgn (`Message msg))
-  in
+    let msg = vx msg and sgn = vx sgn in
+    Rsa.(PKCS1.sign ~hash ~key:(priv_of_exp ~e ~d n) (`Message msg))
+      |> assert_cs_equal ~msg:"recomputing sig:" sgn ;
+    Rsa.(PKCS1.verify ~key:{e; n} ~signature:sgn (`Message msg))
+      |> assert_bool "sig verification" in
+
   let key = k
     ~n:"c8a2069182394a2ab7c3f4190c15589c56a2d4bc42dca675b34cc950e24663048441e8aa593b2bc59e198b8c257e882120c62336e5cc745012c7ffb063eebe53f3c6504cba6cfe51baa3b6d1074b2f398171f4b1982f4d65caf882ea4d56f32ab57d0c44e6ad4e9cf57a4339eb6962406e350c1b15397183fbf1f0353c9fc991"
     ~d:"5dfcb111072d29565ba1db3ec48f57645d9d8804ed598a4d470268a89067a2c921dff24ba2e37a3ce834555000dc868ee6588b7493303528b1b3a94f0b71730cf1e86fca5aeedc3afa16f65c0189d810ddcd81049ebbd0391868c50edec958b3a2aaeff6a575897e2f20a3ab5455c1bfa55010ac51a7799b1ff8483644a3d425"
-    ~e:"10001"
+    ~e:"10001" in
 
-  in "FIPS 186-2 Test Vectors (1024 bits)" >::: [
+  "FIPS 186-2 Test Vectors (1024 bits)" >::: [
 
     case ~key ~hash:`SHA1
     ~msg:"e8312742ae23c456ef28a23142c4490895832765dadce02afe5be5d31b0048fbeee2cf218b1747ad4fd81a2e17e124e6af17c3888e6d2d40c00807f423a233cad62ce9eaefb709856c94af166dba08e7a06965d7fc0d8e5cb26559c460e47bc088589d2242c9b3e62da4896fab199e144ec136db8d84ab84bcba04ca3b90c8e5"
@@ -295,6 +294,54 @@ let rsa_pkcs1_cases =
     ~sgn:"bf3ff2c69675f1b8ed421021801fb4ce29a757f7f8869ce436d0d75ab749efc8b903d9f9cb214686147f12f3335fa936689c192f310ae3c5d75493f44b24bc1cd3501584aaa5004b65a8716d1eda7240ad8a529d5a0cf169f4054b450e076ee0d41a0011c557aa69a84a8104c909201d60fe39c79e684347ef4d144ea18f7a4e"
   ]
 
+let rsa_pss_cases =
+  let k ~n ~d ~e = (vz n, vz d, vz e) in
+
+  let case ~key:(n, d, e) ~hash ~salt ~msg ~sgn = test_case @@ fun _ ->
+    let module H = (val (Hash.module_of hash)) in
+    let module Pss = Rsa.PSS (H) in
+    let msg = vx msg and sgn = vx sgn and salt = vx salt in
+    let slen = Cstruct.len salt in
+    Pss.sign ~g:(random_is salt) ~slen
+             ~mask:`No ~key:Rsa.(priv_of_exp ~e ~d n) (`Message msg)
+      |> assert_cs_equal ~msg:"recomputing sig:" sgn ;
+    Pss.verify ~key:{Rsa.e; n} ~slen ~signature:sgn (`Message msg)
+      |> assert_bool "sig verification" in
+
+  let key = k
+    ~n:"bcb47b2e0dafcba81ff2a2b5cb115ca7e757184c9d72bcdcda707a146b3b4e29989ddc660bd694865b932b71ca24a335cf4d339c719183e6222e4c9ea6875acd528a49ba21863fe08147c3a47e41990b51a03f77d22137f8d74c43a5a45f4e9e18a2d15db051dc89385db9cf8374b63a8cc88113710e6d8179075b7dc79ee76b"
+    ~d:"383a6f19e1ea27fd08c7fbc3bfa684bd6329888c0bbe4c98625e7181f411cfd0853144a3039404dda41bce2e31d588ec57c0e148146f0fa65b39008ba5835f829ba35ae2f155d61b8a12581b99c927fd2f22252c5e73cba4a610db3973e019ee0f95130d4319ed413432f2e5e20d5215cdd27c2164206b3f80edee51938a25c1"
+    ~e:"10001"
+
+  and salt = "6f2841166a64471d4f0b8ed0dbb7db32161da13b" in
+
+  "FIPS 186-2 Test Vectors (1024 bits)" >::: [
+
+    case ~key ~hash:`SHA1 ~salt
+    ~msg:"1248f62a4389f42f7b4bb131053d6c88a994db2075b912ccbe3ea7dc611714f14e075c104858f2f6e6cfd6abdedf015a821d03608bf4eba3169a6725ec422cd9069498b5515a9608ae7cc30e3d2ecfc1db6825f3e996ce9a5092926bc1cf61aa42d7f240e6f7aa0edb38bf81aa929d66bb5d890018088458720d72d569247b0c"
+    ~sgn:"682cf53c1145d22a50caa9eb1a9ba70670c5915e0fdfde6457a765de2a8fe12de9794172a78d14e668d498acedad616504bb1764d094607070080592c3a69c343d982bd77865873d35e24822caf43443cc10249af6a1e26ef344f28b9ef6f14e09ad839748e5148bcceb0fd2aa63709cb48975cbf9c7b49abc66a1dc6cb5b31a"
+
+  ; case ~key ~hash:`SHA1 ~salt
+    ~msg:"9968809a557bb4f892039ff2b6a0efcd06523624bc3b9ad359a7cf143c4942e874c797b9d37a563d436fe19d5db1aad738caa2617f87f50fc7fcf4361fc85212e89a9465e7f4c361982f64c8c5c0aa5258b9e94f6e934e8dac2ace7cd6095c909de85fe7b973632c384d0ebb165556050d28f236aee70e16b13a432d8a94c62b"
+    ~sgn:"8f5ea7037367e0db75670504085790acd6d97d96f51e76df916a0c2e4cd66e1ab51c4cd8e2c3e4ef781f638ad65dc49c8d6d7f6930f80b6ae199ea283a8924925a50edab79bb3f34861ffa8b2f96fdf9f8cad3d3f8f025478c81f316da61b0d6a7f71b9068efdfb33c21983a922f4669280d8e84f963ff885ef56dd3f50381db"
+
+  ; case ~key ~hash:`SHA224 ~salt
+    ~msg:"1248f62a4389f42f7b4bb131053d6c88a994db2075b912ccbe3ea7dc611714f14e075c104858f2f6e6cfd6abdedf015a821d03608bf4eba3169a6725ec422cd9069498b5515a9608ae7cc30e3d2ecfc1db6825f3e996ce9a5092926bc1cf61aa42d7f240e6f7aa0edb38bf81aa929d66bb5d890018088458720d72d569247b0c"
+    ~sgn:"53d859c9f10abf1c00284a4b55bf2bd84d8e313b4f3c35b8dec7bc3afe39b9b8a155418ead1931895769ce2340be2091f2385bbcf10d9e92bcf5d0e2960d10e792e7d865c64e50d19ffa13e52817d7d8d8db34392c2374a2e9b69184f92a4ad9b1b8bae99ca614d204b65a438e38dbbfc8c7cc44ed5677af70ce6c4f951f0244"
+
+  ; case ~key ~hash:`SHA256 ~salt
+    ~msg:"1248f62a4389f42f7b4bb131053d6c88a994db2075b912ccbe3ea7dc611714f14e075c104858f2f6e6cfd6abdedf015a821d03608bf4eba3169a6725ec422cd9069498b5515a9608ae7cc30e3d2ecfc1db6825f3e996ce9a5092926bc1cf61aa42d7f240e6f7aa0edb38bf81aa929d66bb5d890018088458720d72d569247b0c"
+    ~sgn:"7b1d37278e549898d4084e2210c4a9961edfe7b5963550cca1904248c8681513539017820f0e9bd074b9f8a067b9fefff7f1fa20bf2d0c75015ff020b2210cc7f79034fedf68e8d44a007abf4dd82c26e8b00393723aea15abfbc22941c8cf79481718c008da713fb8f54cb3fca890bde1137314334b9b0a18515bfa48e5ccd0"
+
+  ; case ~key ~hash:`SHA384 ~salt
+    ~msg:"1248f62a4389f42f7b4bb131053d6c88a994db2075b912ccbe3ea7dc611714f14e075c104858f2f6e6cfd6abdedf015a821d03608bf4eba3169a6725ec422cd9069498b5515a9608ae7cc30e3d2ecfc1db6825f3e996ce9a5092926bc1cf61aa42d7f240e6f7aa0edb38bf81aa929d66bb5d890018088458720d72d569247b0c"
+    ~sgn:"8f16c807bef3ed6f74ee7ff5c360a5428c6c2f105178b58ff7d073e566dad6e7718d3129c768cd5a9666de2b6c947177b45709dc7cd0f43b0ba6fc75578e1196acc15ca3afe4a78c144cb6885c1cc815f7f98925bc04ad2ff20fc1068b045d9450e2a1dcf5a161ceabba2b0b66c7354fdb80fa1d729e5f976387f24a697a7e56"
+
+  ; case ~key ~hash:`SHA512 ~salt
+    ~msg:"1248f62a4389f42f7b4bb131053d6c88a994db2075b912ccbe3ea7dc611714f14e075c104858f2f6e6cfd6abdedf015a821d03608bf4eba3169a6725ec422cd9069498b5515a9608ae7cc30e3d2ecfc1db6825f3e996ce9a5092926bc1cf61aa42d7f240e6f7aa0edb38bf81aa929d66bb5d890018088458720d72d569247b0c"
+    ~sgn:"a833ba31634f8773e4fe6ea0c69e1a23766a939d34b32fc78b774b22e46a646c25e6e1062d234ed48b1aba0f830529ff6afc296cc8dc207bbc15391623beac5f6c3db557ca49d0e42c962de95b5ff548cff970f5c73f439cfe82d3907be60240f56b6a4259cc96dfd8fe02a0bfa26e0223f68214428fff0ae40162198cc5cbd1"
+  ]
+
 
 let dh_selftest ~bits n =
 
@@ -317,7 +364,7 @@ let dh_selftest ~bits n =
 
 let dh_shared_0 =
   "shared_0" >:: fun _ ->
-    let gy = Cs.of_hex
+    let gy = vx
         "14 ac e2 c0 9c c0 0c 25 89 71 b2 d0 1c 94 58 21
          02 23 b7 23 ec 3e 24 e5 a3 c2 fd 16 cc 49 f0 e2
          87 62 a5 a0 73 f5 de 5b 9b eb c3 60 0b a4 03 38
@@ -330,7 +377,7 @@ let dh_shared_0 =
          a5 23 69 38 7e ec b5 fc 4b 89 42 c4 32 fa e5 58
          6f 39 5d a7 4e cd b5 da dc 1e 52 fe a4 33 72 c1
          82 48 8a 5b c1 44 bc 60 9b 38 5b 80 5f 44 14 93"
-    and s = Cs.of_hex
+    and s = vx
         "f9 47 87 95 d2 a1 6d d1 7c c8 a9 c0 71 28 a2 82
          71 95 7e 79 87 0b fc 34 a2 42 ec 42 ac cc 42 81
          7b f6 c4 f5 80 a9 70 e3 35 93 9b a3 21 81 a4 e3
@@ -343,7 +390,7 @@ let dh_shared_0 =
          29 22 63 6e bb 1a 7f 93 bd 98 db 20 94 f8 f0 2e
          db ce 9d 79 db b9 a7 41 5f e5 29 a2 31 f8 e2 c3
          30 6a 09 f2 16 a7 30 8c 2f 36 7b 71 99 1e 28 54"
-    and shared = Cs.of_hex
+    and shared = vx
         "a7 40 0d eb f0 4b 2b ec cb 90 3c 55 2d 3c 17 63
          b2 4b 4e 1a ff 1e a0 24 c6 56 e3 5e 44 7b d0 01
          ef b3 6b 57 20 0e 15 95 b1 53 1a 83 16 3a b1 61
@@ -394,8 +441,8 @@ let b64_enc_cases =
 
 
 let f1_opt_eq ?msg f (a, b) _ =
-  let maybe = function None -> None | Some h -> Some (Cs.of_hex h) in
-  let (a, b) = Cs.of_hex a, maybe b in
+  let maybe = function None -> None | Some h -> Some (vx h) in
+  let (a, b) = vx a, maybe b in
   let eq_opt eq a b = match (a, b) with
     | (Some x, Some y) -> eq x y
     | (None  , None  ) -> true
@@ -425,9 +472,8 @@ let b64_dec_cases =
 
 
 let f1_blk_eq ?msg ?(n=1) f (x, y) _ =
-  let (x, y) = Cs.(of_hex x, of_hex y) in
-  let xs     = blocks_of_cs n x in
-  assert_cs_equal ?msg (f (iter_list xs)) y
+  let xs = blocks_of_cs n (vx x) in
+  assert_cs_equal ?msg (f (iter_list xs)) (vx y)
 
 let hash_cases (m : (module Hash.S)) ~hash =
   let module H = ( val m ) in
@@ -634,7 +680,7 @@ let sha2_cases = [
 
 (* NIST SP 800-38A test vectors for block cipher modes of operation *)
 
-let nist_sp_800_38a = Cs.of_hex
+let nist_sp_800_38a = vx
   "6b c1 be e2 2e 40 9f 96 e9 3d 7e 11 73 93 17 2a
    ae 2d 8a 57 1e 03 ac 9c 9e b7 6f ac 45 af 8e 51
    30 c8 1c 46 a3 5c e4 11 e5 fb c1 19 1a 0a 52 ef
@@ -643,7 +689,7 @@ let nist_sp_800_38a = Cs.of_hex
 let aes_ecb_cases =
   let open Cipher_block in
 
-  let case ~key ~out = Cs.(AES.ECB.of_secret (of_hex key), of_hex out)
+  let case ~key ~out = (AES.ECB.of_secret (vx key), vx out)
 
   and check (key, out) _ =
     let enc = AES.ECB.encrypt ~key nist_sp_800_38a in
@@ -676,8 +722,7 @@ let aes_ecb_cases =
 let aes_cbc_cases =
   let open Cipher_block in
 
-  let case ~key ~iv ~out =
-    Cs.(AES.CBC.of_secret (of_hex key), of_hex iv, of_hex out)
+  let case ~key ~iv ~out = (AES.CBC.of_secret (vx key), vx iv, vx out)
 
   and check (key, iv, out) _ =
     let enc = AES.CBC.encrypt ~key ~iv nist_sp_800_38a in
@@ -713,8 +758,7 @@ let aes_cbc_cases =
 let aes_ctr_cases =
   let open Cipher_block.AES.CTR in
 
-  let case ~key ~ctr ~out ~ctr1 =
-    Cs.(of_secret (of_hex key), of_hex ctr, of_hex out, of_hex ctr1)
+  let case ~key ~ctr ~out ~ctr1 = (of_secret (vx key), vx ctr, vx out, vx ctr1)
 
   and check (key, ctr, out, _) _ =
     let enc = encrypt ~key ~ctr nist_sp_800_38a in
@@ -757,8 +801,7 @@ let gcm_cases =
   let open Cipher_block in
 
   let case ~key ~p ~a ~iv ~c ~t =
-    ( AES.GCM.of_secret (Cs.of_hex key),
-      Cs.of_hex p, Cs.of_hex a, Cs.of_hex iv, Cs.of_hex c, Cs.of_hex t ) in
+    (AES.GCM.of_secret (vx key), vx p, vx a, vx iv, vx c, vx t) in
 
   let check (key, p, adata, iv, c, t) _ =
     let open AES.GCM in
@@ -886,8 +929,7 @@ let gcm_cases =
 let ccm_cases =
   let open Cipher_block.AES.CCM in
   let case ~key ~p ~a ~nonce ~c ~maclen =
-    ( of_secret ~maclen (Cs.of_hex key),
-      Cs.of_hex p, Cs.of_hex a, Cs.of_hex nonce, Cs.of_hex c ) in
+    (of_secret ~maclen (vx key), vx p, vx a, vx nonce, vx c) in
 
   let check (key, p, adata, nonce, c) _ =
     let cip = encrypt ~key ~nonce ~adata p in
@@ -982,15 +1024,16 @@ let suite =
     ] ;
 
     "RSA-OAEP(SHA1)-ENC" >::: [
-      rsa_oaep_encrypt_selftest ~bits:511 15 ;
-      rsa_oaep_encrypt_selftest ~bits:512 15 ;
-      rsa_oaep_encrypt_selftest ~bits:513 15 ;
+      rsa_oaep_encrypt_selftest ~bits:1023 15 ;
+      rsa_oaep_encrypt_selftest ~bits:1024 15 ;
+      rsa_oaep_encrypt_selftest ~bits:1025 15 ;
     ] ;
 
     "RSA-PSS(SHA1)-END" >::: [
       rsa_pss_sign_selftest ~bits:511 15 ;
       rsa_pss_sign_selftest ~bits:512 15 ;
       rsa_pss_sign_selftest ~bits:513 15 ;
+      rsa_pss_cases
     ] ;
 
     "DHE" >::: [
