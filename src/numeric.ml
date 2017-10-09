@@ -2,7 +2,7 @@ open Uncommon
 
 type bits = int
 
-module Z_orig = Z
+module Z0 = Z
 
 module type S_core = sig
   type t
@@ -193,4 +193,11 @@ let pseudoprime z =
     | i when i >=  250 -> 12
     | i when i >=  150 -> 18
     | _                -> 27 in
-  Z_orig.probab_prime z i <> 0
+  Z0.probab_prime z i <> 0
+
+(* strip_factor ~f x = (s, t), where x = f^s t *)
+let strip_factor ~f x =
+  let rec go n x =
+    let (x1, r) = Z0.div_rem x f in
+    if r = Z0.zero then go (succ n) x1 else (n, x) in
+  if Z0.two <= f then go 0 x else invalid_arg "factor_count: f: %a" Z0.pp f

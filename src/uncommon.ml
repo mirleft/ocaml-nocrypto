@@ -2,9 +2,11 @@
 
 type 'a one = One of 'a
 
-let invalid_arg fmt =
-  Format.(kfprintf (fun _ -> invalid_arg (flush_str_formatter ()))
-                   str_formatter ("Nocrypto: " ^^ fmt))
+let kasprintf k fmt =
+  Format.(kfprintf (fun _ -> k (flush_str_formatter ())) str_formatter fmt)
+
+let invalid_arg fmt = kasprintf invalid_arg ("Nocrypto: " ^^ fmt)
+let failwith fmt = kasprintf failwith ("Nocrypto: " ^^ fmt)
 
 let (//) (x : int) (y : int) =
   if y < 1 then raise Division_by_zero else
@@ -60,6 +62,8 @@ module Z = struct
 
   let two   = ~$2
   let three = ~$3
+
+  let pp = pp_print
 
   open Sexplib.Conv
   let sexp_of_t z = sexp_of_string (Z.to_string z)

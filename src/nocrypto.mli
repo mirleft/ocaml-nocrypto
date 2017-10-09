@@ -810,6 +810,23 @@ module Rsa : sig
       correctly in either case, derived quantities will be different. See
       {{!priv} private keys}. *)
 
+  val priv_of_exp : ?g:Rng.g -> ?attempts:int -> e:Z.t -> d:Z.t -> Z.t -> priv
+  (** [priv_of_exp ?g ?attempts ~e ~d n] is the unique {{!priv}private key}
+      characterized by the public ([e]) and private ([d]) exponents, and modulus
+      [n]. This operation uses a probabilistic process that can fail to recover
+      the key.
+
+      [~attempts] is the number of trials. For triplets that form an RSA key,
+      the probability of failure is at most [2^(-attempts)]. [attempts] defaults
+      to an unspecified number that yields a very high probability of recovering
+      valid keys.
+
+      @raise Invalid_argument when [(e, d, n)] certainly do not form an RSA key.
+      This includes violating [2 < e < n], [2 < d < n] or [2 < n].
+
+      @raise Failure when the key has not been recovered after the given number
+      of attempts. *)
+
   val pub_of_priv : priv -> pub
   (** Extract the public component from a private key. *)
 
@@ -849,6 +866,7 @@ module Rsa : sig
   (** [encrypt key message] is the encrypted [message].
 
       @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key})
+
       @raise Invalid_argument if [message] is [0x00] or [0x01]. *)
 
   val decrypt : ?mask:mask -> key:priv -> Cstruct.t -> Cstruct.t
@@ -922,6 +940,7 @@ module Rsa : sig
         [message] is either the actual message, or its digest.
 
         @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key})
+
         @raise Invalid_argument if message is a [`Digest] of the wrong size.  *)
 
     val verify : ?hash:hash -> key:pub -> signature:Cstruct.t -> Cstruct.t or_digest -> bool
@@ -948,6 +967,7 @@ module Rsa : sig
     val encrypt : ?g:Rng.g -> ?label:Cstruct.t -> key:pub -> Cstruct.t -> Cstruct.t
     (** [encrypt ~g ~label ~key message] is {b OAEP}-padded and encrypted
         [message], using the optional [label].
+
         @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key}) *)
 
     val decrypt : ?mask:mask -> ?label:Cstruct.t -> key:priv -> Cstruct.t -> Cstruct.t option
@@ -977,6 +997,7 @@ module Rsa : sig
         [message] is either the actual message, or its digest.
 
         @raise Insufficient_key (see {{!Insufficient_key}Insufficient_key})
+
         @raise Invalid_argument if message is a [`Digest] of the wrong size.  *)
 
     val verify : ?slen:int -> key:pub -> signature:Cstruct.t -> Cstruct.t or_digest -> bool
@@ -1126,6 +1147,7 @@ module Dh : sig
   val key_of_secret : group -> s:Cstruct.t -> secret * Cstruct.t
   (** [key_of_secret group s] is the {!secret} and the corresponding public
       key which use [s] as the secret exponent.
+
       @raise Invalid_public_key if [s] is degenerate. *)
 
   val gen_key : ?g:Rng.g -> ?bits:bits -> group -> secret * Cstruct.t

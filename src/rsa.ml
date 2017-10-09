@@ -24,6 +24,29 @@ let priv_of_primes ~e ~p ~q =
   and q' = Z.(invert q p) in
   { e; d; n; p; q; dp; dq; q' }
 
+(* Handbook of applied cryptography, 8.2.2 (i). *)
+let rec priv_of_exp ?g ?(attempts=100) ~e ~d n =
+  let factor s t =
+    let rec go ax = function
+      | 0  -> None
+      | i' -> let ax2 = Z.(ax * ax mod n) in
+              if Z.(ax <> one && ax <> pred n && ax2 = one) then
+                Some ax
+              else go ax2 (i' - 1) in
+    Option.(go Z.(powm (Rng.Z.gen ?g n) t n) s >>| Z.(gcd n &. pred)) in
+  let err (k : _ format4 -> _) =
+    Z.(k "Rsa.priv_of_exp: e: %a, d: %a, n: %a" pp e pp d pp n) in
+  if attempts > 0 then
+    if Z.(two < n && two < e && two < d && e < n && d < n) then
+      match Numeric.strip_factor ~f:Z.two Z.(e * d |> pred) with
+      | (0, _) -> err invalid_arg
+      | (s, t) -> match factor s t with
+        | None   -> priv_of_exp ?g ~attempts:(attempts - 1) ~e ~d n
+        | Some p -> let q = Z.(div n p) in
+                    priv_of_primes ~e ~p:(max p q) ~q:(min p q)
+    else err invalid_arg
+  else err failwith
+
 let pub_of_priv ({ e; n; _ } : priv) = { e ; n }
 
 (* XXX handle this more gracefully... *)
@@ -39,11 +62,8 @@ let decrypt_unsafe ~key: ({ p; q; dp; dq; q'; _} : priv) c =
   Z.(h * q + m2)
 
 let decrypt_blinded_unsafe ?g ~key: ({ e; n; _} as key : priv) c =
-
   let rec nonce () =
-    let x = Rng.Z.gen_r ?g Z.two n in
-    if rprime x n then x else nonce () in
-
+    let x = Rng.Z.gen_r ?g Z.two n in if rprime x n then x else nonce () in
   let r  = nonce () in
   let r' = Z.(invert r n) in
   let x  = decrypt_unsafe ~key Z.(powm r e n * c mod n) in
