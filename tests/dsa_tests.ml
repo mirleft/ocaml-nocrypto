@@ -32,7 +32,7 @@ let priv_of f ~p ~q ~gg ~x ~y =
   { Dsa.p = f p ; q = f q ; gg = f gg ; x = f x ; y = f y }
 
 let priv_of_cs  = priv_of Numeric.Z.of_cstruct_be
-let priv_of_hex = priv_of (Numeric.Z.of_cstruct_be &. Cs.of_hex)
+let priv_of_hex = priv_of (fun cs -> Cs.of_hex cs |> Numeric.Z.of_cstruct_be)
 
 let case_of ~domain ~hash ~x ~y ~k ~r ~s ~msg =
   let (p, q, gg) = domain in

@@ -8,7 +8,7 @@ module E = Entropy
 type t = { e : E.t ; token : E.token ; g : Rng.g }
 
 let attach e g =
-  let One acc = Rng.accumulate (Some g) in
+  let `Acc acc = Rng.accumulate (Some g) in
   E.add_handler e acc
 
 let active = ref None

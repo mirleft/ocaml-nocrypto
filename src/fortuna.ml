@@ -99,6 +99,6 @@ end
 let accumulate ~g =
   let acc  = Accumulator.create ~g
   and pool = ref 0 in
-  One (fun ~source cs ->
+  `Acc (fun ~source cs ->
     Accumulator.add ~acc ~source ~pool:!pool cs ;
     incr pool)

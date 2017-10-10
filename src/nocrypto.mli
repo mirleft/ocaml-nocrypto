@@ -39,24 +39,12 @@ end
     such, it is prone to breakage. *)
 module Uncommon : sig
 
-  (** ['a one] is just an ['a].
-
-      Useful to break the chain of curried functions when an intermediate
-      "partial" application is worth holding onto. *)
-  type 'a one = One of 'a
-
   val (//) : int -> int -> int
   (** [x // y] is the ceiling division [ceil (x / y)].
 
       [x // y] is [0] for any non-positive [x].
 
       @raise Division_by_zero when [y < 1]. *)
-
-  val (&.) : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c
-  (** Function composition. *)
-
-  val id : 'a -> 'a
-  (** identity *)
 
   module Option : sig
     val v_map : def:'b -> f:('a -> 'b) -> 'a option -> 'b
@@ -77,7 +65,7 @@ module Uncommon : sig
     (** [<+>] is an alias for [Cstruct.append]. *)
 
     val ct_eq : Cstruct.t -> Cstruct.t -> bool
-    (** Constant-Time [Cstruct.t] equality. *)
+    (** Constant-time equality. *)
 
     val xor_into : Cstruct.t -> Cstruct.t -> int -> unit
     val xor      : Cstruct.t -> Cstruct.t -> Cstruct.t
@@ -581,7 +569,7 @@ module Rng : sig
 
           A generator is seded after a single application of [reseed]. *)
 
-      val accumulate : g:g -> (source:int -> Cstruct.t -> unit) Uncommon.one
+      val accumulate : g:g -> [`Acc of source:int -> Cstruct.t -> unit]
       (** [accumulate ~g] is a closure suitable for incrementally feeding
           small amounts of environmentally sourced entropy into [g].
 
@@ -673,7 +661,7 @@ module Rng : sig
    * Client applications should not use them directly. *)
 
   val reseed     : ?g:g -> Cstruct.t -> unit
-  val accumulate : g option -> (source:int -> Cstruct.t -> unit) Uncommon.one
+  val accumulate : g option -> [`Acc of source:int -> Cstruct.t -> unit]
   val seeded     : g option -> bool
   (**/**)
 

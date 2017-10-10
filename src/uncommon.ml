@@ -1,7 +1,5 @@
 (** [Uncommon] is a [Common], now with less name clashes. *)
 
-type 'a one = One of 'a
-
 let kasprintf k fmt =
   Format.(kfprintf (fun _ -> k (flush_str_formatter ())) str_formatter fmt)
 
@@ -19,8 +17,7 @@ let (&.) f g = fun h -> f (g h)
 
 let id x = x
 
-let rec until p f =
-  let r = f () in if p r then r else until p f
+let rec until p f = let r = f () in if p r then r else until p f
 
 module Option = struct
 
@@ -252,17 +249,16 @@ module List = struct
   let find_opt p xs = try Some (find p xs) with Not_found -> None
 end
 
+let bracket ~init ~fini f =
+  let a = init () in
+  match f a with
+  | exception exn -> fini a; raise exn
+  | res           -> fini a; res
+
 (* Random stuff needed for other modules because deps. *)
 module Boot = struct
 
   (* Should be thrown be generators and live in Rng, but Rng needs to
    * instantiate Fortuna for the latter can't depend on the former. *)
   exception Unseeded_generator
-
 end
-
-let bracket ~init ~fini f =
-  let a = init () in
-  match f a with
-  | exception exn -> fini a; raise exn
-  | res           -> fini a; res

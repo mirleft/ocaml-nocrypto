@@ -12,7 +12,7 @@ module S = struct
     val create     : unit -> g
     val generate   : g:g -> int -> Cstruct.t
     val reseed     : g:g -> Cstruct.t -> unit
-    val accumulate : g:g -> (source:int -> Cstruct.t -> unit) one
+    val accumulate : g:g -> [`Acc of source:int -> Cstruct.t -> unit]
     val seeded     : g:g -> bool
   end
 
@@ -139,7 +139,7 @@ module Generators = struct
 
     let seeded ~g = Cstruct.len !g > 0
 
-    let accumulate ~g = One (fun ~source:_ -> reseed ~g)
+    let accumulate ~g = `Acc (fun ~source:_ -> reseed ~g)
   end
 
 end
