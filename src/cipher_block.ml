@@ -1,5 +1,13 @@
 open Uncommon
 
+module type Counter_S = sig
+  type t
+  val zero : t
+  val add  : t -> int64 -> t
+  val of_cstruct : Cstruct.t -> t
+  val to_cstruct : t -> Cstruct.t
+end
+
 module S = struct
 
   (* XXX old block-level sig, remove *)
@@ -53,9 +61,9 @@ module S = struct
     val key_sizes  : int array
     val block_size : int
 
-    val next_iv : iv:Cstruct.t -> Cstruct.t -> Cstruct.t
     val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
     val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
+    val next_iv : iv:Cstruct.t -> Cstruct.t -> Cstruct.t
   end
 
   module type CTR = sig
@@ -66,9 +74,12 @@ module S = struct
     val key_sizes  : int array
     val block_size : int
 
-    val stream  : key:key -> ctr:Cstruct.t -> ?off:int -> int -> Cstruct.t
-    val encrypt : key:key -> ctr:Cstruct.t -> ?off:int -> Cstruct.t -> Cstruct.t
-    val decrypt : key:key -> ctr:Cstruct.t -> ?off:int -> Cstruct.t -> Cstruct.t
+    module C : Counter_S
+
+    val stream  : key:key -> ctr:C.t -> int -> Cstruct.t
+    val encrypt : key:key -> ctr:C.t -> Cstruct.t -> Cstruct.t
+    val decrypt : key:key -> ctr:C.t -> Cstruct.t -> Cstruct.t
+    val next_ctr : ctr:C.t -> Cstruct.t -> C.t
   end
 
   module type GCM = sig
@@ -94,34 +105,59 @@ module S = struct
   end
 end
 
-module Counter = struct
+module Counters = struct
 
-  open Cstruct
+  module type S = Counter_S
 
-  let incr1 cs i =
-    let x = succ (get_uint8 cs i) in (set_uint8 cs i x ; x = 0x100)
+  module type Priv_S = sig
+    include S
+    val size : int
+    val unsafe_count_into : t -> Native.buffer -> int -> blocks:int -> unit
+  end
 
-  let incr2 cs i =
-    let x = succ (BE.get_uint16 cs i) in (BE.set_uint16 cs i x ; x = 0x10000)
+  let of_cstruct ~modn size cs =
+    if cs.Cstruct.len = size then
+      let t = Bytes.create size in
+      ( Cstruct.blit_to_bytes cs 0 t 0 size; t )
+    else invalid_arg "%s.of_cstruct: got %d bytes" modn cs.Cstruct.len
 
-  let incr4 cs i =
-    let x = Int32.succ (BE.get_uint32 cs i) in (BE.set_uint32 cs i x ; x = 0l)
+  module BE = EndianBytes.BigEndian (* DO THE UNSAFE DANCE! *)
 
-  let incr8 cs i =
-    let x = Int64.succ (BE.get_uint64 cs i) in (BE.set_uint64 cs i x ; x = 0L)
+  let cmp_64u a b =
+    let cmp = compare a b in
+    if Numeric.Int64.(a lxor b) < 0L then -cmp else cmp
 
-  let incr16 cs i = incr8 cs (i + 8) && incr8 cs i
+  module C64be : Priv_S = struct
+    type t = bytes
+    let zero = Bytes.unsafe_of_string "\x00\x00\x00\x00\x00\x00\x00\x00"
+    let size = 8
+    let add t n =
+      let t' = Bytes.create size in
+      BE.(set_int64 t' 0 Numeric.Int64.(BE.get_int64 t 0 + n)); t'
+    let of_cstruct cs = of_cstruct ~modn:"C8" size cs
+    let to_cstruct t = Cstruct.of_bytes t
+    let unsafe_count_into = Native.count8be
+  end
 
-  let add4 cs i x =
-    BE.(set_uint32 cs i (Int32.add x (get_uint32 cs i)))
-
-  let add8 cs i x =
-    BE.(set_uint64 cs i (Int64.add x (get_uint64 cs i)))
-
-  (* FIXME: overflow: higher order bits. *)
-  let add16 cs i x = add8 cs (i + 8) x
-
+  module C128be : Priv_S = struct
+    type t = bytes
+    let zero = Bytes.unsafe_of_string
+      "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    let size = 16
+    let add t n =
+      let t' = Bytes.create size in
+      let qw1 = BE.get_int64 t 0 and qw2 = BE.get_int64 t 8 in
+      let x  = Numeric.Int64.(qw2 + n) in
+      BE.set_int64 t' 0 (if cmp_64u qw2 x > 0 then Int64.succ qw1 else qw1);
+      BE.set_int64 t' 8 x;
+      t'
+    let of_cstruct cs = of_cstruct ~modn:"C16" size cs
+    let to_cstruct t = Cstruct.of_bytes t
+    let unsafe_count_into = Native.count16be
+  end
 end
+
+
 
 module Modes = struct
 
@@ -221,14 +257,13 @@ module Modes2 = struct
       bounds_check ~iv src ;
       let msg = Cs.clone src in
       let dst = msg.buffer in
-      let rec loop iv iv_i dst_i b =
-        if b > 0 then begin
-          Native.xor_into iv iv_i dst dst_i block ;
-          Core.encrypt ~key ~blocks:1 dst dst_i dst dst_i ;
-          loop dst dst_i (dst_i + block) (b - 1)
-        end in
-      loop iv.buffer iv.off msg.off (msg.len / block) ;
-      msg
+      let rec loop iv iv_i dst_i = function
+        0 -> ()
+      | b -> Native.xor_into iv iv_i dst dst_i block ;
+             Core.encrypt ~key ~blocks:1 dst dst_i dst dst_i ;
+             loop dst dst_i (dst_i + block) (b - 1)
+      in
+      loop iv.buffer iv.off msg.off (msg.len / block) ; msg
 
     let decrypt ~key:(_, key) ~iv src =
       bounds_check ~iv src ;
@@ -243,53 +278,30 @@ module Modes2 = struct
 
   end
 
-  module CTR_of (Core : S.Core) : S.CTR with type key = Core.ekey = struct
+  module CTR_of (Core : S.Core) (Ctr : Counters.Priv_S) :
+    S.CTR with type key = Core.ekey and module C = Ctr =
+  struct
+    (* FIXME: CTR has more room for speedups. Like stitching. *)
 
-    (* FIXME: CTR has more room for speedups. *)
-
-    let block = Core.block
-
-    module Ctr = struct
-      let (count, add) =
-        match block with
-        | 16 -> (Native.count16be, Counter.add16)
-        | 8  -> (Native.count8be, Counter.add8)
-        | n  -> invalid_arg "CTR_of: block size %d, need 8 or 16" n
-    end
-
+    assert (Core.block = Ctr.size)
     type key = Core.ekey
 
     let (key_sizes, block_size) = Core.(key, block)
     let of_secret = Core.e_of_secret
 
+    module C = Ctr
+
+    let next_ctr ~ctr msg = C.add ctr (Int64.of_int @@ msg.len // block_size)
+
     let stream ~key ~ctr n =
-      let blocks = n // block in
-      let buf    = Native.buffer (blocks * block) in
-      Ctr.count ctr.buffer ctr.off buf 0 blocks ;
+      let blocks = imax 0 n // block_size in
+      let buf    = Native.buffer (blocks * block_size) in
+      Ctr.unsafe_count_into ctr ~blocks buf 0 ;
       Core.encrypt ~key ~blocks buf 0 buf 0 ;
       of_bigarray ~len:n buf
 
-    let cbuf  = Cstruct.create block
-    let bmask = block - 1
-
-    let stream_shifted ~key ~ctr off n =
-      let shift  = off land bmask in
-      let blocks = (shift + n) // block in
-      let buf    = Native.buffer (blocks * block) in
-      Native.blit ctr.buffer ctr.off cbuf.buffer 0 block ;
-      Ctr.add cbuf 0 (Int64.of_int (off / block)) ;
-      Ctr.count cbuf.buffer 0 buf 0 blocks ;
-      Core.encrypt ~key ~blocks buf 0 buf 0 ;
-      of_bigarray ~len:n ~off:shift buf
-
-    let stream ~key ~ctr ?off n =
-      if ctr.len <> block then invalid_arg "CTR: counter length %d" ctr.len;
-      match off with
-      | Some k when k > 0 -> stream_shifted ~key ~ctr k (imax 0 n)
-      | _                 -> stream ~key ~ctr (imax 0 n)
-
-    let encrypt ~key ~ctr ?off src =
-      let res = stream ~key ~ctr ?off src.len in
+    let encrypt ~key ~ctr src =
+      let res = stream ~key ~ctr src.len in
       Native.xor_into src.buffer src.off res.buffer res.off src.len ;
       res
 
@@ -298,7 +310,7 @@ module Modes2 = struct
 
   module GCM_of (C : S.Core) : S.GCM = struct
 
-    module CTR = CTR_of (C)
+    module CTR = CTR_of (C) (Counters.C128be)
 
     let _ = assert (C.block = 16)
 
@@ -320,21 +332,18 @@ module Modes2 = struct
 
     let (key_sizes, block_size) = C.(key, block)
 
+    let e key ~ctr cs = CTR.encrypt ~key ~ctr:(CTR.C.of_cstruct ctr) cs
+
     let encrypt ~key:{ key ; hkey } ~iv ?adata cs =
-      let encrypt ~ctr cs = CTR.encrypt ~key ~ctr cs in
       let (message, tag) =
-        Gcm.gcm ~encrypt ~mode:`Encrypt ~iv ~hkey ?adata cs
+        Gcm.gcm ~encrypt:(e key) ~mode:`Encrypt ~iv ~hkey ?adata cs
       in { message ; tag }
 
     let decrypt ~key:{ key ; hkey } ~iv ?adata cs =
-      let encrypt ~ctr cs = CTR.encrypt ~key ~ctr cs in
       let (message, tag) =
-        Gcm.gcm ~encrypt ~mode:`Decrypt ~iv ~hkey ?adata cs
+        Gcm.gcm ~encrypt:(e key) ~mode:`Decrypt ~iv ~hkey ?adata cs
       in { message ; tag }
-
   end
-
-
 end
 
 open Bigarray
@@ -384,7 +393,7 @@ module AES = struct
 
   module ECB = Modes2.ECB_of (Core)
   module CBC = Modes2.CBC_of (Core)
-  module CTR = Modes2.CTR_of (Core)
+  module CTR = Modes2.CTR_of (Core) (Counters.C128be)
   module GCM = Modes2.GCM_of (Core)
 
   module CCM = Modes.CCM_of (Modes2.Raw_of(Core))
@@ -425,6 +434,6 @@ module DES = struct
 
   module ECB = Modes2.ECB_of (Core)
   module CBC = Modes2.CBC_of (Core)
-  module CTR = Modes2.CTR_of (Core)
+  module CTR = Modes2.CTR_of (Core) (Counters.C64be)
 
 end

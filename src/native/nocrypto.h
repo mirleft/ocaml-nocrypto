@@ -2,14 +2,10 @@
 #define H__NOCRYPTO
 
 #include <stdint.h>
+#define __USE_MISC
+#include <endian.h>
 #include <caml/mlvalues.h>
 #include <caml/bigarray.h>
-
-/* For endian-related conversions -- would be better to pick it up from the
- * platform!
- * <endian.h> ??
- */
-#include "hash/bitfn.h"
 
 #if defined (__x86_64__) && defined (ACCELERATE)
 #include <x86intrin.h>

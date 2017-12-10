@@ -1,14 +1,13 @@
 open Uncommon
 open Hash
 
-module Counter = Cipher_block.Counter
 module AES_CTR = Cipher_block.AES.CTR
 
 let block = 16
 
 (* XXX Locking!! *)
 type g =
-  {         ctr    : Cstruct.t
+  { mutable ctr    : AES_CTR.C.t
   ; mutable secret : Cstruct.t
   ; mutable key    : AES_CTR.key
   ; mutable trap   : (unit -> unit) option
@@ -17,17 +16,14 @@ type g =
 
 let create () =
   let k = Cs.create 32 in
-  { ctr    = Cs.create block
+  { ctr    = AES_CTR.C.zero
   ; secret = k
   ; key    = AES_CTR.of_secret k
   ; trap   = None
   ; seeded = false
   }
 
-let clone ~g: { ctr ; seeded ; secret ; key ; _ } =
-  { ctr = Cs.clone ctr ; secret ; key ; seeded ; trap = None }
-
-let seeded ~g = g.seeded
+let clone ~g = { g with trap = None }
 
 (* XXX We might want to erase the old key. *)
 let set_key ~g sec =
@@ -36,7 +32,7 @@ let set_key ~g sec =
 
 let reseedi ~g iter =
   set_key ~g @@ SHAd256.digesti (fun f -> f g.secret; iter f);
-  Counter.incr16 g.ctr 0 |> ignore;
+  g.ctr <- AES_CTR.C.add g.ctr 1L;
   g.seeded <- true
 
 let reseed ~g cs = reseedi ~g (iter1 cs)
@@ -48,7 +44,7 @@ let generate_rekey ~g bytes =
   let r1 = Cstruct.sub r 0 bytes
   and r2 = Cstruct.sub r (n - 32) 32 in
   set_key ~g r2 ;
-  Counter.add16 g.ctr 0 (Int64.of_int b) ;
+  g.ctr <- AES_CTR.C.add g.ctr (Int64.of_int b);
   r1
 
 let generate ~g bytes =

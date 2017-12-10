@@ -314,6 +314,41 @@ end
     module. *)
 module Cipher_block : sig
 
+  (** Counters.
+
+      Counters are used by cipher modes, {!S.CTR} in particular. *)
+  module Counters : sig
+
+    (** A single counter regime, with fixed size, representation and counting
+        mode. *)
+    module type S = sig
+
+      type t
+
+      val zero : t
+      (** [zero] is the all-zero counter. *)
+
+      val add : t -> int64 -> t
+      (** [add t x] advances [t] by [x] steps.
+
+          {e Note} [x] is treated as unsigned quantity. *)
+
+      val of_cstruct : Cstruct.t -> t
+      (** [of_cstruct cs] interprets [cs] as a counter.
+
+          @raise Invalid_argument if [cs] does not match the counter size. *)
+
+      val to_cstruct : t -> Cstruct.t
+      (** [to_cstruct] is the inverse of [of_cstruct]. *)
+    end
+
+    module C64be : S
+    (** The 64 bit big-endian counter. *)
+
+    module C128be : S
+    (** The 128 bit big-endian counter. *)
+  end
+
   (** Module types for various block cipher modes of operation. *)
   module S : sig
 
@@ -321,21 +356,21 @@ module Cipher_block : sig
 
         Make absolutely sure to check the arguments. Behavior is unspecified on
         invalid inputs. *)
-    module type Core = sig
+    (* module type Core = sig *)
 
-      type ekey
-      type dkey
+    (*   type ekey *)
+    (*   type dkey *)
 
-      val of_secret   : Cstruct.t -> ekey * dkey
-      val e_of_secret : Cstruct.t -> ekey
-      val d_of_secret : Cstruct.t -> dkey
+    (*   val of_secret   : Cstruct.t -> ekey * dkey *)
+    (*   val e_of_secret : Cstruct.t -> ekey *)
+    (*   val d_of_secret : Cstruct.t -> dkey *)
 
-      val key   : int array
-      val block : int
+    (*   val key   : int array *)
+    (*   val block : int *)
 
-      val encrypt : key:ekey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
-      val decrypt : key:dkey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit
-    end
+    (*   val encrypt : key:ekey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit *)
+    (*   val decrypt : key:dkey -> blocks:int -> Native.buffer -> int -> Native.buffer -> int -> unit *)
+    (* end *)
 
     (** Modes of operation: *)
 
@@ -360,14 +395,24 @@ module Cipher_block : sig
       val key_sizes  : int array
       val block_size : int
 
-      val next_iv : iv:Cstruct.t -> Cstruct.t -> Cstruct.t
-      (** [next_iv iv ciphertext] for a [ciphertext] and an [iv] it was computed
-          with is the iv to use to encrypt the next message, for protocols
-          which perform inter-message chaining. It is either the last block of
-          [ciphertext] or [iv] if [msg] is too short. *)
-
       val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
       val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
+
+      val next_iv : iv:Cstruct.t -> Cstruct.t -> Cstruct.t
+      (** [next_iv ~iv ciphertext] is the first [iv] {e following} the
+          encryption that used [iv] to produce [ciphertext].
+
+          For protocols which perform inter-message chaining, this is the [iv]
+          for the next message.
+
+          It is either [iv], when [len ciphertext = 0], or the last block of
+          [ciphertext]. Note that
+
+{[encrypt ~iv msg1 || encrypt ~iv:(next_iv ~iv (encrypt ~iv msg1)) msg2
+  == encrypt ~iv (msg1 || msg2)]}
+
+          @raise Invalid_argument if the length of [iv] is not [block_size], or
+          the length of [ciphertext] is not [k * block_size] for some [k]. *)
     end
 
     (** {e Counter} mode. *)
@@ -379,24 +424,49 @@ module Cipher_block : sig
       val key_sizes  : int array
       val block_size : int
 
-      val stream : key:key -> ctr:Cstruct.t -> ?off:int -> int -> Cstruct.t
-      (** [stream ~key ~ctr ~off n] is the first [n] bytes obtained by
-          encrypting and concatenating blocks [c(0), c(1), ...], where [c(0)] is
-          [ctr], and [c(n + 1)] is [c(n) + 1] interpreted in big-endian.
+      module C : Counters.S
+      (** The {{!Counter.S}counter type} associated with this [CTR] instance.
 
-          If [off] is greater than [0] then the result is the last [n] bytes of
-          an [off + n] bytes long stream. Thus,
-          [stream ~key ~ctr ~off:0 n || stream ~key ~ctr ~off:n n ==
-           stream ~key ~ctr ~off:0 (n*2)].
+          The size of this counter type equals {!block_size}. *)
 
-          @raise Invalid_argument if [ctr] is not block-sized. *)
+      val stream : key:key -> ctr:C.t -> int -> Cstruct.t
+      (** [stream ~key ~ctr n] is the raw keystream.
 
-      val encrypt : key:key -> ctr:Cstruct.t -> ?off:int -> Cstruct.t -> Cstruct.t
-      (** [encrypt ~key ~ctr ~off msg] is
-          [(stream ~key ~ctr ~off (len msg)) xor msg]. *)
+          Keystream is the concatenation of successive encrypted counter states.
+          If [E(x)] is the single block [x] encrypted under [key], then keystream
+          is the first [n] bytes of
+          [E(ctr) || E(add ctr 1) || E(add ctr 2) || ...].
 
-      val decrypt : key:key -> ctr:Cstruct.t -> ?off:int -> Cstruct.t -> Cstruct.t
-      (** [decrypt] is [encrypt] in CTR. *)
+          Note that
+
+{[stream ~key ~ctr (k * block_size) || stream ~key ~ctr:(add ctr k) x
+  == stream ~key ~ctr (k * block_size + x)]}
+
+          In other words, it is possible to restart a keystream at [block_size]
+          boundaries by manipulating the counter. *)
+
+      val encrypt : key:key -> ctr:C.t -> Cstruct.t -> Cstruct.t
+      (** [encrypt ~key ~ctr msg] is
+          [stream ~key ~ctr ~off (len msg) lxor msg]. *)
+
+      val decrypt : key:key -> ctr:C.t -> Cstruct.t -> Cstruct.t
+      (** [decrypt] is [encrypt]. *)
+
+      val next_ctr : ctr:C.t -> Cstruct.t -> C.t
+      (** [next_ctr ~ctr msg] is the state of the counter after encrypting or
+          decrypting [msg] with the counter [ctr].
+
+          For protocols which perform inter-message chaining, this is the
+          counter for the next message.
+
+          It is computed as [C.add ctr (ceil (len msg / block_size))]. Note that
+          if [len msg1 = k * block_size],
+
+{[encrypt ~ctr msg1 || encrypt ~ctr:(next_ctr ~ctr msg1) msg2
+  == encrypt ~ctr (msg1 || msg2)]}
+
+          *)
+
     end
 
     (** {e Galois/Counter Mode}. *)
@@ -424,32 +494,12 @@ module Cipher_block : sig
     end
   end
 
-  (** BE counter function.
-
-      Each [incrX cs i] increments [X]-sized block of [cs] at the offset [i] by
-      one, returning [true] if an overfow occurred (and the block is now
-      zeroed-out).
-
-      Each [addX cs i n] adds [n] to the [X]-sized block. *)
-  module Counter : sig
-
-    val incr1  : Cstruct.t -> int -> bool
-    val incr2  : Cstruct.t -> int -> bool
-    val incr4  : Cstruct.t -> int -> bool
-    val incr8  : Cstruct.t -> int -> bool
-    val incr16 : Cstruct.t -> int -> bool
-
-    val add4   : Cstruct.t -> int -> int32 -> unit
-    val add8   : Cstruct.t -> int -> int64 -> unit
-    val add16  : Cstruct.t -> int -> int64 -> unit
-  end
-
   module AES : sig
     val mode : [ `Generic | `AES_NI ]
 (*     module Core : S.Core *)
     module ECB  : S.ECB
     module CBC  : S.CBC
-    module CTR  : S.CTR
+    module CTR  : S.CTR with module C = Counters.C128be
     module GCM  : S.GCM
     module CCM  : S.CCM
   end
@@ -458,7 +508,7 @@ module Cipher_block : sig
 (*     module Core : S.Core *)
     module ECB  : S.ECB
     module CBC  : S.CBC
-    module CTR  : S.CTR
+    module CTR  : S.CTR with module C = Counters.C64be
   end
 end
 

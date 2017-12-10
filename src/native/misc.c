@@ -1,9 +1,8 @@
 #include "nocrypto.h"
 
-#define u_long_s sizeof (unsigned long)
-
 
 static inline void xor_into (uint8_t *src, uint8_t *dst, size_t n) {
+
 #if defined (__nc_SSE2__)
   while (n >= 16) {
     _mm_storeu_si128 (
@@ -16,34 +15,40 @@ static inline void xor_into (uint8_t *src, uint8_t *dst, size_t n) {
     n   -= 16;
   }
 #endif
-  while (n >= u_long_s) {
-    *((u_long *) dst) ^= *((u_long *) src);
-    src += u_long_s;
-    dst += u_long_s;
-    n   -= u_long_s;
+
+  while (n >= 8) {
+    *(uint64_t*) dst ^= *(uint64_t*) src;
+    src += 8;
+    dst += 8;
+    n   -= 8;
   }
-  while (n-- > 0) {
+
+  while (n --) {
     *dst = *(src ++) ^ *dst;
     dst++;
   }
 }
 
-static inline void nc_count_8_be (uint64_t *init, uint64_t *dst, size_t blocks) {
-  uint64_t qw = be64_to_cpu (*init);
-  while (blocks --) {
-    *dst = cpu_to_be64(qw);
-    ++qw;
-    ++dst;
-  }
+static inline void _nc_count_8_be (uint64_t *init, uint64_t *dst, size_t blocks) {
+  uint64_t qw = be64toh (*init);
+  while (blocks --) *(dst++) = htobe64 (qw++);
 }
 
-static inline void nc_count_16_be (uint64_t *init, uint64_t *dst, size_t blocks) {
-  uint64_t qw1 = be64_to_cpu  (init[0]),
-           qw2 = be64_to_cpu  (init[1]);
+/* XXX
+ *
+ * Counters are garbage. ;_;
+ * This code approaches 2/3 of 10-round AES' time on large bulks.
+ *
+ * What slows things down:
+ *   - Naive __uint128_t.
+ *   - Loop unrolling.
+ */
+static inline void _nc_count_16_be (uint64_t *init, uint64_t *dst, size_t blocks) {
+  uint64_t qw1 = init[0], qw2 = be64toh (init[1]);
   while (blocks --) {
-    dst[0] = cpu_to_be64 (qw1);
-    dst[1] = cpu_to_be64 (qw2);
-    qw1 += ((++qw2) == 0);
+    dst[0] = qw1;
+    dst[1] = htobe64 (qw2);
+    if ((++ qw2) == 0) qw1 = htobe64 (be64toh (qw1) + 1);
     dst += 2;
   }
 }
@@ -55,18 +60,12 @@ caml_nc_xor_into (value b1, value off1, value b2, value off2, value n) {
   return Val_unit;
 }
 
-CAMLprim value
-caml_nc_count_8_be (value init, value off1, value dst, value off2, value blocks) {
-  nc_count_8_be ( (uint64_t *) _ba_uint8_off (init, off1),
-                  (uint64_t *) _ba_uint8_off (dst, off2),
-                  Long_val (blocks) );
-  return Val_unit;
-}
+#define __export_counter(name, f)                                        \
+  CAMLprim value name (value ctr, value dst, value off, value blocks) {  \
+    f ( (uint64_t*) Bp_val (ctr),                                        \
+        (uint64_t*) _ba_uint8_off (dst, off), Long_val (blocks) );       \
+    return Val_unit;                                                     \
+  }
 
-CAMLprim value
-caml_nc_count_16_be (value init, value off1, value dst, value off2, value blocks) {
-  nc_count_16_be ( (uint64_t *) _ba_uint8_off (init, off1),
-                   (uint64_t *) _ba_uint8_off (dst, off2),
-                   Long_val (blocks) );
-  return Val_unit;
-}
+__export_counter (caml_nc_count_8_be, _nc_count_8_be);
+__export_counter (caml_nc_count_16_be, _nc_count_16_be);

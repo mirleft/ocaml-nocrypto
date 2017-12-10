@@ -6,9 +6,9 @@ let kasprintf k fmt =
 let invalid_arg fmt = kasprintf invalid_arg ("Nocrypto: " ^^ fmt)
 let failwith fmt = kasprintf failwith ("Nocrypto: " ^^ fmt)
 
-let (//) (x : int) (y : int) =
+let (//) x y =
   if y < 1 then raise Division_by_zero else
-    if x > 0 then 1 + ((x - 1) / y) else 0
+    if x > 0 then 1 + ((x - 1) / y) else 0 [@@inline]
 
 let imin (a : int) b = if a < b then a else b
 let imax (a : int) b = if a < b then b else a
