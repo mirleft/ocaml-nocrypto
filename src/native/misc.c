@@ -53,6 +53,17 @@ static inline void _nc_count_16_be (uint64_t *init, uint64_t *dst, size_t blocks
   }
 }
 
+static inline void _nc_count_16_be_4 (uint64_t *init, uint64_t *dst, size_t blocks) {
+  uint64_t qw1 = init[0];
+  uint32_t dw3 = ((uint32_t*) init)[2],
+           dw4 = be32toh (((uint32_t*) init)[3]);
+  while (blocks --) {
+    dst[0] = qw1;
+    ((uint32_t*) dst)[2] = dw3;
+    ((uint32_t*) dst)[3] = htobe32 (dw4++);
+    dst += 2;
+  }
+}
 
 CAMLprim value
 caml_nc_xor_into (value b1, value off1, value b2, value off2, value n) {
@@ -69,3 +80,4 @@ caml_nc_xor_into (value b1, value off1, value b2, value off2, value n) {
 
 __export_counter (caml_nc_count_8_be, _nc_count_8_be);
 __export_counter (caml_nc_count_16_be, _nc_count_16_be);
+__export_counter (caml_nc_count_16_be_4, _nc_count_16_be_4);

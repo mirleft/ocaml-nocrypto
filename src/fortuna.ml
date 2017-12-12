@@ -25,6 +25,8 @@ let create () =
 
 let clone ~g = { g with trap = None }
 
+let seeded ~g = g.seeded
+
 (* XXX We might want to erase the old key. *)
 let set_key ~g sec =
   g.secret <- sec ;

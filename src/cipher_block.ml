@@ -115,48 +115,54 @@ module Counters = struct
     val unsafe_count_into : t -> Native.buffer -> int -> blocks:int -> unit
   end
 
-  let of_cstruct ~modn size cs =
+  let of_cstruct size cs =
     if cs.Cstruct.len = size then
       let t = Bytes.create size in
       ( Cstruct.blit_to_bytes cs 0 t 0 size; t )
-    else invalid_arg "%s.of_cstruct: got %d bytes" modn cs.Cstruct.len
-
-  module BE = EndianBytes.BigEndian (* DO THE UNSAFE DANCE! *)
+    else invalid_arg "Counters.S.of_cstruct: expected %d, got %d bytes"
+          size (Cstruct.len cs)
 
   let cmp_64u a b =
-    let cmp = compare a b in
-    if Numeric.Int64.(a lxor b) < 0L then -cmp else cmp
+    let cmp = compare a b in if Int64.logxor a b < 0L then -cmp else cmp
+  [@@inline]
 
-  module C64be : Priv_S = struct
+  open EndianBytes.BigEndian_unsafe
+
+  module C64be = struct
     type t = bytes
-    let zero = Bytes.unsafe_of_string "\x00\x00\x00\x00\x00\x00\x00\x00"
     let size = 8
+    let zero = Bytes.init size (fun _ -> '\x00')
     let add t n =
       let t' = Bytes.create size in
-      BE.(set_int64 t' 0 Numeric.Int64.(BE.get_int64 t 0 + n)); t'
-    let of_cstruct cs = of_cstruct ~modn:"C8" size cs
+      set_int64 t' 0 (get_int64 t 0 |> Int64.add n); t'
+    let of_cstruct cs = of_cstruct size cs
     let to_cstruct t = Cstruct.of_bytes t
     let unsafe_count_into = Native.count8be
   end
 
-  module C128be : Priv_S = struct
+  module C128be = struct
     type t = bytes
-    let zero = Bytes.unsafe_of_string
-      "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
     let size = 16
+    let zero = Bytes.init size (fun _ -> '\x00')
     let add t n =
       let t' = Bytes.create size in
-      let qw1 = BE.get_int64 t 0 and qw2 = BE.get_int64 t 8 in
-      let x  = Numeric.Int64.(qw2 + n) in
-      BE.set_int64 t' 0 (if cmp_64u qw2 x > 0 then Int64.succ qw1 else qw1);
-      BE.set_int64 t' 8 x;
-      t'
-    let of_cstruct cs = of_cstruct ~modn:"C16" size cs
+      let qw1 = get_int64 t 0 and qw2 = get_int64 t 8 in
+      let x  = Int64.add qw2 n in
+      set_int64 t' 0 (if cmp_64u qw2 x > 0 then Int64.succ qw1 else qw1);
+      set_int64 t' 8 x; t'
+    let of_cstruct cs = of_cstruct size cs
     let to_cstruct t = Cstruct.of_bytes t
     let unsafe_count_into = Native.count16be
   end
-end
 
+  module C128be32 = struct
+    include C128be
+    let add t n =
+      let t' = Bytes.copy t in
+      set_int32 t' 12 (get_int32 t 12 |> Int32.add (Int64.to_int32 n)); t'
+    let unsafe_count_into = Native.count16be4
+  end
+end
 
 
 module Modes = struct
@@ -310,39 +316,45 @@ module Modes2 = struct
 
   module GCM_of (C : S.Core) : S.GCM = struct
 
-    module CTR = CTR_of (C) (Counters.C128be)
-
     let _ = assert (C.block = 16)
+    module CTR = CTR_of (C) (Counters.C128be32)
 
+    type key = { key : C.ekey ; hkey : Gcm.GF128.hkey }
     type result = { message : Cstruct.t ; tag : Cstruct.t }
 
-    let z = Cs.create 16
-
-    type key = {
-      key  : C.ekey ;
-      hkey : Gcm.GF128.hkey
-    }
+    let key_sizes, block_size = C.(key, block)
+    let z128, h = create block_size, create block_size
 
     let of_secret cs =
-      let key = C.e_of_secret cs
-      and h   = Cstruct.create 16 in
-      C.encrypt ~key ~blocks:1 z.buffer z.off h.buffer h.off ;
-      let hkey = Gcm.hkey h in
-      { key ; hkey }
+      let key = C.e_of_secret cs in
+      C.encrypt ~key ~blocks:1 z128.buffer z128.off h.buffer h.off;
+      { key ; hkey = Gcm.hkey h }
 
-    let (key_sizes, block_size) = C.(key, block)
+    let padding cs = create ((16 - (len cs mod 16)) mod 16)
+    let bits64 cs = Int64.of_int (len cs * 8)
+    let succ ctr = CTR.C.add ctr 1L
 
-    let e key ~ctr cs = CTR.encrypt ~key ~ctr:(CTR.C.of_cstruct ctr) cs
+    let counter ~hkey iv =
+      CTR.C.of_cstruct @@ match len iv with
+      | 12 -> concat [iv; Cs.of_int32s [1l]]
+      | _  -> Gcm.ghash ~h:hkey @@
+              concat [iv; padding iv; Cs.of_int64s [0L; bits64 iv]]
 
-    let encrypt ~key:{ key ; hkey } ~iv ?adata cs =
-      let (message, tag) =
-        Gcm.gcm ~encrypt:(e key) ~mode:`Encrypt ~iv ~hkey ?adata cs
-      in { message ; tag }
+    let tag ~key ~hkey ~ctr ?(adata=Cs.empty) cdata =
+      CTR.encrypt ~key ~ctr @@ Gcm.ghash ~h:hkey @@
+        concat [ adata; padding adata
+               ; cdata; padding cdata
+               ; Cs.of_int64s [bits64 adata; bits64 cdata] ]
 
-    let decrypt ~key:{ key ; hkey } ~iv ?adata cs =
-      let (message, tag) =
-        Gcm.gcm ~encrypt:(e key) ~mode:`Decrypt ~iv ~hkey ?adata cs
-      in { message ; tag }
+    let encrypt ~key:{ key; hkey } ~iv ?adata data =
+      let ctr   = counter ~hkey iv in
+      let cdata = CTR.encrypt ~key ~ctr:(succ ctr) data in
+      { message = cdata ; tag = tag ~key ~hkey ~ctr ?adata cdata }
+
+    let decrypt ~key:{ key; hkey } ~iv ?adata cdata =
+      let ctr  = counter ~hkey iv in
+      let data = CTR.encrypt ~key ~ctr:(succ ctr) cdata in
+      { message = data ; tag = tag ~key ~hkey ~ctr ?adata cdata }
   end
 end
 

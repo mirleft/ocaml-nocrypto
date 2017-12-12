@@ -98,16 +98,6 @@ end
 
 open Cstruct
 
-let incr32 cs =
-  let a = BE.get_uint64 cs 0
-  and b = BE.get_uint32 cs 8
-  and c = BE.get_uint32 cs 12
-  and cs' = create 16 in
-  BE.set_uint64 cs' 0 a ;
-  BE.set_uint32 cs' 8 b ;
-  BE.set_uint32 cs' 12 (Int32.succ c) ;
-  cs'
-
 let hkey h = GF128.(mtab (of_cstruct h))
 
 let ghash ~h cs =
@@ -119,33 +109,3 @@ let ghash ~h cs =
         loop GF128.(h @* (x + acc)) (shift cs 16)
   in
   loop GF128.zero cs
-
-let padding cs =
-  let p_len n = (16 - (n mod 16)) mod 16 in
-  Cs.create (p_len (len cs))
-
-let nbits cs = Int64.of_int (len cs * 8)
-
-let gcm ~encrypt ~mode ~iv ~hkey ?(adata=Cs.empty) data =
-
-  (* XXX limit blocks; overflows at 32 bits. *)
-  let j0 = match len iv with
-    | 12 -> Cstruct.concat [ iv; Cs.of_int32s [1l] ]
-    | _  -> ghash ~h:hkey @@
-            Cstruct.concat [ iv; padding iv; Cs.of_int64s [0L; nbits iv] ] in
-
-  let data' = encrypt ~ctr:(incr32 j0) data in
-
-  let cdata = match mode with
-    | `Encrypt -> data'
-    | `Decrypt -> data in
-
-  let s = ghash ~h:hkey @@ Cstruct.concat [
-      adata ; padding adata
-    ; cdata ; padding cdata
-    ; Cs.of_int64s [ nbits adata ; nbits cdata  ]
-  ] in
-  let t = encrypt ~ctr:j0 s in
-
-  (data', t)
-

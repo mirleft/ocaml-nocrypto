@@ -76,7 +76,8 @@ end
  * Unsolved: bounds-checked XORs are slowing things down considerably... *)
 external xor_into : buffer -> off -> buffer -> off -> size -> unit = "caml_nc_xor_into" [@@noalloc]
 
-external count8be  : bytes -> buffer -> off -> blocks:size -> unit = "caml_nc_count_8_be" [@@noalloc]
-external count16be : bytes -> buffer -> off -> blocks:size -> unit = "caml_nc_count_16_be" [@@noalloc]
+external count8be   : bytes -> buffer -> off -> blocks:size -> unit = "caml_nc_count_8_be"    [@@noalloc]
+external count16be  : bytes -> buffer -> off -> blocks:size -> unit = "caml_nc_count_16_be"   [@@noalloc]
+external count16be4 : bytes -> buffer -> off -> blocks:size -> unit = "caml_nc_count_16_be_4" [@@noalloc]
 
 external blit : buffer -> off -> buffer -> off -> size -> unit = "caml_blit_bigstring_to_bigstring" [@@noalloc]
