@@ -9,8 +9,9 @@
 #directory "_build/unix"
 #load "nocrypto_entropy_unix.cmo"
 
-#install_printer Z.pp_print
-
 open Nocrypto
-
 let _ = Nocrypto_entropy_unix.initialize ()
+let pp_xs_cs = Nocrypto.Uncommon.xd ~ascii:true ();;
+
+#install_printer Z.pp_print
+#install_printer pp_xs_cs

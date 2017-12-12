@@ -3,9 +3,10 @@ open OUnit2
 open Nocrypto
 open Nocrypto.Uncommon
 
-let hex_of_cs cs =
-  let b = Buffer.create 16 in
-  Cstruct.hexdump_to_buffer b cs ; Buffer.contents b
+let (prf, strf) = Format.(fprintf, asprintf)
+let xd = xd ()
+let pp_map pp f ppf x = pp ppf (f x)
+let pp_diff pp ppf (a, b) = prf ppf "@[<v>want: %a@,have: %a@]" pp a pp b
 
 let rec blocks_of_cs n cs =
   let open Cstruct in
@@ -18,8 +19,9 @@ let rec range a b =
 let rec times ~n f a =
   if n > 0 then ( ignore (f a) ; times ~n:(pred n) f a )
 
-let show_opt show = function
-  | Some x -> "(Some " ^ show x ^ ")" | _ -> "None"
+let pp_opt pp ppf = Format.(function
+  | Some x -> fprintf ppf "Some(%a)" pp x
+  | None   -> fprintf ppf "None")
 
 let eq_opt eq a b = match (a, b) with
   | (Some x, Some y) -> eq x y
@@ -28,13 +30,6 @@ let eq_opt eq a b = match (a, b) with
 let sample arr =
   let ix = Rng.Int.gen Array.(length arr) in arr.(ix)
 
-let assert_cs_equal ?pp_diff ?msg =
-  assert_equal
-    ~cmp:Cstruct.equal
-    ~printer:hex_of_cs
-    ?pp_diff
-    ?msg
-
-let assert_cs_not_equal ~msg cs1 cs2 =
-  if Cstruct.equal cs1 cs2 then
-    assert_failure @@ msg ^ "\n" ^ hex_of_cs cs1
+let assert_cs_equal ?msg =
+  assert_equal ~cmp:Cstruct.equal ?msg
+    ~pp_diff:(pp_diff (Uncommon.xd ~ascii:true()))

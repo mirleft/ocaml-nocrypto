@@ -1,9 +1,9 @@
 open OUnit2
 
-open Notest
-
 open Nocrypto
 open Nocrypto.Uncommon
+
+open Notest
 
 
 module Fc = struct
@@ -361,11 +361,10 @@ let dh_selftest ~bits n =
     let sh1 = Dh.shared p s1 m2
     and sh2 = Dh.shared p s2 m1 in
 
-    assert_equal
+    assert_equal sh1 sh2
       ~cmp:(eq_opt Cstruct.equal)
-      ~printer:(show_opt hex_of_cs)
+      ~pp_diff:(pp_diff (pp_opt xd))
       ~msg:"shared secret"
-      sh1 sh2
 
 
 let dh_shared_0 =
@@ -454,10 +453,9 @@ let f1_opt_eq ?msg f (a, b) _ =
     | (None  , None  ) -> true
     | _                -> false
   in
-  assert_equal
+  assert_equal b (f a) ?msg
     ~cmp:(eq_opt Cstruct.equal)
-    ~printer:(show_opt hex_of_cs)
-    ?msg (f a) b
+    ~pp_diff:(pp_diff (pp_opt xd))
 
 let b64_dec_cases =
   cases_of (f1_opt_eq ~msg:"b64" Base64.decode) [
@@ -774,6 +772,7 @@ let aes_ctr_cases =
     assert_cs_equal ~msg:"plain" nist_sp_800_38a dec;
     let blocks = Cstruct.len nist_sp_800_38a / block_size in
     assert_equal ~msg:"counters" ctr1 (C.add ctr (Int64.of_int blocks))
+      ~pp_diff:(pp_map xd C.to_cstruct |> pp_diff)
   in
   [ case ~key:  "2b 7e 15 16 28 ae d2 a6 ab f7 15 88 09 cf 4f 3c"
          ~ctr:  "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff"

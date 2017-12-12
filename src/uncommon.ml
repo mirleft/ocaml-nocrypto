@@ -222,7 +222,6 @@ module Cs = struct
     | (_ , _, Some _) -> invalid_arg "of_hex: dangling nibble"
     | (cs, i, _     ) -> sub cs 0 i
 
-
   let (lsl) cs bits =
     let cs' = clone cs in
     shift_left_inplace cs' bits ; cs'
@@ -254,6 +253,31 @@ let bracket ~init ~fini f =
   match f a with
   | exception exn -> fini a; raise exn
   | res           -> fini a; res
+
+let pp_xd_gen getu8 len ?(address=true) ?(ascii=false) ?(w=16) () ppf =
+  let open Format in
+  let rec blocks f off xs =
+    let n = len xs - off in
+    f off (min n w) xs; if n > w then blocks f (off + w) xs in
+  let line ppf off n xs =
+    let iter f = for i = 0 to n - 1 do f i (off + i |> getu8 xs) done
+    and spaces n = for _ = 1 to n do pp_print_char ppf ' ' done in
+    if off > 0 then pp_print_cut ppf ();
+    if address then fprintf ppf "%04x:  " off;
+    iter (fun i u8 ->
+      pp_print_string ppf
+        (if i > 0 then if i mod 8 = 0 then "  " else " " else "");
+      fprintf ppf "%02x" u8);
+    if ascii then
+      let llen x = x * 2 + (x - 1 |> max 0) + (x - 1) / 8 in
+      spaces (2 + llen w - llen n);
+      iter (fun _ u8 -> fprintf ppf "%c"
+        (if u8 >= 0x20 && u8 < 0x7f then Char.chr u8 else '.'));
+      spaces (w - n)
+  in fprintf ppf "@[<v>%a@]" (fun ppf -> blocks (line ppf) 0)
+
+let xd  = Cstruct.(pp_xd_gen get_uint8 len)
+let xdb = Bytes.(pp_xd_gen (fun b i -> Char.code (get b i)) length)
 
 (* Random stuff needed for other modules because deps. *)
 module Boot = struct
