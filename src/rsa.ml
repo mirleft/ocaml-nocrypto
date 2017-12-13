@@ -62,16 +62,14 @@ let decrypt_unsafe ~key: ({ p; q; dp; dq; q'; _} : priv) c =
   Z.(h * q + m2)
 
 let decrypt_blinded_unsafe ?g ~key: ({ e; n; _} as key : priv) c =
-  let rec nonce () =
-    let x = Rng.Z.gen_r ?g Z.two n in if rprime x n then x else nonce () in
-  let r  = nonce () in
+  let r  = until (rprime n) (fun _ -> Rng.Z.gen_r ?g Z.two n) in
   let r' = Z.(invert r n) in
   let x  = decrypt_unsafe ~key Z.(powm r e n * c mod n) in
   Z.(r' * x mod n)
 
 let (encrypt_z, decrypt_z) =
   let check_params n msg =
-    if msg < Z.two then invalid_arg "Rsa.encrypt: message: %a" Z.pp_print msg;
+    if msg < Z.two then invalid_arg "Rsa: message: %a" Z.pp_print msg;
     if n <= msg then raise Insufficient_key in
   (fun ~(key : pub) msg -> check_params key.n msg ; encrypt_unsafe ~key msg),
   (fun ~mask ~(key : priv) msg ->
@@ -186,10 +184,10 @@ module PKCS1 = struct
   let sign ?mask ~hash ~key msg =
     sig_encode ?mask ~key Cs.(asn_of_hash hash <+> Hash.digest_or ~hash msg)
 
-  let verify ?hash ~key ~signature msg =
+  let verify ~hashp ~key ~signature msg =
     let open Option in
-    ( sig_decode ~key signature >>= fun cs -> detect cs >>| fun (h, asn) ->
-        h = get ~def:h hash && Cs.(ct_eq (asn <+> Hash.digest_or ~hash:h msg)) cs )
+    ( sig_decode ~key signature >>= fun cs -> detect cs >>| fun (hash, asn) ->
+        hashp hash && Cs.(ct_eq (asn <+> Hash.digest_or ~hash msg)) cs )
     |> get ~def:false
 
   let min_key hash =
@@ -289,8 +287,7 @@ module PSS (H: Hash.S) = struct
     set_uint8 db 0 (get_uint8 db 0 land b0mask emlen) ;
     let salt = shift db (len db - slen) in
     let h'   = digest ~salt msg
-    and i    = Cs.ct_find_uint8 ~f:((<>) 0x00) db |> Option.get ~def:0
-    in
+    and i    = Cs.ct_find_uint8 ~f:((<>) 0x00) db |> Option.get ~def:0 in
     let c1 = lnot (b0mask emlen) land get_uint8 mdb 0 = 0x00
     and c2 = i = em.len - hlen - slen - 2
     and c3 = get_uint8 db  i = 0x01
@@ -309,8 +306,7 @@ module PSS (H: Hash.S) = struct
   let verify ?(slen = hlen) ~key ~signature msg =
     let b = pub_bits key
     and s = len signature in
-    s = b // 8 && sufficient_key ~slen b &&
-    try
+    s = b // 8 && sufficient_key ~slen b && try
       let em = encrypt ~key signature in
       emsa_pss_verify (imax 0 slen) (b - 1) (shift em (s - (b - 1) // 8)) msg
     with Insufficient_key -> false

@@ -204,6 +204,8 @@ let rsa_pkcs1_encode_selftest ~bits n =
     | Some dec -> assert_cs_equal msg dec
                     ~msg:("recovery failure " ^ show_key_size key)
 
+let any _ = true
+
 let rsa_pkcs1_sign_selftest n =
   let open Hash.SHA1 in
   "selftest" >:: times ~n @@ fun _ ->
@@ -211,10 +213,10 @@ let rsa_pkcs1_sign_selftest n =
     and msg      = Rng.generate 47 in
     let pkey     = Rsa.pub_of_priv key in
     assert_bool "invert 1" Rsa.PKCS1.(
-      verify ~key:pkey (`Message msg)
+      verify ~key:pkey ~hashp:any (`Message msg)
         ~signature:(sign ~hash:`SHA1 ~key (`Digest (digest msg))) );
     assert_bool "invert 2" Rsa.PKCS1.(
-      verify ~key:pkey (`Digest (digest msg))
+      verify ~key:pkey ~hashp:any (`Digest (digest msg))
         ~signature:(sign ~hash:`SHA1 ~key (`Message msg)) )
 
 
@@ -261,7 +263,7 @@ let rsa_pkcs1_cases =
     let msg = vx msg and sgn = vx sgn in
     Rsa.(PKCS1.sign ~hash ~key:(priv_of_exp ~e ~d n) (`Message msg))
       |> assert_cs_equal ~msg:"recomputing sig:" sgn ;
-    Rsa.(PKCS1.verify ~key:{e; n} ~signature:sgn (`Message msg))
+    Rsa.(PKCS1.verify ~hashp:any ~key:{e; n} ~signature:sgn (`Message msg))
       |> assert_bool "sig verification" in
 
   let key = k

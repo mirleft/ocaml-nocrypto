@@ -994,14 +994,14 @@ module Rsa : sig
 
         @raise Invalid_argument if message is a [`Digest] of the wrong size.  *)
 
-    val verify : ?hash:hash -> key:pub -> signature:Cstruct.t -> Cstruct.t or_digest -> bool
-    (** [verify ?hash ~key ~signature message] checks that [signature] is the
+    val verify : hashp:(hash -> bool) -> key:pub -> signature:Cstruct.t -> Cstruct.t or_digest -> bool
+    (** [verify ~hashp ~key ~signature message] checks that [signature] is the
         PKCS 1.5 signature of the [message] under the given [key].
 
         [message] is either the actual message, or its digest.
 
-        The hashing function is detected from the signature. If [hash] is given,
-        it must match the detected function.
+        [hashp] determines the allowed hash algorithms. Whenever [hashp] is
+        [false], [verify] is also [false].
 
         @raise Invalid_argument if message is a [`Digest] of the wrong size.  *)
   end
