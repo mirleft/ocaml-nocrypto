@@ -852,7 +852,7 @@ module Rsa : sig
   (** Bit-size of a private key. *)
 
   val priv_of_primes : e:Z.t -> p:Z.t -> q:Z.t -> priv
-  (** [priv_pr_primes ~e ~p ~q] is the {{!priv}private key} derived from the
+  (** [priv_of_primes ~e ~p ~q] is the {{!priv}private key} derived from the
       minimal description [(e, p, q)].
 
       The triple is not checked for well-formedness.
