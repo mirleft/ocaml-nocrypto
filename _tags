@@ -1,7 +1,7 @@
 true: color(always)
 true: bin_annot, safe_string
 true: warn(A-4-29-33-40-41-42-43-34-44-48)
-true: package(bytes cstruct)
+true: package(bytes cstruct ocplib-endian ocplib-endian.bigstring)
 
 <src>: include
 <src/*.ml{,i}>: package(zarith sexplib ppx_sexp_conv)
