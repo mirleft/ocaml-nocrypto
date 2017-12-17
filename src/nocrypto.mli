@@ -364,10 +364,10 @@ module Cipher_block : sig
       (** [to_words ctr] is the [words] representation of [ctr]. *)
     end
 
-    module C64be : S
+    module C64be : S with type words = int64
     (** The 64 bit big-endian counter. *)
 
-    module C128be : S
+    module C128be : S with type words = int64 * int64
     (** The 128 bit big-endian counter. *)
   end
 
