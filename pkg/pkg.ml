@@ -6,8 +6,7 @@
 open Topkg
 open Ocb_stubblr_topkg
 
-let cpudetect () =
-  match Cpuid.supports [`SSE2; `AES] with Ok r -> Ok r | Error _ -> Ok false
+let cpuflags = [`SSSE3; `AES; `PCLMULQDQ]
 
 let unix = Conf.with_pkg ~default:true "unix"
 let lwt  = Conf.with_pkg ~default:false "lwt"
@@ -18,9 +17,10 @@ let fs   = Conf.(key "freestanding" bool ~absent:false
 let mir  = Conf.(key "mirage" bool ~absent:false
                   ~doc:"Build Mirage support.")
 let accelerate = Conf.(discovered_key "accelerate" bool
-  ~absent:cpudetect
+  ~absent:(fun () -> match Cpuid.supports cpuflags with
+                     | Ok r -> Ok r | Error _ -> Ok false)
   ~env:"NOCRYPTO_ACCELERATE"
-  ~doc:"Enable the use of extended CPU features (SSE2, AES-NI). \
+  ~doc:"Enable the use of extended CPU features (SSE3, AES-NI). \
         If unspecified, matches build machine's capabilities.")
 
 let tags = [(accelerate, "accelerate")]

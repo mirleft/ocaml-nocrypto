@@ -3,7 +3,7 @@
 
 static inline void xor_into (uint8_t *src, uint8_t *dst, size_t n) {
 
-#if defined (__nc_SSE2__)
+#if defined (__nc_SSSE3__)
   while (n >= 16) {
     _mm_storeu_si128 (
         (__m128i*) dst,

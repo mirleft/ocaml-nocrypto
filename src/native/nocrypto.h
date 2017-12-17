@@ -19,8 +19,8 @@
 #include <x86intrin.h>
 #endif
 
-#if defined (__x86_64__) && defined (ACCELERATE) && defined (__SSE2__)
-#define __nc_SSE2__
+#if defined (__x86_64__) && defined (ACCELERATE) && defined (__SSSE3__)
+#define __nc_SSSE3__
 #endif
 
 #if defined (__x86_64__) && defined (ACCELERATE) && defined (__AES__)
@@ -29,10 +29,14 @@
 #define __nc_AES_GENERIC__
 #endif
 
+#if defined (__x86_64__) && defined (ACCELERATE) && defined (__PCLMUL__)
+#define __nc_PCLMUL__
+#endif
+
 #ifndef __unused
 #define __unused(x) x __attribute__((unused))
 #endif
-#define __unit() value __unused(unit)
+#define __unit() value __unused(_)
 
 typedef unsigned long u_long;
 
