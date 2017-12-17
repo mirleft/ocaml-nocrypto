@@ -353,6 +353,15 @@ module Cipher_block : sig
 
       val to_cstruct : t -> Cstruct.t
       (** [to_cstruct] is the inverse of [of_cstruct]. *)
+
+      type words
+      (** A sequence of fixed-size integers that can represent this counter. *)
+
+      val of_words : words -> t
+      (** [of_words words] is the counter represented by [words]. *)
+
+      val to_words : t -> words
+      (** [to_words ctr] is the [words] representation of [ctr]. *)
     end
 
     module C64be : S

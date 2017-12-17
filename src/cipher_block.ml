@@ -6,6 +6,9 @@ module type Counter_S = sig
   val add  : t -> int64 -> t
   val of_cstruct : Cstruct.t -> t
   val to_cstruct : t -> Cstruct.t
+  type words
+  val of_words : words -> t
+  val to_words : t -> words
 end
 
 module S = struct
@@ -130,11 +133,12 @@ module Counters = struct
 
   module C64be = struct
     type t = bytes
+    type words = int64
     let size = 8
-    let zero = Bytes.init size (fun _ -> '\x00')
-    let add t n =
-      let t' = Bytes.create size in
-      set_int64 t' 0 (get_int64 t 0 |> Int64.add n); t'
+    let of_words x = let t = Bytes.create size in set_int64 t 0 x; t
+    let to_words t = get_int64 t 0 [@@inline]
+    let zero = of_words 0L
+    let add t n = of_words (to_words t |> Int64.add n)
     let of_cstruct cs = of_cstruct size cs
     let to_cstruct t = Cstruct.of_bytes t
     let unsafe_count_into = Native.count8be
@@ -143,13 +147,15 @@ module Counters = struct
   module C128be = struct
     type t = bytes
     let size = 16
-    let zero = Bytes.init size (fun _ -> '\x00')
+    type words = int64 * int64
+    let of_words (a, b) =
+      let t = Bytes.create size in set_int64 t 0 a; set_int64 t 8 b; t
+    let to_words t = (get_int64 t 0, get_int64 t 8) [@@inline]
+    let zero = of_words (0L, 0L)
     let add t n =
-      let t' = Bytes.create size in
-      let qw1 = get_int64 t 0 and qw2 = get_int64 t 8 in
-      let x  = Int64.add qw2 n in
-      set_int64 t' 0 (if cmp_64u qw2 x > 0 then Int64.succ qw1 else qw1);
-      set_int64 t' 8 x; t'
+      let (w1, w0) = to_words t in
+      let w0' = Int64.add w0 n in
+      of_words ((if cmp_64u w0 w0' > 0 then Int64.succ w1 else w1), w0')
     let of_cstruct cs = of_cstruct size cs
     let to_cstruct t = Cstruct.of_bytes t
     let unsafe_count_into = Native.count16be
@@ -158,8 +164,9 @@ module Counters = struct
   module C128be32 = struct
     include C128be
     let add t n =
-      let t' = Bytes.copy t in
-      set_int32 t' 12 (get_int32 t 12 |> Int32.add (Int64.to_int32 n)); t'
+      let (w1, w0) = to_words t in
+      let hi = 0xffffffff00000000L and lo = 0x00000000ffffffffL in
+      of_words (w1, Int64.(logor (logand hi w0) (add n w0 |> logand lo)))
     let unsafe_count_into = Native.count16be4
   end
 end
