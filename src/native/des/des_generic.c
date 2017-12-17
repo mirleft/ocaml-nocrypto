@@ -16,8 +16,7 @@
  */
  
 #include "../nocrypto.h"
-
-#include "generic.h"
+#include "des_generic.h"
  
 static void scrunch(unsigned char *, unsigned long *);
 static void unscrun(unsigned long *, unsigned char *);

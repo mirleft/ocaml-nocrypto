@@ -18,7 +18,7 @@ true: package(bytes cstruct)
 <mirage/*.ml{,i}>: package(lwt mirage-entropy)
 
 <**/*.c>: ccopt(--std=c99 -Wall -Wextra -O3)
-<**/aesni.c>: ccopt(-Wno-implicit-fallthrough)
+<**/aes_aesni.c>: ccopt(-Wno-implicit-fallthrough)
 
 <bench/*>: use_nocrypto, package(zarith cstruct.unix)
 <tests/*>: use_nocrypto, package(zarith oUnit)

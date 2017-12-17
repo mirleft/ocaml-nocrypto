@@ -2,6 +2,8 @@
  * See LICENSE.md.
  *
  *
+ * GHASH using SSE3, with PCLMULQDQ-accelerated polynomial multiplication.
+ *
  * References:
  * - Intel Carry-Less Multiplication Instruction and its Usage for Computing the
  *   GCM Mode. Shay Gueron and Michael E. Kounavis.
