@@ -1,4 +1,6 @@
 (*
+ * A fully functional GHASH model implementation, currently not used.
+ *
  * Based mostly on NIST 800-38D.
  *)
 open Uncommon
