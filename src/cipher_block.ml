@@ -321,12 +321,32 @@ module Modes2 = struct
     let decrypt = encrypt
   end
 
+  module GHASH : sig
+    type key
+    val derive  : Cstruct.t -> key
+    val digesti : key:key -> (Cstruct.t Uncommon.iter) -> Cstruct.t
+  end = struct
+    type key = bytes
+    let keysize = Native.GHASH.keysize ()
+    let derive cs =
+      assert (cs.len >= 16);
+      let x = Cstruct.to_string cs |> Bytes.unsafe_of_string in
+      match keysize with (* wart? *)
+        0 -> x
+      | n -> let k = Bytes.create n in Native.GHASH.keyinit x k; k
+    let _cs = create_unsafe 16
+    let digesti ~key i = (* Clobbers `_cs`! *)
+      let res = Bytes.make 16 '\x00' in
+      i (fun cs -> Native.GHASH.ghash key res cs.buffer cs.off cs.len);
+      blit_from_bytes res 0 _cs 0 16; _cs
+  end
+
   module GCM_of (C : S.Core) : S.GCM = struct
 
     let _ = assert (C.block = 16)
     module CTR = CTR_of (C) (Counters.C128be32)
 
-    type key = { key : C.ekey ; hkey : Gcm.GF128.hkey }
+    type key = { key : C.ekey ; hkey : GHASH.key }
     type result = { message : Cstruct.t ; tag : Cstruct.t }
 
     let key_sizes, block_size = C.(key, block)
@@ -335,34 +355,34 @@ module Modes2 = struct
     let of_secret cs =
       let key = C.e_of_secret cs in
       C.encrypt ~key ~blocks:1 z128.buffer z128.off h.buffer h.off;
-      { key ; hkey = Gcm.hkey h }
+      { key ; hkey = GHASH.derive h }
 
-    let padding cs = create ((16 - (len cs mod 16)) mod 16)
     let bits64 cs = Int64.of_int (len cs * 8)
-    let succ ctr = CTR.C.add ctr 1L
+    let pack64s = let _cs = create_unsafe 16 in fun a b ->
+                    BE.set_uint64 _cs 0 a; BE.set_uint64 _cs 8 b; _cs
 
-    let counter ~hkey iv =
-      CTR.C.of_cstruct @@ match len iv with
-      | 12 -> concat [iv; Cs.of_int32s [1l]]
-      | _  -> Gcm.ghash ~h:hkey @@
-              concat [iv; padding iv; Cs.of_int64s [0L; bits64 iv]]
+    let counter ~hkey iv = match len iv with
+      | 12 -> let (w1, w2) = BE.(get_uint64 iv 0, BE.get_uint32 iv 8) in
+              CTR.C.of_words (w1, Int64.(shift_left (of_int32 w2) 32 |> add 1L))
+      | _  -> CTR.C.of_cstruct @@
+                GHASH.digesti ~key:hkey @@ iter2 iv (pack64s 0L (bits64 iv))
 
     let tag ~key ~hkey ~ctr ?(adata=Cs.empty) cdata =
-      CTR.encrypt ~key ~ctr @@ Gcm.ghash ~h:hkey @@
-        concat [ adata; padding adata
-               ; cdata; padding cdata
-               ; Cs.of_int64s [bits64 adata; bits64 cdata] ]
+      CTR.encrypt ~key ~ctr @@
+        GHASH.digesti ~key:hkey @@
+          iter3 adata cdata (pack64s (bits64 adata) (bits64 cdata))
 
     let encrypt ~key:{ key; hkey } ~iv ?adata data =
       let ctr   = counter ~hkey iv in
-      let cdata = CTR.encrypt ~key ~ctr:(succ ctr) data in
+      let cdata = CTR.(encrypt ~key ~ctr:(C.add ctr 1L) data) in
       { message = cdata ; tag = tag ~key ~hkey ~ctr ?adata cdata }
 
     let decrypt ~key:{ key; hkey } ~iv ?adata cdata =
       let ctr  = counter ~hkey iv in
-      let data = CTR.encrypt ~key ~ctr:(succ ctr) cdata in
+      let data = CTR.(encrypt ~key ~ctr:(C.add ctr 1L) cdata) in
       { message = data ; tag = tag ~key ~hkey ~ctr ?adata cdata }
   end
+
 end
 
 open Bigarray

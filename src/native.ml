@@ -72,6 +72,12 @@ module SHA512 = struct
   external ctx_size : unit -> int = "caml_nc_sha512_ctx_size" [@@noalloc]
 end
 
+module GHASH = struct
+  external keysize : unit -> int = "caml_nc_ghash_key_size" [@@noalloc]
+  external keyinit : bytes -> bytes -> unit = "caml_nc_ghash_init_key" [@@noalloc]
+  external ghash : bytes -> bytes -> buffer -> off -> size -> unit = "caml_nc_ghash" [@@noalloc]
+end
+
 (* XXX TODO
  * Unsolved: bounds-checked XORs are slowing things down considerably... *)
 external xor_into : buffer -> off -> buffer -> off -> size -> unit = "caml_nc_xor_into" [@@noalloc]

@@ -30,6 +30,7 @@ let _ = Rng.reseed (Cstruct.of_string "abcd")
 let burn_period = 2.0
 
 let sizes = [16; 64; 256; 1024; 8192]
+(* let sizes = [16] *)
 
 let burn f n =
   let cs = Rng.generate n in
@@ -79,6 +80,11 @@ let benchmarks = [
     let key = AES.GCM.of_secret (Rng.generate 16)
     and iv  = Rng.generate 12 in
     throughput name (fun cs -> AES.GCM.encrypt ~key ~iv cs));
+
+  bm "aes-128-ghash" (fun name ->
+    let key = AES.GCM.of_secret (Rng.generate 16)
+    and iv  = Rng.generate 12 in
+    throughput name (fun cs -> AES.GCM.encrypt ~key ~iv ~adata:cs Cs.empty));
 
   bm "aes-128-ccm" (fun name ->
     let key   = AES.CCM.of_secret ~maclen:16 (Rng.generate 16)
