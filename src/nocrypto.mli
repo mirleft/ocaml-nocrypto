@@ -412,13 +412,31 @@ module Cipher_block : sig
     module type CBC = sig
 
       type key
-      val of_secret : Cstruct.t -> key
 
-      val key_sizes  : int array
+      val of_secret : Cstruct.t -> key
+      (** Construct the encryption key corresponding to [secret].
+
+          @raise Invalid_argument if the length of [secret] is not in
+          {{!key_sizes}[key_sizes]}. *)
+
+      val key_sizes : int array
+      (** Key sizes allowed with this cipher. *)
+
       val block_size : int
+      (** The size of a single block. *)
 
       val encrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
+      (** [encrypt ~key ~iv msg] is [msg] encrypted under [key], using [iv] as
+          the CBC initialization vector.
+
+          @raise Invalid_argument if [iv] is not [block_size], or [msg] is not
+          [k * block_size] long. *)
+
       val decrypt : key:key -> iv:Cstruct.t -> Cstruct.t -> Cstruct.t
+      (** [decrypt ~key ~iv msg] is the inverse of [encrypt].
+
+          @raise Invalid_argument if [iv] is not [block_size], or [msg] is not
+          [k * block_size] long. *)
 
       val next_iv : iv:Cstruct.t -> Cstruct.t -> Cstruct.t
       (** [next_iv ~iv ciphertext] is the first [iv] {e following} the
@@ -441,15 +459,23 @@ module Cipher_block : sig
     module type CTR = sig
 
       type key
-      val of_secret : Cstruct.t -> key
 
-      val key_sizes  : int array
+      val of_secret : Cstruct.t -> key
+      (** Construct the encryption key corresponding to [secret].
+
+          @raise Invalid_argument if the length of [secret] is not in
+          {{!key_sizes}[key_sizes]}. *)
+
+      val key_sizes : int array
+      (** Key sizes allowed with this cipher. *)
+
       val block_size : int
+      (** The size of a single block. *)
 
       module C : Counters.S
-      (** The {{!Counter.S}counter type} associated with this [CTR] instance.
+      (** {{!Counter.S}Counter type} associated with this [CTR] instance.
 
-          The size of this counter type equals {!block_size}. *)
+          The size of this counter type equals {{!block_size}[block_size]}. *)
 
       val stream : key:key -> ctr:C.t -> int -> Cstruct.t
       (** [stream ~key ~ctr n] is the raw keystream.
@@ -493,26 +519,67 @@ module Cipher_block : sig
 
     (** {e Galois/Counter Mode}. *)
     module type GCM = sig
+
       type key
+
       type result = { message : Cstruct.t ; tag : Cstruct.t }
+      (** The transformed message, packed with the authentication tag. *)
+
       val of_secret : Cstruct.t -> key
+      (** Construct the encryption key corresponding to [secret].
+
+          @raise Invalid_argument if the length of [secret] is not in
+          {{!key_sizes}[key_sizes]}. *)
 
       val key_sizes  : int array
+      (** Key sizes allowed with this cipher. *)
+
       val block_size : int
+      (** The size of a single block. *)
+
       val encrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result
+      (** [encrypt ~key ~iv ?adata msg] is the {{!result}[result]} containing
+          [msg] encrypted under [key], with [iv] as the initialization vector,
+          and the authentication tag computed over both [adata] and [msg]. *)
+
       val decrypt : key:key -> iv:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> result
+      (** [decrypt ~key ~iv ?adata msg] is the result containing the inversion
+          of [encrypt] and the same authentication tag. *)
     end
 
     (** {e Counter with CBC-MAC} mode. *)
     module type CCM = sig
+
       type key
+
       val of_secret : maclen:int -> Cstruct.t -> key
+      (** Construct the encryption key corresponding to [secret], that will
+          produce authentication codes with the length [maclen].
+
+          @raise Invalid_argument if the length of [secret] is not in
+          {{!key_sizes}[key_sizes]} or [maclen] is not in [mac_sizes] *)
 
       val key_sizes  : int array
-      val mac_sizes  : int array
+      (** Key sizes allowed with this cipher. *)
+
       val block_size : int
+      (** The size of a single block. *)
+
+      val mac_sizes  : int array
+      (** [MAC] lengths allowed with this cipher. *)
+
       val encrypt : key:key -> nonce:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> Cstruct.t
+      (** [encrypt ~key ~nonce ?adata msg] is [msg] encrypted under [key] and
+          [nonce], packed with authentication data computed over [msg] and
+          [adata].
+
+          @raise Invalid_argument if [nonce] is not between 7 and 13 bytes long.  *)
+
       val decrypt : key:key -> nonce:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> Cstruct.t option
+      (** [decrypt ~key ~nonce ?adata msg] is [Some text] when [msg] was
+          produced by the corresponding [encrypt], or [None] otherwise.
+
+          @raise Invalid_argument if [nonce] is not between 7 and 13 bytes long.  *)
     end
   end
 

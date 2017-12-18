@@ -101,8 +101,8 @@ module S = struct
     val of_secret : maclen:int -> Cstruct.t -> key
 
     val key_sizes  : int array
-    val mac_sizes  : int array
     val block_size : int
+    val mac_sizes  : int array
     val encrypt : key:key -> nonce:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> Cstruct.t
     val decrypt : key:key -> nonce:Cstruct.t -> ?adata:Cstruct.t -> Cstruct.t -> Cstruct.t option
   end

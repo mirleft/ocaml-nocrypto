@@ -4,7 +4,8 @@
 
 nocrypto is a small cryptographic library that puts emphasis on the applicative
 style and ease of use. It includes basic ciphers (AES, 3DES, RC4), hashes (MD5,
-SHA1, SHA2), public-key primitives (RSA, DSA, DH) and a strong RNG (Fortuna).
+SHA1, SHA2 family), AEAD primitives (AES-GCM, AES-CCM), public-key primitives
+(RSA, DSA, DH) and a strong RNG (Fortuna).
 
 RSA timing attacks are countered by blinding. AES timing attacks are avoided by
 delegating to AES-NI.
