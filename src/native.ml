@@ -74,7 +74,7 @@ end
 
 module GHASH = struct
   external keysize : unit -> int = "caml_nc_ghash_key_size" [@@noalloc]
-  external keyinit : bytes -> bytes -> unit = "caml_nc_ghash_init_key" [@@noalloc]
+  external keyinit : buffer -> off -> bytes -> unit = "caml_nc_ghash_init_key" [@@noalloc]
   external ghash : bytes -> bytes -> buffer -> off -> size -> unit = "caml_nc_ghash" [@@noalloc]
 end
 

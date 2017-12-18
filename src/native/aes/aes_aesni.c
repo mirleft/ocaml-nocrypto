@@ -350,7 +350,7 @@ caml_nc_aes_derive_d_key (value key, value off1, value kr, value rounds, value r
   _nc_aesni_derive_d_key (_ba_uint8_off (key, off1),
                           _ba_uint8 (kr),
                           Int_val (rounds),
-                          _ba_uint8_option (rk) );
+                          Is_block(rk) ? _ba_uint8(Field(rk, 0)) : 0);
   return Val_unit;
 }
 

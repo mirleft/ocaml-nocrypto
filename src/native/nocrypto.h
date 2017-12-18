@@ -38,18 +38,15 @@
 #endif
 #define __unit() value __unused(_)
 
-typedef unsigned long u_long;
-
-#define _ba_uint8_off(ba, off) ((uint8_t*) Caml_ba_data_val (ba) + Long_val (off))
+#define _ba_uint8_off(ba, off)  ((uint8_t*) Caml_ba_data_val (ba) + Long_val (off))
 #define _ba_uint32_off(ba, off) ((uint32_t*) Caml_ba_data_val (ba) + Long_val (off))
-#define _ba_ulong_off(ba, off) ((u_long*) Caml_ba_data_val (ba) + Long_val (off))
 
-#define _ba_uint8(ba) _ba_uint8_off (ba, 0)
-#define _ba_uint32(ba) _ba_uint32_off (ba, 0)
-#define _ba_ulong(ba) _ba_ulong_off (ba, 0)
+#define _ba_uint8(ba)  ((uint8_t*) Caml_ba_data_val (ba))
+#define _ba_uint32(ba) ((uint32_t*) Caml_ba_data_val (ba))
 
-#define _ba_uint8_option_off(ba, off) (Is_block(ba) ? _ba_uint8_off(Field(ba, 0), off) : 0)
-#define _ba_uint8_option(ba)          _ba_uint8_option_off (ba, 0)
+#define _bp_uint8_off(bp, off) ((uint8_t *) Bp_val (bp) + Long_val (off))
+#define _bp_uint8(bp) ((uint8_t *) Bp_val (bp))
+#define _bp_uint32(bp) ((uint32_t *) Bp_val (bp))
 
 #define __define_bc_6(f) \
   CAMLprim value f ## _bc (value *v, int __unused(c) ) { return f(v[0], v[1], v[2], v[3], v[4], v[5]); }

@@ -703,13 +703,13 @@ caml_nc_des_des3key (value key, value off, value direction) {
 
 CAMLprim value
 caml_nc_des_cp3key (value dst) {
-  cp3key (_ba_ulong (dst));
+  cp3key ((unsigned long *) _ba_uint8 (dst));
   return Val_unit;
 }
 
 CAMLprim value
 caml_nc_des_use3key (value src) {
-  use3key (_ba_ulong (src));
+  use3key ((unsigned long *) _ba_uint8 (src));
   return Val_unit;
 }
 

@@ -330,13 +330,12 @@ module Modes2 = struct
     let keysize = Native.GHASH.keysize ()
     let derive cs =
       assert (cs.len >= 16);
-      let x = Cstruct.to_string cs |> Bytes.unsafe_of_string in
-      match keysize with (* wart? *)
-        0 -> x
-      | n -> let k = Bytes.create n in Native.GHASH.keyinit x k; k
+      let k = Bytes.create keysize in
+      Native.GHASH.keyinit cs.buffer cs.off k; k
     let _cs = create_unsafe 16
+    let hash0 = Bytes.make 16 '\x00'
     let digesti ~key i = (* Clobbers `_cs`! *)
-      let res = Bytes.make 16 '\x00' in
+      let res = Bytes.copy hash0 in
       i (fun cs -> Native.GHASH.ghash key res cs.buffer cs.off cs.len);
       blit_from_bytes res 0 _cs 0 16; _cs
   end
