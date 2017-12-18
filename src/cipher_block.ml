@@ -388,10 +388,6 @@ open Bigarray
 
 module AES = struct
 
-  let mode =
-    match Native.AES.mode () with
-    | 0 -> `Generic | 1 -> `AES_NI | _ -> assert false
-
   module Core : S.Core = struct
 
     let key   = [| 16; 24; 32 |]
@@ -475,3 +471,9 @@ module DES = struct
   module CTR = Modes2.CTR_of (Core) (Counters.C64be)
 
 end
+
+let accelerated =
+  let flags =
+    (match Native.AES.mode () with 1 -> [`AES] | _ -> []) @
+    (match Native.GHASH.mode () with 1 -> [`GHASH] | _ -> []) in
+  match flags with [] -> [] | _ -> `XOR :: flags

@@ -584,7 +584,6 @@ module Cipher_block : sig
   end
 
   module AES : sig
-    val mode : [ `Generic | `AES_NI ]
 (*     module Core : S.Core *)
     module ECB  : S.ECB
     module CBC  : S.CBC
@@ -599,6 +598,10 @@ module Cipher_block : sig
     module CBC  : S.CBC
     module CTR  : S.CTR with module C = Counters.C64be
   end
+
+  val accelerated : [`XOR | `AES | `GHASH] list
+  (** Operations using non-portable, hardware-dependent implementation in
+      this build of the library. *)
 end
 
 

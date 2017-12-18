@@ -113,6 +113,6 @@ caml_nc_ghash (value m, value hash, value src, value off, value len) {
   return Val_unit;
 }
 
-CAMLprim value caml_nc_ghash_mode (__unit ()) { return Val_int (1); }
+CAMLprim value caml_nc_ghash_mode (__unit ()) { return Val_int (0); }
 
 #endif /* __nc_PCLMUL__ */

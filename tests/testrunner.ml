@@ -11,9 +11,11 @@ open OUnit2
 let () = Nocrypto_entropy_unix.initialize ()
 
 let () =
-  Format.printf "AES mode: %s\n%!"
-  (match Nocrypto.Cipher_block.AES.mode with
-   | `AES_NI -> "AES-NI" | `Generic -> "soft")
+  Format.printf "accel: %a\n%!"
+    (fun ppf -> List.iter @@ fun x ->
+      Format.fprintf ppf "%s " @@
+        match x with `XOR -> "XOR" | `AES -> "AES" | `GHASH -> "GHASH")
+    Nocrypto.Cipher_block.accelerated
 
 let () =
 (*   Nocrypto.Rng.reseed @@ Cstruct.of_string "\001\002\003\004" ; *)

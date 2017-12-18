@@ -115,15 +115,17 @@ let benchmarks = [
   bm "sha512" (fun name -> throughput name SHA512.digest) ;
 ]
 
-
 let help () =
   Printf.printf "available benchmarks:\n  ";
   List.iter (fun (n, _) -> Printf.printf "%s  " n) benchmarks ;
   Printf.printf "\n%!"
 
 let runv fs =
-  Printf.printf "aes mode: %s\n%!"
-    (match AES.mode with | `Generic -> "software" | `AES_NI -> "AES-NI") ;
+  Format.printf "accel: %a\n%!"
+    (fun ppf -> List.iter @@ fun x ->
+      Format.fprintf ppf "%s " @@
+        match x with `XOR -> "XOR" | `AES -> "AES" | `GHASH -> "GHASH")
+    Nocrypto.Cipher_block.accelerated;
   Time.warmup () ;
   List.iter (fun f -> f ()) fs
 
