@@ -2,13 +2,12 @@
 #define H__NOCRYPTO
 
 #include <stdint.h>
-#define __USE_MISC
-
 #if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__) || defined(__OpenBSD__)
 #include <sys/endian.h>
 #elif defined(__APPLE__)
 #include <machine/endian.h>
 #else
+// Needs _DEFAULT_SOURCE on Linux.
 #include <endian.h>
 #endif
 
