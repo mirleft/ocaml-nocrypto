@@ -1,14 +1,12 @@
 /* Copyright (c) 2015 David Kaloper Meršinjak. All rights reserved.
- * See LICENSE.md.
- *
- *
- * AES using SSE2 and AES-NI, with block-level parallelism.
+   See LICENSE.md. */
+
+/* AES using AES-NI and SSE2.
  *
  * References:
  * - Intel Advanced Encryption Standard (AES) New Instructions Set. Shay Gueron.
  *   https://software.intel.com/sites/default/files/article/165683/aes-wp-2012-09-22-v01.pdf
- *
- * */
+ */
 
 #include "../nocrypto.h"
 #if defined (__nc_AES_NI__)

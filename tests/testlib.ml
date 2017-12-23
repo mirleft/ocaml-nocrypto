@@ -831,15 +831,13 @@ let gcm_cases =
          ~a:   ""
          ~iv:  "000000000000000000000000"
          ~c:   ""
-         ~t:   "58e2fccefa7e3061367f1d57a4e7455a"
-    ;
+         ~t:   "58e2fccefa7e3061367f1d57a4e7455a" ;
     case ~key: "00000000000000000000000000000000"
          ~p:   "00000000000000000000000000000000"
          ~a:   ""
          ~iv:  "000000000000000000000000"
          ~c:   "0388dace60b6a392f328c2b971b2fe78"
-         ~t:   "ab6e47d42cec13bdf53a67b21257bddf"
-    ;
+         ~t:   "ab6e47d42cec13bdf53a67b21257bddf" ;
     case ~key: "feffe9928665731c6d6a8f9467308308"
          ~p:   "d9313225f88406e5a55909c5aff5269a
                 86a7a9531534f7da2e4c303d8a318a72
@@ -851,8 +849,7 @@ let gcm_cases =
                 e3aa212f2c02a4e035c17e2329aca12e
                 21d514b25466931c7d8f6a5aac84aa05
                 1ba30b396a0aac973d58e091473f5985"
-         ~t:   "4d5c2af327cd64a62cf35abd2ba6fab4"
-    ;
+         ~t:   "4d5c2af327cd64a62cf35abd2ba6fab4" ;
     case ~key: "feffe9928665731c6d6a8f9467308308"
          ~p:   "d9313225f88406e5a55909c5aff5269a
                 86a7a9531534f7da2e4c303d8a318a72
@@ -865,8 +862,7 @@ let gcm_cases =
                 e3aa212f2c02a4e035c17e2329aca12e
                 21d514b25466931c7d8f6a5aac84aa05
                 1ba30b396a0aac973d58e091"
-         ~t:   "5bc94fbc3221a5db94fae95ae7121a47"
-    ;
+         ~t:   "5bc94fbc3221a5db94fae95ae7121a47" ;
     case ~key: "feffe9928665731c6d6a8f9467308308"
          ~p:   "d9313225f88406e5a55909c5aff5269a
                 86a7a9531534f7da2e4c303d8a318a72
@@ -879,8 +875,7 @@ let gcm_cases =
                 699b2a714fcdc6f83766e5f97b6c7423
                 73806900e49f24b22b097544d4896b42
                 4989b5e1ebac0f07c23f4598"
-         ~t:   "3612d2e79e3b0785561be14aaca2fccb"
-    ;
+         ~t:   "3612d2e79e3b0785561be14aaca2fccb" ;
     case ~key: "feffe9928665731c6d6a8f9467308308"
          ~p:   "d9313225f88406e5a55909c5aff5269a
                 86a7a9531534f7da2e4c303d8a318a72
@@ -896,8 +891,7 @@ let gcm_cases =
                 be9112a5c3a211a8ba262a3cca7e2ca7
                 01e4a9a4fba43c90ccdcb281d48c7c6f
                 d62875d2aca417034c34aee5"
-         ~t:   "619cc5aefffe0bfa462af43c1699d050"
-    ;
+         ~t:   "619cc5aefffe0bfa462af43c1699d050" ;
     case ~key: "feffe9928665731c6d6a8f9467308308
                 feffe9928665731c"
          ~p:   "d9313225f88406e5a55909c5aff5269a
@@ -911,8 +905,7 @@ let gcm_cases =
                 859e1ceaa6efd984628593b40ca1e19c
                 7d773d00c144c525ac619d18c84a3f47
                 18e2448b2fe324d9ccda2710"
-         ~t:   "2519498e80f1478f37ba55bd6d27618c"
-    ;
+         ~t:   "2519498e80f1478f37ba55bd6d27618c" ;
     case ~key: "feffe9928665731c6d6a8f9467308308
                 feffe9928665731c6d6a8f9467308308"
          ~p:   "d9313225f88406e5a55909c5aff5269a
@@ -929,7 +922,29 @@ let gcm_cases =
                 eeb2b22aafde6419a058ab4f6f746bf4
                 0fc0c3b780f244452da3ebf1c5d82cde
                 a2418997200ef82e44ae7e3f"
-         ~t:   "a44a8266ee1c8eb0c8b5d4cf5ae9f19a"
+         ~t:   "a44a8266ee1c8eb0c8b5d4cf5ae9f19a";
+    case ~key: "00000000000000000000000000000000"  (* large GHASH batch *)
+         ~p:   ""
+         ~a:   "f0f0f0f0f0f0f0f00f0f0f0f0f0f0f0f
+                e0e0e0e0e0e0e0e00e0e0e0e0e0e0e0e
+                d0d0d0d0d0d0d0d00d0d0d0d0d0d0d0d
+                c0c0c0c0c0c0c0c00c0c0c0c0c0c0c0c
+                b0b0b0b0b0b0b0b00b0b0b0b0b0b0b0b
+                a0a0a0a0a0a0a0a00a0a0a0a0a0a0a0a
+                90909090909090900909090909090909
+                80808080808080800808080808080808
+                70707070707070700707070707070707
+                60606060606060600606060606060606
+                50505050505050500505050505050505
+                40404040404040400404040404040404
+                30303030303030300303030303030303
+                20202020202020200202020202020202
+                10101010101010100101010101010101
+                00000000000000000000000000000000
+                ff"
+         ~iv:  "000000000000000000000000"
+         ~c:   ""
+         ~t:   "9bfdb8fdac1be65739780c41703c0fb6"
 ]
 
 
