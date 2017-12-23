@@ -19,7 +19,7 @@
 #endif
 
 #if defined (__x86_64__) && defined (ACCELERATE) && defined (__SSSE3__)
-#define __nc_SSSE3__
+#define __nc_SSE__
 #endif
 
 #if defined (__x86_64__) && defined (ACCELERATE) && defined (__AES__)

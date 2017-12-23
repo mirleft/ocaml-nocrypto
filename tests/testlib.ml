@@ -776,31 +776,39 @@ let aes_ctr_cases =
     assert_equal ~msg:"counters" ctr1 (C.add ctr (Int64.of_int blocks))
       ~pp_diff:(pp_map xd C.to_cstruct |> pp_diff)
   in
-  [ case ~key:  "2b 7e 15 16 28 ae d2 a6 ab f7 15 88 09 cf 4f 3c"
-         ~ctr:  "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff"
-         ~out:  "87 4d 61 91 b6 20 e3 26 1b ef 68 64 99 0d b6 ce
-                 98 06 f6 6b 79 70 fd ff 86 17 18 7b b9 ff fd ff
-                 5a e4 df 3e db d5 d3 5e 5b 4f 09 02 0d b0 3e ab
-                 1e 03 1d da 2f be 03 d1 79 21 70 a0 f3 00 9c ee"
-         ~ctr1: "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd ff 03"
+  [ case ~key:  "2b7e1516 28aed2a6 abf71588 09cf4f3c"
+         ~ctr:  "f0f1f2f3 f4f5f6f7 f8f9fafb fcfdfeff"
+         ~out:  "874d6191 b620e326 1bef6864 990db6ce
+                 9806f66b 7970fdff 8617187b b9fffdff
+                 5ae4df3e dbd5d35e 5b4f0902 0db03eab
+                 1e031dda 2fbe03d1 792170a0 f3009cee"
+         ~ctr1: "f0f1f2f3 f4f5f6f7 f8f9fafb fcfdff03"
 
-  ; case ~key:  "8e 73 b0 f7 da 0e 64 52 c8 10 f3 2b 80 90 79 e5
-                 62 f8 ea d2 52 2c 6b 7b"
-         ~ctr:  "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff"
-         ~out:  "1a bc 93 24 17 52 1c a2 4f 2b 04 59 fe 7e 6e 0b
-                 09 03 39 ec 0a a6 fa ef d5 cc c2 c6 f4 ce 8e 94
-                 1e 36 b2 6b d1 eb c6 70 d1 bd 1d 66 56 20 ab f7
-                 4f 78 a7 f6 d2 98 09 58 5a 97 da ec 58 c6 b0 50"
-         ~ctr1: "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd ff 03"
+  ; case ~key:  "8e73b0f7 da0e6452 c810f32b 809079e5
+                 62f8ead2 522c6b7b"
+         ~ctr:  "f0f1f2f3 f4f5f6f7 f8f9fafb fcfdfeff"
+         ~out:  "1abc9324 17521ca2 4f2b0459 fe7e6e0b
+                 090339ec 0aa6faef d5ccc2c6 f4ce8e94
+                 1e36b26b d1ebc670 d1bd1d66 5620abf7
+                 4f78a7f6 d2980958 5a97daec 58c6b050"
+         ~ctr1: "f0f1f2f3 f4f5f6f7 f8f9fafb fcfdff03"
 
-  ; case ~key:  "60 3d eb 10 15 ca 71 be 2b 73 ae f0 85 7d 77 81
-                 1f 35 2c 07 3b 61 08 d7 2d 98 10 a3 09 14 df f4"
-         ~ctr:  "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff"
-         ~out:  "60 1e c3 13 77 57 89 a5 b7 a7 f5 04 bb f3 d2 28
-                 f4 43 e3 ca 4d 62 b5 9a ca 84 e9 90 ca ca f5 c5
-                 2b 09 30 da a2 3d e9 4c e8 70 17 ba 2d 84 98 8d
-                 df c9 c5 8d b6 7a ad a6 13 c2 dd 08 45 79 41 a6"
-         ~ctr1: "f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd ff 03"
+  ; case ~key:  "603deb10 15ca71be 2b73aef0 857d7781
+                 1f352c07 3b6108d7 2d9810a3 0914dff4"
+         ~ctr:  "f0f1f2f3 f4f5f6f7 f8f9fafb fcfdfeff"
+         ~out:  "601ec313 775789a5 b7a7f504 bbf3d228
+                 f443e3ca 4d62b59a ca84e990 cacaf5c5
+                 2b0930da a23de94c e87017ba 2d84988d
+                 dfc9c58d b67aada6 13c2dd08 457941a6"
+         ~ctr1: "f0f1f2f3 f4f5f6f7 f8f9fafb fcfdff03"
+
+  ; case ~key:  "00010203 04050607 08090a0b 0c0d0e0f" (* ctr rollover *)
+         ~ctr:  "00000000 00000000 ffffffff fffffffe"
+         ~out:  "5d0a5645 378f579a 988ff186 d42eaa2f
+                 978a655d 145bfe34 21656c8f 01101a43
+                 23d0862c 47f7e3bf 95586ba4 2ab4cb31
+                 790b0d01 93c0d022 3469534e 537ce82d"
+         ~ctr1: "00000000 00000001 00000000 00000002"
   ]
 
 (* aes gcm *)
@@ -944,7 +952,17 @@ let gcm_cases =
                 ff"
          ~iv:  "000000000000000000000000"
          ~c:   ""
-         ~t:   "9bfdb8fdac1be65739780c41703c0fb6"
+         ~t:   "9bfdb8fdac1be65739780c41703c0fb6";
+    case ~key: "00000000000000000000000000000002"  (* ctr rollover *)
+         ~iv:  "3222415d"
+         ~p:   "deadbeefdeadbeefdeadbeefdeadbeef
+                deadbeefdeadbeefdeadbeefdeadbeef
+                deadbeef"
+         ~a:   ""
+         ~c:   "42627ce3de61b5c105c7f01629c031c1
+                b890bb273b6b6bc26b56c801f87fa95c
+                a8b37503"
+         ~t:   "3631cbe44782713b93b1c7d93c3c8638"
 ]
 
 
