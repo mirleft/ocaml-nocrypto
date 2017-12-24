@@ -327,50 +327,6 @@ end
     module. *)
 module Cipher_block : sig
 
-  (** Counters.
-
-      Counters are used by cipher modes, {!S.CTR} in particular. *)
-  module Counters : sig
-
-    (** A single counter regime, with fixed size, representation and counting
-        mode. *)
-    module type S = sig
-
-      type t
-
-      val zero : t
-      (** [zero] is the all-zero counter. *)
-
-      val add : t -> int64 -> t
-      (** [add t x] advances [t] by [x] steps.
-
-          {e Note} [x] is treated as unsigned quantity. *)
-
-      val of_cstruct : Cstruct.t -> t
-      (** [of_cstruct cs] interprets [cs] as a counter.
-
-          @raise Invalid_argument if [cs] does not match the counter size. *)
-
-      val to_cstruct : t -> Cstruct.t
-      (** [to_cstruct] is the inverse of [of_cstruct]. *)
-
-      type words
-      (** A sequence of fixed-size integers that can represent this counter. *)
-
-      val of_words : words -> t
-      (** [of_words words] is the counter represented by [words]. *)
-
-      val to_words : t -> words
-      (** [to_words ctr] is the [words] representation of [ctr]. *)
-    end
-
-    module C64be : S with type words = int64
-    (** The 64 bit big-endian counter. *)
-
-    module C128be : S with type words = int64 * int64
-    (** The 128 bit big-endian counter. *)
-  end
-
   (** Module types for various block cipher modes of operation. *)
   module S : sig
 
@@ -472,12 +428,9 @@ module Cipher_block : sig
       val block_size : int
       (** The size of a single block. *)
 
-      module C : Counters.S
-      (** {{!Counter.S}Counter type} associated with this [CTR] instance.
+      type ctr
 
-          The size of this counter type equals {{!block_size}[block_size]}. *)
-
-      val stream : key:key -> ctr:C.t -> int -> Cstruct.t
+      val stream : key:key -> ctr:ctr -> int -> Cstruct.t
       (** [stream ~key ~ctr n] is the raw keystream.
 
           Keystream is the concatenation of successive encrypted counter states.
@@ -493,14 +446,16 @@ module Cipher_block : sig
           In other words, it is possible to restart a keystream at [block_size]
           boundaries by manipulating the counter. *)
 
-      val encrypt : key:key -> ctr:C.t -> Cstruct.t -> Cstruct.t
+      val encrypt : key:key -> ctr:ctr -> Cstruct.t -> Cstruct.t
       (** [encrypt ~key ~ctr msg] is
           [stream ~key ~ctr ~off (len msg) lxor msg]. *)
 
-      val decrypt : key:key -> ctr:C.t -> Cstruct.t -> Cstruct.t
+      val decrypt : key:key -> ctr:ctr -> Cstruct.t -> Cstruct.t
       (** [decrypt] is [encrypt]. *)
 
-      val next_ctr : ctr:C.t -> Cstruct.t -> C.t
+      val add_ctr : ctr -> int64 -> ctr
+
+      val next_ctr : ctr:ctr -> Cstruct.t -> ctr
       (** [next_ctr ~ctr msg] is the state of the counter after encrypting or
           decrypting [msg] with the counter [ctr].
 
@@ -515,6 +470,7 @@ module Cipher_block : sig
 
           *)
 
+      val ctr_of_cstruct : Cstruct.t -> ctr
     end
 
     (** {e Galois/Counter Mode}. *)
@@ -587,7 +543,7 @@ module Cipher_block : sig
 (*     module Core : S.Core *)
     module ECB  : S.ECB
     module CBC  : S.CBC
-    module CTR  : S.CTR with module C = Counters.C128be
+    module CTR  : S.CTR with type ctr = int64 * int64
     module GCM  : S.GCM
     module CCM  : S.CCM
   end
@@ -596,7 +552,7 @@ module Cipher_block : sig
 (*     module Core : S.Core *)
     module ECB  : S.ECB
     module CBC  : S.CBC
-    module CTR  : S.CTR with module C = Counters.C64be
+    module CTR  : S.CTR with type ctr = int64
   end
 
   val accelerated : [`XOR | `AES | `GHASH] list

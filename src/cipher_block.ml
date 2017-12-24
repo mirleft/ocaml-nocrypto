@@ -1,16 +1,5 @@
 open Uncommon
 
-module type Counter_S = sig
-  type t
-  val zero : t
-  val add  : t -> int64 -> t
-  val of_cstruct : Cstruct.t -> t
-  val to_cstruct : t -> Cstruct.t
-  type words
-  val of_words : words -> t
-  val to_words : t -> words
-end
-
 module S = struct
 
   (* XXX old block-level sig, remove *)
@@ -74,15 +63,18 @@ module S = struct
     type key
     val of_secret : Cstruct.t -> key
 
+    type ctr
+
     val key_sizes  : int array
     val block_size : int
 
-    module C : Counter_S
+    val stream  : key:key -> ctr:ctr -> int -> Cstruct.t
+    val encrypt : key:key -> ctr:ctr -> Cstruct.t -> Cstruct.t
+    val decrypt : key:key -> ctr:ctr -> Cstruct.t -> Cstruct.t
 
-    val stream  : key:key -> ctr:C.t -> int -> Cstruct.t
-    val encrypt : key:key -> ctr:C.t -> Cstruct.t -> Cstruct.t
-    val decrypt : key:key -> ctr:C.t -> Cstruct.t -> Cstruct.t
-    val next_ctr : ctr:C.t -> Cstruct.t -> C.t
+    val add_ctr        : ctr -> int64 -> ctr
+    val next_ctr       : ctr:ctr -> Cstruct.t -> ctr
+    val ctr_of_cstruct : Cstruct.t -> ctr
   end
 
   module type GCM = sig
@@ -110,64 +102,51 @@ end
 
 module Counters = struct
 
-  module type S = Counter_S
+  open Cstruct
 
-  module type Priv_S = sig
-    include S
+  module type S = sig
+    type ctr
     val size : int
-    val unsafe_count_into : t -> Native.buffer -> int -> blocks:int -> unit
+    val add  : ctr -> int64 -> ctr
+    val of_cstruct : Cstruct.t -> ctr
+    val unsafe_count_into : ctr -> Native.buffer -> int -> blocks:int -> unit
   end
 
-  let of_cstruct size cs =
-    if cs.Cstruct.len = size then
-      let t = Bytes.create size in
-      ( Cstruct.blit_to_bytes cs 0 t 0 size; t )
-    else invalid_arg "Counters.S.of_cstruct: expected %d, got %d bytes"
-          size (Cstruct.len cs)
-
-  let cmp_64u a b =
-    let cmp = compare a b in if Int64.logxor a b < 0L then -cmp else cmp
-  [@@inline]
+  let _tmp = Bytes.make 32 '\x00'
 
   open EndianBytes.BigEndian_unsafe
 
   module C64be = struct
-    type t = bytes
-    type words = int64
+    type ctr = int64
     let size = 8
-    let of_words x = let t = Bytes.create size in set_int64 t 0 x; t
-    let to_words t = get_int64 t 0 [@@inline]
-    let zero = of_words 0L
-    let add t n = of_words (to_words t |> Int64.add n)
-    let of_cstruct cs = of_cstruct size cs
-    let to_cstruct t = Cstruct.of_bytes t
-    let unsafe_count_into = Native.count8be
+    let of_cstruct cs = BE.get_uint64 cs 0
+    let add = Int64.add
+    let unsafe_count_into t buf off ~blocks =
+      set_int64 _tmp 0 t;
+      Native.count8be _tmp buf off ~blocks
   end
 
   module C128be = struct
-    type t = bytes
+    type ctr = int64 * int64
     let size = 16
-    type words = int64 * int64
-    let of_words (a, b) =
-      let t = Bytes.create size in set_int64 t 0 a; set_int64 t 8 b; t
-    let to_words t = (get_int64 t 0, get_int64 t 8) [@@inline]
-    let zero = of_words (0L, 0L)
-    let add t n =
-      let (w1, w0) = to_words t in
-      let w0' = Int64.add w0 n in
-      of_words ((if cmp_64u w0 w0' > 0 then Int64.succ w1 else w1), w0')
-    let of_cstruct cs = of_cstruct size cs
-    let to_cstruct t = Cstruct.of_bytes t
-    let unsafe_count_into = Native.count16be
+    let of_cstruct cs = BE.(get_uint64 cs 0, get_uint64 cs 8)
+    let add (w1, w0) n =
+      let w0'  = Int64.add w0 n in
+      let flip = if Int64.logxor w0 w0' < 0L then w0' > w0 else w0' < w0 in
+      ((if flip then Int64.succ w1 else w1), w0')
+    let unsafe_count_into (w1, w0) buf off ~blocks =
+      set_int64 _tmp 0 w1; set_int64 _tmp 8 w0;
+      Native.count16be _tmp buf off ~blocks
   end
 
   module C128be32 = struct
     include C128be
-    let add t n =
-      let (w1, w0) = to_words t in
+    let add (w1, w0) n =
       let hi = 0xffffffff00000000L and lo = 0x00000000ffffffffL in
-      of_words (w1, Int64.(logor (logand hi w0) (add n w0 |> logand lo)))
-    let unsafe_count_into = Native.count16be4
+      (w1, Int64.(logor (logand hi w0) (add n w0 |> logand lo)))
+    let unsafe_count_into (w1, w0) buf off ~blocks =
+      set_int64 _tmp 0 w1; set_int64 _tmp 8 w0;
+      Native.count16be4 _tmp buf off ~blocks
   end
 end
 
@@ -291,20 +270,17 @@ module Modes2 = struct
 
   end
 
-  module CTR_of (Core : S.Core) (Ctr : Counters.Priv_S) :
-    S.CTR with type key = Core.ekey and module C = Ctr =
+  module CTR_of (Core : S.Core) (Ctr : Counters.S) :
+    S.CTR with type key = Core.ekey and type ctr = Ctr.ctr =
   struct
     (* FIXME: CTR has more room for speedups. Like stitching. *)
 
     assert (Core.block = Ctr.size)
     type key = Core.ekey
+    type ctr = Ctr.ctr
 
     let (key_sizes, block_size) = Core.(key, block)
     let of_secret = Core.e_of_secret
-
-    module C = Ctr
-
-    let next_ctr ~ctr msg = C.add ctr (Int64.of_int @@ msg.len // block_size)
 
     let stream ~key ~ctr n =
       let blocks = imax 0 n // block_size in
@@ -319,6 +295,10 @@ module Modes2 = struct
       res
 
     let decrypt = encrypt
+
+    let add_ctr = Ctr.add
+    let next_ctr ~ctr msg = add_ctr ctr (Int64.of_int @@ msg.len // block_size)
+    let ctr_of_cstruct = Ctr.of_cstruct
   end
 
   module GHASH : sig
@@ -362,8 +342,8 @@ module Modes2 = struct
 
     let counter ~hkey iv = match len iv with
       | 12 -> let (w1, w2) = BE.(get_uint64 iv 0, BE.get_uint32 iv 8) in
-              CTR.C.of_words (w1, Int64.(shift_left (of_int32 w2) 32 |> add 1L))
-      | _  -> CTR.C.of_cstruct @@
+              (w1, Int64.(shift_left (of_int32 w2) 32 |> add 1L))
+      | _  -> CTR.ctr_of_cstruct @@
                 GHASH.digesti ~key:hkey @@ iter2 iv (pack64s 0L (bits64 iv))
 
     let tag ~key ~hkey ~ctr ?(adata=Cs.empty) cdata =
@@ -373,12 +353,12 @@ module Modes2 = struct
 
     let encrypt ~key:{ key; hkey } ~iv ?adata data =
       let ctr   = counter ~hkey iv in
-      let cdata = CTR.(encrypt ~key ~ctr:(C.add ctr 1L) data) in
+      let cdata = CTR.(encrypt ~key ~ctr:(add_ctr ctr 1L) data) in
       { message = cdata ; tag = tag ~key ~hkey ~ctr ?adata cdata }
 
     let decrypt ~key:{ key; hkey } ~iv ?adata cdata =
       let ctr  = counter ~hkey iv in
-      let data = CTR.(encrypt ~key ~ctr:(C.add ctr 1L) cdata) in
+      let data = CTR.(encrypt ~key ~ctr:(add_ctr ctr 1L) cdata) in
       { message = data ; tag = tag ~key ~hkey ~ctr ?adata cdata }
   end
 

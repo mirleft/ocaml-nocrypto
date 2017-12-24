@@ -107,7 +107,7 @@ let ctr_selftest (m : (module Cipher_block.S.CTR)) n =
   let bs = M.block_size in
   "selftest" >:: times ~n @@ fun _ ->
     let key  = M.of_secret @@ Rng.generate (sample M.key_sizes)
-    and ctr  = Rng.generate bs |> M.C.of_cstruct
+    and ctr  = Rng.generate bs |> M.ctr_of_cstruct
     and data = Rng.(generate @@ bs + Int.gen (20 * bs)) in
     let enc = M.encrypt ~key ~ctr data in
     let dec = M.decrypt ~key ~ctr enc in
@@ -118,17 +118,17 @@ let ctr_selftest (m : (module Cipher_block.S.CTR)) n =
       Cstruct.append (M.encrypt ~key ~ctr d1)
                      (M.encrypt ~key ~ctr:(M.next_ctr ~ctr d1) d2)
 
-let ctr_offsets (m : (module Cipher_block.S.CTR)) n =
+let ctr_offsets (type c) ~zero (m : (module Cipher_block.S.CTR with type ctr = c)) n =
   let module M = (val m) in
   "offsets" >:: fun _ ->
     let key = M.of_secret @@ Rng.generate M.key_sizes.(0) in
     for i = 0 to n - 1 do
       let ctr = match i with
-        | 0 -> M.C.(add zero (-1L))
-        | _ -> Rng.generate M.block_size |> M.C.of_cstruct
+        | 0 -> M.add_ctr zero (-1L)
+        | _ -> Rng.generate M.block_size |> M.ctr_of_cstruct
       and gap = Rng.Int.gen 64 in
       let s1 = M.stream ~key ~ctr ((gap + 1) * M.block_size)
-      and s2 = M.stream ~key ~ctr:(M.C.add ctr (Int64.of_int gap)) M.block_size in
+      and s2 = M.stream ~key ~ctr:(M.add_ctr ctr (Int64.of_int gap)) M.block_size in
       assert_cs_equal ~msg:"shifted stream"
         Cstruct.(sub s1 (gap * M.block_size) M.block_size) s2
     done
@@ -765,16 +765,15 @@ let aes_ctr_cases =
   let case ~key ~ctr ~out ~ctr1 = test_case @@ fun _ ->
     let open Cipher_block.AES.CTR in
     let key  = vx key |> of_secret
-    and ctr  = vx ctr |> C.of_cstruct
-    and ctr1 = vx ctr1 |> C.of_cstruct
+    and ctr  = vx ctr |> ctr_of_cstruct
+    and ctr1 = vx ctr1 |> ctr_of_cstruct
     and out  = vx out in
     let enc = encrypt ~key ~ctr nist_sp_800_38a in
     let dec = decrypt ~key ~ctr enc in
     assert_cs_equal ~msg:"cipher" out enc;
     assert_cs_equal ~msg:"plain" nist_sp_800_38a dec;
     let blocks = Cstruct.len nist_sp_800_38a / block_size in
-    assert_equal ~msg:"counters" ctr1 (C.add ctr (Int64.of_int blocks))
-      ~pp_diff:(pp_map xd C.to_cstruct |> pp_diff)
+    assert_equal ~msg:"counters" ctr1 (add_ctr ctr (Int64.of_int blocks))
   in
   [ case ~key:  "2b7e1516 28aed2a6 abf71588 09cf4f3c"
          ~ctr:  "f0f1f2f3 f4f5f6f7 f8f9fafb fcfdfeff"
@@ -1100,7 +1099,7 @@ let suite =
     "3DES-CBC" >::: [ cbc_selftest (module Cipher_block.DES.CBC) 100 ] ;
 
     "3DES-CTR" >::: Cipher_block.[ ctr_selftest (module DES.CTR) 100;
-                                   ctr_offsets  (module DES.CTR) 100; ] ;
+                                   ctr_offsets  (module DES.CTR) 100 ~zero:0L; ] ;
 
     "AES-ECB" >::: [ ecb_selftest (module Cipher_block.AES.ECB) 100
                    ; "SP 300-38A" >::: aes_ecb_cases ] ;
@@ -1109,7 +1108,7 @@ let suite =
                    ; "SP 300-38A" >::: aes_cbc_cases ] ;
 
     "AES-CTR" >::: Cipher_block.[ ctr_selftest (module AES.CTR) 100;
-                                  ctr_offsets  (module AES.CTR) 100;
+                                  ctr_offsets  (module AES.CTR) 100 ~zero:(0L, 0L);
                                   "SP 300-38A" >::: aes_ctr_cases; ] ;
 
     "AES-GCM" >::: gcm_cases ;

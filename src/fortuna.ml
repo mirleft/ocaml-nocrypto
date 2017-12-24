@@ -7,7 +7,7 @@ let block = 16
 
 (* XXX Locking!! *)
 type g =
-  { mutable ctr    : AES_CTR.C.t
+  { mutable ctr    : AES_CTR.ctr
   ; mutable secret : Cstruct.t
   ; mutable key    : AES_CTR.key
   ; mutable trap   : (unit -> unit) option
@@ -16,7 +16,7 @@ type g =
 
 let create () =
   let k = Cs.create 32 in
-  { ctr    = AES_CTR.C.zero
+  { ctr    = (0L, 0L)
   ; secret = k
   ; key    = AES_CTR.of_secret k
   ; trap   = None
@@ -34,7 +34,7 @@ let set_key ~g sec =
 
 let reseedi ~g iter =
   set_key ~g @@ SHAd256.digesti (fun f -> f g.secret; iter f);
-  g.ctr <- AES_CTR.C.add g.ctr 1L;
+  g.ctr <- AES_CTR.add_ctr g.ctr 1L;
   g.seeded <- true
 
 let reseed ~g cs = reseedi ~g (iter1 cs)
@@ -46,7 +46,7 @@ let generate_rekey ~g bytes =
   let r1 = Cstruct.sub r 0 bytes
   and r2 = Cstruct.sub r (n - 32) 32 in
   set_key ~g r2 ;
-  g.ctr <- AES_CTR.C.add g.ctr (Int64.of_int b);
+  g.ctr <- AES_CTR.add_ctr g.ctr (Int64.of_int b);
   r1
 
 let generate ~g bytes =
