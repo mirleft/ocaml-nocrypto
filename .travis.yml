@@ -6,16 +6,29 @@ env:
     - PACKAGE="nocrypto"
     - UPDATE_GCC_BINUTILS=1
     - TESTS=true
-  matrix:
-    - OCAML_VERSION=4.02
-    - OCAML_VERSION=4.03
-    - OCAML_VERSION=4.04
-    - OCAML_VERSION=4.05
-    - OCAML_VERSION=4.05 DEPOPTS="lwt cstruct-lwt"
-    - OCAML_VERSION=4.06
-    - OCAML_VERSION=4.06 NOCRYPTO_ACCELERATE="false"
-    - OCAML_VERSION=4.06 DEPOPTS="lwt cstruct-lwt"
-    - OCAML_VERSION=4.04 DEPOPTS="mirage-xen"
-    - OCAML_VERSION=4.06 DEPOPTS="mirage-solo5 mirage-entropy"
+matrix:
+  include:
+  - os: linux
+    env: OCAML_VERSION=4.02
+  - os: linux
+    env: OCAML_VERSION=4.03
+  - os: linux
+    env: OCAML_VERSION=4.04
+  - os: linux
+    env: OCAML_VERSION=4.05
+  - os: linux
+    env: OCAML_VERSION=4.05 DEPOPTS="lwt cstruct-lwt"
+  - os: linux
+    env: OCAML_VERSION=4.06
+  - os: linux
+    env: OCAML_VERSION=4.06 NOCRYPTO_ACCELERATE="false"
+  - os: linux
+    env: OCAML_VERSION=4.06 DEPOPTS="lwt cstruct-lwt"
+  - os: linux
+    env: OCAML_VERSION=4.04 DEPOPTS="mirage-xen"
+  - os: linux
+    env: OCAML_VERSION=4.06 DEPOPTS="mirage-solo5 mirage-entropy"
+  - os: osx
+    env: OCAML_VERSION=4.06
 notifications:
   email: false
