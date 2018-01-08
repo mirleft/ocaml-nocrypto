@@ -1,6 +1,6 @@
 version = "%%VERSION_NUM%%"
 description = "Simple crypto for the modern age"
-requires = "cstruct zarith sexplib"
+requires = "cstruct zarith sexplib ocplib-endian"
 archive(byte) = "nocrypto.cma"
 archive(native) = "nocrypto.cmxa"
 plugin(byte) = "nocrypto.cma"
