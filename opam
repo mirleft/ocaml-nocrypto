@@ -26,7 +26,7 @@ depends: [
   "cpuid" {build}
   "ocb-stubblr" {build}
   "ppx_deriving" {build}
-  "ppx_sexp_conv" {build & < "v0.11.0"}
+  "ppx_sexp_conv" {< "v0.11.0"}
   "ounit" {test}
   "cstruct" {>="3.0.0" & <"3.3.0"}
   "cstruct-lwt"
