@@ -26,13 +26,13 @@ depends: [
   "cpuid" {build}
   "ocb-stubblr" {build}
   "ppx_deriving" {build}
-  "ppx_sexp_conv" {< "v0.11.0"}
+  "ppx_sexp_conv"
   "ounit" {test}
-  "cstruct" {>="3.0.0" & <"3.3.0"}
+  "cstruct" {>="3.0.0"}
   "cstruct-lwt"
   "zarith"
   "lwt"
-  "sexplib" {< "v0.11.0"}
+  "sexplib"
   "ocplib-endian"
   ("mirage-no-xen" | ("mirage-xen" & "zarith-xen"))
   ("mirage-no-solo5" | ("mirage-solo5" & "zarith-freestanding"))
@@ -49,4 +49,5 @@ conflicts: [
   "ocb-stubblr" {<"0.1.0"}
   "mirage-xen" {<"2.2.0"}
   "sexplib" {="v0.9.0"}
+  "sexplib" {="v0.11.0"}
 ]
