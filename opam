@@ -32,12 +32,11 @@ depends: [
   "zarith"
   "sexplib"
   "ocplib-endian"
-  ("mirage-no-xen" | ("mirage-xen" & "zarith-xen"))
-  ("mirage-no-solo5" | ("mirage-solo5" & "zarith-freestanding"))
+  ("mirage-no-xen" | ("mirage-xen" & "zarith-xen" & "mirage-entropy"))
+  ("mirage-no-solo5" | ("mirage-solo5" & "zarith-freestanding" & "mirage-entropy"))
 ]
 
 depopts: [
-  "mirage-entropy"
   "cstruct-lwt"
   "lwt"
 ]
