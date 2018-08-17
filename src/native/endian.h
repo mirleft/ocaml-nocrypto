@@ -21,6 +21,21 @@
 #define be64toh(x) OSSwapBigToHostInt64(x)
 #define le64toh(x) OSSwapLittleToHostInt64(x)
 
+#elif defined(__MINIOS__)
+
+#include <endian.h>
+#include <byteswap.h>
+
+#if (BYTE_ORDER == LITTLE_ENDIAN)
+#define htobe64(x) (bswap_64(x))
+#define be64toh(x) (bswap_64(x))
+#elif (BYTE_ORDER == BIG_ENDIAN)
+#define htobe64(x) (x)
+#define be64toh(x) (x)
+#else
+#error "Cannot determine byte order"
+#endif
+
 #else
 
 /* Needs _DEFAULT_SOURCE with glibc */
