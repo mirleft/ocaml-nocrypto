@@ -13,7 +13,7 @@
  * !LARGE_TABLES -> 8K per key, ~3x slower. */
 #define __NC_GHASH_LARGE_TABLES
 
-#include "../nocrypto.h"
+#include "nocrypto.h"
 #if !defined (__nc_PCLMUL__)
 
 #include <string.h>

@@ -4,7 +4,7 @@
  * http://www.efgh.com/software/rijndael.htm
  */
 
-#include "../nocrypto.h"
+#include "nocrypto.h"
 
 #if defined (__nc_AES_GENERIC__)
 

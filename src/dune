@@ -1,0 +1,14 @@
+(copy_files native/*)
+(copy_files native/hash/*)
+(copy_files native/aes/*)
+(copy_files native/des/*)
+(copy_files native/ghash/*)
+
+(library
+ (public_name nocrypto)
+ (libraries cstruct ocplib-endian sexplib zarith)
+ (preprocess (pps ppx_sexp_conv))
+ (c_names misc stubs md5 sha1 sha256 sha512 aes_generic
+          aes_aesni des_generic ghash_pclmul ghash_generic)
+ (c_flags :standard -DACCELERATE -mssse3 -maes -mpclmul)
+)

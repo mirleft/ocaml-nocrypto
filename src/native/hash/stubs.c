@@ -1,4 +1,4 @@
-#include "../nocrypto.h"
+#include "nocrypto.h"
 
 #include "md5.h"
 #include "sha1.h"

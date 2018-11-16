@@ -10,3 +10,5 @@ _build
 gmon.out
 *.prof
 rondom
+
+.merlin

@@ -8,7 +8,7 @@
  *   https://software.intel.com/sites/default/files/article/165683/aes-wp-2012-09-22-v01.pdf
  */
 
-#include "../nocrypto.h"
+#include "nocrypto.h"
 #if defined (__nc_AES_NI__)
 
 /* xmm: [3, 2, 1, 0] */

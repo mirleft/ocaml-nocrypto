@@ -20,7 +20,7 @@
 #define __NC_GHASH_REFLECTED_REDUCE
 #define __NC_GHASH_AGGREGATED_REDUCE
 
-#include "../nocrypto.h"
+#include "nocrypto.h"
 #if defined (__nc_PCLMUL__)
 
 #include <string.h>
