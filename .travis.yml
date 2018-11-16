@@ -29,6 +29,8 @@ matrix:
     env: OCAML_VERSION=4.04 DEPOPTS="mirage-xen"
   - os: linux
     env: OCAML_VERSION=4.06 DEPOPTS="mirage-solo5 mirage-entropy"
+  - os: linux
+    env: OCAML_VERSION=4.07
   - os: osx
     env: OCAML_VERSION=4.06
 notifications:
