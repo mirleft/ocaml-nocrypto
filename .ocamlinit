@@ -1,4 +1,4 @@
-#require "cstruct, zarith, sexplib"
+#require "cstruct, zarith, sexplib, ocplib-endian"
 #directory "_build/src"
 #load "nocrypto.cma"
 
