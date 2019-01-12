@@ -1,0 +1,8 @@
+version = "%%VERSION_NUM%%"
+description = "Simple asymmetric crypto for the modern age"
+requires = "nocrypto zarith sexplib cstruct PPX_SEXP_CONV_RUNTIME"
+archive(byte) = "nocrypto-asymmetric.cma"
+archive(native) = "nocrypto-asymmetric.cmxa"
+plugin(byte) = "nocrypto-asymmetric.cma"
+plugin(native) = "nocrypto-asymmetric.cmxs"
+exists_if = "nocrypto-asymmetric.cma"

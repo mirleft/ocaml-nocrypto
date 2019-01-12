@@ -17,9 +17,14 @@ true: package(bytes cstruct)
 <mirage>: include
 <mirage/*.ml{,i}>: package(lwt mirage-entropy)
 
+<asymmetric>: include
+<asymmetric/*.ml{,i}>: package(zarith sexplib ppx_sexp_conv)
+
 <**/*.c>: ccopt(-D_DEFAULT_SOURCE --std=c99 -Wall -Wextra -O3)
 
 <bench/*>: use_nocrypto, package(ocplib-endian ppx_sexp_conv)
 <tests/*>: use_nocrypto, package(oUnit ocplib-endian ppx_sexp_conv)
+<tests/*asymmetric*>: package(zarith)
+
 
 <rondom>: -traverse

@@ -14,11 +14,14 @@ let () = dispatch (fun hook ->
     ) hook;
     match hook with
     | After_rules ->
-      let meta = "pkg/META" in
-      let meta_in = meta ^ ".in" in
-      rule meta ~dep:meta_in ~prod:meta (fun _ _ ->
-          let deps = String.concat " " (runtime_deps_of_ppx "ppx_sexp_conv") in
-          Echo([String.subst "PPX_SEXP_CONV_RUNTIME" deps
-                  (Pathname.read meta_in)],
-               meta))
+      let meta_rule meta =
+        let meta_in = meta ^ ".in" in
+        rule meta ~dep:meta_in ~prod:meta (fun _ _ ->
+            let deps = String.concat " " (runtime_deps_of_ppx "ppx_sexp_conv") in
+            Echo([String.subst "PPX_SEXP_CONV_RUNTIME" deps
+                    (Pathname.read meta_in)],
+                 meta))
+      in
+      meta_rule "pkg/META";
+      meta_rule "pkg/META.asymmetric"
     | _ -> ())

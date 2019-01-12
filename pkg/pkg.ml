@@ -25,11 +25,19 @@ let accelerate = Conf.(discovered_key "accelerate" bool
 
 let tags = [(accelerate, "accelerate")]
 
+let metas = [
+  Pkg.meta_file ~install:false "pkg/META" ;
+  Pkg.meta_file ~install:false "pkg/META.asymmetric" ;
+]
+
 let opams =
   let build = ["ocb-stubblr"; "cpuid"]
-  and hacks = [ "zarith-xen"; "mirage-xen"; "mirage-no-xen";
-                "zarith-freestanding"; "mirage-solo5"; "mirage-no-solo5" ]
-  in [Pkg.opam_file "opam" ~lint_deps_excluding:(Some (build @ hacks))]
+  and hacks = [ "zarith-xen"; "mirage-xen-ocaml"; "mirage-no-xen";
+                "zarith-freestanding"; "ocaml-freestanding"; "mirage-no-solo5" ]
+  in [
+    Pkg.opam_file "nocrypto.opam" ~lint_deps_excluding:(Some (build @ hacks));
+    Pkg.opam_file "nocrypto-asymmetric.opam" ~lint_deps_excluding:(Some (build @ hacks)) ;
+  ]
 
 let cmd c os files =
   OS.Cmd.run Cmd.(build_cmd c os %% Pkg.ocb_bool_tags c tags %% of_list files)
@@ -37,13 +45,16 @@ let cmd c os files =
 let build = Pkg.build ~cmd ()
 
 let () =
-  Pkg.describe "nocrypto" ~build ~opams @@ fun c ->
+  Pkg.describe "nocrypto" ~build ~metas ~opams @@ fun c ->
+  match Conf.pkg_name c with
+  | "nocrypto" ->
     let unix = Conf.value c unix in
     let lwt  = Conf.value c lwt && unix
     and xen  = Conf.value c xen
     and fs   = Conf.value c fs in
     let mir  = Conf.value c mir in
-    Ok [ Pkg.clib "src/libnocrypto_stubs.clib";
+    Ok [ Pkg.lib "pkg/META";
+         Pkg.clib "src/libnocrypto_stubs.clib";
          Pkg.mllib ~api:["Nocrypto"] "src/nocrypto.mllib";
          Pkg.mllib ~cond:unix "unix/nocrypto_unix.mllib";
          Pkg.mllib ~cond:lwt "lwt/nocrypto_lwt.mllib";
@@ -51,3 +62,8 @@ let () =
          Pkg.test "tests/testrunner";
          Pkg.test ~run:false "bench/speed";
          mirage ~xen ~fs "src/libnocrypto_stubs.clib"; ]
+  | "nocrypto-asymmetric" ->
+    Ok [ Pkg.lib "pkg/META.asymmetric" ~dst:"META";
+         Pkg.mllib ~api:["Nocrypto_asymmetric"] "asymmetric/nocrypto-asymmetric.mllib";
+         Pkg.test "tests/testrunner_asymmetric"; ]
+  | _ -> Error (`Msg "unknown package")
