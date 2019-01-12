@@ -1,12 +1,5 @@
 open Ocamlbuild_plugin
 
-let ocamlfind_and_pack = function
-  | After_rules ->
-     if !Options.use_ocamlfind then
-       pflag ["ocaml"; "pack"] "package"
-         (fun pkg -> S [A "-package"; A pkg]);
-  | _ -> ()
-
 let runtime_deps_of_ppx ppx =
   (Findlib.query "ppx_sexp_conv").dependencies
   |> List.filter_opt (fun { Findlib.name; _ } ->
@@ -18,7 +11,6 @@ let runtime_deps_of_ppx ppx =
 let () = dispatch (fun hook ->
     Ocb_stubblr.(
       init & ccopt ~tags:["accelerate"] "-DACCELERATE -mssse3 -maes -mpclmul"
-      & ocamlfind_and_pack
     ) hook;
     match hook with
     | After_rules ->

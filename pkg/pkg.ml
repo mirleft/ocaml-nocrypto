@@ -44,7 +44,7 @@ let () =
     and fs   = Conf.value c fs in
     let mir  = Conf.value c mir in
     Ok [ Pkg.clib "src/libnocrypto_stubs.clib";
-         Pkg.mllib "src/nocrypto.mllib";
+         Pkg.mllib ~api:["Nocrypto"] "src/nocrypto.mllib";
          Pkg.mllib ~cond:unix "unix/nocrypto_unix.mllib";
          Pkg.mllib ~cond:lwt "lwt/nocrypto_lwt.mllib";
          Pkg.mllib ~cond:mir "mirage/nocrypto_mirage.mllib";
