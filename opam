@@ -11,9 +11,9 @@ available:     [ ocaml-version >= "4.02.0" ]
 
 build: ["ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "false"
                 "--with-lwt" "%{lwt+cstruct-lwt:installed}%"
-                "--xen" "%{mirage-xen:installed}%"
+                "--xen" "%{mirage-xen-ocaml:installed}%"
                 "--mirage" "%{mirage-entropy+lwt:installed}%"
-                "--freestanding" "%{mirage-solo5:installed}%"]
+                "--freestanding" "%{ocaml-freestanding:installed}%"]
 
 build-test: [[ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "true" ]
              [ "ocaml" "pkg/pkg.ml" "test"]]
@@ -29,14 +29,14 @@ depends: [
   "ppx_sexp_conv"
   "ounit" {test}
   "cstruct" {>="3.0.0"}
-  "zarith"
   "sexplib"
   "ocplib-endian"
-  ("mirage-no-xen" | ("mirage-xen" & "zarith-xen" & "mirage-entropy"))
-  ("mirage-no-solo5" | ("mirage-solo5" & "zarith-freestanding" & "mirage-entropy"))
 ]
 
 depopts: [
+  "mirage-entropy"
+  "mirage-xen-ocaml"
+  "ocaml-freestanding"
   "cstruct-lwt"
   "lwt"
 ]
@@ -44,7 +44,8 @@ depopts: [
 conflicts: [
   "topkg" {<"0.9.1"}
   "ocb-stubblr" {<"0.1.0"}
-  "mirage-xen" {<"2.2.0"}
+  "mirage-xen-ocaml" {<"3.1.0"}
+  "ocaml-freestanding" {<"0.4.1"}
   "sexplib" {="v0.9.0"}
   "ppx_sexp_conv" {="v0.11.0"}
 ]

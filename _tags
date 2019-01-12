@@ -4,7 +4,7 @@ true: warn(A-4-29-33-40-41-42-43-34-44-48)
 true: package(bytes cstruct)
 
 <src>: include
-<src/*.ml{,i}>: package(zarith sexplib ppx_sexp_conv ocplib-endian)
+<src/*.ml{,i}>: package(sexplib ppx_sexp_conv ocplib-endian)
 <src/*.cm{,x}a>: link_stubs(src/libnocrypto_stubs)
 <src/nocrypto.cm{x,o}>: package(ppx_sexp_conv)
 
@@ -19,7 +19,7 @@ true: package(bytes cstruct)
 
 <**/*.c>: ccopt(-D_DEFAULT_SOURCE --std=c99 -Wall -Wextra -O3)
 
-<bench/*>: use_nocrypto, package(zarith ocplib-endian ppx_sexp_conv)
-<tests/*>: use_nocrypto, package(zarith oUnit ocplib-endian ppx_sexp_conv)
+<bench/*>: use_nocrypto, package(ocplib-endian ppx_sexp_conv)
+<tests/*>: use_nocrypto, package(oUnit ocplib-endian ppx_sexp_conv)
 
 <rondom>: -traverse

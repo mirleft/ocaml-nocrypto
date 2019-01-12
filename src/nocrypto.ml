@@ -5,6 +5,3 @@ module Hash = Hash
 module Cipher_block = Cipher_block
 module Cipher_stream = Cipher_stream
 module Rng = Rng
-module Rsa = Rsa
-module Dsa = Dsa
-module Dh = Dh

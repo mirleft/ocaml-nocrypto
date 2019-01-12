@@ -91,30 +91,6 @@ end
 module Int   = Make_N (Numeric.Int  )
 module Int32 = Make_N (Numeric.Int32)
 module Int64 = Make_N (Numeric.Int64)
-module ZN    = Make_N (Numeric.Z    )
-
-
-(* Invalid combinations of ~bits and ~msb will loop forever, but there is no
- * way to quickly determine upfront whether there are any primes in the
- * interval.
- * XXX Probability is distributed as inter-prime gaps. So?
- *)
-let rec prime ?g ?(msb = 1) bits =
-  let p = Z.(nextprime @@ ZN.gen_bits ?g ~msb bits) in
-  if p < Z.(one lsl bits) then p else prime ?g ~msb bits
-
-(* XXX Add ~msb param for p? *)
-let rec safe_prime ?g bits =
-  let q = prime ?g ~msb:1 (bits - 1) in
-  let p = Z.(q * ~$2 + ~$1) in
-  if Numeric.pseudoprime p then (q, p) else safe_prime ?g bits
-
-(*     |+ Pocklington primality test specialized for `a = 2`. +|
-  if Z.(gcd (of_int 3) p = one) then (q, p)
-  else safe_prime ?g ~bits *)
-
-module Z = ZN
-
 
 module Generators = struct
 

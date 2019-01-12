@@ -2,8 +2,6 @@ open Uncommon
 
 type bits = int
 
-module Z0 = Z
-
 module type S_core = sig
   type t
   val zero : t
@@ -89,14 +87,6 @@ module Int64_core = struct
   let pp_print f x = Format.pp_print_string f (to_string x)
 end
 
-module Z_core = struct
-  let bit_bound z = Z.size z * 64
-  include Z
-  let (lsr) = shift_right
-  let (lsl) = shift_left
-end
-
-
 module Repr (N : S_core) = struct
 
   (* If there was only, like, an instruction doing `ceil (log2 n)`... *)
@@ -179,25 +169,3 @@ end
 module Int   = S (Int_core  )
 module Int32 = S (Int32_core)
 module Int64 = S (Int64_core)
-module Z     = S (Z_core    )
-
-
-(* Handbook of Applied Cryptography, Table 4.4:
- * Miller-Rabin rounds for composite probability <= 1/2^80. *)
-let pseudoprime z =
-  let i = match Z.bits z with
-    | i when i >= 1300 ->  2
-    | i when i >=  850 ->  3
-    | i when i >=  650 ->  4
-    | i when i >=  350 ->  8
-    | i when i >=  250 -> 12
-    | i when i >=  150 -> 18
-    | _                -> 27 in
-  Z0.probab_prime z i <> 0
-
-(* strip_factor ~f x = (s, t), where x = f^s t *)
-let strip_factor ~f x =
-  let rec go n x =
-    let (x1, r) = Z0.div_rem x f in
-    if r = Z0.zero then go (succ n) x1 else (n, x) in
-  if Z0.two <= f then go 0 x else invalid_arg "factor_count: f: %a" Z0.pp f
