@@ -17,8 +17,6 @@ let (&.) f g = fun h -> f (g h)
 
 let id x = x
 
-let rec until p f = let r = f () in if p r then r else until p f
-
 module Option = struct
 
   let get_or f x = function None -> f x | Some y -> y
@@ -227,11 +225,6 @@ module Array = struct
       | -1 -> false
       | n  -> arr.(n) = x || scan (pred n) in
     scan (Array.length arr - 1)
-end
-
-module List = struct
-  include List
-  let find_opt p xs = try Some (find p xs) with Not_found -> None
 end
 
 let bracket ~init ~fini f =

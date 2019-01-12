@@ -161,11 +161,11 @@ module Repr (N : S_core) = struct
 
 end
 
-module S (N : S_core) : S with type t = N.t = struct
+module Make_S (N : S_core) : S with type t = N.t = struct
   include N
   include Repr (N)
 end
 
-module Int   = S (Int_core  )
-module Int32 = S (Int32_core)
-module Int64 = S (Int64_core)
+module Int   = Make_S (Int_core  )
+module Int32 = Make_S (Int32_core)
+module Int64 = Make_S (Int64_core)

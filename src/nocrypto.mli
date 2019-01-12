@@ -50,6 +50,9 @@ module Uncommon : sig
     val v_map : def:'b -> f:('a -> 'b) -> 'a option -> 'b
     val map   : f:('a -> 'b) -> 'a option -> 'b option
     val get   : def:'a -> 'a option -> 'a
+    val get_or : ('a -> 'b) -> 'a -> 'b option -> 'b
+    val (>>=) : 'a option -> ('a -> 'b option) -> 'b option
+    val (>>|) : 'a option -> ('a -> 'b) -> 'b option
   end
 
   (** Addons to {!Cstruct}. *)
@@ -78,6 +81,10 @@ module Uncommon : sig
     val (lsl) : Cstruct.t -> int -> Cstruct.t
     val (lsr) : Cstruct.t -> int -> Cstruct.t
 
+    val is_prefix : Cstruct.t -> Cstruct.t -> bool
+    val ct_find_uint8 : ?off:int -> f:(Cstruct.uint8 -> bool) -> Cstruct.t -> int option
+    val split2 : Cstruct.t -> int -> Cstruct.t * Cstruct.t
+    val split3 : Cstruct.t -> int -> int -> Cstruct.t * Cstruct.t * Cstruct.t
     val of_hex : string -> Cstruct.t
   end
 
@@ -111,7 +118,7 @@ module Numeric : sig
       Includes basic common numeric ops, range of conversions to and from
       variously-sized int types, and a few basic function for representing such
       numbers as {!Cstruct.t}. *)
-  module type S = sig
+  module type S_core = sig
 
     (** {1 Base}
 
@@ -151,6 +158,11 @@ module Numeric : sig
     val pp_print : Format.formatter -> t -> unit
     (** [pp_print ppf t] pretty-prints [t] on [ppf]. *)
 
+  end
+
+  module type S = sig
+    include S_core
+
     val bits : t -> bits
     (** [bits t] is the minimal number of bits needed to describe [t].
 
@@ -186,6 +198,8 @@ module Numeric : sig
         [cs]. It behaves like {{!to_cstruct_be}[to_cstruct_be]}, with [~size]
         spanning the entire [cs]. *)
   end
+
+  module Make_S (S' : S_core) : S with type t = S'.t
 
   module Int   : S with type t = int
   module Int32 : S with type t = int32
@@ -303,6 +317,12 @@ module Hash : sig
 
   type 'a or_digest = [ `Message of 'a | `Digest of digest ]
   (** Either an ['a] or its digest, according to some hash algorithm. *)
+
+  module Digest_or (H : S) : sig
+    val digest_or : Cstruct.t or_digest -> digest
+  end
+
+  val digest_or : hash:hash -> Cstruct.t or_digest -> digest
 
   (**/**)
   val hash_of_sexp : Sexplib.Sexp.t -> hash
@@ -718,6 +738,8 @@ module Rng : sig
       (** [seeded ~g] is [true] iff operations won't throw
           {{!Unseeded_generator}Unseeded_generator}. *)
     end
+
+    type 'a generator = (module Generator with type g = 'a)
 
     (** Typed generation of a particular numeric type. *)
     module type N = sig
