@@ -13,7 +13,7 @@ true: package(bytes cstruct)
 <unix/*.ml{,i}>: package(unix bytes)
 
 <lwt>: include
-<lwt/*.ml{,i}>: package(lwt.unix cstruct.lwt), thread
+<lwt/*.ml{,i}>: package(lwt.unix cstruct-lwt), thread
 
 <mirage>: include
 <mirage/*.ml{,i}>: package(lwt mirage-entropy)
