@@ -4,34 +4,30 @@ sudo: required
 script: bash -ex .travis-opam.sh
 env:
   global:
-    - PACKAGE="nocrypto"
     - UPDATE_GCC_BINUTILS=1
     - TESTS=true
+    - PINS="nocrypto:. nocrypto-asymmetric:."
 matrix:
   include:
   - os: linux
-    env: OCAML_VERSION=4.02
+    env: OCAML_VERSION=4.02 PACKAGE="nocrypto"
   - os: linux
-    env: OCAML_VERSION=4.03
+    env: OCAML_VERSION=4.03 PACKAGE="nocrypto-asymmetric"
   - os: linux
-    env: OCAML_VERSION=4.04
+    env: OCAML_VERSION=4.04 PACKAGE="nocrypto" DEPOPTS="lwt cstruct-lwt"
   - os: linux
-    env: OCAML_VERSION=4.05
+    env: OCAML_VERSION=4.05 PACKAGE="nocrypto-asymmetric" DEPOPTS="mirage-xen"
   - os: linux
-    env: OCAML_VERSION=4.05 DEPOPTS="lwt cstruct-lwt"
+    env: OCAML_VERSION=4.05 PACKAGE="nocrypto" DEPOPTS="mirage-entropy"
   - os: linux
-    env: OCAML_VERSION=4.06
+    env: OCAML_VERSION=4.06 PACKAGE="nocrypto-asymmetric"
   - os: linux
-    env: OCAML_VERSION=4.06 NOCRYPTO_ACCELERATE="false"
+    env: OCAML_VERSION=4.06 PACKAGE="nocrypto" NOCRYPTO_ACCELERATE="false"
   - os: linux
-    env: OCAML_VERSION=4.06 DEPOPTS="lwt cstruct-lwt"
+    env: OCAML_VERSION=4.07 PACKAGE="nocrypto-asymmetric" DEPOPTS="mirage-solo5"
   - os: linux
-    env: OCAML_VERSION=4.04 DEPOPTS="mirage-xen"
-  - os: linux
-    env: OCAML_VERSION=4.06 DEPOPTS="mirage-solo5 mirage-entropy"
-  - os: linux
-    env: OCAML_VERSION=4.07
+    env: OCAML_VERSION=4.07 PACKAGE="nocrypto" DEPOPTS="mirage-xen-ocaml ocaml-freestanding"
   - os: osx
-    env: OCAML_VERSION=4.06
+    env: OCAML_VERSION=4.07 PACKAGE="nocrypto-asymmetric"
 notifications:
   email: false
