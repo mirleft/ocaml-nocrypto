@@ -30,12 +30,6 @@
 
 #define __reduction_poly (_mm_set_epi64x (0, 0xc200000000000000))
 
-static inline __m128i __slli_128 (__m128i a, uint8_t bits) {
-  return _mm_or_si128 (
-    _mm_slli_epi64 (a, bits),
-    _mm_srli_epi64 (_mm_slli_si128 (a, 8), 64 - bits) );
-}
-
 static inline __m128i __shiftl1_si128 (__m128i w) {
   return _mm_or_si128 (_mm_slli_epi64 (w, 1), _mm_slli_si128(_mm_srli_epi64 (w, 63), 8));
 }
@@ -57,16 +51,6 @@ static inline __m128i __swap_epi64 (__m128i x) {
 static inline __m128i __reverse_si128 (__m128i x) {
   __m128i mask = _mm_set_epi64x (0x0001020304050607, 0x08090a0b0c0d0e0f);
   return _mm_shuffle_epi8 (x, mask);
-}
-
-static inline __m128i __reflect (__m128i x) {
-  __m128i and_mask = _mm_set_epi32 (0x0f0f0f0f, 0x0f0f0f0f, 0x0f0f0f0f, 0x0f0f0f0f),
-          lo_mask  = _mm_set_epi32 (0x0f070b03, 0x0d050901, 0x0e060a02, 0x0c040800),
-          hi_mask  = _mm_set_epi32 (0xf070b030, 0xd0509010, 0xe060a020, 0xc0408000);
-
-  return xor (
-    _mm_shuffle_epi8 (hi_mask, _mm_and_si128 (x, and_mask)), 
-    _mm_shuffle_epi8 (lo_mask, _mm_and_si128 (_mm_srli_epi16 (x, 4), and_mask)));
 }
 
 #if !defined (__NC_GHASH_KARATSUBA)
@@ -95,6 +79,22 @@ static inline void __clmul_128 (__m128i *r1, __m128i *r0, __m128i a, __m128i b) 
 #endif /* __NC_GHASH_KARATSUBA */
 
 #if !defined (__NC_GHASH_REFLECTED_REDUCE)
+static inline __m128i __slli_128 (__m128i a, uint8_t bits) {
+  return _mm_or_si128 (
+    _mm_slli_epi64 (a, bits),
+    _mm_srli_epi64 (_mm_slli_si128 (a, 8), 64 - bits) );
+}
+
+static inline __m128i __reflect (__m128i x) {
+  __m128i and_mask = _mm_set_epi32 (0x0f0f0f0f, 0x0f0f0f0f, 0x0f0f0f0f, 0x0f0f0f0f),
+          lo_mask  = _mm_set_epi32 (0x0f070b03, 0x0d050901, 0x0e060a02, 0x0c040800),
+          hi_mask  = _mm_set_epi32 (0xf070b030, 0xd0509010, 0xe060a020, 0xc0408000);
+
+  return xor (
+    _mm_shuffle_epi8 (hi_mask, _mm_and_si128 (x, and_mask)),
+    _mm_shuffle_epi8 (lo_mask, _mm_and_si128 (_mm_srli_epi16 (x, 4), and_mask)));
+}
+
 static inline __m128i __reduce_g (__m128i w1, __m128i w0) {
 
   __m128i t = _mm_srli_si128 (w1, 8);
