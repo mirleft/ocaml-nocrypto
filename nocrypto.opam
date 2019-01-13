@@ -1,27 +1,27 @@
-opam-version: "1.2"
+opam-version: "2.0"
 homepage:     "https://github.com/mirleft/ocaml-nocrypto"
-dev-repo:     "https://github.com/mirleft/ocaml-nocrypto.git"
+dev-repo:     "git+https://github.com/mirleft/ocaml-nocrypto.git"
 bug-reports:  "https://github.com/mirleft/ocaml-nocrypto/issues"
 doc:          "https://mirleft.github.io/ocaml-nocrypto/doc"
 authors:      ["David Kaloper <david@numm.org>"]
 maintainer:   "David Kaloper <david@numm.org>"
 license:      "ISC"
 tags:          [ "org:mirage" ]
-available:     [ ocaml-version >= "4.02.0" ]
 
-build: ["ocaml" "pkg/pkg.ml" "build" "--pkg-name" "%{name}%"
-                "--pinned" "%{pinned}%" "--tests" "false"
-                "--with-lwt" "%{lwt+cstruct-lwt:installed}%"
-                "--xen" "%{mirage-xen-ocaml:installed}%"
-                "--mirage" "%{mirage-entropy+lwt:installed}%"
-                "--freestanding" "%{ocaml-freestanding:installed}%"]
-
-build-test: [[ "ocaml" "pkg/pkg.ml" "build" "--pkg-name" "%{name}%"
-                       "--pinned" "%{pinned}%" "--tests" "true" ]
-             [ "ocaml" "pkg/pkg.ml" "test" "--pkg-name" "%{name}%"]]
-
+build: [
+  ["ocaml" "pkg/pkg.ml" "build" "--pkg-name" "%{name}%"
+           "--pinned" "%{pinned}%" "--tests" "false"
+           "--with-lwt" "%{lwt+cstruct-lwt:installed}%"
+           "--xen" "%{mirage-xen-ocaml:installed}%"
+           "--mirage" "%{mirage-entropy+lwt:installed}%"
+           "--freestanding" "%{ocaml-freestanding:installed}%"]
+  [ "ocaml" "pkg/pkg.ml" "build" "--pkg-name" "%{name}%"
+            "--pinned" "%{pinned}%" "--tests" "true" ] {with-test}
+  [ "ocaml" "pkg/pkg.ml" "test" "--pkg-name" "%{name}%"] {with-test}
+]
 
 depends: [
+  "ocaml" {>= "4.02.0"}
   "ocamlfind" {build}
   "ocamlbuild" {build}
   "topkg" {build}
@@ -29,7 +29,7 @@ depends: [
   "ocb-stubblr" {build}
   "ppx_deriving" {build}
   "ppx_sexp_conv"
-  "ounit" {test}
+  "ounit" {with-test}
   "cstruct" {>="3.0.0"}
   "sexplib"
   "ocplib-endian"
@@ -51,3 +51,5 @@ conflicts: [
   "sexplib" {="v0.9.0"}
   "ppx_sexp_conv" {="v0.11.0"}
 ]
+
+synopsis: "Simple crypto for the modern age"
