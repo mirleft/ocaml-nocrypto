@@ -5,7 +5,6 @@ true: package(bytes ocplib-endian cstruct)
 
 <src>: include
 <src/*.ml{,i}>: package(zarith)
-<src/*.cm{x,o}> and not <src/nocrypto.cmx>: for-pack(Nocrypto)
 <src/*.cm{,x}a>: link_stubs(src/libnocrypto_stubs)
 
 <unix>: include

@@ -23,6 +23,9 @@ let priv_of_primes ~e ~p ~q =
   and q' = Z.(invert q p) in
   { e; d; n; p; q; dp; dq; q' }
 
+let pp = Z.pp_print
+let two = Z.(~$2)
+
 (* Handbook of applied cryptography, 8.2.2 (i). *)
 let rec priv_of_exp ?g ?(attempts=100) ~e ~d n =
   let factor s t =
@@ -37,7 +40,7 @@ let rec priv_of_exp ?g ?(attempts=100) ~e ~d n =
     Z.(k "Rsa.priv_of_exp: e: %a, d: %a, n: %a" pp e pp d pp n) in
   if attempts > 0 then
     if Z.(two < n && two < e && two < d && e < n && d < n) then
-      match Numeric.strip_factor ~f:Z.two Z.(e * d |> pred) with
+      match Numeric.strip_factor ~f:two Z.(e * d |> pred) with
       | (0, _) -> err invalid_arg
       | (s, t) -> match factor s t with
         | None   -> priv_of_exp ?g ~attempts:(attempts - 1) ~e ~d n
@@ -61,14 +64,14 @@ let decrypt_unsafe ~key: ({ p; q; dp; dq; q'; _} : priv) c =
   Z.(h * q + m2)
 
 let decrypt_blinded_unsafe ?g ~key: ({ e; n; _} as key : priv) c =
-  let r  = until (rprime n) (fun _ -> Rng.Z.gen_r ?g Z.two n) in
+  let r  = until (rprime n) (fun _ -> Rng.Z.gen_r ?g two n) in
   let r' = Z.(invert r n) in
   let x  = decrypt_unsafe ~key Z.(powm r e n * c mod n) in
   Z.(r' * x mod n)
 
 let (encrypt_z, decrypt_z) =
   let check_params n msg =
-    if msg < Z.two then invalid_arg "Rsa: message: %a" Z.pp_print msg;
+    if msg < two then invalid_arg "Rsa: message: %a" Z.pp_print msg;
     if n <= msg then raise Insufficient_key in
   (fun ~(key : pub) msg -> check_params key.n msg ; encrypt_unsafe ~key msg),
   (fun ~mask ~(key : priv) msg ->
@@ -85,12 +88,12 @@ let encrypt ~key              = reformat (pub_bits key)  (encrypt_z ~key)
 and decrypt ?(mask=`Yes) ~key = reformat (priv_bits key) (decrypt_z ~mask ~key)
 
 let well_formed ~e ~p ~q =
-  Z.three <= e && p <> q &&
+  Z.(~$3) <= e && p <> q &&
   Numeric.(pseudoprime e && pseudoprime p && pseudoprime q) &&
   rprime e Z.(pred p) && rprime e Z.(pred q)
 
 let rec generate ?g ?(e = Z.(~$0x10001)) bits =
-  if e < Z.three || Numeric.(bits <= Z.bits e || not (pseudoprime e)) then
+  if e < Z.(~$3) || Numeric.(bits <= Z.bits e || not (pseudoprime e)) then
     invalid_arg "Rsa.generate: e: %a, bits: %d" Z.pp_print e bits;
   let (pb, qb) = (bits / 2, bits - bits / 2) in
   let (p, q)   = Rng.(prime ?g ~msb:2 pb, prime ?g ~msb:2 qb) in

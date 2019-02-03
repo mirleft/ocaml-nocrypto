@@ -200,4 +200,5 @@ let strip_factor ~f x =
   let rec go n x =
     let (x1, r) = Z0.div_rem x f in
     if r = Z0.zero then go (succ n) x1 else (n, x) in
-  if Z0.two <= f then go 0 x else invalid_arg "factor_count: f: %a" Z0.pp f
+  if Z0.(~$2) <= f then go 0 x else
+    invalid_arg "factor_count: f: %a" Z0.pp_print f

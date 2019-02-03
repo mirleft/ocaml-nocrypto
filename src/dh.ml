@@ -67,7 +67,7 @@ let shared ({ p; _ } as group) { x } cs =
 
 (* Finds a safe prime with [p = 2q + 1] and [2^q = 1 mod p]. *)
 let rec gen_group ?g bits =
-  let gg     = Z.two
+  let gg     = Z.(~$2)
   and (q, p) = Rng.safe_prime ?g (imax bits 1) in
   if Z.(powm gg q p = one) then { p; gg; q = Some q } else gen_group ?g bits
 
