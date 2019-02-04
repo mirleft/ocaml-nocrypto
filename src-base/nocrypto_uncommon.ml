@@ -1,21 +1,15 @@
 (** [Uncommon] is a [Common], now with less name clashes. *)
 
-let kasprintf k fmt =
-  Format.(kfprintf (fun _ -> k (flush_str_formatter ())) str_formatter fmt)
 
-let invalid_arg fmt = kasprintf invalid_arg ("Nocrypto: " ^^ fmt)
-let failwith fmt = kasprintf failwith ("Nocrypto: " ^^ fmt)
+let invalid_arg fmt = Format.kasprintf invalid_arg ("Nocrypto: " ^^ fmt)
+let failwith fmt = Format.kasprintf failwith ("Nocrypto: " ^^ fmt)
 
 let (//) x y =
   if y < 1 then raise Division_by_zero else
     if x > 0 then 1 + ((x - 1) / y) else 0 [@@inline]
 
-let imin (a : int) b = if a < b then a else b
-let imax (a : int) b = if a < b then b else a
-
-let (&.) f g = fun h -> f (g h)
-
-let id x = x
+let imin (a : int) b = if a < b then a else b [@@inline]
+let imax (a : int) b = if a < b then b else a [@@inline]
 
 let rec until p f = let r = f () in if p r then r else until p f
 
@@ -43,23 +37,30 @@ module Option = struct
     | None   -> ()
 end
 
-type 'a iter = ('a -> unit) -> unit
-
-let iter1 a     f = f a
-let iter2 a b   f = f a; f b
-let iter3 a b c f = f a; f b; f c
+let iter1 a     f = f a           [@@inline]
+let iter2 a b   f = f a; f b      [@@inline]
+let iter3 a b c f = f a; f b; f c [@@inline]
 
 let string_fold ~f ~z str =
   let st = ref z in
   ( String.iter (fun c -> st := f !st c) str  ; !st )
 
+type off  = int
+type size = int
+
+module Bigstring = struct
+
+  open Bigarray
+
+  type t = (char, int8_unsigned_elt, c_layout) Array1.t
+  let create n = Array1.create char c_layout n
+  external unsafe_xor : t -> off -> t -> off -> size -> unit =
+    "caml_nc_xor_ba_unsafe" [@@noalloc]
+end
+
 module Cs = struct
 
   open Cstruct
-
-  let empty = create 0
-
-  let null cs = len cs = 0
 
   let (<+>) = append
 
@@ -92,15 +93,15 @@ module Cs = struct
     let cs' = create_unsafe len in
     ( blit cs off cs' 0 len ; cs' )
 
-  let xor_into src dst n =
-    if n > imin (len src) (len dst) then
-      invalid_arg "Uncommon.Cs.xor_into: buffers to small (need %d)" n
-    else Native.xor_into src.buffer src.off dst.buffer dst.off n
+  let xor cs1 cs2 n =
+    if imin (len cs1) (len cs2) < n then
+      invalid_arg "xor: buffers too small (need %d)" n
+    else Bigstring.unsafe_xor cs1.buffer cs1.off cs2.buffer cs2.off n
 
-  let xor cs1 cs2 =
+  let (lxor) cs1 cs2 =
     let len = imin (len cs1) (len cs2) in
-    let cs  = clone ~len cs2 in
-    ( xor_into cs1 cs len ; cs )
+    let res = clone ~len cs2 in
+    ( xor cs1 res len; res )
 
   let create ?(init=0x00) n =
     let cs = create_unsafe n in ( memset cs init ; cs )
@@ -215,16 +216,7 @@ module Cs = struct
   and (lsr) cs bits =
     let cs' = clone cs in
     shift_right_inplace cs' bits ; cs'
-
-  and (lxor) cs1 cs2 = xor cs1 cs2
-
 end
-
-let bracket ~init ~fini f =
-  let a = init () in
-  match f a with
-  | exception exn -> fini a; raise exn
-  | res           -> fini a; res
 
 let pp_xd_gen getu8 len ?(address=true) ?(ascii=false) ?(w=16) () ppf =
   let open Format in

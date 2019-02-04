@@ -1,6 +1,8 @@
-open Uncommon
+open Nocrypto_uncommon
 
 type bits = int
+
+let id x = x
 
 module Z0 = Z
 

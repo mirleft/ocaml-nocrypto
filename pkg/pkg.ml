@@ -43,7 +43,10 @@ let () =
     and xen  = Conf.value c xen
     and fs   = Conf.value c fs in
     let mir  = Conf.value c mir in
-    Ok [ Pkg.clib "src/libnocrypto_stubs.clib";
+    Ok [ Pkg.clib "src-base/libnocrypto_base_stubs.clib";
+         Pkg.mllib "src-base/nocrypto_base.mllib";
+
+         Pkg.clib "src/libnocrypto_stubs.clib";
          Pkg.mllib "src/nocrypto.mllib" ~api:["Nocrypto"];
          Pkg.mllib ~cond:unix "unix/nocrypto_unix.mllib";
          Pkg.mllib ~cond:lwt "lwt/nocrypto_lwt.mllib";
@@ -51,4 +54,5 @@ let () =
 
          Pkg.test "tests/testrunner";
          Pkg.test ~run:false "bench/speed";
-         mirage ~xen ~fs "src/libnocrypto_stubs.clib"; ]
+         mirage ~xen ~fs "src/libnocrypto_stubs.clib";
+  ]

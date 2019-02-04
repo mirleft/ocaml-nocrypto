@@ -1,4 +1,3 @@
-
 open Bigarray
 
 let buffer = Array1.create char c_layout

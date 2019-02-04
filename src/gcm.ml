@@ -3,7 +3,7 @@
  *
  * Based mostly on NIST 800-38D.
  *)
-open Uncommon
+open Nocrypto_base.Uncommon
 
 module I128 = struct
 

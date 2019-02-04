@@ -1,4 +1,4 @@
-open Uncommon
+open Nocrypto_uncommon
 open Hash
 
 module AES_CTR = Cipher_block.AES.CTR

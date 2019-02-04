@@ -2,7 +2,7 @@ open OUnit2
 
 open Notest
 open Nocrypto
-open Uncommon
+open Nocrypto_uncommon
 
 (*
 # CAVS 11.2

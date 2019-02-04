@@ -1,4 +1,4 @@
-open Uncommon
+open Nocrypto_uncommon
 
 let (<+>) = Cs.(<+>)
 

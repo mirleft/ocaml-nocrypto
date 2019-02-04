@@ -1,4 +1,4 @@
-open Uncommon
+open Nocrypto_uncommon
 
 module type S = sig
   type key

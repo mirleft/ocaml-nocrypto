@@ -1,7 +1,7 @@
 open OUnit2
 
 open Nocrypto
-open Nocrypto.Uncommon
+open Nocrypto_uncommon
 
 let (prf, strf) = Format.(fprintf, asprintf)
 let xd = xd ()
@@ -32,4 +32,4 @@ let sample arr =
 
 let assert_cs_equal ?msg =
   assert_equal ~cmp:Cstruct.equal ?msg
-    ~pp_diff:(pp_diff (Uncommon.xd ~ascii:true()))
+    ~pp_diff:(pp_diff (Nocrypto_uncommon.xd ~ascii:true()))

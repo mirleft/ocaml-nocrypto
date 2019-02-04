@@ -1,6 +1,6 @@
 open Nocrypto
 
-open Uncommon
+open Nocrypto_uncommon
 open Cipher_block
 open Hash
 
@@ -84,7 +84,7 @@ let benchmarks = [
   bm "aes-128-ghash" (fun name ->
     let key = AES.GCM.of_secret (Rng.generate 16)
     and iv  = Rng.generate 12 in
-    throughput name (fun cs -> AES.GCM.encrypt ~key ~iv ~adata:cs Cs.empty));
+    throughput name (fun cs -> AES.GCM.encrypt ~key ~iv ~adata:cs Cstruct.empty));
 
   bm "aes-128-ccm" (fun name ->
     let key   = AES.CCM.of_secret ~maclen:16 (Rng.generate 16)

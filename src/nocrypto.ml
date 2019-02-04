@@ -1,5 +1,6 @@
-module Base64 = Base64
-module Uncommon = Uncommon
+(* module Base64 = Nocrypto_base.Base64 *)
+(* module Uncommon = Nocrypto_base.Uncommon *)
+
 module Numeric = Numeric
 module Hash = Hash
 module Cipher_block = Cipher_block

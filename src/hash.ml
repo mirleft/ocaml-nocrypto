@@ -1,8 +1,8 @@
-open Uncommon
+open Nocrypto_uncommon
 
 type digest = Cstruct.t
 
-type 'a iter = 'a Uncommon.iter
+type 'a iter = ('a -> unit) -> unit
 
 type 'a or_digest = [ `Message of 'a | `Digest of digest ]
 

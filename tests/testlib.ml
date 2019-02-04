@@ -1,7 +1,8 @@
 open OUnit2
 
 open Nocrypto
-open Nocrypto.Uncommon
+open Nocrypto_uncommon
+module Base64 = Nocrypto_base64
 
 open Notest
 
@@ -135,14 +136,15 @@ let ctr_offsets (type c) ~zero (m : (module Cipher_block.S.CTR with type ctr = c
 
 let xor_selftest n =
   "selftest" >:: times ~n @@ fun _ ->
+    let (lxor) = Cs.(lxor) in
 
     let n         = Rng.Int.gen 30 in
     let (a, b, c) = Rng.(generate n, generate n, generate n) in
 
-    let abc  = Cs.(xor (xor a b) c)
-    and abc' = Cs.(xor a (xor b c)) in
-    let a1   = Cs.(xor abc (xor b c))
-    and a2   = Cs.(xor (xor c b) abc) in
+    let abc  = (a lxor b) lxor c
+    and abc' = a lxor (b lxor c) in
+    let a1   = abc lxor (b lxor c)
+    and a2   = (c lxor b) lxor abc in
 
     assert_cs_equal ~msg:"assoc" abc abc' ;
     assert_cs_equal ~msg:"invert" a a1 ;
@@ -423,7 +425,7 @@ let dh_shared_0 =
 (* Xor *)
 
 let xor_cases =
-  cases_of (f2_eq ~msg:"xor" Cs.xor) [
+  cases_of (f2_eq ~msg:"xor" Cs.(lxor)) [
     "00 01 02 03 04 05 06 07 08 09 0a 0b 0c" ,
     "0c 0b 0a 09 08 07 06 05 04 03 02 01 00" ,
     "0c 0a 08 0a 0c 02 00 02 0c 0a 08 0a 0c" ;

@@ -1,6 +1,8 @@
-open Uncommon
+open Nocrypto_uncommon
 
 type bits = int
+
+let (%) f g x = f (g x)
 
 exception Insufficient_key
 
@@ -35,7 +37,7 @@ let rec priv_of_exp ?g ?(attempts=100) ~e ~d n =
               if Z.(ax <> one && ax <> pred n && ax2 = one) then
                 Some ax
               else go ax2 (i' - 1) in
-    Option.(go Z.(powm (Rng.Z.gen ?g n) t n) s >>| Z.(gcd n &. pred)) in
+    Option.(go Z.(powm (Rng.Z.gen ?g n) t n) s >>| Z.(gcd n % pred)) in
   let err (k : _ format4 -> _) =
     Z.(k "Rsa.priv_of_exp: e: %a, d: %a, n: %a" pp e pp d pp n) in
   if attempts > 0 then
@@ -132,7 +134,7 @@ module PKCS1 = struct
     cat [ bx00 ; b mark ; pad ; bx00 ; msg ]
 
   let unpad ~mark ~is_pad cs =
-    let f = not &. is_pad in
+    let f = not % is_pad in
     let i = Cs.ct_find_uint8 ~off:2 ~f cs |> Option.get ~def:2 in
     let c1 = get_uint8 cs 0 = 0x00
     and c2 = get_uint8 cs 1 = mark
@@ -170,7 +172,7 @@ module PKCS1 = struct
   let decrypt ?mask ~key msg =
     unpadded unpad_02 (decrypt ?mask ~key) (priv_bits key) msg
 
-  let asns = List.(combine Hash.hashes &. map of_string) [
+  let asns = List.(combine Hash.hashes % map of_string) [
     "\x30\x20\x30\x0c\x06\x08\x2a\x86\x48\x86\xf7\x0d\x02\x05\x05\x00\x04\x10"     (* md5 *)
   ; "\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14"                 (* sha1 *)
   ; "\x30\x2d\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x04\x05\x00\x04\x1c" (* sha224 *)

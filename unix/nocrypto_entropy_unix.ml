@@ -1,6 +1,4 @@
 open Nocrypto
-open Uncommon
-
 
 let devices  = [ "/dev/urandom"; "/dev/random" ]
 
@@ -22,6 +20,12 @@ let read_cs fd n =
   let cs  = Cstruct.create k in
   Cstruct.blit_from_bytes buf 0 cs 0 k ;
   cs
+
+let bracket ~init ~fini f =
+  let a = init () in
+  match f a with
+    exception exn -> fini a; raise exn
+  | res           -> fini a; res
 
 let reseed ?(bytes = a_little) ?(device = sys_rng) g =
   let rec feed n fd =

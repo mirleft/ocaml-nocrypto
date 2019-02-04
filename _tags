@@ -3,6 +3,9 @@ true: bin_annot, safe_string
 true: warn(A-4-29-33-40-41-42-43-34-44-48)
 true: package(bytes ocplib-endian cstruct)
 
+<src-base>: include
+<src-base/*.cm{,x}a>: link_stubs(src-base/libnocrypto_base_stubs)
+
 <src>: include
 <src/*.ml{,i}>: package(zarith)
 <src/*.cm{,x}a>: link_stubs(src/libnocrypto_stubs)
@@ -19,7 +22,7 @@ true: package(bytes ocplib-endian cstruct)
 <**/*.c>: ccopt(-D_DEFAULT_SOURCE --std=c99 -Wall -Wextra -O3)
 <**/aes_aesni.c>: ccopt(-Wno-implicit-fallthrough)
 
-<bench/*>: use_nocrypto, package(zarith)
-<tests/*>: use_nocrypto, package(zarith oUnit)
+<bench/*>: use_nocrypto, use_nocrypto_base, package(zarith)
+<tests/*>: use_nocrypto, use_nocrypto_base, package(zarith oUnit)
 
 <rondom>: -traverse

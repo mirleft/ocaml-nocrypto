@@ -1,4 +1,4 @@
-open Uncommon
+open Nocrypto_uncommon
 
 type bits = int
 

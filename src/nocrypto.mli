@@ -18,11 +18,12 @@
 (** Base64 conversion.
 
     It is here only temporary, until we find it a proper home. *)
-module Base64 : sig
-  val encode : Cstruct.t -> Cstruct.t
-  val decode : Cstruct.t -> Cstruct.t option
-  val is_base64_char : char -> bool
-end
+(* module Base64 = Nocrypto_base.Base64 *)
+(* module Base64 : sig *)
+(*   val encode : Cstruct.t -> Cstruct.t *)
+(*   val decode : Cstruct.t -> Cstruct.t option *)
+(*   val is_base64_char : char -> bool *)
+(* end *)
 
 
 (**/**)
@@ -31,66 +32,67 @@ end
 
     This is largely an internal API used in related sub-libraries or tests. As
     such, it is prone to breakage. *)
-module Uncommon : sig
+(* module Uncommon = Nocrypto_base.Uncommon *)
+(*module Uncommon : sig *)
 
-  val (//) : int -> int -> int
-  (** [x // y] is the ceiling division [ceil (x / y)].
+(*  val (//) : int -> int -> int *)
+(*  (1** [x // y] is the ceiling division [ceil (x / y)]. *)
 
-      [x // y] is [0] for any non-positive [x].
+(*      [x // y] is [0] for any non-positive [x]. *)
 
-      @raise Division_by_zero when [y < 1]. *)
+(*      @raise Division_by_zero when [y < 1]. *1) *)
 
-  module Option : sig
-    val v_map : def:'b -> f:('a -> 'b) -> 'a option -> 'b
-    val map   : f:('a -> 'b) -> 'a option -> 'b option
-    val get   : def:'a -> 'a option -> 'a
-  end
+(*  module Option : sig *)
+(*    val v_map : def:'b -> f:('a -> 'b) -> 'a option -> 'b *)
+(*    val map   : f:('a -> 'b) -> 'a option -> 'b option *)
+(*    val get   : def:'a -> 'a option -> 'a *)
+(*  end *)
 
-  (** Addons to {!Cstruct}. *)
-  module Cs : sig
+(*  (1** Addons to {!Cstruct}. *1) *)
+(*  module Cs : sig *)
 
-    val empty : Cstruct.t
-    (** [empty] is an empty [Cstruct]. *)
+(*    val empty : Cstruct.t *)
+(*    (1** [empty] is an empty [Cstruct]. *1) *)
 
-    val null  : Cstruct.t -> bool
-    (** [null cs] tests whether [len cs = 0]. *)
+(*    val null  : Cstruct.t -> bool *)
+(*    (1** [null cs] tests whether [len cs = 0]. *1) *)
 
-    val (<+>) : Cstruct.t -> Cstruct.t -> Cstruct.t
-    (** [<+>] is an alias for [Cstruct.append]. *)
+(*    val (<+>) : Cstruct.t -> Cstruct.t -> Cstruct.t *)
+(*    (1** [<+>] is an alias for [Cstruct.append]. *1) *)
 
-    val ct_eq : Cstruct.t -> Cstruct.t -> bool
-    (** Constant-time equality. *)
+(*    val ct_eq : Cstruct.t -> Cstruct.t -> bool *)
+(*    (1** Constant-time equality. *1) *)
 
-    val xor_into : Cstruct.t -> Cstruct.t -> int -> unit
-    val xor      : Cstruct.t -> Cstruct.t -> Cstruct.t
+(*    val xor_into : Cstruct.t -> Cstruct.t -> int -> unit *)
+(*    val xor      : Cstruct.t -> Cstruct.t -> Cstruct.t *)
 
-    (** {2 Private utilities} *)
+(*    (1** {2 Private utilities} *1) *)
 
-    val create : ?init:int -> int -> Cstruct.t
-    val clone  : ?off:int -> ?len:int -> Cstruct.t -> Cstruct.t
+(*    val create : ?init:int -> int -> Cstruct.t *)
+(*    val clone  : ?off:int -> ?len:int -> Cstruct.t -> Cstruct.t *)
 
-    val (lsl) : Cstruct.t -> int -> Cstruct.t
-    val (lsr) : Cstruct.t -> int -> Cstruct.t
+(*    val (lsl) : Cstruct.t -> int -> Cstruct.t *)
+(*    val (lsr) : Cstruct.t -> int -> Cstruct.t *)
 
-    val of_hex : string -> Cstruct.t
-  end
+(*    val of_hex : string -> Cstruct.t *)
+(*  end *)
 
-  val xd  : ?address:bool -> ?ascii:bool -> ?w:int -> unit -> Format.formatter -> Cstruct.t -> unit
-  (** [xd ?address ?ascii ?w () ppf cs] pretty-prints [cs] on [ppf] using the
-      traditional hexdump format.
+(*  val xd  : ?address:bool -> ?ascii:bool -> ?w:int -> unit -> Format.formatter -> Cstruct.t -> unit *)
+(*  (1** [xd ?address ?ascii ?w () ppf cs] pretty-prints [cs] on [ppf] using the *)
+(*      traditional hexdump format. *)
 
-      [~address] starts each line with its offset in [cs]. Default [true].
+(*      [~address] starts each line with its offset in [cs]. Default [true]. *)
 
-      [~ascii] prints (printable) bytes of [cs]. Default [false].
+(*      [~ascii] prints (printable) bytes of [cs]. Default [false]. *)
 
-      [~w] bytes per line. Default [16]. *)
+(*      [~w] bytes per line. Default [16]. *1) *)
 
-  val xdb : ?address:bool -> ?ascii:bool -> ?w:int -> unit -> Format.formatter -> bytes -> unit
-  (** {!xd} for [bytes]. *)
+(*  val xdb : ?address:bool -> ?ascii:bool -> ?w:int -> unit -> Format.formatter -> bytes -> unit *)
+(*  (1** {!xd} for [bytes]. *1) *)
 
-  val bracket : init:(unit -> 'a) -> fini:('a -> unit) -> ('a -> 'b) -> 'b
-  (** Safe acquire-use-release combinator. *)
-end
+(*  val bracket : init:(unit -> 'a) -> fini:('a -> unit) -> ('a -> 'b) -> 'b *)
+(*  (1** Safe acquire-use-release combinator. *1) *)
+(*end *)
 
 (**/**)
 

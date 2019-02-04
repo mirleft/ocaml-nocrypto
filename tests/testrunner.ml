@@ -1,4 +1,3 @@
-
 open OUnit2
 
 (* Gather quantum uncertainty. *)

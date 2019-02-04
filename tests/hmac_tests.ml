@@ -3,9 +3,9 @@ open OUnit2
 open Notest
 
 open Nocrypto
-open Nocrypto.Uncommon
-
 open Nocrypto.Hash
+open Nocrypto_uncommon
+
 
 (* This is from RFC 2022 (MD5/SHA1) and 4231 (SHA2) *)
 

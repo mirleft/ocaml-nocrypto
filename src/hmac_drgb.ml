@@ -1,6 +1,6 @@
-module Make (H : Hash.S) = struct
+open Nocrypto_uncommon
 
-  open Uncommon
+module Make (H : Hash.S) = struct
 
   type g =
     { mutable k      : Cstruct.t
