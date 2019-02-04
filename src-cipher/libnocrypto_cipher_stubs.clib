@@ -1,4 +1,4 @@
-native/misc.o
+native/counters.o
 native/aes/aes_generic.o
 native/aes/aes_aesni.o
 native/des/des_generic.o

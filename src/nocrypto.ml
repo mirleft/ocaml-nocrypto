@@ -3,8 +3,8 @@
 
 module Hash = Nocrypto_hash
 module Numeric = Numeric
-module Cipher_block = Cipher_block
-module Cipher_stream = Cipher_stream
+module Cipher_block = Nocrypto_cipher.Cipher_block
+module Cipher_stream = Nocrypto_cipher.Cipher_stream
 module Rng = Rng
 module Rsa = Rsa
 module Dsa = Dsa
