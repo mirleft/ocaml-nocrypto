@@ -1,4 +1,5 @@
 open Nocrypto_uncommon
+module Hash = Nocrypto_hash
 
 type bits = int
 

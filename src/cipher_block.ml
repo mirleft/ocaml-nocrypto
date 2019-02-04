@@ -1,4 +1,5 @@
 open Nocrypto_uncommon
+module Hash = Nocrypto_hash
 
 module S = struct
 
@@ -346,7 +347,7 @@ module Modes2 = struct
       | _  -> CTR.ctr_of_cstruct @@
                 GHASH.digesti ~key:hkey @@ iter2 iv (pack64s 0L (bits64 iv))
 
-    let tag ~key ~hkey ~ctr ?(adata=Cs.empty) cdata =
+    let tag ~key ~hkey ~ctr ?(adata=Cstruct.empty) cdata =
       CTR.encrypt ~key ~ctr @@
         GHASH.digesti ~key:hkey @@
           iter3 adata cdata (pack64s (bits64 adata) (bits64 cdata))

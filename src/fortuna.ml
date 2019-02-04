@@ -1,7 +1,16 @@
 open Nocrypto_uncommon
-open Hash
+open Nocrypto_hash
 
 module AES_CTR = Cipher_block.AES.CTR
+
+module SHAd256 = struct
+  type t = SHA256.t
+  let empty     = SHA256.empty
+  let get t     = SHA256.(get t |> digest)
+  let digest x  = SHA256.(digest x |> digest)
+  let digesti i = SHA256.(digesti i |> digest)
+  let feedi     = SHA256.feedi
+end
 
 let block = 16
 

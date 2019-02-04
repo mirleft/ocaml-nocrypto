@@ -46,6 +46,9 @@ let () =
     Ok [ Pkg.clib "src-base/libnocrypto_base_stubs.clib";
          Pkg.mllib "src-base/nocrypto_base.mllib";
 
+         Pkg.clib "src-hash/libnocrypto_hash_stubs.clib";
+         Pkg.mllib "src-hash/nocrypto_hash.mllib";
+
          Pkg.clib "src/libnocrypto_stubs.clib";
          Pkg.mllib "src/nocrypto.mllib" ~api:["Nocrypto"];
          Pkg.mllib ~cond:unix "unix/nocrypto_unix.mllib";

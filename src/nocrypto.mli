@@ -195,116 +195,117 @@ module Numeric : sig
 
 end
 
+module Hash = Nocrypto_hash
 
-(** {1 Hashing} *)
+(*(1** {1 Hashing} *1) *)
 
-(** Hashes.
+(*(1** Hashes. *)
 
-    Each algorithm is contained in its own {{!hashing_modules}module}, with
-    high-level operations accessible through {{!hashing_funs}functions} that
-    dispatch on {{!hash}code} value. *)
-module Hash : sig
+(*    Each algorithm is contained in its own {{!hashing_modules}module}, with *)
+(*    high-level operations accessible through {{!hashing_funs}functions} that *)
+(*    dispatch on {{!hash}code} value. *1) *)
+(*module Hash : sig *)
 
-  type digest = Cstruct.t
+(*  type digest = Cstruct.t *)
 
-  type 'a iter = ('a -> unit) -> unit
-  (** A general (inner) iterator. It applies the provided function to a
-      collection of elements.
+(*  type 'a iter = ('a -> unit) -> unit *)
+(*  (1** A general (inner) iterator. It applies the provided function to a *)
+(*      collection of elements. *)
 
-      For instance:
+(*      For instance: *)
 
-      {ul
-      {- [let iter_k    : 'a      -> 'a iter = fun x f -> f x]}
-      {- [let iter_pair : 'a * 'a -> 'a iter = fun (x, y) f = f x; f y]}
-      {- [let iter_list : 'a list -> 'a iter = fun xs f -> List.iter f xs]}} *)
+(*      {ul *)
+(*      {- [let iter_k    : 'a      -> 'a iter = fun x f -> f x]} *)
+(*      {- [let iter_pair : 'a * 'a -> 'a iter = fun (x, y) f = f x; f y]} *)
+(*      {- [let iter_list : 'a list -> 'a iter = fun xs f -> List.iter f xs]}} *1) *)
 
-  (** {1:hashing_modules Hashing algorithms} *)
+(*  (1** {1:hashing_modules Hashing algorithms} *1) *)
 
-  (** A single hash algorithm. *)
-  module type S = sig
+(*  (1** A single hash algorithm. *1) *)
+(*  module type S = sig *)
 
-    val digest_size : int
-    (** Size of digests (in bytes). *)
+(*    val digest_size : int *)
+(*    (1** Size of digests (in bytes). *1) *)
 
-    (** {1 Core operations} *)
+(*    (1** {1 Core operations} *1) *)
 
-    type t
-    (** Represents a running hash computation in a way suitable for appending
-        inputs. *)
+(*    type t *)
+(*    (1** Represents a running hash computation in a way suitable for appending *)
+(*        inputs. *1) *)
 
-    val empty : t
-    (** [empty] is the hash of the empty string. *)
+(*    val empty : t *)
+(*    (1** [empty] is the hash of the empty string. *1) *)
 
-    val feed : t -> Cstruct.t -> t
-    (** [feed t msg] adds the information in [msg] to [t].
+(*    val feed : t -> Cstruct.t -> t *)
+(*    (1** [feed t msg] adds the information in [msg] to [t]. *)
 
-        [feed] is analogous to appending:
-        [feed (feed t msg1) msg2 = feed t (append msg1 msg2)]. *)
+(*        [feed] is analogous to appending: *)
+(*        [feed (feed t msg1) msg2 = feed t (append msg1 msg2)]. *1) *)
 
-    val get : t -> digest
-    (** [get t] is the digest corresponding to [t]. *)
+(*    val get : t -> digest *)
+(*    (1** [get t] is the digest corresponding to [t]. *1) *)
 
-    (** {1 All-in-one}
+(*    (1** {1 All-in-one} *)
 
-        Functions that operate on data stored in a single chunk. *)
+(*        Functions that operate on data stored in a single chunk. *1) *)
 
-    val digest : Cstruct.t -> digest
-    (** [digest msg] is the digest of [msg].
+(*    val digest : Cstruct.t -> digest *)
+(*    (1** [digest msg] is the digest of [msg]. *)
 
-        [digest msg = get (feed empty msg)] *)
+(*        [digest msg = get (feed empty msg)] *1) *)
 
-    val hmac : key:Cstruct.t -> Cstruct.t -> digest
-    (** [hmac ~key bytes] is the authentication code for [bytes] under the
-        secret [key], generated using the standard HMAC construction over this
-        hash algorithm. *)
+(*    val hmac : key:Cstruct.t -> Cstruct.t -> digest *)
+(*    (1** [hmac ~key bytes] is the authentication code for [bytes] under the *)
+(*        secret [key], generated using the standard HMAC construction over this *)
+(*        hash algorithm. *1) *)
 
-    (** {1:hashing_funs Functions over iterators}
+(*    (1** {1:hashing_funs Functions over iterators} *)
 
-        Functions that operate on arbitrary {{!iter}iterators}. They can serve
-        as a basis for other, more specialized aggregate hashing operations.
+(*        Functions that operate on arbitrary {{!iter}iterators}. They can serve *)
+(*        as a basis for other, more specialized aggregate hashing operations. *)
 
-        These functions are a little faster than using {{!feed}[feed]} directly. *)
+(*        These functions are a little faster than using {{!feed}[feed]} directly. *1) *)
 
-    val feedi : t -> Cstruct.t iter -> t
-    (** [feedi t iter =
-  (let r = ref t in iter (fun msg -> r := feed !r msg); !r)] *)
+(*    val feedi : t -> Cstruct.t iter -> t *)
+(*    (1** [feedi t iter = *)
+(*  (let r = ref t in iter (fun msg -> r := feed !r msg); !r)] *1) *)
 
-    val digesti : Cstruct.t iter -> digest
-    (** [digesti iter = feedi empty iter |> get] *)
+(*    val digesti : Cstruct.t iter -> digest *)
+(*    (1** [digesti iter = feedi empty iter |> get] *1) *)
 
-    val hmaci : key:Cstruct.t -> Cstruct.t iter -> digest
-    (** See {{!hmac}[hmac]}. *)
-  end
+(*    val hmaci : key:Cstruct.t -> Cstruct.t iter -> digest *)
+(*    (1** See {{!hmac}[hmac]}. *1) *)
+(*  end *)
 
-  module MD5     : S
-  module SHA1    : S
-  module SHA224  : S
-  module SHA256  : S
-  module SHA384  : S
-  module SHA512  : S
+(*  module MD5     : S *)
+(*  module SHA1    : S *)
+(*  module SHA224  : S *)
+(*  module SHA256  : S *)
+(*  module SHA384  : S *)
+(*  module SHA512  : S *)
 
-  (** {1 Codes-based interface} *)
+(*  (1** {1 Codes-based interface} *1) *)
 
-  type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]
-  (** Algorithm codes. *)
+(*  type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ] *)
+(*  (1** Algorithm codes. *1) *)
 
-  val module_of   : [< hash ] -> (module S)
-  (** [module_of hash] is the (first-class) module corresponding to the code
-      [hash].
+(*  val module_of   : [< hash ] -> (module S) *)
+(*  (1** [module_of hash] is the (first-class) module corresponding to the code *)
+(*      [hash]. *)
 
-      This is the most convenient way to go from a code to a module. *)
+(*      This is the most convenient way to go from a code to a module. *1) *)
 
-  val digest      : [< hash ] -> Cstruct.t -> digest
-  val digesti     : [< hash ] -> Cstruct.t iter -> digest
-  val mac         : [< hash ] -> key:Cstruct.t -> Cstruct.t -> digest
-  val maci        : [< hash ] -> key:Cstruct.t -> Cstruct.t iter -> digest
-  val digest_size : [< hash ] -> int
+(*  val digest      : [< hash ] -> Cstruct.t -> digest *)
+(*  val digesti     : [< hash ] -> Cstruct.t iter -> digest *)
+(*  val mac         : [< hash ] -> key:Cstruct.t -> Cstruct.t -> digest *)
+(*  val maci        : [< hash ] -> key:Cstruct.t -> Cstruct.t iter -> digest *)
+(*  val digest_size : [< hash ] -> int *)
 
-  (** {1 Misc} *)
+(*  (1** {1 Misc} *1) *)
 
-  type 'a or_digest = [ `Message of 'a | `Digest of digest ]
-  (** Either an ['a] or its digest, according to some hash algorithm. *)
-end
+(*  type 'a or_digest = [ `Message of 'a | `Digest of digest ] *)
+(*  (1** Either an ['a] or its digest, according to some hash algorithm. *1) *)
+(*end *)
 
 
 (** {1 Symmetric-key cryptography} *)

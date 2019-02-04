@@ -1,5 +1,58 @@
 open Nocrypto_uncommon
 
+module Native = struct
+
+  open Bigarray
+
+  type buffer = (char, int8_unsigned_elt, c_layout) Array1.t
+  type off   = int
+  type size  = int
+  type ctx   = bytes
+
+  module MD5 = struct
+    external init     : ctx -> unit = "caml_nc_md5_init" [@@noalloc]
+    external update   : ctx -> buffer -> off -> size -> unit = "caml_nc_md5_update" [@@noalloc]
+    external finalize : ctx -> buffer -> off -> unit = "caml_nc_md5_finalize" [@@noalloc]
+    external ctx_size : unit -> int = "caml_nc_md5_ctx_size" [@@noalloc]
+  end
+
+  module SHA1 = struct
+    external init     : ctx -> unit = "caml_nc_sha1_init" [@@noalloc]
+    external update   : ctx -> buffer -> off -> size -> unit = "caml_nc_sha1_update" [@@noalloc]
+    external finalize : ctx -> buffer -> off -> unit = "caml_nc_sha1_finalize" [@@noalloc]
+    external ctx_size : unit -> int = "caml_nc_sha1_ctx_size" [@@noalloc]
+  end
+
+  module SHA224 = struct
+    external init     : ctx -> unit = "caml_nc_sha224_init" [@@noalloc]
+    external update   : ctx -> buffer -> off -> size -> unit = "caml_nc_sha224_update" [@@noalloc]
+    external finalize : ctx -> buffer -> off -> unit = "caml_nc_sha224_finalize" [@@noalloc]
+    external ctx_size : unit -> int = "caml_nc_sha224_ctx_size" [@@noalloc]
+  end
+
+  module SHA256 = struct
+    external init     : ctx -> unit = "caml_nc_sha256_init" [@@noalloc]
+    external update   : ctx -> buffer -> off -> size -> unit = "caml_nc_sha256_update" [@@noalloc]
+    external finalize : ctx -> buffer -> off -> unit = "caml_nc_sha256_finalize" [@@noalloc]
+    external ctx_size : unit -> int = "caml_nc_sha256_ctx_size" [@@noalloc]
+  end
+
+  module SHA384 = struct
+    external init     : ctx -> unit = "caml_nc_sha384_init" [@@noalloc]
+    external update   : ctx -> buffer -> off -> size -> unit = "caml_nc_sha384_update" [@@noalloc]
+    external finalize : ctx -> buffer -> off -> unit = "caml_nc_sha384_finalize" [@@noalloc]
+    external ctx_size : unit -> int = "caml_nc_sha384_ctx_size" [@@noalloc]
+  end
+
+  module SHA512 = struct
+    external init     : ctx -> unit = "caml_nc_sha512_init" [@@noalloc]
+    external update   : ctx -> buffer -> off -> size -> unit = "caml_nc_sha512_update" [@@noalloc]
+    external finalize : ctx -> buffer -> off -> unit = "caml_nc_sha512_finalize" [@@noalloc]
+    external ctx_size : unit -> int = "caml_nc_sha512_ctx_size" [@@noalloc]
+  end
+
+end
+
 type digest = Cstruct.t
 
 type 'a iter = ('a -> unit) -> unit
@@ -87,8 +140,8 @@ module Hash_of (F : Foreign) (D : Desc) = struct
 
   let hmaci ~key iter =
     let key = norm key in
-    let outer = xor key opad
-    and inner = xor key ipad in
+    let outer = key lxor opad
+    and inner = key lxor ipad in
     let rest = digesti (fun f -> f inner; iter f) in
     digesti (fun f -> f outer; f rest)
 
@@ -119,18 +172,7 @@ module SHA512 = Hash_of (Native.SHA512) ( struct
   let (digest_size, block_size) = (64, 128)
 end )
 
-module SHAd256 = struct
-  type t = SHA256.t
-  let empty     = SHA256.empty
-  let get t     = SHA256.(get t |> digest)
-  let digest x  = SHA256.(digest x |> digest)
-  let digesti i = SHA256.(digesti i |> digest)
-  let feedi     = SHA256.feedi
-end
-
 type hash = [ `MD5 | `SHA1 | `SHA224 | `SHA256 | `SHA384 | `SHA512 ]
-
-let hashes = [ `MD5; `SHA1; `SHA224; `SHA256; `SHA384; `SHA512 ]
 
 let md5    = (module MD5    : S)
 and sha1   = (module SHA1   : S)
@@ -162,3 +204,4 @@ let digest_or ~hash =
   let module H = (val (module_of hash)) in
   let module D = Digest_or (H) in
   D.digest_or
+

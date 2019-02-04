@@ -1,4 +1,5 @@
 open Nocrypto_uncommon
+module Hash = Nocrypto_hash
 
 type bits = int
 
@@ -172,7 +173,9 @@ module PKCS1 = struct
   let decrypt ?mask ~key msg =
     unpadded unpad_02 (decrypt ?mask ~key) (priv_bits key) msg
 
-  let asns = List.(combine Hash.hashes % map of_string) [
+  let hashes = [ `MD5; `SHA1; `SHA224; `SHA256; `SHA384; `SHA512 ]
+
+  let asns = List.(combine hashes % map of_string) [
     "\x30\x20\x30\x0c\x06\x08\x2a\x86\x48\x86\xf7\x0d\x02\x05\x05\x00\x04\x10"     (* md5 *)
   ; "\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14"                 (* sha1 *)
   ; "\x30\x2d\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x04\x05\x00\x04\x1c" (* sha224 *)
@@ -210,7 +213,7 @@ module MGF1 (H : Hash.S) = struct
              go (h :: acc) Int32.(succ c) (pred n) in
     go [] 0l (len // H.digest_size)
 
-  let mask ~seed cs = Cs.xor (mgf ~seed (Cstruct.len cs)) cs
+  let mask ~seed cs = Cs.((mgf ~seed (Cstruct.len cs)) lxor cs)
 end
 
 module OAEP (H : Hash.S) = struct
@@ -223,7 +226,7 @@ module OAEP (H : Hash.S) = struct
 
   let max_msg_bytes k = k - 2 * hlen - 2
 
-  let eme_oaep_encode ?g ?(label = Cs.empty) k msg =
+  let eme_oaep_encode ?g ?(label = Cstruct.empty) k msg =
     let seed  = Rng.generate ?g hlen
     and pad   = Cs.create (max_msg_bytes k - len msg) in
     let db    = cat [ H.digest label ; pad ; bx01 ; msg ] in
@@ -231,7 +234,7 @@ module OAEP (H : Hash.S) = struct
     let mseed = MGF.mask ~seed:mdb seed in
     cat [ bx00 ; mseed ; mdb ]
 
-  let eme_oaep_decode ?(label = Cs.empty) msg =
+  let eme_oaep_decode ?(label = Cstruct.empty) msg =
     let (b0, ms, mdb) = Cs.split3 msg 1 hlen in
     let db = MGF.mask ~seed:(MGF.mask ~seed:mdb ms) mdb in
     let i  = Cs.ct_find_uint8 ~off:hlen ~f:((<>) 0x00) db |> Option.get ~def:0

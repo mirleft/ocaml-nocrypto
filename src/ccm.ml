@@ -79,7 +79,7 @@ let gen_ctr nonce i =
 let prepare_header nonce adata tlen plen =
   let ada = match adata with
     | Some x -> gen_adata x
-    | None   -> Cs.empty
+    | None   -> Cstruct.empty
   in
   format nonce adata plen tlen <+> ada
 
@@ -98,7 +98,7 @@ let crypto_core ~cipher ~mode ~key ~nonce ~maclen ?adata data =
   in
 
   let cbc iv block =
-    Cs.xor_into iv block block_size ;
+    Cs.xor iv block block_size ;
     cipher ~key block block
   in
 
@@ -126,13 +126,13 @@ let crypto_core ~cipher ~mode ~key ~nonce ~maclen ?adata data =
        let ctrbl = pad_block target in
        ctrblock ctr ctrbl ;
        Cstruct.blit ctrbl 0 target 0 x ;
-       Cs.xor_into src target x ;
+       Cs.xor src target x ;
        let cbblock = pad_block cbcblock in
        cbc cbblock iv ;
        iv
     | _ ->
        ctrblock ctr target ;
-       Cs.xor_into src target block_size ;
+       Cs.xor src target block_size ;
        cbc cbcblock iv ;
        loop iv
             (succ ctr)
@@ -146,7 +146,7 @@ let crypto_core ~cipher ~mode ~key ~nonce ~maclen ?adata data =
 let crypto_t t nonce cipher key =
   let ctr = gen_ctr nonce 0 in
   cipher ~key ctr ctr ;
-  Cs.xor_into ctr t (Cstruct.len t)
+  Cs.xor ctr t (Cstruct.len t)
 
 let generation_encryption ~cipher ~key ~nonce ~maclen ?adata data =
   let cdata, t = crypto_core ~cipher ~mode:Encrypt ~key ~nonce ~maclen ?adata data in

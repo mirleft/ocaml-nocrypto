@@ -1,4 +1,5 @@
 open Nocrypto_uncommon
+module Hash = Nocrypto_hash
 
 module Make (H : Hash.S) = struct
 

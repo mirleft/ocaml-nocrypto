@@ -6,6 +6,9 @@ true: package(bytes ocplib-endian cstruct)
 <src-base>: include
 <src-base/*.cm{,x}a>: link_stubs(src-base/libnocrypto_base_stubs)
 
+<src-hash>: include
+<src-hash/*.cm{,x}a>: link_stubs(src-hash/libnocrypto_hash_stubs)
+
 <src>: include
 <src/*.ml{,i}>: package(zarith)
 <src/*.cm{,x}a>: link_stubs(src/libnocrypto_stubs)
@@ -22,7 +25,7 @@ true: package(bytes ocplib-endian cstruct)
 <**/*.c>: ccopt(-D_DEFAULT_SOURCE --std=c99 -Wall -Wextra -O3)
 <**/aes_aesni.c>: ccopt(-Wno-implicit-fallthrough)
 
-<bench/*>: use_nocrypto, use_nocrypto_base, package(zarith)
-<tests/*>: use_nocrypto, use_nocrypto_base, package(zarith oUnit)
+<bench/*>: use_nocrypto, use_nocrypto_base, use_nocrypto_hash, package(zarith)
+<tests/*>: use_nocrypto, use_nocrypto_base, use_nocrypto_hash, package(zarith oUnit)
 
 <rondom>: -traverse

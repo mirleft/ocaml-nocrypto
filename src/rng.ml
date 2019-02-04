@@ -128,7 +128,7 @@ module Generators = struct
 
     let block = 1
 
-    let create () = ref Cs.empty
+    let create () = ref Cstruct.empty
 
     let generate ~g n =
       try

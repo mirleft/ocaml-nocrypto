@@ -1,0 +1,5 @@
+native/md5.o
+native/sha1.o
+native/sha256.o
+native/sha512.o
+native/stubs.o
