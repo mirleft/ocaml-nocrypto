@@ -15,6 +15,9 @@ true: package(bytes ocplib-endian cstruct)
 <src-rng>: include
 <src-rng/*.ml{,i}>: package(zarith)
 
+<src-pk>: include
+<src-pk/*.ml{,i}>: package(zarith)
+
 <src>: include
 <src/*.ml{,i}>: package(zarith)
 
