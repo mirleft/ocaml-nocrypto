@@ -1,8 +1,4 @@
-Numeric
-Rng
 Rsa
 Dsa
 Dh
-Fortuna
-Hmac_drgb
 Nocrypto

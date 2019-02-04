@@ -1,4 +1,5 @@
 open Nocrypto_uncommon
+open Nocrypto_rng
 
 type bits = int
 
