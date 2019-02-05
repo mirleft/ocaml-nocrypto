@@ -13,7 +13,6 @@ true: package(bytes ocplib-endian cstruct)
 <src-cipher/*.cm{,x}a>: link_stubs(src-cipher/libnocrypto_cipher_stubs)
 
 <src-rng>: include
-<src-rng/*.ml{,i}>: package(zarith)
 
 <src-pk>: include
 <src-pk/*.ml{,i}>: package(zarith)

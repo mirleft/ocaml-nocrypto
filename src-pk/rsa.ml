@@ -1,6 +1,4 @@
-open Nocrypto_uncommon
-open Nocrypto_rng
-module Hash = Nocrypto_hash
+open Nocrypto_pk_common
 
 type bits = int
 
@@ -39,12 +37,12 @@ let rec priv_of_exp ?g ?(attempts=100) ~e ~d n =
               if Z.(ax <> one && ax <> pred n && ax2 = one) then
                 Some ax
               else go ax2 (i' - 1) in
-    Option.(go Z.(powm (Rng.Z.gen ?g n) t n) s >>| Z.(gcd n % pred)) in
+    Option.(go Z.(powm (RngZ.gen ?g n) t n) s >>| Z.(gcd n % pred)) in
   let err (k : _ format4 -> _) =
     Z.(k "Rsa.priv_of_exp: e: %a, d: %a, n: %a" pp e pp d pp n) in
   if attempts > 0 then
     if Z.(two < n && two < e && two < d && e < n && d < n) then
-      match Numeric.strip_factor ~f:two Z.(e * d |> pred) with
+      match strip_factor ~f:two Z.(e * d |> pred) with
       | (0, _) -> err invalid_arg
       | (s, t) -> match factor s t with
         | None   -> priv_of_exp ?g ~attempts:(attempts - 1) ~e ~d n
@@ -56,8 +54,8 @@ let rec priv_of_exp ?g ?(attempts=100) ~e ~d n =
 let pub_of_priv ({ e; n; _ } : priv) = { e ; n }
 
 (* XXX handle this more gracefully... *)
-let pub_bits  ({ n; _ } : pub)  = Numeric.Z.bits n
-and priv_bits ({ n; _ } : priv) = Numeric.Z.bits n
+let pub_bits  ({ n; _ } : pub)  = Repr.bit_size n
+and priv_bits ({ n; _ } : priv) = Repr.bit_size n
 
 let encrypt_unsafe ~key: ({ e; n } : pub) msg = Z.(powm msg e n)
 
@@ -68,7 +66,7 @@ let decrypt_unsafe ~key: ({ p; q; dp; dq; q'; _} : priv) c =
   Z.(h * q + m2)
 
 let decrypt_blinded_unsafe ?g ~key: ({ e; n; _} as key : priv) c =
-  let r  = until (rprime n) (fun _ -> Rng.Z.gen_r ?g two n) in
+  let r  = until (rprime n) (fun _ -> RngZ.gen_r ?g two n) in
   let r' = Z.(invert r n) in
   let x  = decrypt_unsafe ~key Z.(powm r e n * c mod n) in
   Z.(r' * x mod n)
@@ -86,21 +84,21 @@ let (encrypt_z, decrypt_z) =
     | `Yes_with g -> decrypt_blinded_unsafe ~g ~key msg )
 
 let reformat out f msg =
-  Numeric.Z.(of_cstruct_be msg |> f |> to_cstruct_be ~size:(out // 8))
+  Repr.(of_cstruct_be msg |> f |> to_cstruct_be ~size:(out // 8))
 
 let encrypt ~key              = reformat (pub_bits key)  (encrypt_z ~key)
 and decrypt ?(mask=`Yes) ~key = reformat (priv_bits key) (decrypt_z ~mask ~key)
 
 let well_formed ~e ~p ~q =
   Z.(~$3) <= e && p <> q &&
-  Numeric.(pseudoprime e && pseudoprime p && pseudoprime q) &&
+  (pseudoprime e && pseudoprime p && pseudoprime q) &&
   rprime e Z.(pred p) && rprime e Z.(pred q)
 
 let rec generate ?g ?(e = Z.(~$0x10001)) bits =
-  if e < Z.(~$3) || Numeric.(bits <= Z.bits e || not (pseudoprime e)) then
+  if e < Z.(~$3) || (bits <= Repr.bit_size e || not (pseudoprime e)) then
     invalid_arg "Rsa.generate: e: %a, bits: %d" Z.pp_print e bits;
   let (pb, qb) = (bits / 2, bits - bits / 2) in
-  let (p, q)   = Rng.(prime ?g ~msb:2 pb, prime ?g ~msb:2 qb) in
+  let (p, q)   = RngZ.(prime ?g ~msb:2 pb, prime ?g ~msb:2 qb) in
   if (p <> q) && rprime e Z.(pred p) && rprime e Z.(pred q) then
     priv_of_primes ~e ~p:(max p q) ~q:(min p q)
   else generate ?g ~e bits
@@ -204,7 +202,10 @@ end
 
 module MGF1 (H : Hash.S) = struct
 
-  let repr = Numeric.Int32.to_cstruct_be ~size:4
+  (* let repr = Numeric.Int32.to_cstruct_be ~size:4 *)
+  let repr x =
+    let cs = Cstruct.create_unsafe 4 in
+    Cstruct.BE.set_uint32 cs 0 x; cs
 
   (* Assumes len < 2^32 * H.digest_size. *)
   let mgf ~seed len =

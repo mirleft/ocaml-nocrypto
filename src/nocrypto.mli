@@ -96,8 +96,6 @@
 
 (**/**)
 
-module Numeric = Nocrypto_rng.Numeric
-
 (*(1** Numeric utilities. *1) *)
 (*module Numeric : sig *)
 
@@ -570,7 +568,7 @@ module Cipher_stream = Nocrypto_cipher.Cipher_stream
 (*end*)
 
 
-module Rng = Nocrypto_rng.Rng
+module Rng = NoRng
 
 (*(** {1 Randomness} *)*)
 

@@ -2,6 +2,7 @@ open OUnit2
 
 open Notest
 open Nocrypto
+open Nocrypto_pk
 open Nocrypto_uncommon
 
 (*
@@ -31,14 +32,14 @@ let params ~p ~q ~g = Cs.(of_hex p, of_hex q, of_hex g)
 let priv_of f ~p ~q ~gg ~x ~y =
   { Dsa.p = f p ; q = f q ; gg = f gg ; x = f x ; y = f y }
 
-let priv_of_cs  = priv_of Numeric.Z.of_cstruct_be
-let priv_of_hex = priv_of (fun cs -> Cs.of_hex cs |> Numeric.Z.of_cstruct_be)
+let priv_of_cs  = priv_of Repr.of_cstruct_be
+let priv_of_hex = priv_of (fun cs -> Cs.of_hex cs |> Repr.of_cstruct_be)
 
 let case_of ~domain ~hash ~x ~y ~k ~r ~s ~msg =
   let (p, q, gg) = domain in
   let priv   = priv_of_cs ~p ~q ~gg ~x:(Cs.of_hex x) ~y:(Cs.of_hex y)
   and (r, s) = Cs.(of_hex r, of_hex s)
-  and k      = Numeric.Z.of_cstruct_be (Cs.of_hex k)
+  and k      = Repr.of_cstruct_be (Cs.of_hex k)
   and msg    = Cs.of_hex msg in
   dsa_test ~priv ~msg ~k ~r ~s ~hash
 
@@ -2190,7 +2191,7 @@ let test_rfc6979 ~priv ~msg ~hash ~k ~r ~s  _ =
     K.generate ~key:priv h1 in
   assert_cs_equal
     ~msg:"computed k" k
-    Numeric.Z.(to_cstruct_be ~size:(bits priv.Dsa.q // 8) k') ;
+    Repr.(to_cstruct_be ~size:(bit_size priv.Dsa.q // 8) k') ;
   dsa_test ~priv ~msg ~k:k' ~r ~s ~hash ()
 
 

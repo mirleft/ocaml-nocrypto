@@ -1,4 +1,6 @@
-open Nocrypto_rng
+module Rng = NoRng
+
+type bits = int
 
 (** {1 Public-key cryptography} *)
 
@@ -11,8 +13,6 @@ exceptions.
 
 Private-key operations are optionally protected through RSA blinding. *)
 module Rsa : sig
-
-  type bits = int
 
   (** {1 Keys}
 
@@ -273,8 +273,6 @@ end
 (** {b DSA} digital signature algorithm. *)
 module Dsa : sig
 
-  type bits = int
-
   (** {1 DSA signature algorithm} *)
 
   type priv = {
@@ -356,8 +354,6 @@ end
 (** Diffie-Hellman, MODP version. *)
 module Dh : sig
 
-  type bits = int
-
   (** {1 Diffie-Hellman key exchange} *)
 
   exception Invalid_public_key
@@ -436,4 +432,13 @@ module Dh : sig
     val ffdhe8192 : group
 
   end
+end
+
+module RngZ : NoRng.Arith with type t = Z.t
+
+module Repr : sig
+  val bit_size : Z.t -> bits
+  val of_cstruct_be : ?bits:bits -> Cstruct.t -> Z.t
+  val into_cstruct_be : Z.t -> Cstruct.t -> unit
+  val to_cstruct_be : ?size:int -> Z.t -> Cstruct.t
 end
