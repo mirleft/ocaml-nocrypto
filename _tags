@@ -12,7 +12,7 @@ true: package(bytes ocplib-endian cstruct)
 <unix/*.ml{,i}>: package(unix)
 
 <lwt>: include
-<lwt/*.ml{,i}>: package(lwt.unix cstruct.lwt)
+<lwt/*.ml{,i}>: package(lwt.unix cstruct-lwt)
 
 <mirage>: include
 <mirage/*.ml{,i}>: package(lwt mirage-entropy)

@@ -26,7 +26,7 @@ depends: [
   "cpuid" {build}
   "ocb-stubblr" {build}
   "ounit" {test}
-  "cstruct" {>="3.0.0" & <"3.4.0"}
+  "cstruct" {>="3.0.0" & <"4.0.0"}
   "ocplib-endian"
   "zarith"
   ("mirage-no-xen" | ("mirage-xen" & "zarith-xen"))
