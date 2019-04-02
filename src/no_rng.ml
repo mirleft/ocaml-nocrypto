@@ -1,4 +1,5 @@
-open Uncommon
+open No_uncommon
+module Numeric = No_numeric
 
 type bits = int
 
@@ -35,7 +36,7 @@ let create (type a) ?g ?seed ?(strict=false) (m : a S.generator) =
   seed |> Option.cond ~f:(M.reseed ~g) ;
   S.Generator (g, strict, m)
 
-let generator = ref (create (module Fortuna))
+let generator = ref (create (module No_fortuna))
 
 let get = function Some g -> g | None -> !generator
 
@@ -118,9 +119,9 @@ module Z = ZN
 
 module Generators = struct
 
-  module Fortuna = Fortuna
+  module Fortuna = No_fortuna
 
-  module Hmac_drgb = Hmac_drgb
+  module Hmac_drgb = No_hmac_drgb
 
   module Null = struct
 

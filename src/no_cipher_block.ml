@@ -1,4 +1,6 @@
-open Uncommon
+open No_uncommon
+module Native = No_native
+module Ccm = No_ccm
 
 module S = struct
 
@@ -304,7 +306,7 @@ module Modes2 = struct
   module GHASH : sig
     type key
     val derive  : Cstruct.t -> key
-    val digesti : key:key -> (Cstruct.t Uncommon.iter) -> Cstruct.t
+    val digesti : key:key -> (Cstruct.t No_uncommon.iter) -> Cstruct.t
   end = struct
     type key = bytes
     let keysize = Native.GHASH.keysize ()

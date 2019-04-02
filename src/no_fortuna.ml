@@ -1,7 +1,7 @@
-open Uncommon
-open Hash
+open No_uncommon
+open No_hash
 
-module AES_CTR = Cipher_block.AES.CTR
+module AES_CTR = No_cipher_block.AES.CTR
 
 let block = 16
 

@@ -1,4 +1,7 @@
-open Uncommon
+open No_uncommon
+module Numeric = No_numeric
+module Rng = No_rng
+module Hash = No_hash
 
 type bits = int
 

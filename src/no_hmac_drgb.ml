@@ -1,6 +1,6 @@
-module Make (H : Hash.S) = struct
+module Make (H : No_hash.S) = struct
 
-  open Uncommon
+  open No_uncommon
 
   type g =
     { mutable k      : Cstruct.t
