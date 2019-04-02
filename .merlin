@@ -1,8 +1,0 @@
-S src
-S unix
-S lwt
-S xen
-
-B _build/**
-
-PKG cstruct zarith sexplib

@@ -7,7 +7,6 @@ env:
     - UPDATE_GCC_BINUTILS=1
     - TESTS=true
   matrix:
-    - OCAML_VERSION=4.02
     - OCAML_VERSION=4.03
     - OCAML_VERSION=4.04
     - OCAML_VERSION=4.05
@@ -17,5 +16,6 @@ env:
     - OCAML_VERSION=4.06 DEPOPTS="lwt cstruct-lwt"
     - OCAML_VERSION=4.04 DEPOPTS="mirage-xen"
     - OCAML_VERSION=4.06 DEPOPTS="mirage-solo5 mirage-entropy"
+    - OCAML_VERSION=4.07
 notifications:
   email: false

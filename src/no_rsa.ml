@@ -118,7 +118,7 @@ module PKCS1 = struct
   (* XXX Generalize this into `Rng.samplev` or something. *)
   let generate_with ?g ~f n =
     let cs = create n
-    and k  = let b = Rng.block g in Rng.(n // b * b) in
+    and k  = let b = Rng.block g in (n // b * b) in
     let rec go nonce i j =
       if i = n then cs else
       if j = k then go Rng.(generate ?g k) i 0 else

@@ -5,8 +5,6 @@ open Notest
 open Nocrypto
 open Nocrypto.Uncommon
 
-open Nocrypto.Hash
-
 (* This is from RFC 2022 (MD5/SHA1) and 4231 (SHA2) *)
 
 let hex = Cs.of_hex

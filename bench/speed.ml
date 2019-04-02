@@ -50,7 +50,7 @@ let throughput title f =
   sizes |> List.iter @@ fun size ->
     Gc.full_major () ;
     let (iters, time, bw) = burn f size in
-    Printf.printf "    % 5d:  %04.f MB/s  (%d iters in %.03f s)\n%!"
+    Printf.printf "    % 5d:  %04f MB/s  (%d iters in %.03f s)\n%!"
       size (bw /. mb) iters time
 
 let bm name f = (name, fun () -> f name)

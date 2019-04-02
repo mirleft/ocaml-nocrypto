@@ -366,8 +366,6 @@ module Modes2 = struct
 
 end
 
-open Bigarray
-
 module AES = struct
 
   module Core : S.Core = struct
