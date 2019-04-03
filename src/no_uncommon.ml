@@ -61,10 +61,6 @@ module Z = struct
   let three = ~$3
 
   let pp = pp_print
-
-  open Sexplib.Conv
-  let sexp_of_t z = sexp_of_string (Z.to_string z)
-  let t_of_sexp s = Z.of_string (string_of_sexp s)
 end
 
 module Cs = struct
@@ -109,7 +105,7 @@ module Cs = struct
   let xor_into src dst n =
     if n > imin (len src) (len dst) then
       invalid_arg "Uncommon.Cs.xor_into: buffers to small (need %d)" n
-    else Native.xor_into src.buffer src.off dst.buffer dst.off n
+    else No_native.xor_into src.buffer src.off dst.buffer dst.off n
 
   let xor cs1 cs2 =
     let len = imin (len cs1) (len cs2) in

@@ -1,4 +1,4 @@
-open Uncommon
+open No_uncommon
 
 module type S = sig
   type key

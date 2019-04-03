@@ -1,8 +1,8 @@
-open Uncommon
+open No_uncommon
 
 type digest = Cstruct.t
 
-type 'a iter = 'a Uncommon.iter
+type 'a iter = 'a No_uncommon.iter
 
 type 'a or_digest = [ `Message of 'a | `Digest of digest ]
 
@@ -26,7 +26,7 @@ end
 
 module type Foreign = sig
 
-  open Native
+  open No_native
 
   val init     : ctx -> unit
   val update   : ctx -> buffer -> int -> int -> unit
@@ -41,7 +41,7 @@ end
 
 module Core (F : Foreign) (D : Desc) = struct
 
-  type t = Native.ctx
+  type t = No_native.ctx
 
   include D
 
@@ -95,27 +95,27 @@ module Hash_of (F : Foreign) (D : Desc) = struct
   let hmac ~key message = hmaci ~key (fun f -> f message)
 end
 
-module MD5 = Hash_of (Native.MD5) ( struct
+module MD5 = Hash_of (No_native.MD5) ( struct
   let (digest_size, block_size) = (16, 64)
 end )
 
-module SHA1 = Hash_of (Native.SHA1) ( struct
+module SHA1 = Hash_of (No_native.SHA1) ( struct
   let (digest_size, block_size) = (20, 64)
 end )
 
-module SHA224 = Hash_of (Native.SHA224) ( struct
+module SHA224 = Hash_of (No_native.SHA224) ( struct
   let (digest_size, block_size) = (28, 64)
 end )
 
-module SHA256 = Hash_of (Native.SHA256) ( struct
+module SHA256 = Hash_of (No_native.SHA256) ( struct
   let (digest_size, block_size) = (32, 64)
 end )
 
-module SHA384 = Hash_of (Native.SHA384) ( struct
+module SHA384 = Hash_of (No_native.SHA384) ( struct
   let (digest_size, block_size) = (48, 128)
 end )
 
-module SHA512 = Hash_of (Native.SHA512) ( struct
+module SHA512 = Hash_of (No_native.SHA512) ( struct
   let (digest_size, block_size) = (64, 128)
 end )
 

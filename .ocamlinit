@@ -1,13 +1,14 @@
-#require "cstruct, zarith, sexplib"
-#directory "_build/src"
+#directory "_build/default/src"
+#directory "_build/default/src/.nocrypto.objs/byte"
+#directory "_build/default/unix"
+#directory "_build/default/unix/.nocrypto_entropy_unix.objs/byte"
+#directory "_build/default/lwt"
+#directory "_build/default/lwt/.nocrypto_entropy_lwt.objs/byte"
+
+#require "cstruct, ocplib-endian, zarith"
 #load "nocrypto.cma"
-
-(* #require "oUnit" *)
-(* #directory "_build/tests" *)
-(* #load "testlib.cma" *)
-
-#directory "_build/unix"
 #load "nocrypto_entropy_unix.cmo"
+#load "nocrypto_entropy_lwt.cmo"
 
 open Nocrypto
 let _ = Nocrypto_entropy_unix.initialize ()
