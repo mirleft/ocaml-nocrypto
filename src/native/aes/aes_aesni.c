@@ -301,18 +301,25 @@ static inline void _nc_aesni_dec8 (const uint8_t src[128], uint8_t dst[128], con
     switch (blocks) {                                        \
       case 7:                                                \
         f1 (__b (src, 6), __b (dst, 6), rk, rounds);         \
+        __attribute__ ((fallthrough));                       \
       case 6:                                                \
         f1 (__b (src, 5), __b (dst, 5), rk, rounds);         \
+        __attribute__ ((fallthrough));                       \
       case 5:                                                \
         f1 (__b (src, 4), __b (dst, 4), rk, rounds);         \
+        __attribute__ ((fallthrough));                       \
       case 4:                                                \
         f1 (__b (src, 3), __b (dst, 3), rk, rounds);         \
+        __attribute__ ((fallthrough));                       \
       case 3:                                                \
         f1 (__b (src, 2), __b (dst, 2), rk, rounds);         \
+        __attribute__ ((fallthrough));                       \
       case 2:                                                \
         f1 (__b (src, 1), __b (dst, 1), rk, rounds);         \
+        __attribute__ ((fallthrough));                       \
       case 1:                                                \
         f1 (__b (src, 0), __b (dst, 0), rk, rounds);         \
+        __attribute__ ((fallthrough));                       \
       case 0:                                                \
         return;                                              \
       default:                                               \
