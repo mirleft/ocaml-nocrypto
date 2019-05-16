@@ -9,4 +9,10 @@ let _ =
   | "false" -> []
   | _ -> auto
   | exception Not_found -> auto in
+  let cflags = match Sys.getenv_opt "CFLAGS" with
+  | Some cflags -> [ cflags ]
+  | None -> []
+  in
+  let fs = fs @ cflags in
   Format.(printf "(@[%a@])%!" (fun ppf -> List.iter (fprintf ppf "%s@ ")) fs)
+  
