@@ -7,11 +7,11 @@ let a_lot =    1024
 
 let sys_rng = "BCryptGenRandom"
 
-external get_random_bytes: unit -> int = "get_random_bytes"
+external get_random_bytes: bytes -> int = "get_random_bytes"
 
 let read_cs n =
     let buf = Bytes.create n in
-    let k = get_random_bytes () in
+    let k = get_random_bytes buf in
     let cs = Cstruct.create k in
     Cstruct.blit_from_bytes buf 0 cs 0 k;
     cs

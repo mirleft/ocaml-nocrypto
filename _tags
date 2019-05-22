@@ -16,6 +16,8 @@ true: package(bytes cstruct)
 
 <windows>: include
 <windows/*.ml{,i}>: package(unix bytes)
+<windows/*.c>: ccopt(-lbcrypt -disable-shared -enable-static)
+<windows/*.cm{,x}a>: link_stubs(windows/libwindows_stubs)
 
 <lwt_windows>: include
 <lwt_windows/*.ml{,i}>: package(lwt lwt.unix cstruct.lwt)

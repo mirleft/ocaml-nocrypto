@@ -1,17 +1,14 @@
-#include <WinDef.h>
-#include <bcrypt.h>
 #include <caml/mlvalues.h>
+#include <windows.h>
+#include <bcrypt.h>
 
 CAMLprim value
-get_random_bytes(value unit)
+get_random_bytes(PUCHAR *pbBuffer)
 {
-    PUCHAR *pbBuffer;
-    BCRYPT_ALG_HANDLE *phAlgorithm;
-    BCryptOpenAlgorithmProvider(*phAlgorithm, BCRYPT_RSA_ALGORITHM, NULL, 0);
-    BCryptGenRandom(*phAlgorithm, *pbBuffer, 1024, 0);
-    BCryptCloseAlgorithmProvider(*phAlgorithm, 0);
+    BCRYPT_ALG_HANDLE phAlgorithm;
+    BCryptOpenAlgorithmProvider(&phAlgorithm, BCRYPT_RSA_ALGORITHM, NULL, 0);
+    BCryptGenRandom(phAlgorithm, &pbBuffer, 32, 0);
+    BCryptCloseAlgorithmProvider(phAlgorithm, 0);
 
-    UCHAR buffer = (UCHAR)*pbBuffer;
-
-    return Val_int(buffer);
+    return Val_int(32);
 }
