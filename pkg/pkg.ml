@@ -43,11 +43,15 @@ let () =
     and xen  = Conf.value c xen
     and fs   = Conf.value c fs in
     let mir  = Conf.value c mir in
-    Ok [ Pkg.clib "src/libnocrypto_stubs.clib";
+    let unix_module = if Sys.win32 then "windows/nocrypto_unix.mllib" else "unix/nocrypto_unix.mllib" in
+    let lwt_module = if Sys.win32 then "lwt_windows/nocrypto_lwt.mllib" else "lwt/nocrypto_lwt.mllib" in
+    let windows_stubs = if Sys.win32 then [ Pkg.clib "windows/libwindows_stubs.clib" ] else [] in
+    Ok ( windows_stubs @
+       [ Pkg.clib "src/libnocrypto_stubs.clib";
          Pkg.mllib "src/nocrypto.mllib";
-         Pkg.mllib ~cond:unix "unix/nocrypto_unix.mllib";
-         Pkg.mllib ~cond:lwt "lwt/nocrypto_lwt.mllib";
+         Pkg.mllib ~cond:unix unix_module;
+         Pkg.mllib ~cond:lwt lwt_module;
          Pkg.mllib ~cond:mir "mirage/nocrypto_mirage.mllib";
          Pkg.test "tests/testrunner";
          Pkg.test ~run:false "bench/speed";
-         mirage ~xen ~fs "src/libnocrypto_stubs.clib"; ]
+         mirage ~xen ~fs "src/libnocrypto_stubs.clib"; ] )

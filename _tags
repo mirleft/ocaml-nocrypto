@@ -14,6 +14,12 @@ true: package(bytes cstruct)
 <lwt>: include
 <lwt/*.ml{,i}>: package(lwt.unix cstruct.lwt)
 
+<windows>: include
+<windows/*.ml{,i}>: package(unix bytes)
+
+<lwt_windows>: include
+<lwt_windows/*.ml{,i}>: package(lwt lwt.unix cstruct.lwt)
+
 <mirage>: include
 <mirage/*.ml{,i}>: package(lwt mirage-entropy)
 
