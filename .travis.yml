@@ -13,6 +13,9 @@ env:
     - OCAML_VERSION=4.05
     - OCAML_VERSION=4.05 DEPOPTS="lwt cstruct-lwt"
     - OCAML_VERSION=4.06
+    - OCAML_VERSION=4.07
+    - OCAML_VERSION=4.08
+    - OCAML_VERSION=4.08 DEPOPTS="lwt cstruct-lwt"
     - OCAML_VERSION=4.06 NOCRYPTO_ACCELERATE="false"
     - OCAML_VERSION=4.06 DEPOPTS="lwt cstruct-lwt"
     - OCAML_VERSION=4.04 DEPOPTS="mirage-xen"
