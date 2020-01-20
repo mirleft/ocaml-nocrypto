@@ -15,6 +15,7 @@ build: [ ["dune" "subst"] {pinned}
 depends: [
   "ocaml" {>= "4.03.0"}
   "dune" {build & >= "1.7"}
+  "dune-configurator" {build}
   "cpuid" {build}
   "ounit" {with-test}
   "cstruct" {>="3.0.0"}
